@@ -1,0 +1,13 @@
+{
+  "npc_id": "amy",
+  "name_zh": "艾米",
+  "title_zh": "特快溫控快遞員",
+  "personality": "風趣、充滿活力、急性子",
+  "specialties": ["溫控配送", "地下區域路線", "氣壓與天氣情報"],
+  "affinity_level": 1,
+  "interaction_memory": {
+    "total_packages_delivered": 0,
+    "first_delivery_completed": false,
+    "warned_deep_zone": false
+  }
+}
