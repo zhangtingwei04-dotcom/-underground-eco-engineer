@@ -1,0 +1,19 @@
+{
+  "blocks": [
+    {
+      "type": "sand_block",
+      "hardness": 5,
+      "description": "鬆軟的沙土，極易挖掘，最適合豬鼻蛇活動。"
+    },
+    {
+      "type": "dirt_block",
+      "hardness": 15,
+      "description": "普通的地下泥土，挖掘速度一般。"
+    },
+    {
+      "type": "granite_block",
+      "hardness": 50,
+      "description": "堅硬的花崗岩，需要高挖掘力的生物或工具才能破壞。"
+    }
+  ]
+}
