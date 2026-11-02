@@ -1,0 +1,64 @@
+{
+  "modes": {
+    "casual": {
+      "id": "casual",
+      "name_zh": "休閒模式",
+      "description_zh": "輕鬆經營，享受培育與圖鑑收集的樂趣。提供明確病徵提示、急救機制與自動照護。",
+      "multipliers": {
+        "disease_risk": 0.5,
+        "disease_deterioration_speed": 0.5,
+        "environment_penalty": 0.5,
+        "resource_consumption": 0.8,
+        "death_risk": 0.2,
+        "digging_energy_cost": 0.8,
+        "hunger_thirst_rate": 0.7
+      },
+      "features": {
+        "clear_disease_hints": true,
+        "allow_rescue_mechanism": true,
+        "auto_care_assist_enabled": true,
+        "permanent_death": false
+      }
+    },
+    "standard": {
+      "id": "standard",
+      "name_zh": "標準模式",
+      "description_zh": "預設推薦模式。兼顧遊戲樂趣與生態管理，需要觀察病徵並適度調整環境與醫療資源。",
+      "multipliers": {
+        "disease_risk": 1.0,
+        "disease_deterioration_speed": 1.0,
+        "environment_penalty": 1.0,
+        "resource_consumption": 1.0,
+        "death_risk": 1.0,
+        "digging_energy_cost": 1.0,
+        "hunger_thirst_rate": 1.0
+      },
+      "features": {
+        "clear_disease_hints": false,
+        "allow_rescue_mechanism": true,
+        "auto_care_assist_enabled": false,
+        "permanent_death": true
+      }
+    },
+    "realistic": {
+      "id": "realistic",
+      "name_zh": "真實生態模式",
+      "description_zh": "追求完整的生態模擬。疾病具有複合病因且病徵隱蔽，環境與生物相互影響，死亡永久生效。",
+      "multipliers": {
+        "disease_risk": 1.5,
+        "disease_deterioration_speed": 1.5,
+        "environment_penalty": 1.5,
+        "resource_consumption": 1.2,
+        "death_risk": 1.5,
+        "digging_energy_cost": 1.2,
+        "hunger_thirst_rate": 1.2
+      },
+      "features": {
+        "clear_disease_hints": false,
+        "allow_rescue_mechanism": false,
+        "auto_care_assist_enabled": false,
+        "permanent_death": true
+      }
+    }
+  }
+}
