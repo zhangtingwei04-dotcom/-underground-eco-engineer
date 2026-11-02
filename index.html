@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>地下生態工程師 | Underground Eco-Engineer</title>
-    <!-- 引入 Phaser 3 遊戲引擎 CDN -->
-    <script src="https://jsdelivr.net"></script>
+    <!-- 引入 Phaser 3 遊戲引擎 CDN (已修正：指向實際的 phaser.min.js) -->
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
     <style>
         body {
             margin: 0;
@@ -28,13 +28,14 @@
     <div id="game-container"></div>
 
     <!-- 【核心系統載入】依序引入我們建立的模組 -->
+    <script src="src/core/config.js"></script>
     <script src="src/systems/locales-loader.js"></script>
     <script src="src/systems/map-system.js"></script>
     <script src="src/systems/energy-system.js"></script>
     <script src="src/systems/digging-system.js"></script>
     <script src="src/systems/save-system.js"></script>
-    <script src="src/systems/environment-system.js"></script> <!-- 新增這行引入環境系統 -->
-    
+    <script src="src/systems/environment-system.js"></script>
+
     <!-- 最後引入主程式進行總串接 -->
     <script src="src/main.js"></script>
 
