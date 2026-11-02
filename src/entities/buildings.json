@@ -1,0 +1,18 @@
+{
+  "buildings": [
+    {
+      "id": "rest_area",
+      "name_key": "building_rest_area",
+      "type": "habitat",
+      "cost": {
+        "sand_particle": 3,
+        "raw_stone": 1
+      },
+      "effect": {
+        "energy_recovery_boost": 5,
+        "stress_relief": 10
+      },
+      "description": "一個舒適的地下沙土休息角落，能有效幫助生物恢復精力並舒緩壓力。"
+    }
+  ]
+}
