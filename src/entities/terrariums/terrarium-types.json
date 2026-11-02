@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "terrariumTypes": [
+    {
+      "id": "small",
+      "nameKey": "terrarium.types.small",
+      "name_zh": "30cm 小型生態箱",
+      "descriptionKey": "terrarium.descriptions.small",
+      "dimensions": { "width": 30, "depth": 30, "height": 30 },
+      "gridSize": { "columns": 10, "rows": 10, "layers": 6 },
+      "unlockedByDefault": true,
+      "expandable": true,
+      "features": { "customTerrain": true, "undergroundDigging": true, "waterArea": false, "maxCreatureCapacity": 2 }
+    },
+    {
+      "id": "standard",
+      "nameKey": "terrarium.types.standard",
+      "name_zh": "60cm 標準生態箱",
+      "descriptionKey": "terrarium.descriptions.standard",
+      "dimensions": { "width": 60, "depth": 45, "height": 45 },
+      "gridSize": { "columns": 20, "rows": 15, "layers": 9 },
+      "unlockedByDefault": false,
+      "expandable": true,
+      "features": { "customTerrain": true, "undergroundDigging": true, "waterArea": true, "maxCreatureCapacity": 5 }
+    },
+    {
+      "id": "large",
+      "nameKey": "terrarium.types.large",
+      "name_zh": "90cm 大型生態展示箱",
+      "descriptionKey": "terrarium.descriptions.large",
+      "dimensions": { "width": 90, "depth": 60, "height": 60 },
+      "gridSize": { "columns": 30, "rows": 20, "layers": 12 },
+      "unlockedByDefault": false,
+      "expandable": true,
+      "features": { "customTerrain": true, "undergroundDigging": true, "waterArea": true, "maxCreatureCapacity": 12 }
+    }
+  ],
+  "expansionRules": {
+    "minimumDimensions": { "width": 30, "depth": 30, "height": 30 },
+    "maximumDimensions": { "width": 300, "depth": 300, "height": 200 },
+    "step": 15,
+    "allowIndependentAxisExpansion": true
+  }
+}
