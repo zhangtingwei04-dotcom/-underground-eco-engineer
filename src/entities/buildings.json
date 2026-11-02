@@ -13,6 +13,33 @@
         "stress_relief": 10
       },
       "description": "一個舒適的地下沙土休息角落，能有效幫助生物恢復精力並舒緩壓力。"
+    },
+    {
+      "id": "underground_water_station",
+      "name_key": "building_water_station",
+      "type": "habitat",
+      "cost": {
+        "sand_particle": 5,
+        "raw_stone": 2
+      },
+      "effect": {
+        "hydration_boost": 15,
+        "humidity_modifier": +10
+      },
+      "description": "配備保濕水盆的灌溉站，能自動幫周遭環境補水並維持生物水分。"
+    },
+    {
+      "id": "research_workbench",
+      "name_key": "building_research_workbench",
+      "type": "tech",
+      "cost": {
+        "raw_stone": 5,
+        "humus": 2
+      },
+      "effect": {
+        "research_point_generation": 2
+      },
+      "description": "工程師專用的小型研究桌，可在此分析地質與生物樣本以解鎖新科技。"
     }
   ]
 }
