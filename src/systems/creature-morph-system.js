@@ -1,96 +1,59 @@
-// 地下生態工程師 - 生物模組化外觀與動態系統 (Creature Morph & Motion System)
+// 地下生態工程師 | Underground Eco-Engineer
+// 核心系統：生物外觀與基因生成系統 (Creature Morph & Texture System - Phase 1)
 
 window.CreatureMorphSystem = {
-    // 預設品系資料 (確保 JSON 讀取失敗時仍能正常運作)
-    defaultMorphs: [
-        { id: "wild_type", name_zh: "普通野生型", name_en: "Wild Type", rarity: "Common", weight: 60, color_tint: 0x8b5a2b },
-        { id: "anaconda", name_zh: "蟒紋變異", name_en: "Anaconda Morph", rarity: "Uncommon", weight: 25, color_tint: 0xd2b48c },
-        { id: "arctic", name_zh: "極地高對比", name_en: "Arctic Morph", rarity: "Rare", weight: 10, color_tint: 0xe0e0e0 },
-        { id: "albino", name_zh: "夢幻白化型", name_en: "Albino Morph", rarity: "Legendary", weight: 5, color_tint: 0xfffacd }
-    ],
+    /**
+     * 1. 根據生物種類設定與隨機種子，生成具備獨立基因與外觀參數的個體資料 (C 方案)
+     */
+    generateIndividual: function(speciesData, forcedSeed = null) {
+        const seed = forcedSeed || Math.floor(Math.random() * 899999 + 100000);
+        return this.generateFromSeed(speciesData, seed);
+    },
 
     /**
-     * 為生物隨機生成獨一無二的外觀特徵碼
+     * 根據固定 Seed 重建外觀資料，確保存檔讀取時外觀完全一致
      */
-    generateIndividualMorph: function(morphList) {
-        const list = morphList || this.defaultMorphs;
-        const totalWeight = list.reduce((sum, item) => sum + (item.weight || 10), 0);
-        let randomNum = Math.random() * totalWeight;
+    generateFromSeed: function(speciesData, seed) {
+        const morphs = (speciesData && speciesData.morphs) ? speciesData.morphs : [];
+        
+        // 簡單偽隨機因子選定品系 (確保同 Seed 結果相同)
+        const morphIndex = seed % (morphs.length || 1);
+        const selectedMorph = morphs[morphIndex] || {
+            id: "wild_type",
+            color_tint: "#B88A61",
+            blotch_tint: "#5C381E",
+            pattern_style: "standard_blotches"
+        };
 
-        let selected = list[0];
-        for (let morph of list) {
-            if (randomNum < morph.weight) {
-                selected = morph;
-                break;
-            }
-            randomNum -= morph.weight;
-        }
+        const category = (speciesData && speciesData.category) ? speciesData.category : "snake";
 
         return {
-            individualId: "hog_" + Math.floor(Math.random() * 899999 + 100000),
-            morphId: selected.id,
-            name_zh: selected.name_zh,
-            name_en: selected.name_en,
-            rarity: selected.rarity,
-            colorTint: typeof selected.color_tint === 'string' ? parseInt(selected.color_tint, 16) : selected.color_tint,
-            currentAnimState: "idle", // 動作狀態: idle (擺頭), crawl (爬行), sleep (蜷曲休息), play_dead (翻肚)
-            animFrame: 0
+            creature_id: (speciesData ? speciesData.id : "creature") + "_" + seed,
+            identity: {
+                name: (speciesData ? speciesData.species_name_zh : "未知生物") + " (個體 #" + seed + ")",
+                personality: "curious",
+                profession: "explorer"
+            },
+            appearance: {
+                base_color: selectedMorph.color_tint || "#B88A61",
+                blotch_color: selectedMorph.blotch_tint || "#5C381E",
+                pattern_style: selectedMorph.pattern_style || "blotched",
+                pattern_density: 0.65,
+                pattern_contrast: 0.8,
+                // 物種專屬質感預設：蛇類細鱗、蜥蜴粗糙、青蛙濕潤、甲蟲硬殼、鼠類絨毛
+                scale_texture: category === "snake" ? "fine" : (category === "lizard" ? "rough" : "smooth"),
+                grain_texture: "pencil_noise",
+                pixel_style: "soft_pixel"
+            },
+            generation: {
+                seed: seed,
+                morph_id: selectedMorph.id,
+                randomized: true
+            }
         };
     },
 
     /**
-     * 程式化動態繪製生物（現階段以向量圖形模擬手繪骨架與動態，未來可無痛切換為圖片精靈）
-     */
-    renderCreatureSprite: function(scene, x, y, morphData) {
-        if (!scene) return null;
-        const container = scene.add.container(x, y);
-        const tint = morphData.colorTint || 0x8b5a2b;
-
-        const bodyGraphics = scene.add.graphics();
-        container.add(bodyGraphics);
-        container.setData('morphData', morphData);
-
-        // 啟動個體微動態（呼吸/擺頭/休息）
-        scene.tweens.add({
-            targets: container,
-            y: y - 3,
-            duration: 1200,
-            yoyo: true,
-            repeat: -1,
-            ease: 'Sine.easeInOut'
-        });
-
-        this.drawCreatureState(bodyGraphics, morphData.currentAnimState, tint);
-        return container;
-    },
-
-    /**
-     * 繪製生物在不同狀態下的形態
-     */
-    drawCreatureState: function(graphics, state, tint) {
-        graphics.clear();
-
-        if (state === "sleep") {
-            // 蜷曲休息姿態
-            graphics.fillStyle(tint, 1);
-            graphics.fillCircle(0, 0, 16);
-            graphics.fillStyle(0x3e2723, 1);
-            graphics.fillCircle(4, -2, 10); // 趴著的頭部
-            return;
-        }
-
-        // 一般及待機姿態 (S 型身體 + 翹鼻子頭部)
-        graphics.fillStyle(tint, 1);
-        graphics.fillCircle(-12, 4, 8);
-        graphics.fillCircle(-4, 0, 9);
-        graphics.fillCircle(4, -4, 8);
-
-        // 手繪風格頭部與微翹鼻子
-        graphics.fillStyle(tint, 1);
-        graphics.fillTriangle(10, -8, 22, -6, 12, 0); // 翹鼻
-        graphics.fillStyle(0xffffff, 1);
-        graphics.fillCircle(12, -6, 3); // 眼睛白
-        graphics.fillStyle(0x000000, 1);
-        graphics.fillCircle(13, -6, 1.5); // 眼珠
-    }
-};
+     * 2. 三層式生物繪製與渲染接口 (Creature Renderer Interface)
+     * 第一層：身體形狀與底色 (Base Shape & Tint)
+     * 第二層：基因花紋與遮罩 (Pattern & Mask
