@@ -1,16 +1,49 @@
 {
   "id": "hognose_snake",
+  "name_key": "creature_hognose_snake",
   "base_stats": {
     "digging_power": 15,
     "max_energy": 100,
     "current_energy": 100,
     "energy_regen": 2,
-    "max_stress": 100,
     "current_stress": 0
   },
-  "behavior_traits": {
-    "can_play_dead": true,
-    "preferred_humidity": "dry",
-    "favorite_food": "pinky_mouse"
-  }
+  "morphs": [
+    {
+      "id": "wild_type",
+      "name_zh": "普通野生型",
+      "name_en": "Wild Type",
+      "rarity": "Common",
+      "weight": 60,
+      "color_tint": "0x8b5a2b",
+      "pattern_style": "standard_blotches"
+    },
+    {
+      "id": "anaconda",
+      "name_zh": "蟒紋變異",
+      "name_en": "Anaconda Morph",
+      "rarity": "Uncommon",
+      "weight": 25,
+      "color_tint": "0xd2b48c",
+      "pattern_style": "reduced_spots"
+    },
+    {
+      "id": "arctic",
+      "name_zh": "極地高對比",
+      "name_en": "Arctic Morph",
+      "rarity": "Rare",
+      "weight": 10,
+      "color_tint": "0xe0e0e0",
+      "pattern_style": "high_contrast"
+    },
+    {
+      "id": "albino",
+      "name_zh": "夢幻白化型",
+      "name_en": "Albino Morph",
+      "rarity": "Legendary",
+      "weight": 5,
+      "color_tint": "0xfffacd",
+      "pattern_style": "pink_yellow_spots"
+    }
+  ]
 }
