@@ -75,4 +75,4 @@ window.GameEnvironmentSystem = {
             console.log(`【行為觸發】警告！${creature.id} 壓力過大，觸發「裝死 (Play Dead)」！`);
         }
     }
-};
+}
