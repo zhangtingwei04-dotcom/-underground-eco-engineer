@@ -1,5 +1,5 @@
-// 地上生態工程師 | Underground Eco-Engineer
-// 核心系統：生物外觀、基因與健康病徵渲染系統 (Creature Morph, Texture & Health System)
+// 地下生態工程師 | Underground Eco-Engineer
+// 核心系統：生物外觀、基因、健康病徵與爬行蠕動動態渲染系統 (Creature Morph, Texture & Animation System)
 
 window.CreatureMorphSystem = {
     /**
@@ -44,13 +44,13 @@ window.CreatureMorphSystem = {
                 grain_texture: "pencil_noise",
                 pixel_style: "soft_pixel"
             },
-            // V1.0 新增：生命週期、生理指標與病徵狀態
+            // 生命週期、生理指標與病徵狀態
             life: {
                 age: 0,
-                life_stage: "juvenile", // 幼年期、青年期、成年期、老年期
-                health: 100,            // 健康值
-                hydration: 100,         // 水分
-                nutrition: 100,         // 營養
+                life_stage: "juvenile",
+                health: 100,
+                hydration: 100,
+                nutrition: 100,
                 is_alive: true,
                 death: {
                     occurred: false,
@@ -77,7 +77,6 @@ window.CreatureMorphSystem = {
 
     /**
      * 2. 三層式生物繪製與健康病徵渲染接口
-     * 整合外觀色調、花紋與「體色黯淡（Dull Skin）」病徵表現
      */
     renderCreatureWithTexture: function(scene, x, y, individualData) {
         if (!scene) return null;
@@ -86,12 +85,10 @@ window.CreatureMorphSystem = {
         const app = individualData.appearance || {};
         const symptoms = individualData.symptoms || {};
 
-        // 色彩解析：如果偵測到體色黯淡病徵（dull_skin），將色彩轉為較灰暗的色調
         let baseColorHex = parseInt((app.base_color || "#C8A27A").replace('#', '0x'), 16);
         let blotchColorHex = parseInt((app.blotch_color || "#5C381E").replace('#', '0x'), 16);
 
         if (symptoms.dull_skin) {
-            // 模擬病態黯淡灰化處理
             baseColorHex = 0x8a7f72;
             blotchColorHex = 0x4a4238;
         }
@@ -99,7 +96,6 @@ window.CreatureMorphSystem = {
         // --- 第一層：基礎身體動態渲染 ---
         const bodyGraphics = scene.add.graphics();
         bodyGraphics.fillStyle(baseColorHex, 1);
-        
         bodyGraphics.fillCircle(-12, 4, 8);
         bodyGraphics.fillCircle(-4, 0, 9);
         bodyGraphics.fillCircle(4, -4, 8);
@@ -130,10 +126,9 @@ window.CreatureMorphSystem = {
             container.add(textureOverlay);
         }
 
-        // 綁定個體資料
         container.setData('individualData', individualData);
 
-        // 根據健康狀態調整微動態（生病時呼吸晃動幅度減弱、甚至呈現無力狀態）
+        // 預設日常呼吸與探頭微動態
         const tweenDuration = symptoms.lethargy ? 2500 : 1300;
         scene.tweens.add({
             targets: container,
@@ -145,5 +140,43 @@ window.CreatureMorphSystem = {
         });
 
         return container;
+    },
+
+    /**
+     * 3. 專屬爬行與通道穿梭動態 (Crawl & Tunnel S-Curve Animation)
+     * 讓寵物在生態箱或地道中呈現流暢的 S 型爬行蠕動與位移
+     */
+    playCrawlAnimation: function(scene, container, targetX, targetY, onCompleteCallback) {
+        if (!scene || !container) return;
+
+        const startX = container.x;
+        const startY = container.y;
+
+        // 計算朝向與距離
+        const angle = Math.atan2(targetY - startY, targetX - startX);
+        if (targetX < startX) {
+            container.setScale(-1, 1); // 左右翻轉面向
+        } else {
+            container.setScale(1, 1);
+        }
+
+        // 執行 S 型穿梭蠕動補間動畫
+        scene.tweens.add({
+            targets: container,
+            x: targetX,
+            y: targetY,
+            duration: 1800,
+            ease: 'Sine.easeInOut',
+            onUpdate: (tween, target) => {
+                // 模擬爬行時身體的輕微上下起伏波浪
+                const progress = tween.progress;
+                target.y += Math.sin(progress * Math.PI * 6) * 2;
+            },
+            onComplete: () => {
+                if (typeof onCompleteCallback === 'function') {
+                    onCompleteCallback();
+                }
+            }
+        });
     }
 };
