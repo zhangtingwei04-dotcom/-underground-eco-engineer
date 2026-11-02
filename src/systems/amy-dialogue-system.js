@@ -1,7 +1,10 @@
 // 鱗片與種子：地下生態物語 | Scales & Seeds: Underground Ecosystem Tales
-// 核心系統：快遞員艾米的動態記憶與郵件系統 (Amy Dialogue & Delivery System)
+// 核心系統：快遞員艾米的動態記憶與郵寄系統 (Amy Dialogue System)
 
 window.AmyDialogueSystem = {
+    /**
+     * 取得艾米的動態對話
+     */
     getAmyDialogue: function(userSaveData) {
         if (!userSaveData.npc_memory) userSaveData.npc_memory = {};
         if (!userSaveData.npc_memory.amy) {
@@ -14,7 +17,7 @@ window.AmyDialogueSystem = {
 
         const memory = userSaveData.npc_memory.amy;
 
-        // 1. 第一次成功送達包裹時
+        // 1. 第一次成功簽收包裹時
         if (memory.total_packages_delivered > 0 && !memory.first_delivery_completed) {
             memory.first_delivery_completed = true;
             return {
@@ -23,7 +26,7 @@ window.AmyDialogueSystem = {
             };
         }
 
-        // 2. 當玩家包裹累積較多時的動態對話
+        // 2. 當玩家累積收到的包裹數量較多時
         if (memory.total_packages_delivered >= 5 && !memory.warned_deep_zone) {
             memory.warned_deep_zone = true;
             return {
@@ -32,11 +35,11 @@ window.AmyDialogueSystem = {
             };
         }
 
-        // 3. 常規日常問候
+        // 3. 常規日常問候與情報
         const dailyGreetings = [
             "黃色夾克就是我的招牌！只要有溫控包裹，找我就對了！",
             "今天地下通道的風有點大，不過我的配送速度絕對準時！",
-            "有新訂單或預購嗎？交給老娘，馬上幫你穩穩送到生態箱門口！"
+            "有新訂單或預購嗎？交給老娘，馬上幫你穩穩送到『新生物接收區』！"
         ];
 
         return {
