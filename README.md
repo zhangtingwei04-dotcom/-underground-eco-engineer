@@ -15,14 +15,14 @@ Players take on the role of an underground eco-engineer, building a sustainable 
 1. **選擇生物**：配置合適的地下生物進入探索區域。
 2. **挑戰方塊**：根據生物的挖掘能力挑戰不同硬度的方塊。
 3. **消耗體力**：執行挖掘動作並扣除生物相應的精力值。
-4. **拓展開拓**：開拓地下空間、收集稀有資源。
+4. **拓展空間**：開拓地下空間、收集稀有資源。
 5. **經營生態**：改善棲息環境，培育更高等級的生物與植物。
 
 ---
 
 ## 🚀 專案現階段進度 | Project Progress
 
-### 🔹 核心後端架構 (已完成)
+### 🔹 核心資料與初步邏輯
 - [x] 建立 GitHub 雲端開發儲存庫 (Repository initialized)
 - [x] 規劃繁體中文與英文雙語架構 (`src/locales/`)
 - [x] 建立核心生物：豬鼻蛇屬性資料 (`src/entities/hognose.json`)
@@ -35,7 +35,7 @@ Players take on the role of an underground eco-engineer, building a sustainable 
 - [ ] 實作可操作的挖掘介面
 - [ ] 完成生物活動與環境模擬
 - [ ] 加入本機存檔功能 (Save/Load system)
-- [ ] 完成中英文語言切換切換機制
+- [ ] 完成中英文語言切換機制
 - [ ] 發布第一個公開測試版本 (Alpha Release)
 
 ---
