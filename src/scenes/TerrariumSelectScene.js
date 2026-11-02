@@ -58,7 +58,10 @@ class TerrariumSelectScene extends Phaser.Scene {
     renderTerrariumCards(width, height) {
         if (!this.terrariumSystem) return;
 
-        const terrariums = this.terrariumSystem.getAllterrariums ? this.terrariumSystem.getAllTerrariums() : this.terrariumSystem.getAllTerrariums();
+        // 修正方法名稱大小寫，確保正確呼叫 getAllTerrariums()
+        const terrariums = typeof this.terrariumSystem.getAllTerrariums === 'function' 
+            ? this.terrariumSystem.getAllTerrariums() 
+            : [];
         
         let startY = 140;
         const cardWidth = width - 120;
@@ -93,9 +96,10 @@ class TerrariumSelectScene extends Phaser.Scene {
             });
 
             // 規格與環境摘要
-            const dim = terrarium.dimensions;
-            const env = terrarium.environment;
-            const summaryStr = `尺寸: ${dim.width}x${dim.depth}x${dim.height}cm | 溫度: ${env.temperature}°C | 濕度: ${env.humidity}% | 寵物數: ${terrarium.creatures.length}`;
+            const dim = terrarium.dimensions || { width: 30, depth: 30, height: 30 };
+            const env = terrarium.environment || { temperature: 24, humidity: 50 };
+            const creaturesCount = terrarium.creatures ? terrarium.creatures.length : 0;
+            const summaryStr = `尺寸: ${dim.width}x${dim.depth}x${dim.height}cm | 溫度: ${env.temperature}°C | 濕度: ${env.humidity}% | 寵物數: ${creaturesCount}`;
             
             this.add.text(cardX + 20, cardY + 45, summaryStr, {
                 fontSize: '13px',
@@ -143,14 +147,12 @@ class TerrariumSelectScene extends Phaser.Scene {
         }).setOrigin(0.5).setInteractive();
 
         createBtn.on('pointerdown', () => {
-            // 測試預設建立一個 60cm 標準箱
             const newId = `terrarium_${Date.now().toString().slice(-4)}`;
             try {
                 this.terrariumSystem.createTerrarium(newId, 'standard', `標準生態箱 #${this.terrariumSystem.getAllTerrariums().length + 1}`);
                 if (this.saveSystem) {
                     this.saveSystem.saveAllTerrariums(this.terrariumSystem);
                 }
-                // 重新整理目前場景以顯示新箱子
                 this.scene.restart({ terrariumSystem: this.terrariumSystem, saveSystem: this.saveSystem });
             } catch (err) {
                 console.error("建立生態箱失敗:", err);
