@@ -1,0 +1,14 @@
+{
+  "id": "hognose_snake",
+  "base_stats": {
+    "digging_power": 15,
+    "max_energy": 100,
+    "energy_regen": 2,
+    "max_stress": 100
+  },
+  "behavior_traits": {
+    "can_play_dead": true,
+    "preferred_humidity": "dry",
+    "favorite_food": "pinky_mouse"
+  }
+}
