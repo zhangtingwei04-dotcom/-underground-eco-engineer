@@ -1,58 +1,70 @@
-// 地下生態工程師 - 模組化挖掘與方塊耐久系統
-
 /**
- * 處理單次點擊/時間週期的挖掘動作
- * @param {Object} creature - 執行挖掘的生物實體 (例如豬鼻蛇)
- * @param {Object} blockInstanceState - 當前地圖上該方塊的動態狀態機制
- * @returns {Object} 挖掘結果狀態
+ * 地下生態工程師 - 核心挖掘與方塊耐久度系統 (健檢修正版)
+ * @param {Object} creature - 生物數據
+ * @param {Object} blockState - 地圖方塊當前動態狀態
+ * @returns {Object} 挖掘結果回報
  */
-function processDigging(creature, blockInstanceState) {
-    // 1. 安全檢查：防止方塊數據異常（硬度或血量小於等於0）
-    if (!blockInstanceState || blockInstanceState.current_hp <= 0) {
-        return { success: false, reason: "BLOCK_ALREADY_DESTROYED", message: "方塊已被挖除" };
+function executeDigging(creature, blockState) {
+    // 【問題 3 修正】強制安全性資料驗證：防止生物或方塊實體缺失
+    if (!creature || !creature.base_stats || !blockState) {
+        return { success: false, error: "INVALID_ENTITIES", progress: 0, message: "錯誤：無效的生物或方塊資料。" };
     }
 
-    // 2. 體力檢查：確保生物目前精力充足
+    // 【問題 1 & 4 修正】防止 max_hp 缺失導致進度出現 NaN，若無設定則依硬度動態補底
+    if (!blockState.max_hp || typeof blockState.max_hp !== 'number' || blockState.max_hp <= 0) {
+        blockState.max_hp = blockState.hardness * 10; 
+    }
+    if (blockState.current_hp === undefined || blockState.current_hp === null) {
+        blockState.current_hp = blockState.max_hp;
+    }
+
+    // 若方塊早已被挖除，直接返回成功
+    if (blockState.current_hp <= 0) {
+        return { success: true, isDestroyed: true, progress: 100, message: "方塊之前已被挖除。" };
+    }
+
+    // 檢查生物目前精力
     const ENERGY_COST = 10;
-    if (creature.base_stats.current_energy < ENERGY_COST) {
-        return { success: false, reason: "LOW_ENERGY", message: `${creature.id} 太累了，需要休息！` };
+    const currentEnergy = creature.base_stats.current_energy !== undefined ? creature.base_stats.current_energy : 0;
+    if (currentEnergy < ENERGY_COST) {
+        return { success: false, error: "LOW_ENERGY", progress: ((blockState.max_hp - blockState.current_hp) / blockState.max_hp) * 100, message: `${creature.id} 精力不足，無法挖掘！` };
     }
 
-    // 3. 消耗精力
-    creature.base_stats.current_energy -= ENERGY_COST;
+    // 扣除精力
+    creature.base_stats.current_energy = Math.max(0, currentEnergy - ENERGY_COST);
 
-    // 4. 計算傷害（挖掘效率機制）：防止硬度為0導致除以零錯誤
-    const targetHardness = Math.max(1, blockInstanceState.hardness);
+    // 【問題 2 修正】實作硬度倍率公式，並確保硬度不為零或負數
+    const safeHardness = Math.max(1, blockState.hardness || 1);
     
-    // 計算本次挖掘造成的傷害值
-    let damage = creature.base_stats.digging_power;
-    
-    // 特性影響補正（例如：豬鼻蛇挖掘沙土效率加倍）
-    if (creature.id === "hognose_snake" && blockInstanceState.type === "sand_block") {
-        damage *= 2; 
+    // 計算基礎傷害：實際傷害 = 生物挖掘力 / (方塊硬度 / 5) -> 以沙土硬度5為基準倍率1
+    let hardnessMultiplier = safeHardness / 5;
+    let baseDamage = (creature.base_stats.digging_power || 1) / hardnessMultiplier;
+
+    // 生物特殊天賦補正（例如：豬鼻蛇挖掘沙土有額外 1.5 倍加成）
+    if (creature.id === "hognose_snake" && blockState.type === "sand_block") {
+        baseDamage *= 1.5;
     }
 
-    // 5. 扣除方塊當前耐久度 (HP)
-    blockInstanceState.current_hp -= damage;
-    if (blockInstanceState.current_hp < 0) blockInstanceState.current_hp = 0;
+    // 確保單次挖掘至少造成 1 點傷害
+    const finalDamage = Math.max(1, Math.round(baseDamage));
 
-    // 6. 計算總累積進度百分比 (0% - 100%)
-    let progressPercent = ((blockInstanceState.max_hp - blockInstanceState.current_hp) / blockInstanceState.max_hp) * 100;
-    progressPercent = Math.min(100, Math.max(0, progressPercent)); // 邊界與上限保護
+    // 扣除方塊耐久
+    blockState.current_hp = Math.max(0, blockState.current_hp - finalDamage);
 
-    // 7. 判定方塊是否破壞完成
-    const isDestroyed = blockInstanceState.current_hp <= 0;
+    // 計算精確進度條百分比
+    let progressPercent = ((blockState.max_hp - blockState.current_hp) / blockState.max_hp) * 100;
+    progressPercent = Math.min(100, Math.max(0, parseFloat(progressPercent.toFixed(1))));
+
+    const isDestroyed = blockState.current_hp <= 0;
 
     return {
         success: true,
         isDestroyed: isDestroyed,
+        damageDealt: finalDamage,
         progress: progressPercent,
         remainingEnergy: creature.base_stats.current_energy,
-        message: isDestroyed ? `成功挖穿 ${blockInstanceState.type}！` : `正在挖掘，方塊剩餘耐久: ${blockInstanceState.current_hp}`
+        message: isDestroyed ? `挖穿了！成功移除 ${blockState.type}。` : `正在挖掘，造成 ${finalDamage} 點傷害。`
     };
 }
 
-// 導出模組供未來 Phaser 或 Node 環境使用
-if (typeof module !== 'undefined') {
-    module.exports = { processDigging };
-}
+if (typeof module !== 'undefined') { module.exports = { executeDigging }; }
