@@ -1,0 +1,22 @@
+{
+  "items": [
+    {
+      "id": "sand_particle",
+      "name_key": "item_sand_particle",
+      "type": "material",
+      "description": "從沙土方塊中挖掘出的細沙，可用於基礎建設或鋪設棲息地。"
+    },
+    {
+      "id": "humus",
+      "name_key": "item_humus",
+      "type": "organic",
+      "description": "富含營養的地下腐植質，非常適合植物生長與土壤肥力維持。"
+    },
+    {
+      "id": "raw_stone",
+      "name_key": "item_raw_stone",
+      "type": "material",
+      "description": "從深層花崗岩剝落的硬質碎石，是高級建築的必要材料。"
+    }
+  ]
+}
