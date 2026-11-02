@@ -1,12 +1,46 @@
 {
   "id": "hognose_snake",
-  "name_key": "creature_hognose_snake",
+  "species_name_zh": "西部豬鼻蛇",
+  "species_name_en": "Western Hognose Snake",
+  "scientific_name": "Heterodon nasicus",
+  "description_zh": "擁有獨特的微翹吻端，擅長在鬆軟的沙土中掘洞。性格害羞，面臨威脅時會張開頸部假裝眼鏡蛇，或是翻肚裝死吐舌。",
+  "description_en": "Famous for its upturned snout used for digging in soft substrate. Known for its comical play-dead defensive behavior when threatened.",
   "base_stats": {
     "digging_power": 15,
     "max_energy": 100,
     "current_energy": 100,
     "energy_regen": 2,
     "current_stress": 0
+  },
+  "illustrations": {
+    "hand_drawn_guide": "assets/illustrations/hognose_field_guide.png",
+    "annotations": [
+      {
+        "key": "upturned_snout",
+        "text_zh": "獨特微翹鼻子 (擅長挖掘)",
+        "text_en": "Distinctive Upturned Snout"
+      },
+      {
+        "key": "soft_scale_texture",
+        "text_zh": "手繪細緻鱗片紋理",
+        "text_en": "Detailed Scale Pattern (Soft Pencil Textures)"
+      },
+      {
+        "key": "dorsal_blotches",
+        "text_zh": "背部自然斑塊",
+        "text_en": "Dorsal Blotches"
+      },
+      {
+        "key": "tapered_tail",
+        "text_zh": "漸細尾端結構",
+        "text_en": "Tapered Tail"
+      }
+    ]
+  },
+  "pet_layers": {
+    "base_body": "assets/pets/hognose_body_base.png",
+    "pattern_mask": "assets/pets/hognose_pattern_mask.png",
+    "eye_layer": "assets/pets/hognose_eyes.png"
   },
   "morphs": [
     {
@@ -15,7 +49,10 @@
       "name_en": "Wild Type",
       "rarity": "Common",
       "weight": 60,
-      "color_tint": "0x8b5a2b",
+      "color_tint": "0xc8a27a",
+      "blotch_tint": "0x5c381e",
+      "belly_tint": "0xe8d8c8",
+      "eye_tint": "0x000000",
       "pattern_style": "standard_blotches"
     },
     {
@@ -24,7 +61,10 @@
       "name_en": "Anaconda Morph",
       "rarity": "Uncommon",
       "weight": 25,
-      "color_tint": "0xd2b48c",
+      "color_tint": "0xdcb896",
+      "blotch_tint": "0x8a5638",
+      "belly_tint": "0xf2e6d8",
+      "eye_tint": "0x000000",
       "pattern_style": "reduced_spots"
     },
     {
@@ -34,6 +74,9 @@
       "rarity": "Rare",
       "weight": 10,
       "color_tint": "0xe0e0e0",
+      "blotch_tint": "0x37474f",
+      "belly_tint": "0xf5f5f5",
+      "eye_tint": "0x212121",
       "pattern_style": "high_contrast"
     },
     {
@@ -42,8 +85,33 @@
       "name_en": "Albino Morph",
       "rarity": "Legendary",
       "weight": 5,
-      "color_tint": "0xfffacd",
+      "color_tint": "0xfff59d",
+      "blotch_tint": "0xffb74d",
+      "belly_tint": "0xfffde7",
+      "eye_tint": "0xd32f2f",
       "pattern_style": "pink_yellow_spots"
     }
-  ]
+  ],
+  "animations": {
+    "idle": {
+      "frame_rate": 4,
+      "repeat": -1,
+      "description": "搖晃微翹鼻子，好奇探索"
+    },
+    "crawl": {
+      "frame_rate": 8,
+      "repeat": -1,
+      "description": "S 型通道蠕動穿梭"
+    },
+    "sleep": {
+      "frame_rate": 2,
+      "repeat": -1,
+      "description": "在休息區蜷曲趴睡"
+    },
+    "play_dead": {
+      "frame_rate": 1,
+      "repeat": 0,
+      "description": "壓力過高時防禦裝死"
+    }
+  }
 }
