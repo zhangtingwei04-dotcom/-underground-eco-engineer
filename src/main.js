@@ -1,5 +1,5 @@
 // 地下生態工程師 | Underground Eco-Engineer
-// 核心主程式 - Alpha 0.2 總整合系統（內建圖鑑場景）
+// 核心主程式 - Alpha 0.2 多場景架構總整合
 
 window.gameEngineState = {
     creature: {
@@ -19,7 +19,7 @@ class UndergroundScene extends Phaser.Scene {
 
     create() {
         const scene = this;
-        console.log("【系統總整合】進入主場景建立...");
+        console.log("【系統總整合】進入地下探索主場景...");
 
         if (window.gameLocales && typeof window.gameLocales.initialize === 'function') {
             window.gameLocales.initialize();
@@ -50,7 +50,7 @@ class UndergroundScene extends Phaser.Scene {
             }
         });
 
-        // 📖 開啟生物圖鑑按鈕
+        // 📖 開啟生物圖鑑按鈕（切換至獨立的 EncyclopediaScene 場景）
         let btnEncyclopedia = scene.add.text(610, 15, "[ 📖 圖鑑 ]", { font: "13px Arial", fill: "#ffeb3b" }).setInteractive();
         btnEncyclopedia.on('pointerdown', function() {
             scene.scene.start('EncyclopediaScene');
@@ -76,7 +76,7 @@ class UndergroundScene extends Phaser.Scene {
             }
         });
 
-        // 初始化地圖
+        // 初始化地圖與環境模擬
         if (typeof generateUndergroundMap === 'function') {
             window.gameEngineState.mapData = generateUndergroundMap(6, 8);
         } else {
@@ -90,6 +90,7 @@ class UndergroundScene extends Phaser.Scene {
         scene.mapContainer = scene.add.group();
         drawActiveMap(scene);
 
+        // 自動精力恢復定時器
         scene.time.addEvent({
             delay: 2000,
             callback: function() {
@@ -117,123 +118,19 @@ class UndergroundScene extends Phaser.Scene {
     }
 }
 
-
-// 2. 生物圖鑑收藏場景
-class EncyclopediaScene extends Phaser.Scene {
-    constructor() {
-        super({ key: 'EncyclopediaScene' });
-    }
-
-    create() {
-        const scene = this;
-        console.log("【圖鑑系統】進入生物圖鑑與收藏介面...");
-
-        scene.add.rectangle(400, 300, 800, 600, 0x1a110b);
-
-        let titleText = window.gameLocales ? window.gameLocales.translate("menu_encyclopedia") : "生物圖鑑";
-        scene.add.text(40, 30, `📖 ${titleText} / Creature Encyclopedia`, { font: "20px Arial", fill: "#ffffff", fontStyle: "bold" });
-
-        let backBtn = scene.add.text(620, 30, "[ 返回地下探索 ]", { font: "14px Arial", fill: "#00ff00" }).setInteractive();
-        backBtn.on('pointerdown', function() {
-            scene.scene.start('UndergroundScene');
-        });
-
-        const creatures = [
-            {
-                id: "hognose_snake",
-                nameKey: "creature_hognose_snake",
-                descKey: "creature_hognose_desc",
-                unlocked: true,
-                diggingPower: 15,
-                humidity: "乾燥 (Dry)",
-                skill: "裝死防禦 (Play Dead)"
-            },
-            {
-                id: "underground_ant",
-                nameKey: "creature_ant_name",
-                descKey: "creature_ant_desc",
-                unlocked: false,
-                diggingPower: 5,
-                humidity: "潮濕 (Moist)",
-                skill: "群體隧道清理"
-            }
-        ];
-
-        creatures.forEach((creature, index) => {
-            let y = 110 + index * 65;
-            let displayName = creature.unlocked ? 
-                (window.gameLocales ? window.gameLocales.translate(creature.nameKey) : "豬鼻蛇") : 
-                "🔒 ??? (未解鎖)";
-            let color = creature.unlocked ? "#ffeb3b" : "#777777";
-
-            let itemBox = scene.add.rectangle(160, y, 240, 50, 0x3e2723).setInteractive();
-            itemBox.setStrokeStyle(1, 0x5c4033);
-            scene.add.text(60, y - 10, displayName, { font: "15px Arial", fill: color, fontStyle: "bold" });
-
-            itemBox.on('pointerdown', function() {
-                showCreatureDetail(scene, creature);
-            });
-        });
-
-        showCreatureDetail(scene, creatures[0]);
-    }
-}
-
-function showCreatureDetail(scene, creature) {
-    if (scene.detailGroup) {
-        scene.detailGroup.clear(true, true);
-    } else {
-        scene.detailGroup = scene.add.group();
-    }
-
-    const startX = 320;
-    const startY = 95;
-
-    let name = creature.unlocked ? (window.gameLocales ? window.gameLocales.translate(creature.nameKey) : "豬鼻蛇") : "未解鎖生物 (Locked)";
-    let desc = creature.unlocked ? (window.gameLocales ? window.gameLocales.translate(creature.descKey) : "詳細生物習性說明...") : "尚未在地下探索中發現此生物。請透過不斷挖掘地層解鎖更多生態奧秘！";
-
-    let bgPanel = scene.add.rectangle(startX + 215, startY + 205, 430, 410, 0x2e1c14);
-    bgPanel.setStrokeStyle(2, 0x5c4033);
-    scene.detailGroup.add(bgPanel);
-
-    let nameTxt = scene.add.text(startX + 30, startY + 20, `📜 ${name}`, { font: "18px Arial", fill: "#ff9800", fontStyle: "bold" });
-    let descTxt = scene.add.text(startX + 30, startY + 65, desc, { font: "13px Arial", fill: "#dddddd", wordWrap: { width: 380 }, lineSpacing: 4 });
-    scene.detailGroup.add(nameTxt);
-    scene.detailGroup.add(descTxt);
-
-    if (creature.unlocked) {
-        let statsTxt = scene.add.text(startX + 30, startY + 200, 
-            `⛏️ 基礎挖掘力: ${creature.diggingPower}\n` +
-            `💧 偏好棲息濕度: ${creature.humidity}\n` +
-            `✨ 特殊生物技能: ${creature.skill}`, 
-            { font: "13px Arial", fill: "#8bc34a", lineSpacing: 8 }
-        );
-        scene.detailGroup.add(statsTxt);
-    } else {
-        let lockTxt = scene.add.text(startX + 30, startY + 200, 
-            `🔒 解鎖狀態：尚未發現\n` +
-            `💡 探索提示：嘗試深入挖掘深層泥土或岩石層以解鎖此生物。`, 
-            { font: "13px Arial", fill: "#f44336", lineSpacing: 8 }
-        );
-        scene.detailGroup.add(lockTxt);
-    }
-}
-
-
-// 3. 遊戲總配置與啟動
+// 2. 遊戲總配置與多場景註冊
 const config = {
     type: Phaser.AUTO,
     width: 800,
     height: 600,
     parent: 'game-container',
     backgroundColor: '#2b1d11',
-    scene: [UndergroundScene, EncyclopediaScene]
+    scene: [UndergroundScene, EncyclopediaScene] // 註冊探索場景與獨立圖鑑場景
 };
 
 const game = new Phaser.Game(config);
 
-
-// 4. 輔助函式 (地圖繪製與資源掉落)
+// 3. 輔助函式 (地圖繪製與資源掉落)
 function refreshUItext(scene) {
     if (!window.gameLocales) return;
     const translatedTitle = window.gameLocales.translate("game_title");
