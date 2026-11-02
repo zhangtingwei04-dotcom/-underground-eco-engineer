@@ -1,0 +1,13 @@
+{
+  "npc_id": "old_mo",
+  "name_zh": "老莫",
+  "title_zh": "神祕深層地下探險家",
+  "personality": "神出鬼沒、寡言少語、對稀有基因極度敏銳",
+  "specialties": ["深層地質", "稀有野生個體", "遠古遺傳學"],
+  "affinity_level": 1,
+  "interaction_memory": {
+    "has_met_mo": false,
+    "unlocked_deep_layer": false,
+    "sent_mystery_box": false
+  }
+}
