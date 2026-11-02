@@ -1,5 +1,6 @@
 {
   "id": "hognose_snake",
+  "category": "snake",
   "species_name_zh": "西部豬鼻蛇",
   "species_name_en": "Western Hognose Snake",
   "scientific_name": "Heterodon nasicus",
@@ -49,10 +50,10 @@
       "name_en": "Wild Type",
       "rarity": "Common",
       "weight": 60,
-      "color_tint": "0xc8a27a",
-      "blotch_tint": "0x5c381e",
-      "belly_tint": "0xe8d8c8",
-      "eye_tint": "0x000000",
+      "color_tint": "#C8A27A",
+      "blotch_tint": "#5C381E",
+      "belly_tint": "#E8D8C8",
+      "eye_tint": "#000000",
       "pattern_style": "standard_blotches"
     },
     {
@@ -61,10 +62,10 @@
       "name_en": "Anaconda Morph",
       "rarity": "Uncommon",
       "weight": 25,
-      "color_tint": "0xdcb896",
-      "blotch_tint": "0x8a5638",
-      "belly_tint": "0xf2e6d8",
-      "eye_tint": "0x000000",
+      "color_tint": "#DCB896",
+      "blotch_tint": "#8A5638",
+      "belly_tint": "#F2E6D8",
+      "eye_tint": "#000000",
       "pattern_style": "reduced_spots"
     },
     {
@@ -73,10 +74,10 @@
       "name_en": "Arctic Morph",
       "rarity": "Rare",
       "weight": 10,
-      "color_tint": "0xe0e0e0",
-      "blotch_tint": "0x37474f",
-      "belly_tint": "0xf5f5f5",
-      "eye_tint": "0x212121",
+      "color_tint": "#E0E0E0",
+      "blotch_tint": "#37474F",
+      "belly_tint": "#F5F5F5",
+      "eye_tint": "#212121",
       "pattern_style": "high_contrast"
     },
     {
@@ -85,10 +86,10 @@
       "name_en": "Albino Morph",
       "rarity": "Legendary",
       "weight": 5,
-      "color_tint": "0xfff59d",
-      "blotch_tint": "0xffb74d",
-      "belly_tint": "0xfffde7",
-      "eye_tint": "0xd32f2f",
+      "color_tint": "#FFF59D",
+      "blotch_tint": "#FFB74D",
+      "belly_tint": "#FFFDE7",
+      "eye_tint": "#D32F2F",
       "pattern_style": "pink_yellow_spots"
     }
   ],
