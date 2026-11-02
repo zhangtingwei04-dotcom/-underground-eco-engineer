@@ -1,0 +1,10 @@
+{
+  "fields": {
+    "geology_engineering": { "name_zh": "地質與地下工程", "icon": "icon_geology" },
+    "biology_genetics": { "name_zh": "生物學與遺傳研究", "icon": "icon_genetics" },
+    "ecology_environment": { "name_zh": "生態與環境科學", "icon": "icon_ecology" },
+    "botany_microbiology": { "name_zh": "植物與微生物研究", "icon": "icon_botany" },
+    "veterinary_medical": { "name_zh": "生物醫療研究", "icon": "icon_medical" },
+    "tech_equipment": { "name_zh": "科技與設備研究", "icon": "icon_tech" }
+  }
+}
