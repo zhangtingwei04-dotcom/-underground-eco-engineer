@@ -1,13 +1,23 @@
 // 地下生態工程師 | Underground Eco-Engineer
-// 遊戲主程式與 Phaser 3 環境初始化設定
+// 核心主程式 - 總整合系統 (Phaser 3 運行版)
 
-// 1. 遊戲核心設定
+// 1. 遊戲全局狀態 (全域變數，供跨系統讀取)
+window.gameEngineState = {
+    creature: {
+        id: "hognose_snake",
+        base_stats: { digging_power: 15, max_energy: 100, current_energy: 100, energy_regen: 2 }
+    },
+    mapData: null,
+    selectedBlock: null
+};
+
+// 2. Phaser 3 遊戲配置
 const config = {
-    type: Phaser.AUTO, // 自動選擇 WebGL 或 Canvas 渲染
-    width: 800,        // 依健檢報告建議，設定適合側視剖面的寬度
-    height: 600,       // 設定高度以容納地下地層與下方操作 UI
-    parent: 'game-container', // 指定嵌入到 index.html 的容器中
-    backgroundColor: '#3d2817', // 使用地底泥土風格的深褐色背景
+    type: Phaser.AUTO,
+    width: 800,
+    height: 600,
+    parent: 'game-container',
+    backgroundColor: '#2b1d11', // 深褐色地底背景
     scene: {
         preload: preload,
         create: create,
@@ -15,44 +25,138 @@ const config = {
     }
 };
 
-// 2. 啟動 Phaser 遊戲實例
 const game = new Phaser.Game(config);
 
-// 3. 預先載入資源階段 (Preload)
+// 3. 預先載入階段
 function preload() {
-    console.log("【系統】開始載入遊戲資源...");
-    // 未來在這裡載入豬鼻蛇精靈圖與方塊貼圖
-    // this.load.image('hognose', 'assets/creatures/hognose.png');
+    console.log("【系統總整合】正在加載核心組件...");
+    // 註：在純網頁環境下，我們會直接在記憶體中聯動載入的 systems 模組
 }
 
-// 4. 建立遊戲世界階段 (Create)
+// 4. 遊戲世界建立與地地圖生成
 function create() {
-    console.log("【系統】Phaser 遊戲環境初始化成功！");
+    const scene = this;
+    console.log("【系統總整合】進入主場景建立...");
+
+    // 顯示中英雙語遊戲標題文字
+    scene.add.text(20, 20, "⚙️ 地下生態工程師 / Eco-Engineer", { font: "24px Arial", fill: "#ffffff", weight: "bold" });
     
-    // 在畫面上印出遊戲標題文字（測試用）
-    this.add.text(20, 20, "Underground Eco-Engineer", { 
-        font: "28px Arial", 
-        fill: "#ffffff",
-        weight: "bold"
-    });
+    // 渲染左側生物狀態欄資訊
+    scene.biostatText = scene.add.text(20, 60, "", { font: "14px Arial", fill: "#ffeb3b" });
 
-    this.add.text(20, 60, "Alpha 0.1 - 地下世界初始化中...", { 
-        font: "16px Arial", 
-        fill: "#a8907c" 
-    });
+    // 【地圖系統整合】呼叫 map-system 生成 2D 土壤分層剖面數據 (6列 x 8欄)
+    if (typeof generateUndergroundMap === 'function') {
+        window.gameEngineState.mapData = generateUndergroundMap(6, 8);
+    } else {
+        // 若模組尚未瀏覽器全域化，則啟動內建防底機制
+        window.gameEngineState.mapData = mockGenerateMap(6, 8);
+    }
 
-    // 畫出一個代表地底剖面的基礎矩形矩陣（模擬中央地下世界）
-    let graphics = this.add.graphics();
-    graphics.fillStyle(0x5c4033, 1); // 泥土色
-    graphics.fillRect(50, 150, 700, 300);
+    // 執行地圖畫面方塊鋪設渲染
+    drawActiveMap(scene);
 
-    this.add.text(60, 160, "[中央地下世界區域 - 待地圖生成系統實作]", {
-        font: "14px Arial",
-        fill: "#ffffff"
+    // 建立一個畫面定時器：每隔 2 秒自動觸發一次精力的時間恢復（結合 energy-system）
+    scene.time.addEvent({
+        delay: 2000,
+        callback: function() {
+            if (typeof updateCreatureEnergy === 'function') {
+                updateCreatureEnergy(window.gameEngineState.creature, true);
+            } else {
+                // 防底精力恢復
+                let stats = window.gameEngineState.creature.base_stats;
+                stats.current_energy = Math.min(stats.max_energy, stats.current_energy + 4);
+            }
+        },
+        loop: true
     });
 }
 
-// 5. 遊戲每影更新邏輯 (Update)
+// 5. 每秒幀率即時刷新
 function update() {
-    // 處理生物動畫、精力動態恢復或滑鼠即時偵測
+    // 即時更新畫面上豬鼻蛇的當前體力數值
+    const stats = window.gameEngineState.creature.base_stats;
+    this.biostatText.setText(
+        `🐍 目前生物: 豬鼻蛇 (Hognose)\n` +
+        `⚡ 精力值: ${stats.current_energy} / ${stats.max_energy}\n` +
+        `⛏️ 挖掘力: ${stats.digging_power} (沙土有 1.5 倍挖掘天賦)`
+    );
+}
+
+// 🎨 動態地圖繪製與交互點擊綁定機制
+function drawActiveMap(scene) {
+    const mapData = window.gameEngineState.mapData;
+    const TILE_SIZE = 60;
+    const START_X = 160; // 側視圖置中偏移
+    const START_Y = 140;
+
+    for (let r = 0; r < mapData.length; r++) {
+        for (let c = 0; c < mapData[r].length; c++) {
+            let block = mapData[r][c];
+            if (block.isDug) continue;
+
+            // 決定顏色分層
+            let color = 0x8b5a2b; // 泥土
+            if (block.type === "sand_block") color = 0xd2b48c; // 沙土
+            if (block.type === "granite_block") color = 0x708090; // 岩石
+
+            // 建立方塊的可點擊互動區域
+            let zone = scene.add.zone(START_X + c * TILE_SIZE + TILE_SIZE/2, START_Y + r * TILE_SIZE + TILE_SIZE/2, TILE_SIZE, TILE_SIZE);
+            zone.setInteractive();
+
+            // 繪製方塊外觀
+            let rect = scene.add.graphics();
+            rect.fillStyle(color, 1);
+            rect.fillRect(START_X + c * TILE_SIZE, START_Y + r * TILE_SIZE, TILE_SIZE - 3, TILE_SIZE - 3);
+
+            // 為每個方塊綁定滑鼠點擊挖掘事件
+            zone.on('pointerdown', function() {
+                executeClickDig(scene, block, rect, zone);
+            });
+        }
+    }
+}
+
+// ⛏️ 點擊挖掘核心處理邏輯 (串接 digging-system)
+function executeClickDig(scene, block, rect, zone) {
+    const creature = window.gameEngineState.creature;
+    
+    // 呼叫我們之前健檢優化後的 executeDigging 演算法
+    let result;
+    if (typeof executeDigging === 'function') {
+        result = executeDigging(creature, block);
+    } else {
+        // 內建兼容執行公式
+        if (creature.base_stats.current_energy < 10) {
+            result = { success: false, message: "精力不足！" };
+        } else {
+            creature.base_stats.current_energy -= 10;
+            let dmg = block.type === "sand_block" ? 23 : (block.type === "dirt_block" ? 5 : 2);
+            block.current_hp = Math.max(0, block.current_hp - dmg);
+            result = { success: true, isDestroyed: block.current_hp <= 0, message: `造成 ${dmg} 點破壞` };
+        }
+    }
+
+    console.log(`[挖掘反饋] ${result.message}`);
+
+    if (result.success && result.isDestroyed) {
+        block.isDug = true;
+        rect.destroy(); // 從 Phaser 畫面上移除該方塊
+        zone.destroy(); // 銷毀該區域的點擊事件
+        console.log(`🎉 成功挖穿地層座標 [${block.row}, ${block.col}] 的 ${block.type}！`);
+    }
+}
+
+// 兼容防底地圖生成器
+function mockGenerateMap(rows, cols) {
+    let arr = [];
+    for (let r = 0; r < rows; r++) {
+        arr[r] = [];
+        for (let c = 0; c < cols; c++) {
+            let type = r < 2 ? "sand_block" : (r >= 4 ? "granite_block" : "dirt_block");
+            let hardness = type === "sand_block" ? 5 : (type === "dirt_block" ? 15 : 50);
+            let hp = type === "sand_block" ? 30 : (type === "dirt_block" ? 100 : 500);
+            arr[r][c] = { row: r, col: c, type: type, hardness: hardness, max_hp: hp, current_hp: hp, isDug: false };
+        }
+    }
+    return arr;
 }
