@@ -1,0 +1,14 @@
+{
+  "npc_id": "old_mac",
+  "name_zh": "老馬克",
+  "title_zh": "商店老闆 / 爬蟲導師",
+  "personality": "資深、博學、老派溫柔",
+  "specialties": ["爬蟲分類", "基因遺傳", "微氣候造景"],
+  "affinity_level": 1,
+  "interaction_memory": {
+    "has_met": false,
+    "first_creature_owned": null,
+    "celebrated_first_adult": false,
+    "noticed_speckles": false
+  }
+}
