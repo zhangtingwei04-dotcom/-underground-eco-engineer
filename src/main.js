@@ -1,16 +1,22 @@
 // 地下生態工程師 | Underground Eco-Engineer
-// 核心主程式 - Alpha 0.2 整合休息區建設系統
+// 核心主程式 - Alpha 0.2 整合動態與個體樣貌變異系統
 
 window.gameEngineState = {
     creature: {
         id: "hognose_snake",
-        base_stats: { digging_power: 15, max_energy: 100, current_energy: 100, energy_regen: 2, current_stress: 0 }
+        base_stats: { digging_power: 15, max_energy: 100, current_energy: 100, energy_regen: 2, current_stress: 0 },
+        morph: null // 將在初始化時自動生成專屬樣貌
     },
-    inventory: { sand_particle: 5, humus: 0, raw_stone: 2 }, // 預設給予一些初始資源方便測試建造
+    inventory: { sand_particle: 5, humus: 0, raw_stone: 2 },
     habitat: { rest_area_count: 0 },
     mapData: null,
     selectedBlock: null
 };
+
+// 初始化第一個個體樣貌
+if (window.CreatureMorphSystem) {
+    window.gameEngineState.creature.morph = window.CreatureMorphSystem.generateIndividualMorph();
+}
 
 // 1. 地下探索主遊戲場景
 class UndergroundScene extends Phaser.Scene {
@@ -31,9 +37,9 @@ class UndergroundScene extends Phaser.Scene {
 
         scene.titleText = scene.add.text(20, 15, "⚙️ 地下生態工程師 / Eco-Engineer", { font: "18px Arial", fill: "#ffffff", fontStyle: "bold" });
         scene.biostatText = scene.add.text(20, 45, "", { font: "12px Arial", fill: "#ffeb3b" });
-        scene.invText = scene.add.text(20, 78, "", { font: "12px Arial", fill: "#4caf50", fontStyle: "bold" });
-        scene.habitatText = scene.add.text(20, 102, "", { font: "12px Arial", fill: "#03a9f4", fontStyle: "bold" });
-        scene.msgText = scene.add.text(20, 565, "💡 點擊地塊挖礦收集資源，解鎖休息區建設！", { font: "13px Arial", fill: "#8bc34a" });
+        scene.invText = scene.add.text(20, 75, "", { font: "12px Arial", fill: "#4caf50", fontStyle: "bold" });
+        scene.habitatText = scene.add.text(20, 98, "", { font: "12px Arial", fill: "#03a9f4", fontStyle: "bold" });
+        scene.msgText = scene.add.text(20, 565, "💡 點擊地塊挖礦收集資源，體驗活潑的寵物動態！", { font: "13px Arial", fill: "#8bc34a" });
 
         // 中英文切換按鈕
         let btnZh = scene.add.text(430, 15, "[ 中文 ]", { font: "12px Arial", fill: "#00ff00" }).setInteractive();
@@ -44,7 +50,7 @@ class UndergroundScene extends Phaser.Scene {
             }
         });
 
-        let btnEn = scene.add.text(490, 15, "[ EN ]", { font: "12px Arial", fill: "#00ff00" }).setInteractive();
+        let btnEn = scene.add.text(485, 15, "[ EN ]", { font: "12px Arial", fill: "#00ff00" }).setInteractive();
         btnEn.on('pointerdown', function() {
             if (window.gameLocales) {
                 window.gameLocales.switchLanguage('en');
@@ -53,13 +59,24 @@ class UndergroundScene extends Phaser.Scene {
         });
 
         // 📖 圖鑑按鈕
-        let btnEncyclopedia = scene.add.text(545, 15, "[ 📖 圖鑑 ]", { font: "12px Arial", fill: "#ffeb3b" }).setInteractive();
+        let btnEncyclopedia = scene.add.text(535, 15, "[ 📖 圖鑑 ]", { font: "12px Arial", fill: "#ffeb3b" }).setInteractive();
         btnEncyclopedia.on('pointerdown', function() {
             scene.scene.start('EncyclopediaScene');
         });
 
+        // 🎲 重新抽樣品系按鈕 (測試用)
+        let btnReroll = scene.add.text(610, 15, "[ 🎲 換樣貌 ]", { font: "12px Arial", fill: "#e91e63", fontStyle: "bold" }).setInteractive();
+        btnReroll.on('pointerdown', function() {
+            if (window.CreatureMorphSystem) {
+                window.gameEngineState.creature.morph = window.CreatureMorphSystem.generateIndividualMorph();
+                let m = window.gameEngineState.creature.morph;
+                scene.msgText.setText(`✨ 獲得全新個體！品系: [${m.name_zh}] | 稀有度: ${m.rarity}`);
+                renderPetOnScene(scene);
+            }
+        });
+
         // ⛺ 建造休息區按鈕
-        let btnBuild = scene.add.text(620, 15, "[ ⛺ 蓋休息區 ]", { font: "12px Arial", fill: "#ff9800", fontStyle: "bold" }).setInteractive();
+        let btnBuild = scene.add.text(610, 38, "[ ⛺ 蓋休息區 ]", { font: "12px Arial", fill: "#ff9800", fontStyle: "bold" }).setInteractive();
         btnBuild.on('pointerdown', function() {
             if (window.GameHabitatSystem) {
                 let res = window.GameHabitatSystem.buildRestArea();
@@ -68,7 +85,7 @@ class UndergroundScene extends Phaser.Scene {
         });
 
         // 存檔與讀檔按鈕
-        let btnSave = scene.add.text(615, 42, "[ 💾 存 ]", { font: "12px Arial", fill: "#ff9800" }).setInteractive();
+        let btnSave = scene.add.text(710, 15, "[ 💾 存 ]", { font: "12px Arial", fill: "#ff9800" }).setInteractive();
         btnSave.on('pointerdown', function() {
             if (window.GameSaveSystem) {
                 let res = window.GameSaveSystem.saveGame();
@@ -77,31 +94,29 @@ class UndergroundScene extends Phaser.Scene {
             }
         });
 
-        let btnLoad = scene.add.text(675, 42, "[ 📂 讀 ]", { font: "12px Arial", fill: "#03a9f4" }).setInteractive();
+        let btnLoad = scene.add.text(710, 38, "[ 📂 讀 ]", { font: "12px Arial", fill: "#03a9f4" }).setInteractive();
         btnLoad.on('pointerdown', function() {
             if (window.GameSaveSystem) {
                 let res = window.GameSaveSystem.loadGame();
                 let msg = window.gameLocales ? window.gameLocales.translate(res.message) : res.message;
                 scene.msgText.setText(`[系統反饋] ${msg}`);
                 drawActiveMap(scene);
+                renderPetOnScene(scene);
             }
         });
 
-        // 初始化地圖與環境模擬
+        // 初始化地圖與環境
         if (typeof generateUndergroundMap === 'function') {
             window.gameEngineState.mapData = generateUndergroundMap(6, 8);
         } else {
             window.gameEngineState.mapData = mockGenerateMap(6, 8);
         }
 
-        if (window.GameEnvironmentSystem) {
-            window.GameEnvironmentSystem.initializeMapEnvironment(window.gameEngineState.mapData);
-        }
-
         scene.mapContainer = scene.add.group();
         drawActiveMap(scene);
+        renderPetOnScene(scene);
 
-        // 自動精力恢復與休息區被動加成定時器
+        // 自動精力恢復與動態更新
         scene.time.addEvent({
             delay: 2000,
             callback: function() {
@@ -119,10 +134,11 @@ class UndergroundScene extends Phaser.Scene {
     update() {
         if (!this.biostatText || !window.gameEngineState.creature) return;
         const stats = window.gameEngineState.creature.base_stats;
+        const morph = window.gameEngineState.creature.morph || { name_zh: "野生型", rarity: "Common" };
         const creatureName = window.gameLocales ? window.gameLocales.translate("creature_hognose_snake") : "豬鼻蛇";
         
         this.biostatText.setText(
-            `🐍 生物: ${creatureName} | ⚡ 精力: ${stats.current_energy}/${stats.max_energy} | ⛏️ 挖力: ${stats.digging_power} | 😰 壓: ${stats.current_stress || 0}`
+            `🐍 ${creatureName} (${morph.name_zh} [${morph.rarity}]) | ⚡ 精力: ${stats.current_energy}/${stats.max_energy} | ⛏️ 挖力: ${stats.digging_power}`
         );
 
         const inv = window.GameInventorySystem ? window.GameInventorySystem.getInventory() : { sand_particle: 0, humus: 0, raw_stone: 0 };
@@ -132,12 +148,23 @@ class UndergroundScene extends Phaser.Scene {
 
         const habitat = window.gameEngineState.habitat || { rest_area_count: 0 };
         this.habitatText.setText(
-            `⛺ 設施建設 -> 地下休息區數量: ${habitat.rest_area_count} 座 (被動加速回精與減壓中)`
+            `⛺ 地下休息區: ${habitat.rest_area_count} 座 (被動回精降壓中)`
         );
     }
 }
 
-// 2. 遊戲總配置與多場景註冊
+// 2. 在畫面上繪製與更新活潑的寵物靈魂
+function renderPetOnScene(scene) {
+    if (scene.petContainer) {
+        scene.petContainer.destroy();
+    }
+    const morph = window.gameEngineState.creature.morph;
+    if (window.CreatureMorphSystem && morph) {
+        scene.petContainer = window.CreatureMorphSystem.renderCreatureSprite(scene, 100, 200, morph);
+    }
+}
+
+// 3. 遊戲總設定
 const config = {
     type: Phaser.AUTO,
     width: 800,
@@ -149,7 +176,6 @@ const config = {
 
 const game = new Phaser.Game(config);
 
-// 3. 輔助函式
 function refreshUItext(scene) {
     if (!window.gameLocales) return;
     const translatedTitle = window.gameLocales.translate("game_title");
@@ -168,9 +194,9 @@ function drawActiveMap(scene) {
             let block = mapData[r][c];
             if (block.isDug) continue;
 
-            let color = 0x8b5a2b; // 泥土
-            if (block.type === "sand_block") color = 0xd2b48c; // 沙土
-            if (block.type === "granite_block") color = 0x708090; // 岩石
+            let color = 0x8b5a2b;
+            if (block.type === "sand_block") color = 0xd2b48c;
+            if (block.type === "granite_block") color = 0x708090;
 
             let zone = scene.add.zone(START_X + c * TILE_SIZE + TILE_SIZE/2, START_Y + r * TILE_SIZE + TILE_SIZE/2, TILE_SIZE, TILE_SIZE);
             zone.setInteractive();
@@ -191,23 +217,13 @@ function drawActiveMap(scene) {
 
 function handleBlockDrop(blockType) {
     if (!window.GameInventorySystem) return { itemId: "sand_particle", amount: 1 };
-
     let itemId = "sand_particle";
     let amount = 1;
 
     switch (blockType) {
-        case "sand_block":
-            itemId = "sand_particle";
-            amount = Math.floor(Math.random() * 2) + 1;
-            break;
-        case "dirt_block":
-            itemId = "humus";
-            amount = 1;
-            break;
-        case "granite_block":
-            itemId = "raw_stone";
-            amount = 1;
-            break;
+        case "sand_block": itemId = "sand_particle"; amount = Math.floor(Math.random() * 2) + 1; break;
+        case "dirt_block": itemId = "humus"; amount = 1; break;
+        case "granite_block": itemId = "raw_stone"; amount = 1; break;
     }
 
     window.GameInventorySystem.addItem(itemId, amount);
@@ -216,17 +232,7 @@ function handleBlockDrop(blockType) {
 
 function executeClickDig(scene, block, rect, zone) {
     const creature = window.gameEngineState.creature;
-
-    let result;
-    if (typeof executeDigging === 'function') {
-        result = executeDigging(creature, block);
-    } else {
-        result = { success: false, message: "挖掘系統未載入" };
-    }
-
-    if (window.GameEnvironmentSystem) {
-        window.GameEnvironmentSystem.updateCreatureComfort(creature, block);
-    }
+    let result = typeof executeDigging === 'function' ? executeDigging(creature, block) : { success: false, message: "挖掘系統未載入" };
 
     if (result.success && result.isDestroyed) {
         block.isDug = true;
