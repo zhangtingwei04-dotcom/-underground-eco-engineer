@@ -1,12 +1,13 @@
 // 地下生態工程師 | Underground Eco-Engineer
-// 核心主程式 - Alpha 0.2 多場景架構總整合
+// 核心主程式 - Alpha 0.2 整合休息區建設系統
 
 window.gameEngineState = {
     creature: {
         id: "hognose_snake",
         base_stats: { digging_power: 15, max_energy: 100, current_energy: 100, energy_regen: 2, current_stress: 0 }
     },
-    inventory: { sand_particle: 0, humus: 0, raw_stone: 0 },
+    inventory: { sand_particle: 5, humus: 0, raw_stone: 2 }, // 預設給予一些初始資源方便測試建造
+    habitat: { rest_area_count: 0 },
     mapData: null,
     selectedBlock: null
 };
@@ -30,11 +31,12 @@ class UndergroundScene extends Phaser.Scene {
 
         scene.titleText = scene.add.text(20, 15, "⚙️ 地下生態工程師 / Eco-Engineer", { font: "18px Arial", fill: "#ffffff", fontStyle: "bold" });
         scene.biostatText = scene.add.text(20, 45, "", { font: "12px Arial", fill: "#ffeb3b" });
-        scene.invText = scene.add.text(20, 80, "", { font: "12px Arial", fill: "#4caf50", fontStyle: "bold" });
-        scene.msgText = scene.add.text(20, 565, "💡 點擊下方地塊開始挖掘並收集資源！", { font: "13px Arial", fill: "#8bc34a" });
+        scene.invText = scene.add.text(20, 78, "", { font: "12px Arial", fill: "#4caf50", fontStyle: "bold" });
+        scene.habitatText = scene.add.text(20, 102, "", { font: "12px Arial", fill: "#03a9f4", fontStyle: "bold" });
+        scene.msgText = scene.add.text(20, 565, "💡 點擊地塊挖礦收集資源，解鎖休息區建設！", { font: "13px Arial", fill: "#8bc34a" });
 
         // 中英文切換按鈕
-        let btnZh = scene.add.text(480, 15, "[ 中文 ]", { font: "13px Arial", fill: "#00ff00" }).setInteractive();
+        let btnZh = scene.add.text(430, 15, "[ 中文 ]", { font: "12px Arial", fill: "#00ff00" }).setInteractive();
         btnZh.on('pointerdown', function() {
             if (window.gameLocales) {
                 window.gameLocales.switchLanguage('zh-TW');
@@ -42,7 +44,7 @@ class UndergroundScene extends Phaser.Scene {
             }
         });
 
-        let btnEn = scene.add.text(545, 15, "[ EN ]", { font: "13px Arial", fill: "#00ff00" }).setInteractive();
+        let btnEn = scene.add.text(490, 15, "[ EN ]", { font: "12px Arial", fill: "#00ff00" }).setInteractive();
         btnEn.on('pointerdown', function() {
             if (window.gameLocales) {
                 window.gameLocales.switchLanguage('en');
@@ -50,14 +52,23 @@ class UndergroundScene extends Phaser.Scene {
             }
         });
 
-        // 📖 開啟生物圖鑑按鈕（切換至獨立的 EncyclopediaScene 場景）
-        let btnEncyclopedia = scene.add.text(610, 15, "[ 📖 圖鑑 ]", { font: "13px Arial", fill: "#ffeb3b" }).setInteractive();
+        // 📖 圖鑑按鈕
+        let btnEncyclopedia = scene.add.text(545, 15, "[ 📖 圖鑑 ]", { font: "12px Arial", fill: "#ffeb3b" }).setInteractive();
         btnEncyclopedia.on('pointerdown', function() {
             scene.scene.start('EncyclopediaScene');
         });
 
+        // ⛺ 建造休息區按鈕
+        let btnBuild = scene.add.text(620, 15, "[ ⛺ 蓋休息區 ]", { font: "12px Arial", fill: "#ff9800", fontStyle: "bold" }).setInteractive();
+        btnBuild.on('pointerdown', function() {
+            if (window.GameHabitatSystem) {
+                let res = window.GameHabitatSystem.buildRestArea();
+                scene.msgText.setText(res.message);
+            }
+        });
+
         // 存檔與讀檔按鈕
-        let btnSave = scene.add.text(480, 42, "[ 💾 存 ]", { font: "13px Arial", fill: "#ff9800" }).setInteractive();
+        let btnSave = scene.add.text(615, 42, "[ 💾 存 ]", { font: "12px Arial", fill: "#ff9800" }).setInteractive();
         btnSave.on('pointerdown', function() {
             if (window.GameSaveSystem) {
                 let res = window.GameSaveSystem.saveGame();
@@ -66,7 +77,7 @@ class UndergroundScene extends Phaser.Scene {
             }
         });
 
-        let btnLoad = scene.add.text(545, 42, "[ 📂 讀 ]", { font: "13px Arial", fill: "#03a9f4" }).setInteractive();
+        let btnLoad = scene.add.text(675, 42, "[ 📂 讀 ]", { font: "12px Arial", fill: "#03a9f4" }).setInteractive();
         btnLoad.on('pointerdown', function() {
             if (window.GameSaveSystem) {
                 let res = window.GameSaveSystem.loadGame();
@@ -90,12 +101,15 @@ class UndergroundScene extends Phaser.Scene {
         scene.mapContainer = scene.add.group();
         drawActiveMap(scene);
 
-        // 自動精力恢復定時器
+        // 自動精力恢復與休息區被動加成定時器
         scene.time.addEvent({
             delay: 2000,
             callback: function() {
                 if (typeof updateCreatureEnergy === 'function') {
                     updateCreatureEnergy(window.gameEngineState.creature, true);
+                }
+                if (window.GameHabitatSystem) {
+                    window.GameHabitatSystem.applyRestAreaEffect(window.gameEngineState.creature);
                 }
             },
             loop: true
@@ -115,6 +129,11 @@ class UndergroundScene extends Phaser.Scene {
         this.invText.setText(
             `🎒 資源 -> 細沙: ${inv.sand_particle || 0} | 腐植質: ${inv.humus || 0} | 碎石: ${inv.raw_stone || 0}`
         );
+
+        const habitat = window.gameEngineState.habitat || { rest_area_count: 0 };
+        this.habitatText.setText(
+            `⛺ 設施建設 -> 地下休息區數量: ${habitat.rest_area_count} 座 (被動加速回精與減壓中)`
+        );
     }
 }
 
@@ -125,12 +144,12 @@ const config = {
     height: 600,
     parent: 'game-container',
     backgroundColor: '#2b1d11',
-    scene: [UndergroundScene, EncyclopediaScene] // 註冊探索場景與獨立圖鑑場景
+    scene: [UndergroundScene, EncyclopediaScene]
 };
 
 const game = new Phaser.Game(config);
 
-// 3. 輔助函式 (地圖繪製與資源掉落)
+// 3. 輔助函式
 function refreshUItext(scene) {
     if (!window.gameLocales) return;
     const translatedTitle = window.gameLocales.translate("game_title");
@@ -142,7 +161,7 @@ function drawActiveMap(scene) {
     const mapData = window.gameEngineState.mapData;
     const TILE_SIZE = 60;
     const START_X = 160;
-    const START_Y = 145;
+    const START_Y = 135;
 
     for (let r = 0; r < mapData.length; r++) {
         for (let c = 0; c < mapData[r].length; c++) {
