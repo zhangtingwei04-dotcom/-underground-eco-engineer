@@ -1,0 +1,43 @@
+{
+  "technologies": [
+    {
+      "id": "soil_hardness_analysis",
+      "field": "geology_engineering",
+      "name_zh": "土壤硬度分析",
+      "description_zh": "研究不同層積岩與地下土壤的密實度，解鎖更堅硬地層的挖掘能力。",
+      "unlock_conditions": {
+        "exploration": { "target_depth": 10 },
+        "collection": [
+          { "sample_id": "clay_soil", "count": 3 },
+          { "sample_id": "sand_soil", "count": 3 },
+          { "sample_id": "limestone_fragment", "count": 1 }
+        ],
+        "observation": null,
+        "resources": { "research_points": 50, "credits": 100 }
+      },
+      "rewards": {
+        "unlocked_tools": ["reinforced_shovel"],
+        "unlocked_layers": ["compact_clay_layer"]
+      },
+      "is_hidden": false
+    },
+    {
+      "id": "scale_pattern_genetics",
+      "field": "biology_genetics",
+      "name_zh": "鱗片斑塊遺傳學",
+      "description_zh": "透過觀察與記錄個體的花紋異變，理解色素細胞在基因中的表達模式。",
+      "unlock_conditions": {
+        "exploration": null,
+        "collection": null,
+        "observation": { "recorded_morphs_count": 2 },
+        "resources": { "research_points": 120, "credits": 300 }
+      },
+      "rewards": {
+        "unlocked_morphs": ["anaconda", "arctic"],
+        "encyclopedia_data": ["genetic_inheritance_notes"]
+      },
+      "is_hidden": true,
+      "clue_zh": "觀察並記錄至少 2 種不同的豬鼻蛇基因變異個體..."
+    }
+  ]
+}
