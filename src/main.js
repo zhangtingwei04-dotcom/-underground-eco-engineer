@@ -33,8 +33,7 @@ function preload() {
     // 註：在純網頁環境下，我們會直接在記憶體中聯動載入的 systems 模組
 }
 
-// 4. 遊戲世界建立與地地圖生成
-// 修改後的 create 函式（請在 main.js 內找到對應區塊進行替換或整體覆蓋）
+// 4. 遊戲世界建立與地下地圖生成
 function create() {
     const scene = this;
     console.log("【系統總整合】進入主場景建立...");
@@ -45,7 +44,7 @@ function create() {
     }
 
     // 顯示中英雙語遊戲標題文字
-    scene.titleText = scene.add.text(20, 20, "⚙️ 地下生態工程師 / Eco-Engineer", { font: "24px Arial", fill: "#ffffff", weight: "bold" });
+    scene.titleText = scene.add.text(20, 20, "⚙️ 地下生態工程師 / Eco-Engineer", { font: "24px Arial", fill: "#ffffff", fontStyle: "bold" });
     scene.biostatText = scene.add.text(20, 60, "", { font: "14px Arial", fill: "#ffeb3b" });
 
     // 2. 實作【中英文即時切換按鈕 UI】
@@ -91,51 +90,17 @@ function create() {
 // 🌐 配合 locales-loader 新增的介面語系刷新函式
 function refreshUItext(scene) {
     if (!window.gameLocales) return;
-    
+
     // 動態透過全域語系管理器抓取翻譯，即時替換標題與 console 提示
     const translatedTitle = window.gameLocales.translate("game_title");
     scene.titleText.setText(`⚙️ ${translatedTitle} / Eco-Engineer`);
     console.log(`【介面刷新】語系已動態切換，當前標題為: ${translatedTitle}`);
 }
-    const scene = this;
-    console.log("【系統總整合】進入主場景建立...");
 
-    // 顯示中英雙語遊戲標題文字
-    scene.add.text(20, 20, "⚙️ 地下生態工程師 / Eco-Engineer", { font: "24px Arial", fill: "#ffffff", weight: "bold" });
-    
-    // 渲染左側生物狀態欄資訊
-    scene.biostatText = scene.add.text(20, 60, "", { font: "14px Arial", fill: "#ffeb3b" });
-
-    // 【地圖系統整合】呼叫 map-system 生成 2D 土壤分層剖面數據 (6列 x 8欄)
-    if (typeof generateUndergroundMap === 'function') {
-        window.gameEngineState.mapData = generateUndergroundMap(6, 8);
-    } else {
-        // 若模組尚未瀏覽器全域化，則啟動內建防底機制
-        window.gameEngineState.mapData = mockGenerateMap(6, 8);
-    }
-
-    // 執行地圖畫面方塊鋪設渲染
-    drawActiveMap(scene);
-
-    // 建立一個畫面定時器：每隔 2 秒自動觸發一次精力的時間恢復（結合 energy-system）
-    scene.time.addEvent({
-        delay: 2000,
-        callback: function() {
-            if (typeof updateCreatureEnergy === 'function') {
-                updateCreatureEnergy(window.gameEngineState.creature, true);
-            } else {
-                // 防底精力恢復
-                let stats = window.gameEngineState.creature.base_stats;
-                stats.current_energy = Math.min(stats.max_energy, stats.current_energy + 4);
-            }
-        },
-        loop: true
-    });
-}
-
-// 5. 每秒幀率即時刷新
+// 5. 生物狀態面板即時刷新
 function update() {
     // 即時更新畫面上豬鼻蛇的當前體力數值
+    if (!this.biostatText || !window.gameEngineState.creature) return;
     const stats = window.gameEngineState.creature.base_stats;
     this.biostatText.setText(
         `🐍 目前生物: 豬鼻蛇 (Hognose)\n` +
@@ -181,7 +146,7 @@ function drawActiveMap(scene) {
 // ⛏️ 點擊挖掘核心處理邏輯 (串接 digging-system)
 function executeClickDig(scene, block, rect, zone) {
     const creature = window.gameEngineState.creature;
-    
+
     // 呼叫我們之前健檢優化後的 executeDigging 演算法
     let result;
     if (typeof executeDigging === 'function') {
@@ -208,7 +173,7 @@ function executeClickDig(scene, block, rect, zone) {
     }
 }
 
-// 兼容防底地圖生成器
+// 相容防呆地圖生成器
 function mockGenerateMap(rows, cols) {
     let arr = [];
     for (let r = 0; r < rows; r++) {
