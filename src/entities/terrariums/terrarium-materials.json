@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "materials": [
     {
       "id": "slate_rock_cave",
@@ -21,6 +21,38 @@
       "category": "equipment",
       "size": { "width": 10, "height": 10 },
       "effects": { "humidity_modifier": +15, "provides_water": true }
+    },
+    {
+      "id": "crystal_quartz_cluster",
+      "name_zh": "純淨石英結晶簇",
+      "category": "mineral",
+      "size": { "width": 10, "height": 12 },
+      "effects": { "lighting_modifier": +10, "stress_relief": +5 },
+      "description": "從深層岩脈中採集到的天然石英，能折射微光並穩定生物情緒。"
+    },
+    {
+      "id": "volcanic_basalt_rock",
+      "name_zh": "多孔火山岩塊",
+      "category": "mineral",
+      "size": { "width": 14, "height": 10 },
+      "effects": { "humidity_modifier": -5, "heat_retention": +8 },
+      "description": "具備優異吸濕與蓄熱能力的火山岩，適合喜歡乾燥環境的爬行類。"
+    },
+    {
+      "id": "fern_snake_plant",
+      "name_zh": "耐陰黃金蕨",
+      "category": "plant",
+      "size": { "width": 12, "height": 15 },
+      "effects": { "humidity_modifier": +12, "oxygen_production": +10 },
+      "description": "生命力頑強的地下蕨類植物，能有效提升生態箱內的空氣品質與濕度。"
+    },
+    {
+      "id": "amber_resin_piece",
+      "name_zh": "遠古琥珀樹脂石",
+      "category": "mineral",
+      "size": { "width": 8, "height": 8 },
+      "effects": { "ecosystem_balance_bonus": +5 },
+      "description": "散發著淡淡古老氣息的樹脂化石，能提升整體生態箱的微觀平衡評分。"
     }
   ]
 }
