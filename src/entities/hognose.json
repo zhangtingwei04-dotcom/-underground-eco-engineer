@@ -3,8 +3,10 @@
   "base_stats": {
     "digging_power": 15,
     "max_energy": 100,
+    "current_energy": 100,
     "energy_regen": 2,
-    "max_stress": 100
+    "max_stress": 100,
+    "current_stress": 0
   },
   "behavior_traits": {
     "can_play_dead": true,
