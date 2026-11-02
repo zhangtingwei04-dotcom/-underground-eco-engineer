@@ -17,5 +17,24 @@
       "name_key": "item_raw_stone",
       "type": "material",
       "description": "從深層花崗岩剝落的硬質碎石，是高級建築的必要材料。"
+    },
+    {
+      "id": "crystal_dust",
+      "name_key": "item_crystal_dust",
+      "type": "mineral",
+      "description": "打碎石英結晶時獲得的閃亮微粉，可用於精緻造景或裝飾。"
+    },
+    {
+      "id": "ancient_resin",
+      "name_key": "item_ancient_resin",
+      "type": "organic",
+      "description": "包覆著遠古氣息的樹酯，具備極高的生物與科研價值。"
+    },
+    {
+      "id": "limestone_fragment",
+      "name_key": "item_limestone_fragment",
+      "type": "mineral",
+      "description": "硬度適中的石灰岩碎片，可用來解鎖進階地質科技。"
     }
   ]
+}
