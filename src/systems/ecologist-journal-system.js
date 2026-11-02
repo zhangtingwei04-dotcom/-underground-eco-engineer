@@ -42,4 +42,4 @@ window.EcologistJournalSystem = {
         const content = `在今天的仔細觀察中，我發現牠的體表長出了極其罕見的白點與高對比斑紋！這究竟是顯性基因的逐步表達，還是後天微氣候適應的結果？我必須繼續觀察下去。`;
         return this.addLogEntry(title, content, "mutation", userSaveData);
     }
-};
+}
