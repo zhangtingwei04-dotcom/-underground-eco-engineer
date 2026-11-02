@@ -34,7 +34,69 @@ function preload() {
 }
 
 // 4. 遊戲世界建立與地地圖生成
+// 修改後的 create 函式（請在 main.js 內找到對應區塊進行替換或整體覆蓋）
 function create() {
+    const scene = this;
+    console.log("【系統總整合】進入主場景建立...");
+
+    // 1. 初始化中英雙語管理器
+    if (window.gameLocales && typeof window.gameLocales.initialize === 'function') {
+        window.gameLocales.initialize();
+    }
+
+    // 顯示中英雙語遊戲標題文字
+    scene.titleText = scene.add.text(20, 20, "⚙️ 地下生態工程師 / Eco-Engineer", { font: "24px Arial", fill: "#ffffff", weight: "bold" });
+    scene.biostatText = scene.add.text(20, 60, "", { font: "14px Arial", fill: "#ffeb3b" });
+
+    // 2. 實作【中英文即時切換按鈕 UI】
+    // 建立繁中切換按鈕
+    let btnZh = scene.add.text(550, 20, "[ 繁體中文 ]", { font: "16px Arial", fill: "#00ff00" }).setInteractive();
+    btnZh.on('pointerdown', function() {
+        if (window.gameLocales) {
+            window.gameLocales.switchLanguage('zh-TW');
+            refreshUItext(scene);
+        }
+    });
+
+    // 建立英文切換按鈕
+    let btnEn = scene.add.text(670, 20, "[ English ]", { font: "16px Arial", fill: "#00ff00" }).setInteractive();
+    btnEn.on('pointerdown', function() {
+        if (window.gameLocales) {
+            window.gameLocales.switchLanguage('en');
+            refreshUItext(scene);
+        }
+    });
+
+    // 3. 生成 2D 土壤分層剖面數據
+    if (typeof generateUndergroundMap === 'function') {
+        window.gameEngineState.mapData = generateUndergroundMap(6, 8);
+    } else {
+        window.gameEngineState.mapData = mockGenerateMap(6, 8);
+    }
+
+    drawActiveMap(scene);
+
+    // 4. 定時恢復體力
+    scene.time.addEvent({
+        delay: 2000,
+        callback: function() {
+            if (typeof updateCreatureEnergy === 'function') {
+                updateCreatureEnergy(window.gameEngineState.creature, true);
+            }
+        },
+        loop: true
+    });
+}
+
+// 🌐 配合 locales-loader 新增的介面語系刷新函式
+function refreshUItext(scene) {
+    if (!window.gameLocales) return;
+    
+    // 動態透過全域語系管理器抓取翻譯，即時替換標題與 console 提示
+    const translatedTitle = window.gameLocales.translate("game_title");
+    scene.titleText.setText(`⚙️ ${translatedTitle} / Eco-Engineer`);
+    console.log(`【介面刷新】語系已動態切換，當前標題為: ${translatedTitle}`);
+}
     const scene = this;
     console.log("【系統總整合】進入主場景建立...");
 
