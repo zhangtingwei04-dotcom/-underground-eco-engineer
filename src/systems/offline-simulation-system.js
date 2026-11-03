@@ -32,6 +32,11 @@ export class OfflineSimulationSystem {
 
     /**
      * 執行離線生態結算
+     *
+     * 時間判斷優先順序：
+     * 1. last_simulated_at
+     * 2. updatedAtISO（相容舊版呼叫方式）
+     * 3. saveJson.updatedAt（第一次結算使用）
      */
     static simulateOfflineProgress(saveJson, updatedAtISO) {
 
@@ -43,17 +48,48 @@ export class OfflineSimulationSystem {
             throw new Error('離線模擬失敗：無效的存檔資料');
         }
 
-        if (!updatedAtISO) {
+        // 判斷是否已經有離線結算時間
+        const hasSimulationTimestamp =
+            saveJson.last_simulated_at !== undefined &&
+            saveJson.last_simulated_at !== null &&
+            saveJson.last_simulated_at !== '';
+
+        let timestamp;
+
+        if (hasSimulationTimestamp) {
+
+            timestamp = saveJson.last_simulated_at;
+
+        } else {
+
+            timestamp =
+                updatedAtISO ??
+                saveJson.updatedAt;
+        }
+
+        // 沒有任何可用時間資料，不執行離線結算
+        if (
+            timestamp === undefined ||
+            timestamp === null ||
+            timestamp === ''
+        ) {
+            console.warn(
+                '[離線模擬] 找不到有效的存檔時間，取消本次結算'
+            );
+
             return {
                 updatedSaveJson: saveJson,
                 offlineReport: null
             };
         }
 
-        const lastTime = new Date(updatedAtISO).getTime();
+        const lastTime = new Date(timestamp).getTime();
 
         if (!Number.isFinite(lastTime)) {
-            console.warn('[離線模擬] 存檔時間格式錯誤，取消本次結算');
+
+            console.warn(
+                '[離線模擬] 存檔時間格式錯誤，取消本次結算'
+            );
 
             return {
                 updatedSaveJson: saveJson,
@@ -64,8 +100,10 @@ export class OfflineSimulationSystem {
         const currentTime = Date.now();
         const diffMs = currentTime - lastTime;
 
+        // 防止未來時間或過短時間造成異常結算
         if (
-            diffMs < this.CONFIG.MIN_OFFLINE_MINUTES * 60 * 1000
+            diffMs <
+            this.CONFIG.MIN_OFFLINE_MINUTES * 60 * 1000
         ) {
             return {
                 updatedSaveJson: saveJson,
@@ -79,20 +117,19 @@ export class OfflineSimulationSystem {
             saveJson.terrariums = [];
         }
 
-        if (!Array.isArray(saveJson.creatures)) {
-            saveJson.creatures = [];
-        }
-
         const reportEvents = [];
 
         console.log(
             `【離線模擬】玩家離線時間：${diffHours.toFixed(2)} 小時`
         );
 
-        // 生態箱離線結算
+        // 1. 生態箱離線結算
         saveJson.terrariums.forEach((terrarium, index) => {
 
-            if (!terrarium || typeof terrarium !== 'object') {
+            if (
+                !terrarium ||
+                typeof terrarium !== 'object'
+            ) {
                 return;
             }
 
@@ -102,18 +139,20 @@ export class OfflineSimulationSystem {
             );
 
             if (result.message) {
+
                 reportEvents.push(
                     `生態箱 #${index + 1}：${result.message}`
                 );
             }
         });
 
-        // 生物離線結算
-        saveJson.creatures.forEach((creature) => {
+        // 2. 收集所有生物
+        // 同時兼容舊版 saveJson.creatures
+        // 與新版 terrariums[].creatures
+        const creatures = this._collectCreatures(saveJson);
 
-            if (!creature || typeof creature !== 'object') {
-                return;
-            }
+        // 3. 生物離線結算
+        creatures.forEach((creature) => {
 
             const result = this._processCreatureOffline(
                 creature,
@@ -121,12 +160,14 @@ export class OfflineSimulationSystem {
             );
 
             if (result.message) {
+
                 reportEvents.push(
                     `寵物 [${creature.nickname || creature.name || '未命名生物'}]：${result.message}`
                 );
             }
         });
 
+        // 4. 記錄本次結算完成時間
         const simulationTime = new Date().toISOString();
 
         saveJson.last_simulated_at = simulationTime;
@@ -137,7 +178,9 @@ export class OfflineSimulationSystem {
             simulatedAt: simulationTime
         };
 
-        console.log('【離線模擬】離線結算完成');
+        console.log(
+            '【離線模擬】離線結算完成'
+        );
 
         return {
             updatedSaveJson: saveJson,
@@ -146,17 +189,82 @@ export class OfflineSimulationSystem {
     }
 
     /**
+     * 收集存檔中的所有生物
+     *
+     * 支援：
+     * 1. 舊版 saveJson.creatures
+     * 2. 新版 saveJson.terrariums[].creatures
+     *
+     * 使用 Set 避免同一個物件被重複結算。
+     */
+    static _collectCreatures(saveJson) {
+
+        const creatures = [];
+        const seenCreatures = new Set();
+
+        const addCreature = (creature) => {
+
+            if (
+                !creature ||
+                typeof creature !== 'object' ||
+                seenCreatures.has(creature)
+            ) {
+                return;
+            }
+
+            seenCreatures.add(creature);
+            creatures.push(creature);
+        };
+
+        // 相容舊版頂層生物資料
+        if (Array.isArray(saveJson.creatures)) {
+
+            saveJson.creatures.forEach(addCreature);
+        }
+
+        // 讀取各生態箱內的生物
+        if (Array.isArray(saveJson.terrariums)) {
+
+            saveJson.terrariums.forEach((terrarium) => {
+
+                if (
+                    !terrarium ||
+                    typeof terrarium !== 'object' ||
+                    !Array.isArray(terrarium.creatures)
+                ) {
+                    return;
+                }
+
+                terrarium.creatures.forEach(addCreature);
+            });
+        }
+
+        return creatures;
+    }
+
+    /**
      * 處理單一生態箱的離線環境變化
+     *
+     * 相容兩種資料結構：
+     * 1. terrarium.environment.humidity
+     * 2. terrarium.humidity
      */
     static _processTerrariumOffline(terrarium, hours) {
 
-        terrarium.humidity = this._normalizeStatus(
-            terrarium.humidity,
+        const environment =
+            terrarium.environment &&
+            typeof terrarium.environment === 'object' &&
+            !Array.isArray(terrarium.environment)
+                ? terrarium.environment
+                : terrarium;
+
+        environment.humidity = this._normalizeStatus(
+            environment.humidity,
             50
         );
 
-        terrarium.temperature = this._normalizeStatus(
-            terrarium.temperature,
+        environment.temperature = this._normalizeStatus(
+            environment.temperature,
             26
         );
 
@@ -166,32 +274,35 @@ export class OfflineSimulationSystem {
         );
 
         const humidityLoss = Math.min(
-            effectiveHours * this.CONFIG.HUMIDITY_LOSS_PER_HOUR,
+            effectiveHours *
+            this.CONFIG.HUMIDITY_LOSS_PER_HOUR,
+
             this.CONFIG.MAX_HUMIDITY_LOSS
         );
 
-        const previousHumidity = terrarium.humidity;
+        const previousHumidity = environment.humidity;
 
-        terrarium.humidity = Math.max(
+        environment.humidity = Math.max(
             0,
             previousHumidity - humidityLoss
         );
 
         let message = null;
 
-        if (terrarium.humidity < 20) {
+        if (environment.humidity < 20) {
 
             message =
-                `濕度降至危險水平 (${terrarium.humidity.toFixed(1)}%)，請盡快補充水分！`;
+                `濕度降至危險水平 (${environment.humidity.toFixed(1)}%)，請盡快補充水分！`;
 
         } else if (humidityLoss > 0) {
 
             message =
-                `濕度由 ${previousHumidity.toFixed(1)}% 降至 ${terrarium.humidity.toFixed(1)}%。`;
+                `濕度由 ${previousHumidity.toFixed(1)}% 降至 ${environment.humidity.toFixed(1)}%。`;
         }
 
         return {
             terrarium,
+            environment,
             message
         };
     }
@@ -250,16 +361,18 @@ export class OfflineSimulationSystem {
                 ? 0
                 : previousHydration / hydrationRate;
 
-        // 計算本次離線期間的飢餓變化
-        const hungerLoss = effectiveHours * hungerRate;
+        // 計算飢餓值變化
+        const hungerLoss =
+            effectiveHours * hungerRate;
 
         creature.hunger = Math.max(
             0,
             previousHunger - hungerLoss
         );
 
-        // 計算本次離線期間的水分變化
-        const hydrationLoss = effectiveHours * hydrationRate;
+        // 計算水分變化
+        const hydrationLoss =
+            effectiveHours * hydrationRate;
 
         const newHydration = Math.max(
             0,
@@ -284,7 +397,7 @@ export class OfflineSimulationSystem {
             hoursUntilHydrationEmpty
         );
 
-        // 只有歸零之後的時間才會造成健康下降
+        // 只有基本需求歸零之後的時間才會造成健康下降
         const hoursWithoutBasicNeeds = Math.max(
             0,
             effectiveHours - hoursUntilFirstDepletion
@@ -315,50 +428,4 @@ export class OfflineSimulationSystem {
                 '生物的飢餓值或水分已經歸零，請盡快照顧牠！';
 
         } else if (
-            creature.hunger < 30 ||
-            creature.hydration < 30
-        ) {
-
-            message =
-                `生物需要照顧（飢餓值：${creature.hunger.toFixed(1)}%，水分：${creature.hydration.toFixed(1)}%）。`;
-
-        } else if (
-            hungerLoss > 0 ||
-            hydrationLoss > 0
-        ) {
-
-            message =
-                `離線期間狀態變化：飢餓值 ${previousHunger.toFixed(1)}% → ${creature.hunger.toFixed(1)}%，水分 ${previousHydration.toFixed(1)}% → ${creature.hydration.toFixed(1)}%。`;
-        }
-
-        return {
-            creature,
-            message,
-            hoursWithoutBasicNeeds,
-            healthLoss
-        };
-    }
-
-    /**
-     * 數值正規化
-     * 確保數值介於 0 至 100
-     */
-    static _normalizeStatus(value, fallback) {
-
-        const number = Number(value);
-
-        if (!Number.isFinite(number)) {
-            return fallback;
-        }
-
-        return Math.min(
-            this.CONFIG.MAX_STATUS_VALUE,
-            Math.max(
-                this.CONFIG.MIN_STATUS_VALUE,
-                number
-            )
-        );
-    }
-}
-
-window.OfflineSimulationSystem = OfflineSimulationSystem;
+           
