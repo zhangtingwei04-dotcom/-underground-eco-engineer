@@ -5,7 +5,6 @@ import { CloudSaveSystem } from './cloud-save-system.js';
 
 export class SaveSystem {
     constructor() {
-        // 可於此處填入您的 Supabase 專案設定，若留空則自動退回本地 LocalStorage 模式
         const supabaseUrl = window.ENV_SUPABASE_URL || '';
         const supabaseKey = window.ENV_SUPABASE_KEY || '';
         
@@ -105,14 +104,13 @@ export class SaveSystem {
                 return result.save;
             }
         } catch (err) {
-            console.warn('[SaveSystem] 雲端/本地載入發生異常，使用預設新遊戲存檔:', err);
+            console.warn('[SaveSystem] 載入異常，使用預設新遊戲存檔:', err);
         }
         return this.getDefaultSaveData();
     }
 
     /**
      * 儲存遊戲進度
-     * @param {Object} gameState 當前遊戲狀態物件
      */
     async saveGame(gameState) {
         if (!gameState) return false;
@@ -130,5 +128,4 @@ export class SaveSystem {
     }
 }
 
-// 掛載至全域以供 Phaser 場景直接呼叫
 window.GameSaveSystem = SaveSystem;
