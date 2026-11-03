@@ -1,3 +1,4 @@
+```javascript
 // 鱗片與種子：地下生態物語 | 統一存檔管理器
 // Scales & Seeds: Underground Ecosystem Tales - Unified Save System
 
@@ -337,6 +338,9 @@ export class SaveSystem {
 
     /**
      * 儲存遊戲
+     *
+     * 本地存檔成功即可視為資料已安全保存。
+     * 雲端同步失敗時保留本地資料，等待後續同步。
      */
     async saveGame(gameState) {
 
@@ -359,12 +363,30 @@ export class SaveSystem {
                 this.isGuest
             );
 
-            if (!result.success) {
+            // 本地與雲端都沒有成功保存
+            if (
+                !result.success &&
+                !result.localSaved
+            ) {
                 console.error(
-                    '[SaveSystem] 存檔同步失敗:',
+                    '[SaveSystem] 本地與雲端存檔皆失敗:',
                     result.error
                 );
+
                 return false;
+            }
+
+            // 本地成功，但雲端同步失敗
+            if (
+                !result.success &&
+                result.localSaved
+            ) {
+                console.warn(
+                    '[SaveSystem] 本地存檔成功，雲端同步暫時失敗，等待後續同步:',
+                    result.error
+                );
+
+                return true;
             }
 
             console.log(
@@ -386,3 +408,4 @@ export class SaveSystem {
 }
 
 window.GameSaveSystem = SaveSystem;
+```
