@@ -1,0 +1,21 @@
+{
+  "id": "hognose_snake",
+  "name": {
+    "zh-TW": "西部豬鼻蛇",
+    "en": "Western Hognose Snake"
+  },
+  "behavior_traits": [
+    "burrowing",
+    "hiding",
+    "defensive_playing_dead"
+  ],
+  "habitat_preferences": {
+    "vertical_space": false,
+    "deep_substrate": true,
+    "hiding_places": true
+  },
+  "metabolism": {
+    "satiety_decay_rate": 0.8,
+    "hydration_decay_rate": 0.6
+  }
+}
