@@ -2,6 +2,7 @@
 // Scales & Seeds: Underground Ecosystem Tales - Unified Save System
 
 import { CloudSaveSystem } from './cloud-save-system.js';
+import { NewGameInitializer } from './new-game-initializer.js';
 
 export class SaveSystem {
     constructor() {
@@ -72,6 +73,11 @@ export class SaveSystem {
     }
 
     getDefaultSaveData() {
+
+        // 由新遊戲初始化系統建立初始寵物
+        const startingCreatures =
+            NewGameInitializer.createStartingCreatures();
+
         return {
             version: "2.0.0",
             saveVersion: 2,
@@ -95,28 +101,7 @@ export class SaveSystem {
                         ventilation: 3,
                         cleanliness: 95
                     },
-                    creatures: [
-                        {
-                            id: "hognose_2026_001",
-                            species: "western_hognose",
-                            nickname: "布丁",
-                            age: 864000,
-                            growthStage: "juvenile",
-                            health: 100,
-                            hunger: 85,
-                            hydration: 90,
-                            stress: 5,
-                            genetics: {
-                                morph: "anaconda",
-                                pattern: "patterned",
-                                colorGene: "normal"
-                            },
-                            stats: {
-                                energy: 90,
-                                diggingPower: 15
-                            }
-                        }
-                    ],
+                    creatures: startingCreatures,
                     plants: [
                         {
                             id: "succulent_01",
