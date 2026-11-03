@@ -1,4 +1,4 @@
-// 鱗片與種子：地下生態物語 | 統一存檔管理器 (Alpha 2.0)
+// 鱗片與種子：地下生態物語 | 統一存檔管理器 (含訪客模式支援)
 // Scales & Seeds: Underground Ecosystem Tales - Unified Save System
 
 import { CloudSaveSystem } from './cloud-save-system.js';
@@ -9,17 +9,43 @@ export class SaveSystem {
         const supabaseKey = window.ENV_SUPABASE_KEY || '';
         
         this.cloudSave = new CloudSaveSystem(supabaseUrl, supabaseKey);
-        this.currentUserId = window.ENV_USER_ID || 'ecologist_player_01';
+        
+        // 讀取瀏覽器紀錄中玩家是否選擇了「訪客模式」
+        const savedMode = localStorage.getItem('scales_seeds_login_mode');
+        this.isGuest = savedMode === 'guest' || !window.ENV_USER_ID;
+        this.currentUserId = this.isGuest ? 'guest' : (window.ENV_USER_ID || 'guest');
     }
 
     /**
-     * 取得 Alpha 2.0 統一存檔結構的預設初始資料
+     * 切換為訪客模式（只留存於瀏覽器）
+     */
+    enableGuestMode() {
+        this.isGuest = true;
+        this.currentUserId = 'guest';
+        localStorage.setItem('scales_seeds_login_mode', 'guest');
+        console.log('[SaveSystem] 已切換為：訪客模式 (無跨網同步功能)');
+    }
+
+    /**
+     * 切換為雲端帳號模式
+     * @param {string} userId 登入後的用戶 ID
+     */
+    enableCloudMode(userId) {
+        this.isGuest = false;
+        this.currentUserId = userId;
+        localStorage.setItem('scales_seeds_login_mode', 'cloud');
+        console.log(`[SaveSystem] 已切換為：雲端同步模式 (${userId})`);
+    }
+
+    /**
+     * Alpha 2.0 預設初始存檔結構
      */
     getDefaultSaveData() {
         return {
             version: "2.0.0",
             saveVersion: 2,
             updatedAt: Date.now(),
+            isGuestData: this.isGuest,
             player: {
                 actionPoints: 100,
                 maxActionPoints: 100,
@@ -94,17 +120,17 @@ export class SaveSystem {
     }
 
     /**
-     * 載入遊戲進度（支援雲端同步與時間戳記衝突解決）
+     * 載入遊戲進度
      */
     async loadGame() {
         try {
-            const result = await this.cloudSave.loadGame(this.currentUserId);
+            const result = await this.cloudSave.loadGame(this.currentUserId, this.isGuest);
             if (result.success && result.save) {
-                console.log(`[SaveSystem] 成功載入存檔 (模式: ${result.mode})`);
+                console.log(`[SaveSystem] 成功載入存檔 (${result.mode})`);
                 return result.save;
             }
         } catch (err) {
-            console.warn('[SaveSystem] 載入異常，使用預設新遊戲存檔:', err);
+            console.warn('[SaveSystem] 讀取異常，創建新遊戲存檔:', err);
         }
         return this.getDefaultSaveData();
     }
@@ -116,15 +142,10 @@ export class SaveSystem {
         if (!gameState) return false;
         
         gameState.updatedAt = Date.now();
-        const result = await this.cloudSave.saveGame(this.currentUserId, gameState);
-        
-        if (result.success) {
-            console.log(`[SaveSystem] 遊戲存檔成功 (模式: ${result.mode})`);
-            return true;
-        } else {
-            console.error('[SaveSystem] 遊戲存檔失敗:', result.error);
-            return false;
-        }
+        gameState.isGuestData = this.isGuest;
+
+        const result = await this.cloudSave.saveGame(this.currentUserId, gameState, this.isGuest);
+        return result.success;
     }
 }
 
