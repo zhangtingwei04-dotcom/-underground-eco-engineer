@@ -1,5 +1,5 @@
-// 鱗片與種子：地下生態物語 | 雲端跨裝置存檔系統 (Supabase 整合)
-// Scales & Seeds: Underground Ecosystem Tales - Cloud Save System
+// 鱗片與種子：地下生態物語 | 雲端與本地存檔系統 (支援訪客模式)
+// Scales & Seeds: Underground Ecosystem Tales - Save System Engine
 
 export class CloudSaveSystem {
     constructor(supabaseUrl, supabaseKey) {
@@ -14,31 +14,37 @@ export class CloudSaveSystem {
         if (window.supabase && this.supabaseUrl && this.supabaseKey) {
             try {
                 this.client = window.supabase.createClient(this.supabaseUrl, this.supabaseKey);
-                console.log('[CloudSave] Supabase 雲端存檔系統初始化成功');
+                console.log('[SaveEngine] Supabase 客戶端已準備就緒');
             } catch (err) {
-                console.error('[CloudSave] Supabase 初始化失敗:', err);
+                console.error('[SaveEngine] Supabase 初始化失敗:', err);
             }
-        } else {
-            console.warn('[CloudSave] 未偵測到 Supabase SDK 或金鑰，已自動退回純本地端模式 (LocalStorage)。');
         }
     }
 
-    async saveGame(userId, gameState) {
+    /**
+     * 儲存遊戲進度
+     * @param {string} userId 玩家 ID (若為 'guest' 則開啟訪客模式)
+     * @param {Object} gameState Alpha 2.0 存檔 JSON
+     * @param {boolean} isGuest 是否強制開啟訪客模式
+     */
+    async saveGame(userId, gameState, isGuest = false) {
         gameState.updatedAt = Date.now();
         const jsonString = JSON.stringify(gameState);
 
-        // 1. 永遠第一時間寫入本地端作為安全備份
+        // 1. 永遠寫入瀏覽器 LocalStorage（訪客與雲端玩家都有本地備份）
         try {
             localStorage.setItem(this.localStorageKey, jsonString);
         } catch (e) {
-            console.error('[CloudSave] 本地寫入失敗:', e);
+            console.error('[SaveEngine] 本地寫入失敗:', e);
         }
 
-        // 2. 若無連線，僅使用本地
-        if (!this.client || !userId) {
-            return { success: true, mode: 'local_only', data: gameState };
+        // 2. 訪客模式防呆：完全阻斷網路請求，不進行跨網同步
+        if (isGuest || userId === 'guest' || !this.client) {
+            console.log('[SaveEngine] 🎮 訪客模式：資料已安全儲存於本地瀏覽器 (不進行跨網同步)');
+            return { success: true, mode: 'guest_local_only', data: gameState };
         }
 
+        // 3. 雲端帳號模式：上傳至 Supabase
         try {
             const { data, error } = await this.client
                 .from('player_saves')
@@ -49,14 +55,20 @@ export class CloudSaveSystem {
                 }, { onConflict: 'user_id' });
 
             if (error) throw error;
+            console.log('[SaveEngine] ☁️ 雲端帳號模式：存檔已成功同步至雲端');
             return { success: true, mode: 'cloud_synced', data };
         } catch (err) {
-            console.warn('[CloudSave] 雲端同步失敗，已保留本地存檔:', err.message);
+            console.warn('[SaveEngine] 雲端同步失敗，已維持本地端儲存:', err.message);
             return { success: false, mode: 'fallback_local', error: err.message };
         }
     }
 
-    async loadGame(userId) {
+    /**
+     * 載入遊戲進度
+     * @param {string} userId 玩家 ID
+     * @param {boolean} isGuest 是否為訪客模式
+     */
+    async loadGame(userId, isGuest = false) {
         let localSave = null;
         try {
             const localData = localStorage.getItem(this.localStorageKey);
@@ -64,13 +76,16 @@ export class CloudSaveSystem {
                 localSave = JSON.parse(localData);
             }
         } catch (e) {
-            console.error('[CloudSave] 本地讀取失敗:', e);
+            console.error('[SaveEngine] 本地讀取失敗:', e);
         }
 
-        if (!this.client || !userId) {
-            return { success: true, save: localSave, mode: 'local_only' };
+        // 訪客模式：直接讀取並回傳本地瀏覽器紀錄
+        if (isGuest || userId === 'guest' || !this.client) {
+            console.log('[SaveEngine] 🎮 訪客模式：讀取本地瀏覽器紀錄');
+            return { success: true, save: localSave, mode: 'guest_local_only' };
         }
 
+        // 雲端帳號模式：進行時間戳記比對
         try {
             const { data, error } = await this.client
                 .from('player_saves')
@@ -86,14 +101,14 @@ export class CloudSaveSystem {
                 const localTime = localSave ? (localSave.updatedAt || 0) : 0;
 
                 if (localTime > cloudTime) {
-                    await this.saveGame(userId, localSave);
+                    await this.saveGame(userId, localSave, false);
                     return { success: true, save: localSave, mode: 'resolved_local_newer' };
                 }
 
                 localStorage.setItem(this.localStorageKey, JSON.stringify(cloudSave));
                 return { success: true, save: cloudSave, mode: 'cloud_loaded' };
             } else if (localSave) {
-                await this.saveGame(userId, localSave);
+                await this.saveGame(userId, localSave, false);
                 return { success: true, save: localSave, mode: 'initialized_cloud' };
             }
 
