@@ -1,5 +1,5 @@
 // 鱗片與種子：地下生態物語 | 雲端與本地存檔系統 (支援訪客模式)
-// Scales & Seeds: Underground Ecosystem Tales - Save System Engine
+// Scales & Seeds: Underground Ecosystem Tales - Cloud & Local Save Engine
 
 export class CloudSaveSystem {
     constructor(supabaseUrl, supabaseKey) {
@@ -21,12 +21,6 @@ export class CloudSaveSystem {
         }
     }
 
-    /**
-     * 儲存遊戲進度
-     * @param {string} userId 玩家 ID (若為 'guest' 則開啟訪客模式)
-     * @param {Object} gameState Alpha 2.0 存檔 JSON
-     * @param {boolean} isGuest 是否強制開啟訪客模式
-     */
     async saveGame(userId, gameState, isGuest = false) {
         gameState.updatedAt = Date.now();
         const jsonString = JSON.stringify(gameState);
@@ -63,11 +57,6 @@ export class CloudSaveSystem {
         }
     }
 
-    /**
-     * 載入遊戲進度
-     * @param {string} userId 玩家 ID
-     * @param {boolean} isGuest 是否為訪客模式
-     */
     async loadGame(userId, isGuest = false) {
         let localSave = null;
         try {
