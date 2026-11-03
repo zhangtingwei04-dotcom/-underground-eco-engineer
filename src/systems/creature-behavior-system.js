@@ -50,8 +50,24 @@ export class CreatureBehaviorSystem {
      * @param {string} timeOfDay 當前時段 ('morning', 'day', 'dusk', 'night')
      */
     static processCreatureBehavior(saveJson, creature, terrarium, timeOfDay = 'day') {
-        const speciesId = creature.speciesId || 'hognose_snake';
-        const speciesConfig = SpeciesConfigSystem.getSpeciesConfig(speciesId);
+        // 1. 取得標準物種 ID，不允許自動套用預設物種
+const speciesId = creature.speciesId || creature.species;
+
+if (!speciesId) {
+    throw new Error(
+        `[CreatureBehaviorSystem] 寵物缺少物種 ID，個體 ID：${creature.id || 'unknown'}`
+    );
+}
+
+// 2. 查詢物種設定
+const speciesConfig =
+    SpeciesConfigSystem.getSpeciesConfig(speciesId);
+
+if (!speciesConfig) {
+    throw new Error(
+        `[CreatureBehaviorSystem] 找不到物種設定：${speciesId}`
+    );
+}
 
         let selectedTrait = 'hiding';
         let logCategory = 'daily';
