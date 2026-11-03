@@ -22,6 +22,11 @@ const config = {
 };
 
 window.addEventListener('load', () => {
+    // 初始化遊戲存檔管理器
+    if (window.GameSaveSystem) {
+        window.gameSaveManager = new window.GameSaveSystem();
+    }
+    
     const game = new Phaser.Game(config);
     window.gameInstance = game;
 });
