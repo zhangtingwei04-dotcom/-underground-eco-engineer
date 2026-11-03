@@ -428,4 +428,60 @@ export class OfflineSimulationSystem {
                 '生物的飢餓值或水分已經歸零，請盡快照顧牠！';
 
         } else if (
-           
+            creature.hunger < 30 ||
+            creature.hydration < 30
+        ) {
+
+            message =
+                `生物需要照顧（飢餓值：${creature.hunger.toFixed(1)}%，水分：${creature.hydration.toFixed(1)}%）。`;
+
+        } else if (
+            hungerLoss > 0 ||
+            hydrationLoss > 0
+        ) {
+
+            message =
+                `離線期間狀態變化：飢餓值 ${previousHunger.toFixed(1)}% → ${creature.hunger.toFixed(1)}%，水分 ${previousHydration.toFixed(1)}% → ${creature.hydration.toFixed(1)}%。`;
+        }
+
+        return {
+            creature,
+            message,
+            hoursWithoutBasicNeeds,
+            healthLoss
+        };
+    }
+
+    /**
+     * 數值正規化
+     *
+     * 確保數值介於 0 至 100。
+     * null、undefined、空字串使用預設值。
+     */
+    static _normalizeStatus(value, fallback) {
+
+        if (
+            value === null ||
+            value === undefined ||
+            value === ''
+        ) {
+            return fallback;
+        }
+
+        const number = Number(value);
+
+        if (!Number.isFinite(number)) {
+            return fallback;
+        }
+
+        return Math.min(
+            this.CONFIG.MAX_STATUS_VALUE,
+            Math.max(
+                this.CONFIG.MIN_STATUS_VALUE,
+                number
+            )
+        );
+    }
+}
+
+window.OfflineSimulationSystem = OfflineSimulationSystem;
