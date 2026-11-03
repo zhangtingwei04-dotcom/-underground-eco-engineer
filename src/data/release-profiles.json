@@ -1,0 +1,26 @@
+{
+  "corn_snake": {
+    "species_id": "corn_snake",
+    "name": "玉米蛇",
+    "native_region": "temperate_woodland",
+    "requires_strict_health": true,
+    "habitat_profile": {
+      "needs_vertical_space": true,
+      "needs_climbing_structures": true,
+      "min_humidity": 40,
+      "max_humidity": 70
+    }
+  },
+  "hognose_snake": {
+    "species_id": "hognose_snake",
+    "name": "西部豬鼻蛇",
+    "native_region": "arid_prairie",
+    "requires_strict_health": true,
+    "habitat_profile": {
+      "needs_deep_substrate": true,
+      "needs_arid_environment": true,
+      "min_humidity": 30,
+      "max_humidity": 50
+    }
+  }
+}
