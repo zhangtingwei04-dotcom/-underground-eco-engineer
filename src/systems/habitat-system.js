@@ -38,7 +38,66 @@ window.GameHabitatSystem = {
             message: `🎉 成功建造地下休息區！消耗 細沙 x${costSand}、碎石 x${costStone}。` 
         };
     },
+    /**
+ * 《鱗片與種子：地下生態物語》 - 野外生態放歸系統 (habitat-release-system.js)
+ * 負責判定區域是否符合生物習性，不給提示，以自然台詞反饋生態邏輯
+ */
 
+export class HabitatReleaseSystem {
+    // 地下區域的生態屬性定義
+    static WILD_REGIONS = {
+        'dry_gravel_tunnel': {
+            name: '乾爽沙礫隧道',
+            has_deep_sand: true,
+            has_vertical_branches: false,
+            humidity: 'low'
+        },
+        'mossy_canopy_oasis': {
+            name: '蕨類樹冠綠洲',
+            has_deep_sand: false,
+            has_vertical_branches: true,
+            humidity: 'medium_high'
+        },
+        'damp_crystal_cave': {
+            name: '潮濕水晶溶洞',
+            has_deep_sand: false,
+            has_tight_crevices: true,
+            humidity: 'high'
+        }
+    };
+
+    /**
+     * 嘗試在指定區域放生生物
+     */
+    static attemptRelease(creature, regionId) {
+        const region = this.WILD_REGIONS[regionId];
+        const speciesId = creature.speciesId;
+
+        // 判定 1: 玉米蛇需要攀爬枝條
+        if (speciesId === 'corn_snake' && !region.has_vertical_branches) {
+            return {
+                success: false,
+                dialogue: '這附近的岩壁光禿禿的，完全沒有可以攀爬的樹枝與樹皮結構……小傢伙留在這裡會過得很辛苦的。'
+            };
+        }
+
+        // 判定 2: 豬鼻蛇需要深層底材與適合挖洞的環境
+        if (speciesId === 'hognose_snake' && !region.has_deep_sand) {
+            return {
+                success: false,
+                dialogue: '這裏的地面都是硬邦邦的岩石與濕黏泥土，牠的鼻子沒辦法在這種地方順利挖洞棲息……我們再找找看別的地方吧。'
+            };
+        }
+
+        // 驗證成功
+        return {
+            success: true,
+            dialogue: `這裡的環境太適合牠了！看著牠順利爬入${region.name}的深處，希望牠在新的天地裡自由生活。`
+        };
+    }
+}
+
+window.HabitatReleaseSystem = HabitatReleaseSystem;
     /**
      * 套用休息區對生物的加成效果（例如加速精力恢復或減壓）
      */
