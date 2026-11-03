@@ -1,72 +1,134 @@
-// 地下生態工程師 - 本機存檔與讀檔系統 (Save/Load System)
+// 鱗片與種子：地下生態物語 | 統一存檔管理器 (Alpha 2.0)
+// Scales & Seeds: Underground Ecosystem Tales - Unified Save System
 
-window.GameSaveSystem = {
-    // 儲存於瀏覽器 localStorage 的 Key 值
-    STORAGE_KEY: "underground_eco_engineer_save",
+import { CloudSaveSystem } from './cloud-save-system.js';
 
-    /**
-     * 執行遊戲存檔
-     * @returns {Object} 存檔結果回報
-     */
-    saveGame: function() {
-        try {
-            // 1. 安全檢查：確認全域遊戲狀態是否存在
-            if (!window.gameEngineState) {
-                return { success: false, message: "存檔失敗：找不到運行中的遊戲數據。" };
-            }
-
-            // 2. 打包需要永久保存的動態資料（排除 Phaser 的渲染物件，只留純數據）
-            const saveData = {
-                timestamp: Date.now(),
-                creature: window.gameEngineState.creature,
-                // 只保存地圖的 2D 方塊狀態（耐久度、是否被挖除等）
-                mapData: window.gameEngineState.mapData
-            };
-
-            // 3. 轉化為 JSON 字串並寫入瀏覽器快取
-            localStorage.setItem(this.STORAGE_KEY, JSON.stringify(saveData));
-            console.log("【存檔系統】遊戲數據已成功保存至本地快取。");
-            
-            return { success: true, message: "ui_save_success" }; // 連結雙語字典 Key
-        } catch (error) {
-            console.error("【存檔系統】本地寫入發生異常:", error);
-            return { success: false, message: "存檔失敗：瀏覽器快取空間異常。" };
-        }
-    },
-
-    /**
-     * 執行遊戲讀檔
-     * @returns {Object} 讀檔結果回報
-     */
-    loadGame: function() {
-        try {
-            // 1. 從瀏覽器中抓取儲存的字串
-            const rawData = localStorage.getItem(this.STORAGE_KEY);
-            if (!rawData) {
-                return { success: false, message: "未找到任何本地存檔紀錄。" };
-            }
-
-            // 2. 解析 JSON 資料
-            const saveData = JSON.parse(rawData);
-
-            // 3. 安全覆蓋回全域遊戲狀態中
-            if (saveData.creature) window.gameEngineState.creature = saveData.creature;
-            if (saveData.mapData) window.gameEngineState.mapData = saveData.mapData;
-
-            console.log("【存檔系統】成功讀取本地存檔，時間戳記:", new Date(saveData.timestamp).toLocaleString());
-            return { success: true, message: "ui_load_success" };
-        } catch (error) {
-            console.error("【存檔系統】讀取解包發生異常:", error);
-            return { success: false, message: "讀檔失敗：存檔檔案毀損或格式不符。" };
-        }
-    },
-
-    /**
-     * 清除存檔（重設遊戲使用）
-     */
-    clearSave: function() {
-        localStorage.removeItem(this.STORAGE_KEY);
-        console.log("【存檔系統】本地存檔已清除。");
-        return true;
+export class SaveSystem {
+    constructor() {
+        // 可於此處填入您的 Supabase 專案設定，若留空則自動退回本地 LocalStorage 模式
+        const supabaseUrl = window.ENV_SUPABASE_URL || '';
+        const supabaseKey = window.ENV_SUPABASE_KEY || '';
+        
+        this.cloudSave = new CloudSaveSystem(supabaseUrl, supabaseKey);
+        this.currentUserId = window.ENV_USER_ID || 'ecologist_player_01';
     }
-};
+
+    /**
+     * 取得 Alpha 2.0 統一存檔結構的預設初始資料
+     */
+    getDefaultSaveData() {
+        return {
+            version: "2.0.0",
+            saveVersion: 2,
+            updatedAt: Date.now(),
+            player: {
+                actionPoints: 100,
+                maxActionPoints: 100,
+                lastApRegenTime: Date.now(),
+                money: 1500,
+                reputation: 10
+            },
+            terrariums: [
+                {
+                    id: "terrarium_01",
+                    name: "一號生態培育箱",
+                    type: "standard_desert",
+                    environment: {
+                        temperature: 29.5,
+                        humidity: 55.0,
+                        ventilation: 3,
+                        cleanliness: 95
+                    },
+                    creatures: [
+                        {
+                            id: "hognose_2026_001",
+                            species: "western_hognose",
+                            nickname: "布丁",
+                            age: 864000,
+                            growthStage: "juvenile",
+                            health: 100,
+                            hunger: 85,
+                            hydration: 90,
+                            stress: 5,
+                            genetics: {
+                                morph: "anaconda",
+                                pattern: "patterned",
+                                colorGene: "normal"
+                            },
+                            stats: {
+                                energy: 90,
+                                diggingPower: 15
+                            }
+                        }
+                    ],
+                    plants: [
+                        {
+                            id: "succulent_01",
+                            growth: 80,
+                            health: 100
+                        }
+                    ],
+                    decorations: [
+                        "hide_box_wood",
+                        "water_dish_small"
+                    ]
+                }
+            ],
+            inventory: {
+                items: {
+                    frozen_mouse: 6,
+                    substrate_sand: 12,
+                    shedding_supplement: 2
+                }
+            },
+            journal: {
+                unlockedMorphs: ["normal", "anaconda"],
+                unlockedPureColors: [],
+                observedBehaviors: ["burrowing", "shedding"]
+            },
+            settings: {
+                language: "zh-TW",
+                soundVolume: 0.8,
+                difficulty: "normal"
+            }
+        };
+    }
+
+    /**
+     * 載入遊戲進度（支援雲端同步與時間戳記衝突解決）
+     */
+    async loadGame() {
+        try {
+            const result = await this.cloudSave.loadGame(this.currentUserId);
+            if (result.success && result.save) {
+                console.log(`[SaveSystem] 成功載入存檔 (模式: ${result.mode})`);
+                return result.save;
+            }
+        } catch (err) {
+            console.warn('[SaveSystem] 雲端/本地載入發生異常，使用預設新遊戲存檔:', err);
+        }
+        return this.getDefaultSaveData();
+    }
+
+    /**
+     * 儲存遊戲進度
+     * @param {Object} gameState 當前遊戲狀態物件
+     */
+    async saveGame(gameState) {
+        if (!gameState) return false;
+        
+        gameState.updatedAt = Date.now();
+        const result = await this.cloudSave.saveGame(this.currentUserId, gameState);
+        
+        if (result.success) {
+            console.log(`[SaveSystem] 遊戲存檔成功 (模式: ${result.mode})`);
+            return true;
+        } else {
+            console.error('[SaveSystem] 遊戲存檔失敗:', result.error);
+            return false;
+        }
+    }
+}
+
+// 掛載至全域以供 Phaser 場景直接呼叫
+window.GameSaveSystem = SaveSystem;
