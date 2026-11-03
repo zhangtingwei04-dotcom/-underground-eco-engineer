@@ -1,4 +1,4 @@
-// 鱗片與種子：地下生態物語 | NPC 紀念品與時間循環贈禮系統
+// 鱗片與種子：地下生態物語 | NPC 紀念品與時間循環贈禮系統 (四 NPC 完整版)
 // Scales & Seeds: Underground Ecosystem Tales - NPC Souvenir & Reward System
 
 export class NpcRewardSystem {
@@ -8,7 +8,6 @@ export class NpcRewardSystem {
             old_mac: {
                 name: "老馬克",
                 title: "商店老闆 / 爬蟲導師",
-                // 【絕版紀念品與特殊配件】（一生限定領取一次）
                 uniqueSouvenirs: [
                     {
                         id: "mac_souvenir_handdrawn_map",
@@ -25,7 +24,6 @@ export class NpcRewardSystem {
                         dialogue: "這是我當年剛來地下城時用的感測器，雖然樣子老舊，但準確度沒話說！送給你當作入行紀念！"
                     }
                 ],
-                // 【日常/特定時間循環贈禮】（紀念品領完後，改送這個）
                 recurringGifts: [
                     {
                         id: "mac_recurring_sunday",
@@ -42,6 +40,17 @@ export class NpcRewardSystem {
                         rewardItem: "frozen_mouse",
                         rewardAmount: 6,
                         dialogue: "新進了一批優質冷凍小白鼠，拿幾隻去給你的小傢伙補充體力！"
+                    }
+                ],
+                exchanges: [
+                    {
+                        id: "exchange_mac_genetics",
+                        requiredItem: "shed_skin_sample",
+                        requiredAmount: 3,
+                        rewardItem: "micro_climate_sensor",
+                        rewardName: "微氣候感測器",
+                        name: "蛇蛻基因樣本 3份 ➔ 微氣候感測器 1個",
+                        description: "用你的爬蟲育種資料與老馬克交換精準控制生態箱溫濕度的專業感測器。"
                     }
                 ]
             },
@@ -89,6 +98,17 @@ export class NpcRewardSystem {
                         rewardAmount: 3,
                         dialogue: "特快專遞！順路多帶了幾份飼料，快簽收，我還要趕去下個地點呢！"
                     }
+                ],
+                exchanges: [
+                    {
+                        id: "exchange_amy_express",
+                        requiredItem: "scrap_metal",
+                        requiredAmount: 8,
+                        rewardItem: "express_insulated_box",
+                        rewardName: "快遞專用恆溫箱",
+                        name: "廢棄金屬零件 8個 ➔ 快遞專用恆溫箱 1個",
+                        description: "艾米用快遞運送時汰換的零件，幫你改造成具備絕佳溫控的小型培育箱配件。"
+                    }
                 ]
             },
 
@@ -124,27 +144,78 @@ export class NpcRewardSystem {
                         rewardAmount: 5,
                         dialogue: "這個週末在深坑大有斬獲！順手帶了包赤紅荒漠沙回來，拿去幫你的生態箱鋪底吧！"
                     }
+                ],
+                exchanges: [
+                    {
+                        id: "exchange_rosa_fossil",
+                        requiredItem: "fossil_fragment",
+                        requiredAmount: 3,
+                        rewardItem: "wild_morph_gene_sample",
+                        rewardName: "神祕野生基因晶片",
+                        name: "古老化石碎片 3個 ➔ 神祕野生基因晶片 1個",
+                        description: "拿地底深處挖到的化石與羅莎交換罕見的野生基因密碼。"
+                    }
+                ]
+            },
+
+            // 4. 老莫 (Old Mo) - 廢土工匠 / 培育箱改裝師
+            old_mo: {
+                name: "老莫",
+                title: "廢土工匠 / 培育箱改裝師",
+                uniqueSouvenirs: [
+                    {
+                        id: "mo_accessory_wrenches",
+                        name: "老莫的第 001 號手工鍛造溫控扳手",
+                        type: "accessory",
+                        rewardItem: "mo_forged_wrench",
+                        dialogue: "哼……這把扳手跟我四十年了，幫無數個箱子調過溫控。拿去，別把它弄丟了。"
+                    },
+                    {
+                        id: "mo_souvenir_blueprint",
+                        name: "地下第一代生態箱原始設計圖",
+                        type: "souvenir",
+                        rewardItem: "first_gen_terrarium_blueprint",
+                        dialogue: "這是當年我們剛建立地下城時画的箱子圖紙。現在交給你，算是我這手藝有後繼者了。"
+                    }
+                ],
+                recurringGifts: [
+                    {
+                        id: "mo_recurring_maintenance",
+                        name: "工匠的維修零組件袋",
+                        condition: () => new Date().getDay() === 3, // 每週三（定期維修日）
+                        rewardItem: "scrap_metal",
+                        rewardAmount: 5,
+                        dialogue: "今天剛清完工作檯，這幾塊廢金屬和修繕零組件拿去，說不定你組裝設備用得上。"
+                    }
+                ],
+                exchanges: [
+                    {
+                        id: "exchange_mo_ventilation",
+                        requiredItem: "scrap_metal",
+                        requiredAmount: 12,
+                        rewardItem: "custom_ventilation_fan",
+                        rewardName: "客製化高效通風風扇",
+                        name: "廢棄金屬零件 12個 ➔ 客製化高效通風風扇 1個",
+                        description: "交給老莫足夠的金屬零件，他能幫你的生態箱打造成高效散熱與循環的通風系統。"
+                    }
                 ]
             }
         };
     }
 
     /**
-     * 檢查並取得 NPC 當前應該發放的贈禮（優先發放「一次性紀念品/配件」，領完後自動改送「日常消耗品」）
-     * @param {string} npcId (old_mac / amy / rosa)
-     * @param {Object} playerSaveData 玩家完整的存檔資料
+     * 檢查並取得 NPC 當前應該發放的贈禮
      */
     checkNpcGift(npcId, playerData) {
         const profile = this.npcProfiles[npcId];
         if (!profile) return null;
 
-        // 確保存檔中有記錄已被領取紀念品的集合 (claimedSouvenirs)
         playerData.claimedSouvenirs = playerData.claimedSouvenirs || [];
         playerData.claimedDailyGifts = playerData.claimedDailyGifts || {};
 
         const todayStr = new Date().toISOString().split('T')[0];
 
-        // 【第一優先】檢查是否還有尚未領取的限定紀念品 / 特殊配件
+        // 1. 優先領取絕版紀念品 / 配件
         for (const souvenir of profile.uniqueSouvenirs) {
             if (!playerData.claimedSouvenirs.includes(souvenir.id)) {
                 return {
@@ -159,7 +230,7 @@ export class NpcRewardSystem {
             }
         }
 
-        // 【第二優先】若紀念品與配件都已領取過，自動切換為日常/時間循環贈禮
+        // 2. 領完後切換為日常循環贈禮
         for (const gift of profile.recurringGifts) {
             const giftKey = `${gift.id}_${todayStr}`;
             if (gift.condition() && !playerData.claimedDailyGifts[giftKey]) {
@@ -175,11 +246,11 @@ export class NpcRewardSystem {
             }
         }
 
-        return null; // 當前沒有可領取的贈禮
+        return null;
     }
 
     /**
-     * 玩家領取贈禮，並寫入存檔防重領
+     * 發放贈禮並標記存檔
      */
     claimGift(npcId, giftResult, playerData) {
         if (!giftResult) return false;
@@ -187,24 +258,57 @@ export class NpcRewardSystem {
         playerData.inventory = playerData.inventory || { items: {} };
         playerData.inventory.items = playerData.inventory.items || {};
 
-        // 1. 發放物品至背包
         const currentAmount = playerData.inventory.items[giftResult.rewardItem] || 0;
         playerData.inventory.items[giftResult.rewardItem] = currentAmount + giftResult.rewardAmount;
 
-        // 2. 標記領取狀態
         if (giftResult.isUnique) {
-            // 一生一次的紀念品，記錄到絕版清單
             if (!playerData.claimedSouvenirs.includes(giftResult.giftId)) {
                 playerData.claimedSouvenirs.push(giftResult.giftId);
             }
-            console.log(`[NpcReward] 玩家獲得絕版紀念品/配件: [${giftResult.name}]`);
+            console.log(`[NpcReward] 獲得絕版紀念品/配件: [${giftResult.name}]`);
         } else {
-            // 日常贈禮，記錄今日已領取
             playerData.claimedDailyGifts[giftResult.giftId] = Date.now();
-            console.log(`[NpcReward] 玩家獲得日常資源: [${giftResult.name}] x${giftResult.rewardAmount}`);
+            console.log(`[NpcReward] 獲得日常資源: [${giftResult.name}] x${giftResult.rewardAmount}`);
         }
 
         return true;
+    }
+
+    /**
+     * 執行任務道具兌換
+     */
+    processExchange(npcId, exchangeId, playerData) {
+        const profile = this.npcProfiles[npcId];
+        if (!profile || !profile.exchanges) return { success: false, reason: "該 NPC 無可兌換項目。" };
+
+        const exchange = profile.exchanges.find(e => e.id === exchangeId);
+        if (!exchange) return { success: false, reason: "找不到該兌換項目。" };
+
+        playerData.inventory = playerData.inventory || { items: {} };
+        playerData.inventory.items = playerData.inventory.items || {};
+
+        const currentAmount = playerData.inventory.items[exchange.requiredItem] || 0;
+        if (currentAmount < exchange.requiredAmount) {
+            return {
+                success: false,
+                reason: `道具不足！需要 [${exchange.requiredItem}] x${exchange.requiredAmount}，但你目前只有 ${currentAmount} 個。`
+            };
+        }
+
+        playerData.inventory.items[exchange.requiredItem] -= exchange.requiredAmount;
+        if (playerData.inventory.items[exchange.requiredItem] <= 0) {
+            delete playerData.inventory.items[exchange.requiredItem];
+        }
+
+        const rewardCurrent = playerData.inventory.items[exchange.rewardItem] || 0;
+        playerData.inventory.items[exchange.rewardItem] = rewardCurrent + 1;
+
+        console.log(`[NpcRewardSystem] 成功透過 ${profile.name} 完成兌換: ${exchange.name}`);
+        return {
+            success: true,
+            rewardItem: exchange.rewardItem,
+            message: `成功向 ${profile.name} 兌換了 [${exchange.rewardName}]！`
+        };
     }
 }
 
