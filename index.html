@@ -3,9 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>地下生態工程師 | Underground Eco-Engineer</title>
-    <!-- 引入 Phaser 3 遊戲引擎 CDN -->
+
+    <!-- Phaser 3 遊戲引擎 -->
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
+
+    <!-- Supabase 雲端資料庫 -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <style>
         body {
             margin: 0;
@@ -14,46 +20,28 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             overflow: hidden;
         }
+
         #game-container {
-            box-shadow: 0px 10px 40px rgba(0,0,0,0.8);
+            width: 1024px;
+            height: 768px;
+            max-width: 100vw;
+            max-height: 100vh;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
             border: 4px solid #5c4033;
             border-radius: 8px;
         }
     </style>
 </head>
+
 <body>
+
     <div id="game-container"></div>
 
-    <!-- 【核心系統載入】依序引入基礎模組[cite: 2] -->
-    <script src="src/core/config.js"></script>
-    <script src="src/systems/locales-loader.js"></script>
-    <script src="src/systems/map-system.js"></script>
-    <script src="src/systems/energy-system.js"></script>
-    <script src="src/systems/digging-system.js"></script>
-    <script src="src/systems/save-system.js"></script>
-    <script src="src/systems/environment-system.js"></script>
-    <script src="src/systems/habitat-system.js"></script>
-    <script src="src/systems/creature-morph-system.js"></script>
-
-    <!-- 【生態箱獨立系統載入】多箱管理、建造、微氣候與獨立存檔 -->
-    <script type="module" src="src/entities/terrariums/terrarium-system.js"></script>
-    <script src="src/systems/terrarium-building-system.js"></script>
-    <script src="src/systems/terrarium-environment-system.js"></script>
-    <script src="src/systems/terrarium-save-system.js"></script>
-
-    <!-- 【場景載入】圖鑑、生態箱選擇與主探索場景 -->
-    <script src="src/scenes/EncyclopediaScene.js"></script>
-    <script src="src/scenes/TerrariumSelectScene.js"></script>
-    <script src="src/scenes/UndergroundScene.js"></script>
-    
-    <!-- Supabase JS SDK CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-    <!-- 最後引入主程式進行總串接[cite: 2] -->
-    <script src="src/main.js"></script>
+    <!-- 使用 ES Module 載入主程式 -->
+    <script type="module" src="src/main.js"></script>
 
 </body>
 </html>
