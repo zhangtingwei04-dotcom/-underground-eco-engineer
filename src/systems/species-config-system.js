@@ -47,7 +47,75 @@ export class SpeciesConfigSystem {
             metabolism: {
                 satiety_decay_rate: 0.7,
                 hydration_decay_rate: 0.5
-            },
+            ｝
+        },
+        // 在 SpeciesConfigSystem.SPECIES_DATABASE 中新增：
+
+'ball_python': {
+    id: 'ball_python',
+    name: {
+        'zh-TW': '球蟒',
+        'en': 'Ball Python'
+    },
+    behavior_traits: [
+        'coiling_ball',
+        'deep_hiding',
+        'night_patrol'
+    ],
+    habitat_preferences: {
+        vertical_space: false,
+        tight_hiding_places: true, // 偏好緊密有包覆感的躲藏穴
+        higher_humidity: true      // 需較高的穩定濕度 (55%-65%)
+    },
+    metabolism: {
+        satiety_decay_rate: 0.35,  // 成蛇代謝極慢，非常耐餓
+        hydration_decay_rate: 0.5
+    }
+},
+
+'king_snake': {
+    id: 'king_snake',
+    name: {
+        'zh-TW': '加州王蛇',
+        'en': 'California King Snake'
+    },
+    behavior_traits: [
+        'active_exploration',
+        'boundary_patrol',
+        'burrowing'
+    ],
+    habitat_preferences: {
+        vertical_space: false,
+        spacious_ground: true,
+        sturdy_decor: true
+    },
+    metabolism: {
+        satiety_decay_rate: 0.75,  // 代謝活躍
+        hydration_decay_rate: 0.6
+    }
+},
+
+'milk_snake': {
+    id: 'milk_snake',
+    name: {
+        'zh-TW': '納爾遜奶蛇',
+        'en': 'Nelson\'s Milk Snake'
+    },
+    behavior_traits: [
+        'crevice_hiding',
+        'leaf_litter_burrowing',
+        'crepuscular_activity'
+    ],
+    habitat_preferences: {
+        vertical_space: false,
+        leaf_litter_coverage: true, // 偏好枯葉鋪面與樹皮縫隙
+        multiple_hiding_places: true
+    },
+    metabolism: {
+        satiety_decay_rate: 0.65,
+        hydration_decay_rate: 0.55
+    }
+}
             journal_events: [
                 'climbing_branch',
                 'resting_on_high_perch',
