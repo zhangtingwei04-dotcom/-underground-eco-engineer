@@ -1,0 +1,13 @@
+{
+  "npc_id": "old_mo",
+  "name_zh": "老莫",
+  "title_zh": "廢土工匠 / 培育箱改裝師",
+  "personality": "沉默寡言、手藝精湛、外冷內熱",
+  "specialties": ["生態箱擴建", "自動溫控硬體改裝", "廢料回收再造"],
+  "affinity_level": 1,
+  "interaction_memory": {
+    "has_met": false,
+    "first_upgrade_completed": false,
+    "total_recyclings": 0
+  }
+}
