@@ -21,8 +21,25 @@ export class BiologicalDecaySystem {
      * @param {Object} hognose 豬鼻蛇實體資料
      * @param {Object} terrarium 生態箱環境資料 (包含 hasWaterDish, hasCustomVentilation, wasteLevel 等)
      * @param {number} elapsedHours 流逝的小時數
+     * @param {string} survivalMode 遊戲模式 ('cozy' 或 'challenge')
      */
-    processDecay(hognose, terrarium, elapsedHours) {
+    processDecay(hognose, terrarium, elapsedHours, survivalMode = 'cozy') {
+        hognose.isAlive = hognose.isAlive ?? true;
+        hognose.health = hognose.health ?? 100;
+
+        // 若寵物在 Challenge 模式下已離去，停止計算生理動態
+        if (!hognose.isAlive) {
+            return {
+                hognose,
+                terrarium,
+                summary: {
+                    elapsedHours: elapsedHours.toFixed(1),
+                    isDead: true,
+                    message: `[${hognose.name || '小蛇'}] 已化為地底生態的一部分，靜靜安息著。`
+                }
+            };
+        }
+
         const stage = hognose.growthStage || "juvenile";
         const satietyDecayRate = this.DECAY_RATES.satiety[stage] || 0.8;
 
@@ -67,7 +84,28 @@ export class BiologicalDecaySystem {
             hognose.stress = Math.min(100, hognose.stress + stressDelta);
         }
 
-        // 5. 綜合狀態與連鎖異常判定
+        // 5. 難度機制與健康度/死亡結算（生命的重量）
+        if (survivalMode === 'challenge') {
+            // 在 Challenge 模式下，當飽足感或水分歸零，或壓力大於 70 時扣除健康
+            if (hognose.satiety === 0 || hognose.hydration === 0 || hognose.stress > 70) {
+                const healthLoss = elapsedHours * 1.5;
+                hognose.health = Math.max(0, hognose.health - healthLoss);
+            }
+
+            // 【生命的重量】健康歸零判定死亡
+            if (hognose.health <= 0) {
+                hognose.health = 0;
+                hognose.isAlive = false;
+                hognose.passedAt = new Date().toISOString();
+            }
+        } else {
+            // Cozy 療癒模式：健康永遠拉底保底，永不死亡
+            hognose.health = Math.max(80, hognose.health);
+            hognose.satiety = Math.max(15, hognose.satiety);
+            hognose.hydration = Math.max(15, hognose.hydration);
+        }
+
+        // 6. 綜合狀態與連鎖異常判定
         hognose.statusEffects = this.evaluateStatusEffects(hognose, terrarium);
 
         return {
@@ -79,6 +117,8 @@ export class BiologicalDecaySystem {
                 hydrationLeft: hognose.hydration.toFixed(1),
                 wasteLevel: terrarium.wasteLevel.toFixed(1),
                 stressLevel: hognose.stress.toFixed(1),
+                healthLevel: hognose.health.toFixed(1),
+                isAlive: hognose.isAlive,
                 activeStatus: hognose.statusEffects
             }
         };
