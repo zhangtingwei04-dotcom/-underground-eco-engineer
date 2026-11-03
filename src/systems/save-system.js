@@ -1,4 +1,4 @@
-// 鱗片與種子：地下生態物語 | 統一存檔管理器 (含訪客模式支援)
+// 鱗片與種子：地下生態物語 | 統一存檔管理器 (含訪客模式與雲端遷移)
 // Scales & Seeds: Underground Ecosystem Tales - Unified Save System
 
 import { CloudSaveSystem } from './cloud-save-system.js';
@@ -10,15 +10,11 @@ export class SaveSystem {
         
         this.cloudSave = new CloudSaveSystem(supabaseUrl, supabaseKey);
         
-        // 讀取瀏覽器紀錄中玩家是否選擇了「訪客模式」
         const savedMode = localStorage.getItem('scales_seeds_login_mode');
         this.isGuest = savedMode === 'guest' || !window.ENV_USER_ID;
         this.currentUserId = this.isGuest ? 'guest' : (window.ENV_USER_ID || 'guest');
     }
 
-    /**
-     * 切換為訪客模式（只留存於瀏覽器）
-     */
     enableGuestMode() {
         this.isGuest = true;
         this.currentUserId = 'guest';
@@ -26,10 +22,6 @@ export class SaveSystem {
         console.log('[SaveSystem] 已切換為：訪客模式 (無跨網同步功能)');
     }
 
-    /**
-     * 切換為雲端帳號模式
-     * @param {string} userId 登入後的用戶 ID
-     */
     enableCloudMode(userId) {
         this.isGuest = false;
         this.currentUserId = userId;
@@ -38,8 +30,47 @@ export class SaveSystem {
     }
 
     /**
-     * Alpha 2.0 預設初始存檔結構
+     * 【帳號升級/遷移】將當前訪客模式的本地存檔遷移至新註冊的雲端帳號
+     * @param {string} newUserId 新註冊/登入的雲端使用者 ID
      */
+    async migrateGuestToCloud(newUserId) {
+        if (!newUserId || newUserId === 'guest') {
+            console.warn('[SaveSystem] 遷移失敗：無效的新帳號 ID');
+            return { success: false, reason: 'invalid_user_id' };
+        }
+
+        try {
+            const localDataStr = localStorage.getItem(this.cloudSave.localStorageKey);
+            if (!localDataStr) {
+                console.log('[SaveSystem] 找不到本地訪客存檔，無法進行遷移');
+                return { success: false, reason: 'no_local_save' };
+            }
+
+            const gameState = JSON.parse(localDataStr);
+
+            this.isGuest = false;
+            this.currentUserId = newUserId;
+            localStorage.setItem('scales_seeds_login_mode', 'cloud');
+
+            gameState.updatedAt = Date.now();
+            gameState.isGuestData = false;
+
+            const result = await this.cloudSave.saveGame(newUserId, gameState, false);
+
+            if (result.success) {
+                console.log(`[SaveSystem] 🎉 成功！訪客資料已順利遷移並綁定至雲端帳號：${newUserId}`);
+                return { success: true, mode: 'migrated_to_cloud' };
+            } else {
+                throw new Error(result.error || '雲端同步寫入失敗');
+            }
+        } catch (err) {
+            console.error('[SaveSystem] 訪客資料遷移過程發生異常:', err);
+            this.isGuest = true;
+            this.currentUserId = 'guest';
+            return { success: false, reason: err.message };
+        }
+    }
+
     getDefaultSaveData() {
         return {
             version: "2.0.0",
@@ -119,9 +150,6 @@ export class SaveSystem {
         };
     }
 
-    /**
-     * 載入遊戲進度
-     */
     async loadGame() {
         try {
             const result = await this.cloudSave.loadGame(this.currentUserId, this.isGuest);
@@ -135,9 +163,6 @@ export class SaveSystem {
         return this.getDefaultSaveData();
     }
 
-    /**
-     * 儲存遊戲進度
-     */
     async saveGame(gameState) {
         if (!gameState) return false;
         
