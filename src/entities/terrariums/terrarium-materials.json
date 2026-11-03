@@ -5,85 +5,151 @@
       "id": "slate_rock_cave",
       "name_zh": "天然板岩躲藏洞",
       "category": "decoration",
-      "size": { "width": 15, "height": 10 },
-      "effects": { "humidity_modifier": -2, "hiding_spot": true }
+      "size": {
+        "width": 15,
+        "height": 10
+      },
+      "effects": {
+        "humidity_modifier": -2,
+        "hiding_spot": true
+      }
     },
     {
       "id": "underground_moss_cluster",
       "name_zh": "叢生地下苔蘚",
       "category": "plant",
-      "size": { "width": 8, "height": 6 },
-      "effects": { "humidity_modifier": +8, "oxygen_production": +5 }
+      "size": {
+        "width": 8,
+        "height": 6
+      },
+      "effects": {
+        "humidity_modifier": 8,
+        "oxygen_production": 5
+      }
     },
     {
       "id": "ceramic_water_dish",
       "name_zh": "陶瓷保濕水盆",
       "category": "equipment",
-      "size": { "width": 10, "height": 10 },
-      "effects": { "humidity_modifier": +15, "provides_water": true }
+      "size": {
+        "width": 10,
+        "height": 10
+      },
+      "effects": {
+        "humidity_modifier": 15,
+        "provides_water": true
+      }
     },
     {
       "id": "crystal_quartz_cluster",
       "name_zh": "純淨石英結晶簇",
       "category": "mineral",
-      "size": { "width": 10, "height": 12 },
-      "effects": { "lighting_modifier": +10, "stress_relief": +5 },
+      "size": {
+        "width": 10,
+        "height": 12
+      },
+      "effects": {
+        "lighting_modifier": 10,
+        "stress_relief": 5
+      },
       "description": "從深層岩脈中採集到的天然石英，能折射微光並穩定生物情緒。"
     },
     {
       "id": "volcanic_basalt_rock",
       "name_zh": "多孔火山岩塊",
       "category": "mineral",
-      "size": { "width": 14, "height": 10 },
-      "effects": { "humidity_modifier": -5, "heat_retention": +8 },
+      "size": {
+        "width": 14,
+        "height": 10
+      },
+      "effects": {
+        "humidity_modifier": -5,
+        "heat_retention": 8
+      },
       "description": "具備優異吸濕與蓄熱能力的火山岩，適合喜歡乾燥環境的爬行類。"
     },
     {
       "id": "fern_snake_plant",
       "name_zh": "耐陰黃金蕨",
       "category": "plant",
-      "size": { "width": 12, "height": 15 },
-      "effects": { "humidity_modifier": +12, "oxygen_production": +10 },
+      "size": {
+        "width": 12,
+        "height": 15
+      },
+      "effects": {
+        "humidity_modifier": 12,
+        "oxygen_production": 10
+      },
       "description": "生命力頑強的地下蕨類植物，能有效提升生態箱內的空氣品質與濕度。"
     },
     {
       "id": "amber_resin_piece",
       "name_zh": "遠古琥珀樹脂石",
       "category": "mineral",
-      "size": { "width": 8, "height": 8 },
-      "effects": { "ecosystem_balance_bonus": +5 },
+      "size": {
+        "width": 8,
+        "height": 8
+      },
+      "effects": {
+        "ecosystem_balance_bonus": 5
+      },
       "description": "散發著淡淡古老氣息的樹脂化石，能提升整體生態箱的微觀平衡評分。"
     },
     {
       "id": "auto_mister_device",
       "name_zh": "微型自動噴霧器",
       "category": "equipment",
-      "size": { "width": 6, "height": 8 },
-      "effects": { "humidity_modifier": +25, "air_quality_boost": +5 },
+      "size": {
+        "width": 6,
+        "height": 8
+      },
+      "effects": {
+        "humidity_modifier": 25,
+        "air_quality_boost": 5
+      },
       "description": "高科技自動化微霧設備，能定時調節箱內濕度，預防寵物脫皮卡死。"
     },
     {
       "id": "ceramic_heat_lamp",
       "name_zh": "陶瓷遠紅外線加熱燈",
       "category": "equipment",
-      "size": { "width": 8, "height": 8 },
-      "effects": { "temperature_modifier": +6, "heat_retention": +10 },
+      "size": {
+        "width": 8,
+        "height": 8
+      },
+      "effects": {
+        "temperature_modifier": 6,
+        "heat_retention": 10
+      },
       "description": "不發光的夜間保溫設備，能為喜熱生物提供穩定的地熱區。"
     },
     {
       "id": "activated_carbon_filter",
       "name_zh": "活性碳過濾基質",
       "category": "equipment",
-      "size": { "width": 12, "height": 4 },
-      "effects": { "air_quality_boost": +20, "odor_removal": true },
+      "size": {
+        "width": 12,
+        "height": 4
+      },
+      "effects": {
+        "air_quality_boost": 20,
+        "odor_removal": true
+      },
       "description": "鋪設於底床下方的過濾基質，能高效吸附雜質並常保空氣清新。"
     },
     {
       "id": "limestone_fragment",
       "name_zh": "深層石灰岩碎塊",
       "category": "mineral",
-      "size": { "width": 16, "height": 12 },
-      "effects": { "calcium_release": true, "research_value": +15 },
+      "size": {
+        "width": 16,
+        "height": 12
+      },
+      "effects": {
+        "calcium_release": true,
+        "research_value": 15
+      },
       "description": "富含礦物質的深層石灰岩，可作為地質工程科研的重要樣本。"
     }
   ]
+}
