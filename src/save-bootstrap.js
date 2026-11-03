@@ -140,4 +140,157 @@ async function processOfflineProgress(saveSystem, saveData) {
     }
 
     // 7. 儲存更新後的資料
-    const saveSuccess =
+    const saveSuccess = await saveSystem.saveGame(
+        updatedSaveData
+    );
+
+    if (!saveSuccess) {
+
+        throw new Error(
+            '離線資料保存失敗，為避免進度遺失，暫停進入遊戲'
+        );
+    }
+
+    console.log(
+        '[Bootstrap] 離線資料已成功保存'
+    );
+
+    // 8. 顯示離線事件
+    if (
+        offlineReport &&
+        Array.isArray(offlineReport.events) &&
+        offlineReport.events.length > 0
+    ) {
+
+        console.log(
+            '[Bootstrap] 離線期間發生的事件:',
+            offlineReport.events
+        );
+    }
+
+    return updatedSaveData;
+}
+
+/**
+ * 啟動與初始化遊戲
+ *
+ * @returns {Promise<object>}
+ *
+ * status:
+ * existing_save：已有存檔
+ * created：新遊戲已建立並成功儲存
+ * load_failed：存檔讀取或初始化失敗
+ */
+export async function handleGameStart() {
+
+    try {
+
+        const saveSystem = getSaveSystem();
+
+        console.log(
+            '[Bootstrap] 開始檢查遊戲存檔'
+        );
+
+        // 1. 透過正式存檔系統讀取資料
+        const result = await saveSystem.cloudSave.loadGame(
+            saveSystem.currentUserId,
+            saveSystem.isGuest
+        );
+
+        if (!result) {
+
+            throw new Error(
+                '存檔系統沒有回傳有效結果'
+            );
+        }
+
+        // 2. 已經存在有效存檔
+        if (isValidSaveData(result.save)) {
+
+            console.log(
+                `[Bootstrap] 已載入既有存檔 (${result.mode})`
+            );
+
+            // 3. 執行既有玩家的離線結算
+            const updatedSaveData =
+                await processOfflineProgress(
+                    saveSystem,
+                    result.save
+                );
+
+            // 4. 確認結算及保存完成後，
+            // 才交給遊戲場景
+            window.playerSaveData = updatedSaveData;
+
+            console.log(
+                '[Bootstrap] 既有玩家初始化完成'
+            );
+
+            return {
+                status: 'existing_save',
+                save: updatedSaveData
+            };
+        }
+
+        // 5. 只有明確確認沒有存檔，
+        // 才能建立新遊戲
+        if (
+            !result.success ||
+            result.save !== null
+        ) {
+
+            throw new Error(
+                result.error ||
+                `存檔讀取失敗：${result.mode || 'unknown'}`
+            );
+        }
+
+        // 6. 建立新玩家初始資料
+        const newGameData =
+            saveSystem.getDefaultSaveData();
+
+        // 7. 立即儲存新遊戲
+        const saveSuccess = await saveSystem.saveGame(
+            newGameData
+        );
+
+        if (!saveSuccess) {
+
+            throw new Error(
+                '新遊戲存檔失敗，為保護玩家資料，暫停進入遊戲'
+            );
+        }
+
+        // 8. 將新遊戲資料交給遊戲場景
+        window.playerSaveData = newGameData;
+
+        console.log(
+            '[Bootstrap] 新遊戲建立成功'
+        );
+
+        return {
+            status: 'created',
+            save: newGameData
+        };
+
+    } catch (error) {
+
+        console.error(
+            '[Bootstrap] 遊戲初始化失敗:',
+            error
+        );
+
+        return {
+            status: 'load_failed',
+            error: error.message
+        };
+    }
+}
+
+/**
+ * 取得目前共用的 SaveSystem 實體
+ */
+export function getGameSaveSystem() {
+
+    return getSaveSystem();
+}
