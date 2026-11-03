@@ -154,4 +154,291 @@ export class CloudSaveSystem {
             return {
                 success: false,
                 mode: 'invalid_save_data',
-                error: '無效
+                error: '無效的遊戲存檔資料'
+            };
+        }
+
+        if (!isGuest && (!userId || userId === 'guest')) {
+            return {
+                success: false,
+                mode: 'invalid_user_id',
+                error: '雲端帳號 ID 無效'
+            };
+        }
+
+        gameState.updatedAt = Date.now();
+
+        // 1. 先寫入玩家自己的本地存檔
+        const localResult = this.writeLocalSave(
+            userId,
+            gameState,
+            isGuest
+        );
+
+        // 2. 訪客模式：只使用本地存檔
+        if (isGuest || userId === 'guest') {
+
+            if (!localResult.success) {
+                return {
+                    success: false,
+                    mode: 'guest_local_failed',
+                    error: localResult.error
+                };
+            }
+
+            console.log('[SaveEngine] 訪客存檔已儲存於本地');
+
+            return {
+                success: true,
+                mode: 'guest_local_only',
+                data: gameState
+            };
+        }
+
+        // 3. 雲端帳號模式：確認雲端客戶端可用
+        if (!this.client) {
+            return {
+                success: false,
+                mode: 'cloud_unavailable',
+                localSaved: localResult.success,
+                error: 'Supabase 客戶端不可用，雲端存檔未同步'
+            };
+        }
+
+        // 4. 上傳至 Supabase
+        try {
+            const { data, error } = await this.client
+                .from('player_saves')
+                .upsert({
+                    user_id: userId,
+                    save_json: gameState,
+                    updated_at: new Date().toISOString()
+                }, {
+                    onConflict: 'user_id'
+                });
+
+            if (error) {
+                throw error;
+            }
+
+            console.log('[SaveEngine] 雲端存檔同步成功');
+
+            return {
+                success: true,
+                mode: localResult.success
+                    ? 'cloud_synced'
+                    : 'cloud_synced_local_backup_failed',
+                localSaved: localResult.success,
+                data
+            };
+
+        } catch (err) {
+            console.error('[SaveEngine] 雲端同步失敗:', err);
+
+            return {
+                success: false,
+                mode: 'fallback_local',
+                localSaved: localResult.success,
+                error: err.message
+            };
+        }
+    }
+
+    /**
+     * 載入遊戲
+     *
+     * 訪客：讀取訪客本地存檔。
+     * 雲端玩家：比較專屬本地存檔與雲端存檔時間。
+     */
+    async loadGame(userId, isGuest = false) {
+
+        // 1. 讀取玩家專屬本地存檔
+        const localResult = this.readLocalSave(userId, isGuest);
+
+        const localSave = localResult.save;
+
+        // 2. 訪客模式
+        if (isGuest || userId === 'guest') {
+
+            if (!localResult.success) {
+                return {
+                    success: false,
+                    save: null,
+                    mode: 'guest_local_read_failed',
+                    error: localResult.error
+                };
+            }
+
+            console.log('[SaveEngine] 訪客模式：讀取本地存檔');
+
+            return {
+                success: true,
+                save: localSave,
+                mode: 'guest_local_only'
+            };
+        }
+
+        // 3. 雲端帳號必須有有效 ID
+        if (!userId || userId === 'guest') {
+            return {
+                success: false,
+                save: null,
+                mode: 'invalid_user_id',
+                error: '雲端帳號 ID 無效'
+            };
+        }
+
+        // 4. 雲端客戶端不可用，不假裝成訪客模式
+        if (!this.client) {
+            return {
+                success: false,
+                save: localSave,
+                mode: 'cloud_unavailable',
+                localSaved: localResult.success,
+                error: 'Supabase 客戶端不可用'
+            };
+        }
+
+        // 5. 雲端帳號模式：讀取 Supabase
+        try {
+            const { data, error } = await this.client
+                .from('player_saves')
+                .select('save_json, updated_at')
+                .eq('user_id', userId)
+                .single();
+
+            // PGRST116：查詢結果沒有資料
+            if (error && error.code !== 'PGRST116') {
+                throw error;
+            }
+
+            // 6. 找到雲端存檔
+            if (data && data.save_json) {
+
+                const cloudSave = data.save_json;
+
+                if (
+                    typeof cloudSave !== 'object' ||
+                    Array.isArray(cloudSave)
+                ) {
+                    throw new Error('雲端存檔格式不正確');
+                }
+
+                const cloudTime = this.getSaveTimestamp(cloudSave);
+
+                const localTime = this.getSaveTimestamp(localSave);
+
+                // 本地存檔較新：嘗試同步至雲端
+                if (
+                    localSave &&
+                    localResult.success &&
+                    localTime > cloudTime
+                ) {
+                    const syncResult = await this.saveGame(
+                        userId,
+                        localSave,
+                        false
+                    );
+
+                    if (!syncResult.success) {
+                        console.warn(
+                            '[SaveEngine] 本地存檔較新，但雲端同步尚未完成'
+                        );
+
+                        return {
+                            success: true,
+                            save: localSave,
+                            mode: 'local_newer_sync_failed',
+                            warning: syncResult.error
+                        };
+                    }
+
+                    return {
+                        success: true,
+                        save: localSave,
+                        mode: 'resolved_local_newer'
+                    };
+                }
+
+                // 雲端存檔較新或時間相同：以雲端為準
+                const writeResult = this.writeLocalSave(
+                    userId,
+                    cloudSave,
+                    false
+                );
+
+                return {
+                    success: true,
+                    save: cloudSave,
+                    mode: writeResult.success
+                        ? 'cloud_loaded'
+                        : 'cloud_loaded_local_backup_failed',
+                    localSaved: writeResult.success
+                };
+            }
+
+            // 7. 雲端沒有存檔，但本地有該帳號的存檔
+            if (localSave && localResult.success) {
+
+                const syncResult = await this.saveGame(
+                    userId,
+                    localSave,
+                    false
+                );
+
+                if (!syncResult.success) {
+                    return {
+                        success: true,
+                        save: localSave,
+                        mode: 'local_loaded_cloud_sync_failed',
+                        warning: syncResult.error
+                    };
+                }
+
+                return {
+                    success: true,
+                    save: localSave,
+                    mode: 'initialized_cloud'
+                };
+            }
+
+            // 8. 雲端與該帳號本地都沒有存檔
+            if (!localResult.success) {
+                return {
+                    success: false,
+                    save: null,
+                    mode: 'local_read_failed',
+                    error: localResult.error
+                };
+            }
+
+            return {
+                success: true,
+                save: null,
+                mode: 'new_game'
+            };
+
+        } catch (err) {
+
+            console.error('[SaveEngine] 雲端讀取失敗:', err);
+
+            // 雲端讀取失敗，但該帳號有可用本地存檔
+            if (localSave && localResult.success) {
+                return {
+                    success: true,
+                    save: localSave,
+                    mode: 'fallback_local',
+                    warning: err.message
+                };
+            }
+
+            // 沒有本地備份，不能假裝已成功載入
+            return {
+                success: false,
+                save: null,
+                mode: 'cloud_load_failed',
+                error: err.message
+            };
+        }
+    }
+}
