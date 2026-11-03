@@ -60,7 +60,6 @@ export class TerrariumSystem {
 
     /**
      * 【防呆保護機制】檢查是否可以拆除或改建該生態箱
-     * 確保箱內有生物或植物時，絕對無法直接拆除
      */
     canDismantle() {
         if (this.data.creatures && this.data.creatures.length > 0) {
