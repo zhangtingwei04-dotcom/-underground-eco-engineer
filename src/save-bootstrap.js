@@ -34,21 +34,17 @@ function isValidSaveData(saveData) {
 /**
  * 啟動與初始化遊戲
  *
- * @param {string|null} chosenSurvivalMode
  * @returns {Promise<object>}
  *
  * status:
  * existing_save：已有存檔
- * new_game：確認沒有存檔，等待玩家選擇模式
  * created：新遊戲已建立並成功儲存
  * load_failed：存檔讀取或初始化失敗
  */
-export async function handleGameStart(
-    chosenSurvivalMode = null
-) {
-    const saveSystem = getSaveSystem();
-
+export async function handleGameStart() {
     try {
+        const saveSystem = getSaveSystem();
+
         console.log('[Bootstrap] 開始檢查遊戲存檔');
 
         // 1. 透過正式存檔系統讀取資料
@@ -67,8 +63,7 @@ export async function handleGameStart(
 
             return {
                 status: 'existing_save',
-                save: result.save,
-                mode: result.mode
+                save: result.save
             };
         }
 
@@ -80,30 +75,10 @@ export async function handleGameStart(
             );
         }
 
-        // 4. 尚未選擇模式，交由 main.js 顯示選擇介面
-        if (chosenSurvivalMode === null) {
-            console.log('[Bootstrap] 偵測到新玩家，等待選擇遊戲模式');
-
-            return {
-                status: 'new_game'
-            };
-        }
-
-        // 5. 驗證玩家選擇的模式
-        const validModes = ['cozy', 'challenge'];
-
-        if (!validModes.includes(chosenSurvivalMode)) {
-            throw new Error('無效的遊戲模式');
-        }
-
-        // 6. 建立新玩家初始資料
+        // 4. 建立新玩家初始資料
         const newGameData = saveSystem.getDefaultSaveData();
 
-        // 記錄玩家選擇的生存模式
-        newGameData.survival_mode = chosenSurvivalMode;
-        newGameData.settings.difficulty = chosenSurvivalMode;
-
-        // 7. 立即儲存新遊戲
+        // 5. 立即儲存新遊戲
         const saveSuccess = await saveSystem.saveGame(newGameData);
 
         if (!saveSuccess) {
@@ -112,17 +87,14 @@ export async function handleGameStart(
             );
         }
 
-        // 8. 將新遊戲資料交給遊戲場景
+        // 6. 將新遊戲資料交給遊戲場景
         window.playerSaveData = newGameData;
 
-        console.log(
-            `[Bootstrap] 新遊戲建立成功，模式：${chosenSurvivalMode}`
-        );
+        console.log('[Bootstrap] 新遊戲建立成功');
 
         return {
             status: 'created',
-            save: newGameData,
-            mode: chosenSurvivalMode
+            save: newGameData
         };
 
     } catch (error) {
