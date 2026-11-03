@@ -47,8 +47,8 @@ export class SpeciesConfigSystem {
             metabolism: {
                 satiety_decay_rate: 0.7,
                 hydration_decay_rate: 0.5
-            ｝
-        },
+            },
+        };
         // 在 SpeciesConfigSystem.SPECIES_DATABASE 中新增：
 
 'ball_python': {
