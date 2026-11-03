@@ -267,8 +267,7 @@ export class SaveSystem {
 
             settings: {
                 language: 'zh-TW',
-                soundVolume: 0.8,
-                difficulty: 'normal'
+                soundVolume: 0.8
             }
         };
     }
