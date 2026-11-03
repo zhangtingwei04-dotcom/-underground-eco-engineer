@@ -1,7 +1,7 @@
-// 地下生態工程師 | Underground Eco-Engineer
+// 鱗片與種子：地下生態物語
 // 核心場景：生態箱總覽與選擇介面 (Terrarium Selection & Overview Scene)
 
-class TerrariumSelectScene extends Phaser.Scene {
+export class TerrariumSelectScene extends Phaser.Scene {
     constructor() {
         super({ key: 'TerrariumSelectScene' });
     }
