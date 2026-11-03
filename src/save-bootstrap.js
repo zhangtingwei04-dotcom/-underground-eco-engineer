@@ -1,6 +1,9 @@
-```javascript
-// 鱗片與種子：地下生態物語 | 遊戲啟動與存檔初始化
-// Scales & Seeds: Game Bootstrap
+/**
+ * 《鱗片與種子：地下生態物語》
+ * 遊戲啟動與存檔初始化
+ *
+ * Scales & Seeds: Game Bootstrap
+ */
 
 import { SaveSystem } from './systems/save-system.js';
 import { OfflineSimulationSystem } from './systems/offline-simulation-system.js';
@@ -12,7 +15,9 @@ let saveSystemInstance = null;
  * 取得統一存檔管理器
  */
 function getSaveSystem() {
+
     if (!saveSystemInstance) {
+
         saveSystemInstance = new SaveSystem();
 
         // 提供遊戲其他模組共用
@@ -26,6 +31,7 @@ function getSaveSystem() {
  * 檢查存檔資料格式
  */
 function isValidSaveData(saveData) {
+
     return (
         saveData &&
         typeof saveData === 'object' &&
@@ -34,16 +40,46 @@ function isValidSaveData(saveData) {
 }
 
 /**
+ * 檢查時間格式是否有效
+ */
+function isValidTimestamp(timestamp) {
+
+    if (
+        timestamp === undefined ||
+        timestamp === null ||
+        timestamp === ''
+    ) {
+        return false;
+    }
+
+    return Number.isFinite(
+        new Date(timestamp).getTime()
+    );
+}
+
+/**
  * 執行既有玩家的離線結算
  *
- * 只有在確實產生離線結算結果時，
- * 才需要重新儲存資料。
+ * 以下兩種情況都會保存：
+ *
+ * 1. 確實產生離線結算結果。
+ * 2. 首次建立或修復 last_simulated_at。
+ *
+ * 避免離線時間基準只存在記憶體，
+ * 而沒有真正寫入本機或雲端存檔。
  */
 async function processOfflineProgress(saveSystem, saveData) {
 
     console.log('[Bootstrap] 開始執行離線生態結算');
 
-    // 1. 執行離線模擬
+    // 1. 記錄結算前的時間基準狀態
+    const hadValidTimestampBefore =
+        isValidTimestamp(saveData.last_simulated_at);
+
+    const previousTimestamp =
+        saveData.last_simulated_at;
+
+    // 2. 執行離線模擬
     const simulationResult =
         OfflineSimulationSystem.simulateOfflineProgress(
             saveData
@@ -53,7 +89,10 @@ async function processOfflineProgress(saveSystem, saveData) {
         !simulationResult ||
         !isValidSaveData(simulationResult.updatedSaveJson)
     ) {
-        throw new Error('離線模擬失敗：回傳資料格式不正確');
+
+        throw new Error(
+            '離線模擬失敗：回傳資料格式不正確'
+        );
     }
 
     const updatedSaveData =
@@ -62,21 +101,48 @@ async function processOfflineProgress(saveSystem, saveData) {
     const offlineReport =
         simulationResult.offlineReport;
 
-    // 2. 沒有產生結算結果，不需要額外儲存
-    if (!offlineReport) {
+    // 3. 檢查是否成功建立新的時間基準
+    const hasValidTimestampAfter =
+        isValidTimestamp(
+            updatedSaveData.last_simulated_at
+        );
+
+    const timestampWasInitialized =
+        !hadValidTimestampBefore &&
+        hasValidTimestampAfter;
+
+    // 4. 判斷是否需要保存
+    const needsSave =
+        Boolean(offlineReport) ||
+        timestampWasInitialized;
+
+    // 5. 沒有離線結算，也沒有新增時間基準
+    if (!needsSave) {
 
         console.log(
-            '[Bootstrap] 本次沒有需要處理的離線進度'
+            '[Bootstrap] 本次沒有需要保存的離線資料'
         );
 
         return updatedSaveData;
     }
 
-    console.log(
-        `[Bootstrap] 離線時間：${offlineReport.offlineHours} 小時`
-    );
+    // 6. 顯示離線結算資訊
+    if (offlineReport) {
 
-    // 3. 儲存離線結算後的資料
+        console.log(
+            `[Bootstrap] 離線時間：${offlineReport.offlineHours} 小時`
+        );
+    }
+
+    if (timestampWasInitialized) {
+
+        console.log(
+            '[Bootstrap] 已建立離線時間基準：',
+            updatedSaveData.last_simulated_at
+        );
+    }
+
+    // 7. 儲存更新後的資料
     const saveSuccess = await saveSystem.saveGame(
         updatedSaveData
     );
@@ -84,19 +150,21 @@ async function processOfflineProgress(saveSystem, saveData) {
     if (!saveSuccess) {
 
         throw new Error(
-            '離線結算後存檔失敗，為避免進度遺失，暫停進入遊戲'
+            '離線資料保存失敗，為避免進度遺失，暫停進入遊戲'
         );
     }
 
     console.log(
-        '[Bootstrap] 離線結算資料已成功保存'
+        '[Bootstrap] 離線資料已成功保存'
     );
 
-    // 4. 顯示離線事件
+    // 8. 顯示離線事件
     if (
+        offlineReport &&
         Array.isArray(offlineReport.events) &&
         offlineReport.events.length > 0
     ) {
+
         console.log(
             '[Bootstrap] 離線期間發生的事件:',
             offlineReport.events
@@ -119,15 +187,25 @@ async function processOfflineProgress(saveSystem, saveData) {
 export async function handleGameStart() {
 
     try {
+
         const saveSystem = getSaveSystem();
 
-        console.log('[Bootstrap] 開始檢查遊戲存檔');
+        console.log(
+            '[Bootstrap] 開始檢查遊戲存檔'
+        );
 
         // 1. 透過正式存檔系統讀取資料
         const result = await saveSystem.cloudSave.loadGame(
             saveSystem.currentUserId,
             saveSystem.isGuest
         );
+
+        if (!result) {
+
+            throw new Error(
+                '存檔系統沒有回傳有效結果'
+            );
+        }
 
         // 2. 已經存在有效存檔
         if (isValidSaveData(result.save)) {
@@ -143,7 +221,8 @@ export async function handleGameStart() {
                     result.save
                 );
 
-            // 4. 確認結算及儲存完成後，才交給遊戲場景
+            // 4. 確認結算及保存完成後，
+            // 才交給遊戲場景
             window.playerSaveData = updatedSaveData;
 
             console.log(
@@ -156,8 +235,12 @@ export async function handleGameStart() {
             };
         }
 
-        // 5. 只有明確確認沒有存檔，才能建立新遊戲
-        if (!result.success || result.save !== null) {
+        // 5. 只有明確確認沒有存檔，
+        // 才能建立新遊戲
+        if (
+            !result.success ||
+            result.save !== null
+        ) {
 
             throw new Error(
                 result.error ||
@@ -166,7 +249,8 @@ export async function handleGameStart() {
         }
 
         // 6. 建立新玩家初始資料
-        const newGameData = saveSystem.getDefaultSaveData();
+        const newGameData =
+            saveSystem.getDefaultSaveData();
 
         // 7. 立即儲存新遊戲
         const saveSuccess = await saveSystem.saveGame(
@@ -183,7 +267,9 @@ export async function handleGameStart() {
         // 8. 將新遊戲資料交給遊戲場景
         window.playerSaveData = newGameData;
 
-        console.log('[Bootstrap] 新遊戲建立成功');
+        console.log(
+            '[Bootstrap] 新遊戲建立成功'
+        );
 
         return {
             status: 'created',
@@ -208,6 +294,6 @@ export async function handleGameStart() {
  * 取得目前共用的 SaveSystem 實體
  */
 export function getGameSaveSystem() {
+
     return getSaveSystem();
 }
-```
