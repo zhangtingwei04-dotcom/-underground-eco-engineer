@@ -1,4 +1,4 @@
-// 地下生態工程師 - 生物圖鑑與收藏管理場景 (Encyclopedia Scene)
+//《鱗片與種子：地下生態物語》 - 生物圖鑑與收藏管理場景 (Encyclopedia Scene)
 
 export class EncyclopediaScene extends Phaser.Scene {
     constructor() {
