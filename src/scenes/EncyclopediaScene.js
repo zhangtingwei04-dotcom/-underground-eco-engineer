@@ -1,6 +1,6 @@
 // 地下生態工程師 - 生物圖鑑與收藏管理場景 (Encyclopedia Scene)
 
-class EncyclopediaScene extends Phaser.Scene {
+export class EncyclopediaScene extends Phaser.Scene {
     constructor() {
         super({ key: 'EncyclopediaScene' });
     }
