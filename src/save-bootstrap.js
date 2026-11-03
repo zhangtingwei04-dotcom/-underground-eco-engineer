@@ -1,61 +1,146 @@
-import { authSync } from './auth-sync-system.js';
+// 鱗片與種子：地下生態物語 | 遊戲啟動與存檔初始化
+// Scales & Seeds: Game Bootstrap
 
-const DB_NAME = 'ScalesAndSeedsDB';
-const STORE_NAME = 'saveData';
+import { SaveSystem } from './systems/save-system.js';
 
-export function getLocalIndexedDBSave() {
-    return new Promise((resolve) => {
-        const request = indexedDB.open(DB_NAME, 1);
-        request.onerror = () => resolve(null);
-        request.onsuccess = (e) => {
-            const db = e.target.result;
-            if (!db.objectStoreNames.contains(STORE_NAME)) {
-                resolve(null);
-                return;
-            }
-            const tx = db.transaction(STORE_NAME, 'readonly');
-            const store = tx.objectStore(STORE_NAME);
-            const getReq = store.get('guest_save');
-            getReq.onsuccess = () => resolve(getReq.result || null);
-            getReq.onerror = () => resolve(null);
-        };
-    });
+// 使用單一 SaveSystem 實體，避免重複建立存檔管理器
+let saveSystemInstance = null;
+
+/**
+ * 取得統一存檔管理器
+ */
+function getSaveSystem() {
+    if (!saveSystemInstance) {
+        saveSystemInstance = new SaveSystem();
+
+        // 提供遊戲其他模組共用
+        window.gameSaveSystem = saveSystemInstance;
+    }
+
+    return saveSystemInstance;
 }
 
 /**
- * 啟動與同步遊戲存檔
- * @returns {boolean} true 代表已有存檔（不需要讓玩家選模式），false 代表是新玩家（需要跳出開局模式選擇）
+ * 檢查存檔資料格式
  */
-export async function handleGameStart(chosenSurvivalMode = 'cozy') {
+function isValidSaveData(saveData) {
+    return (
+        saveData &&
+        typeof saveData === 'object' &&
+        !Array.isArray(saveData)
+    );
+}
+
+/**
+ * 啟動與初始化遊戲
+ *
+ * @param {string|null} chosenSurvivalMode
+ * @returns {Promise<object>}
+ *
+ * status:
+ * existing_save：已有存檔
+ * new_game：確認沒有存檔，等待玩家選擇模式
+ * created：新遊戲已建立並成功儲存
+ * load_failed：存檔讀取或初始化失敗
+ */
+export async function handleGameStart(
+    chosenSurvivalMode = null
+) {
+    const saveSystem = getSaveSystem();
+
     try {
-        const user = await authSync.init();
+        console.log('[Bootstrap] 開始檢查遊戲存檔');
 
-        if (user) {
-            const localData = await getLocalIndexedDBSave();
-            const cloudSave = await authSync.loadCloudSave();
+        // 1. 透過正式存檔系統讀取資料
+        const result = await saveSystem.cloudSave.loadGame(
+            saveSystem.currentUserId,
+            saveSystem.isGuest
+        );
 
-            if (cloudSave) {
-                console.log('【系統】已偵測到雲端存檔，模式鎖定為:', cloudSave.survival_mode);
-                return true; // 已有存檔
-            }
+        // 2. 已經存在有效存檔
+        if (isValidSaveData(result.save)) {
+            window.playerSaveData = result.save;
 
-            if (localData) {
-                const savePayload = localData.save_json || localData;
-                await authSync.migrateIndexedDBToCloud(savePayload, chosenSurvivalMode);
-                console.log('【系統】本機訪客存檔已成功遷移至雲端。');
-                return true; // 已有存檔
-            }
-        } else {
-            // 未登入訪客模式下，檢查本機 IndexedDB
-            const localData = await getLocalIndexedDBSave();
-            if (localData) {
-                return true; // 已有本機存檔
-            }
+            console.log(
+                `[Bootstrap] 已載入既有存檔 (${result.mode})`
+            );
+
+            return {
+                status: 'existing_save',
+                save: result.save,
+                mode: result.mode
+            };
         }
 
-        return false; // 無任何存檔，判定為全新開局，需要顯示模式選擇介面！
+        // 3. 只有明確確認沒有存檔，才能建立新遊戲
+        if (!result.success || result.save !== null) {
+            throw new Error(
+                result.error ||
+                `存檔讀取失敗：${result.mode || 'unknown'}`
+            );
+        }
+
+        // 4. 尚未選擇模式，交由 main.js 顯示選擇介面
+        if (chosenSurvivalMode === null) {
+            console.log('[Bootstrap] 偵測到新玩家，等待選擇遊戲模式');
+
+            return {
+                status: 'new_game'
+            };
+        }
+
+        // 5. 驗證玩家選擇的模式
+        const validModes = ['cozy', 'challenge'];
+
+        if (!validModes.includes(chosenSurvivalMode)) {
+            throw new Error('無效的遊戲模式');
+        }
+
+        // 6. 建立新玩家初始資料
+        const newGameData = saveSystem.getDefaultSaveData();
+
+        // 記錄玩家選擇的生存模式
+        newGameData.survival_mode = chosenSurvivalMode;
+        newGameData.settings.difficulty = chosenSurvivalMode;
+
+        // 7. 立即儲存新遊戲
+        const saveSuccess = await saveSystem.saveGame(newGameData);
+
+        if (!saveSuccess) {
+            throw new Error(
+                '新遊戲存檔失敗，為保護玩家資料，暫停進入遊戲'
+            );
+        }
+
+        // 8. 將新遊戲資料交給遊戲場景
+        window.playerSaveData = newGameData;
+
+        console.log(
+            `[Bootstrap] 新遊戲建立成功，模式：${chosenSurvivalMode}`
+        );
+
+        return {
+            status: 'created',
+            save: newGameData,
+            mode: chosenSurvivalMode
+        };
+
     } catch (error) {
-        console.error('【系統錯誤】存檔初始化失敗:', error);
-        return false;
+        console.error(
+            '[Bootstrap] 遊戲初始化失敗:',
+            error
+        );
+
+        return {
+            status: 'load_failed',
+            error: error.message
+        };
     }
+}
+
+/**
+ * 取得目前共用的 SaveSystem 實體
+ */
+export function getGameSaveSystem() {
+    return getSaveSystem();
 }
