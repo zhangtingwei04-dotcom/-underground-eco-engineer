@@ -1,105 +1,106 @@
 /**
- * 《鱗片與種子：地下生態物語》 - 生物日常行為與活動判定系統 (creature-behavior-system.js)
- * 負責根據豬鼻蛇的生理狀態與環境，判定當前行為、動態產生生活化觀察紀錄
+ * 《鱗片與種子：地下生態物語》 - 物種習性與動態行為系統 (creature-behavior-system.js)
+ * 根據物種配置 (SpeciesConfigSystem)、生態箱配備與日夜時段，動態判定生物行為並記錄觀察日誌
  */
 
+import { SpeciesConfigSystem } from './species-config-system.js';
 import { ObservationJournalSystem } from './observation-journal-system.js';
 
 export class CreatureBehaviorSystem {
-    // 定義豬鼻蛇可能展現的行為清單與對應描述
-    static BEHAVIORS = {
-        SLEEPING_DEEP: {
-            id: 'sleeping_deep',
-            category: 'daily',
-            description: '小傢伙把頭深深埋進底材裡，只露出一小截尾巴，在洞穴深處睡得非常香甜。'
-        },
-        SUNBASKING: {
-            id: 'sunbasking',
-            category: 'daily',
-            description: '正慵懶地趴在溫控區的微溫石上，享受著舒適的溫度，看起來十分放鬆。'
-        },
-        TUNNELING: {
-            id: 'tunneling',
-            category: 'fun',
-            description: '用扁平的小鼻子像鏟子一樣努力地推開底材，今天又在地底下開挖了一條新隧道！'
-        },
-        EXPLORING: {
-            id: 'exploring',
-            category: 'fun',
-            description: '正順著沉木緩緩向上爬動，不時吐出細小的黑色舌頭，好奇地探索著周遭的空氣。'
-        },
-        SHEDDING_PREP: {
-            id: 'shedding_prep',
-            category: 'important',
-            description: '眼睛蒙上一層淡淡的藍霧，身體顏色也略顯黯淡，看來這幾天就要準備脫皮了。'
-        },
-        STRESS_HIDING: {
-            id: 'stress_hiding',
-            category: 'warning',
-            description: '因為環境或壓力影響，今天一直縮在角落的陰暗處，顯得有些緊張與疲憊。'
-        },
-        THIRSTY_RESTING: {
-            id: 'thirsty_resting',
-            category: 'warning',
-            description: '靜靜地趴在水盆邊緣，似乎有些口渴，正等待著清澈的水源。'
-        }
+    // 跨物種行為與觀察文本資料庫
+    static BEHAVIOR_LOGS = {
+        // --- 豬鼻蛇 (Hognose) 專屬/偏好行為 ---
+        burrowing: [
+            { type: 'fun', content: '小傢伙用扁平的小鼻子像鏟子一樣努力推開底材，今天又在地底下開挖了一條新隧道！' },
+            { type: 'daily', content: '把頭深深埋進底材裡，只露出一小截尾巴，在洞穴深處睡得非常香甜。' }
+        ],
+        hiding: [
+            { type: 'daily', content: '躲在溫暖的躲藏穴中休息，偶爾微微吐舌探索周遭環境。' }
+        ],
+        defensive_playing_dead: [
+            { type: 'warning', content: '因為受到驚嚇或環境緊繃，突然翻過身肚子朝上伸出舌頭，展開了戲劇性的裝死！' }
+        ],
+
+        // --- 玉米蛇 (Corn Snake) 專屬/偏好行為 ---
+        climbing: [
+            { type: 'fun', content: '沿著高處的藤蔓與沉木優雅地攀爬，隨後盘繞在枝條高處靜靜俯瞰整個生態箱。' },
+            { type: 'daily', content: '今天選擇在高處的軟木平台盤成一個漂亮的圓圈打盹。' }
+        ],
+        crepuscular_activity: [
+            { type: 'fun', content: '隨著地下室的光線轉暗，牠開始在微光中順著箱壁緩慢爬動，展開黃昏時分的例行探索。' }
+        ],
+        exploration: [
+            { type: 'daily', content: '吐著細小的黑色舌頭，好奇地繞著箱內的植物葉片尋訪了一整圈。' }
+        ],
+
+        // --- 通用與健康警訊行為 ---
+        shedding_prep: [
+            { type: 'important', content: '眼睛蒙上一層淡淡的藍霧，體色也略顯黯淡，看來這幾天就要準備脫皮了。' }
+        ],
+        stress_hiding: [
+            { type: 'warning', content: '最近一直蜷縮在陰暗角落，活動量明顯下降，建議留意溫濕度與環境變化。' }
+        ]
     };
 
     /**
-     * 判定豬鼻蛇當前的核心行為狀態
-     * @param {Object} hognose 豬鼻蛇實體資料
-     * @param {Object} terrarium 生態箱環境資料
-     */
-    static determineCurrentBehavior(hognose, terrarium) {
-        // 1. 優先判定脫皮準備期
-        if (hognose.isShedding) {
-            return this.BEHAVIORS.SHEDDING_PREP;
-        }
-
-        // 2. 判定壓力或身體不適引起的躲藏
-        if (hognose.stress > 60 || hognose.health < 60) {
-            return this.BEHAVIORS.STRESS_HIDING;
-        }
-
-        // 3. 判定水分過低
-        if (hognose.hydration < 40) {
-            return this.BEHAVIORS.THIRSTY_RESTING;
-        }
-
-        // 4. 根據環境溫度與隨機性判定日常活動（休息或探索/挖洞）
-        const randomRoll = Math.random();
-        
-        if (terrarium.temperature >= 26 && terrarium.temperature <= 30 && randomRoll < 0.4) {
-            return this.BEHAVIORS.SUNBASKING;
-        } else if (randomRoll < 0.7) {
-            return this.BEHAVIORS.TUNNELING;
-        } else if (randomRoll < 0.85) {
-            return this.BEHAVIORS.EXPLORING;
-        } else {
-            return this.BEHAVIORS.DESP_SLEEPING; // 預設深眠
-        }
-    }
-
-    /**
-     * 執行日常行為檢核，並自動將產生的行為寫入觀察日誌中
+     * 判定生物當前發生的行為，並自動推入觀察日誌
      * @param {Object} saveJson 遊戲存檔
-     * @param {Object} hognose 豬鼻蛇實體
-     * @param {Object} terrarium 生態箱資料
+     * @param {Object} creature 生物實體 (包含 speciesId, stress, health, isShedding, personality 等)
+     * @param {Object} terrarium 生態箱環境 (包含 temperature, humidity, hasClimbingStructures, deepSubstrate 等)
+     * @param {string} timeOfDay 當前時段 ('morning', 'day', 'dusk', 'night')
      */
-    static processBehaviorTick(saveJson, hognose, terrarium) {
-        const currentBehavior = this.determineCurrentBehavior(hognose, terrarium);
+    static processCreatureBehavior(saveJson, creature, terrarium, timeOfDay = 'day') {
+        const speciesId = creature.speciesId || 'hognose_snake';
+        const speciesConfig = SpeciesConfigSystem.getSpeciesConfig(speciesId);
 
-        // 將行為轉換並推入觀察日誌系統
-        ObservationJournalSystem.addLog(
-            saveJson, 
-            currentBehavior.category, 
-            currentBehavior.description
-        );
+        let selectedTrait = 'hiding';
+        let logCategory = 'daily';
+        let logContent = '小生命安靜地在生態箱中休息。';
 
-        // 同時更新實體當前的行為標籤，供前端畫面顯示對應動畫或圖示
-        hognose.currentBehaviorId = currentBehavior.id;
+        // 1. 優先判定健康警訊與脫皮
+        if (creature.isShedding) {
+            selectedTrait = 'shedding_prep';
+        } else if (creature.stress > 60 || creature.health < 60) {
+            selectedTrait = 'stress_hiding';
+        } else {
+            // 2. 根據物種特徵與生態箱配備過濾可用行為
+            const traits = speciesConfig ? [...speciesConfig.behavior_traits] : ['hiding'];
 
-        return currentBehavior;
+            // 如果箱子有攀爬結構且物種支援攀爬（如玉米蛇）
+            if (terrarium.hasClimbingStructures && traits.includes('climbing')) {
+                // 玉米蛇在黃昏/夜間更高機率選擇攀爬與探索
+                if (timeOfDay === 'dusk' || timeOfDay === 'night') {
+                    traits.push('climbing', 'crepuscular_activity');
+                }
+            }
+
+            // 如果箱子有深層底材且物種支援挖掘（如豬鼻蛇）
+            if (terrarium.deepSubstrate && traits.includes('burrowing')) {
+                traits.push('burrowing');
+            }
+
+            // 隨機挑選一個符合條件的行為特徵
+            const randomIndex = Math.floor(Math.random() * traits.length);
+            selectedTrait = traits[randomIndex];
+        }
+
+        // 3. 從行為日誌庫中提取對應的描述文字
+        const behaviorPool = this.BEHAVIOR_LOGS[selectedTrait] || this.BEHAVIOR_LOGS.hiding;
+        const chosenLog = behaviorPool[Math.floor(Math.random() * behaviorPool.length)];
+
+        logCategory = chosenLog.type;
+        logContent = chosenLog.content;
+
+        // 4. 自動寫入觀察日誌
+        ObservationJournalSystem.addLog(saveJson, logCategory, logContent);
+
+        creature.currentBehavior = selectedTrait;
+
+        return {
+            trait: selectedTrait,
+            category: logCategory,
+            content: logContent
+        };
     }
 }
 
