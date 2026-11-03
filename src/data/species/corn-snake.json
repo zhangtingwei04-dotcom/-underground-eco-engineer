@@ -1,0 +1,27 @@
+{
+  "id": "corn_snake",
+  "name": {
+    "zh-TW": "玉米蛇",
+    "en": "Corn Snake"
+  },
+  "behavior_traits": [
+    "climbing",
+    "exploration",
+    "hiding",
+    "crepuscular_activity"
+  ],
+  "habitat_preferences": {
+    "vertical_space": true,
+    "climbing_structures": true,
+    "multiple_hiding_places": true
+  },
+  "metabolism": {
+    "satiety_decay_rate": 0.7,
+    "hydration_decay_rate": 0.5
+  },
+  "journal_events": [
+    "climbing_branch",
+    "resting_on_high_perch",
+    "evening_exploration"
+  ]
+}
