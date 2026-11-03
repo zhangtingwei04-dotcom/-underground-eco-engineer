@@ -1,0 +1,26 @@
+{
+  "species_id": "corn_snake",
+  "morphs": [
+    {
+      "id": "nominal",
+      "name": { "zh-TW": "原色（野外型）", "en": "Nominal / Normal" },
+      "description": "經典的紅橙色背斑，腹部有著像玉米粒般錯落的黑白方格紋，是大自然最完美的保護色。",
+      "rarity": "common",
+      "visual_tags": ["classic_saddle", "checkerboard_belly"]
+    },
+    {
+      "id": "ghost",
+      "name": { "zh-TW": "幽靈品系", "en": "Ghost" },
+      "description": "帶有減黑色素基因（Anerythristic + Hypomelanistic），呈現出神祕而柔和的銀灰色與淡米黃調。",
+      "rarity": "rare",
+      "visual_tags": ["silver_gray", "soft_pattern"]
+    },
+    {
+      "id": "bloodred",
+      "name": { "zh-TW": "血紅品系", "en": "Bloodred" },
+      "description": "背部的鞍狀花紋隨著成長逐漸暈開或消失，全身渲染著濃郁而深邃的深紅與赤褐色。",
+      "rarity": "epic",
+      "visual_tags": ["deep_red", "diffused_pattern"]
+    }
+  ]
+}
