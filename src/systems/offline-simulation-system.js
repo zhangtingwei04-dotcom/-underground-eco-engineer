@@ -35,8 +35,11 @@ export class OfflineSimulationSystem {
      *
      * 時間判斷優先順序：
      * 1. last_simulated_at
-     * 2. updatedAtISO（相容舊版呼叫方式）
-     * 3. saveJson.updatedAt（第一次結算使用）
+     * 2. updatedAtISO
+     * 3. saveJson.updatedAt
+     *
+     * 如果 last_simulated_at 無效，
+     * 則嘗試使用其他有效時間建立時間基準。
      */
     static simulateOfflineProgress(saveJson, updatedAtISO) {
 
@@ -48,31 +51,37 @@ export class OfflineSimulationSystem {
             throw new Error('離線模擬失敗：無效的存檔資料');
         }
 
-        // 判斷是否已經有離線結算時間
-        const hasSimulationTimestamp =
-            saveJson.last_simulated_at !== undefined &&
-            saveJson.last_simulated_at !== null &&
-            saveJson.last_simulated_at !== '';
+        // 1. 依優先順序尋找有效時間紀錄
+        const timestampCandidates = [
+            saveJson.last_simulated_at,
+            updatedAtISO,
+            saveJson.updatedAt
+        ];
 
-        let timestamp;
+        let lastTime = null;
 
-        if (hasSimulationTimestamp) {
+        for (const timestamp of timestampCandidates) {
 
-            timestamp = saveJson.last_simulated_at;
+            if (
+                timestamp === undefined ||
+                timestamp === null ||
+                timestamp === ''
+            ) {
+                continue;
+            }
 
-        } else {
+            const parsedTime = new Date(timestamp).getTime();
 
-            timestamp =
-                updatedAtISO ??
-                saveJson.updatedAt;
+            if (Number.isFinite(parsedTime)) {
+
+                lastTime = parsedTime;
+                break;
+            }
         }
 
-        // 沒有任何可用時間資料，不執行離線結算
-        if (
-            timestamp === undefined ||
-            timestamp === null ||
-            timestamp === ''
-        ) {
+        // 2. 沒有任何有效時間資料
+        if (lastTime === null) {
+
             console.warn(
                 '[離線模擬] 找不到有效的存檔時間，取消本次結算'
             );
@@ -83,24 +92,30 @@ export class OfflineSimulationSystem {
             };
         }
 
-        const lastTime = new Date(timestamp).getTime();
-
-        if (!Number.isFinite(lastTime)) {
-
-            console.warn(
-                '[離線模擬] 存檔時間格式錯誤，取消本次結算'
+        // 3. 檢查原本的離線結算時間是否有效
+        const hasValidSimulationTimestamp =
+            saveJson.last_simulated_at !== undefined &&
+            saveJson.last_simulated_at !== null &&
+            saveJson.last_simulated_at !== '' &&
+            Number.isFinite(
+                new Date(saveJson.last_simulated_at).getTime()
             );
 
-            return {
-                updatedSaveJson: saveJson,
-                offlineReport: null
-            };
+        // 4. 首次建立或修復離線時間基準
+        // 使用原本有效的存檔時間，避免直接從現在開始計算，
+        // 導致玩家先前的離線時間遺失。
+        if (!hasValidSimulationTimestamp) {
+
+            saveJson.last_simulated_at =
+                new Date(lastTime).toISOString();
         }
 
+        // 5. 計算離線時間
         const currentTime = Date.now();
         const diffMs = currentTime - lastTime;
 
-        // 防止未來時間或過短時間造成異常結算
+        // 未滿最低離線時間，不執行結算
+        // 但保留已建立的 last_simulated_at
         if (
             diffMs <
             this.CONFIG.MIN_OFFLINE_MINUTES * 60 * 1000
@@ -123,7 +138,7 @@ export class OfflineSimulationSystem {
             `【離線模擬】玩家離線時間：${diffHours.toFixed(2)} 小時`
         );
 
-        // 1. 生態箱離線結算
+        // 6. 生態箱離線結算
         saveJson.terrariums.forEach((terrarium, index) => {
 
             if (
@@ -146,12 +161,12 @@ export class OfflineSimulationSystem {
             }
         });
 
-        // 2. 收集所有生物
+        // 7. 收集所有生物
         // 同時兼容舊版 saveJson.creatures
         // 與新版 terrariums[].creatures
         const creatures = this._collectCreatures(saveJson);
 
-        // 3. 生物離線結算
+        // 8. 生物離線結算
         creatures.forEach((creature) => {
 
             const result = this._processCreatureOffline(
@@ -167,7 +182,7 @@ export class OfflineSimulationSystem {
             }
         });
 
-        // 4. 記錄本次結算完成時間
+        // 9. 記錄本次結算完成時間
         const simulationTime = new Date().toISOString();
 
         saveJson.last_simulated_at = simulationTime;
