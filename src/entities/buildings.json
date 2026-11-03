@@ -24,7 +24,7 @@
       },
       "effect": {
         "hydration_boost": 15,
-        "humidity_modifier": +10
+        "humidity_modifier": 10
       },
       "description": "配備保濕水盆的灌溉站，能自動幫周遭環境補水並維持生物水分。"
     },
@@ -42,3 +42,4 @@
       "description": "工程師專用的小型研究桌，可在此分析地質與生物樣本以解鎖新科技。"
     }
   ]
+}
