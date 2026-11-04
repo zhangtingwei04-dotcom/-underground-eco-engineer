@@ -651,8 +651,8 @@ export class LoginScene extends Phaser.Scene {
         this.settingsPanelX = panelX;
         this.settingsPanelY = panelY;
 
+        // 建立設定面板
         this.settingsPanel = this.add.rectangle(
-        this.settingsPanel.setInteractive();
             panelX,
             panelY,
             panelWidth,
@@ -802,8 +802,7 @@ export class LoginScene extends Phaser.Scene {
             this.settingsPageContainer.destroy();
         }
 
-        // 重要：內容容器從 0,0 開始
-        // 子物件使用畫面座標，不再重複加上 panelX
+        // 內容容器從 0,0 開始
         const page = this.add.container(0, 0);
 
         this.settingsPageContainer = page;
@@ -986,7 +985,6 @@ export class LoginScene extends Phaser.Scene {
 
         const startListY = startY + 48;
 
-        // 根據面板高度調整國旗間距
         const rowGap = Math.min(
             53,
             Math.max(
