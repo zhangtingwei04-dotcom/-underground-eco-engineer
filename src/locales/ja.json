@@ -1,0 +1,128 @@
+{
+  "game": {
+    "title": "鱗と種",
+    "subtitle": "地下生態物語",
+    "version": "Alpha 2.0",
+    "role": "地下生態学者",
+    "motto": "一枚一枚の鱗には、それぞれの物語がある。一粒一粒の種には、新しい命が宿っている。"
+  },
+  "login": {
+    "welcome": "あなたの地下生態世界へようこそ",
+    "welcome_message": "一枚一枚の鱗には物語があり、一粒一粒の種には命が宿っています。",
+    "start_exploring": "探索を始める",
+    "login": "ログイン",
+    "create_account": "新しいアカウントを作成"
+  },
+  "ui": {
+    "day": "日目：{day}",
+    "time": "時間",
+    "action_points": "行動ポイント",
+    "creature_energy": "生物の体力",
+    "temperature": "温度",
+    "humidity": "湿度",
+    "journal": "生態日誌",
+    "terrarium": "テラリウム",
+    "shop": "ショップ",
+    "vet": "動物病院",
+    "inventory": "持ち物",
+    "encyclopedia": "生態図鑑",
+    "confirm": "確認",
+    "cancel": "キャンセル",
+    "close": "閉じる",
+    "save": "保存",
+    "settings": "設定",
+    "language": "言語",
+    "time_phase": {
+      "morning": "朝",
+      "day": "昼",
+      "dusk": "夕暮れ",
+      "night": "夜"
+    }
+  },
+  "creature": {
+    "species": {
+      "hognose": "ナミヘビ科のブタバナヘビ",
+      "hognose_desc": "上向きの特徴的な鼻先を持ち、地面を掘ることが得意なヘビです。"
+    },
+    "stage": {
+      "egg": "卵",
+      "hatchling": "孵化直後",
+      "juvenile": "幼体",
+      "adult": "成体"
+    },
+    "status": {
+      "healthy": "健康",
+      "hungry": "空腹",
+      "dehydrated": "脱水",
+      "shedding": "脱皮中",
+      "sick": "病気",
+      "critical": "危険な状態"
+    },
+    "phenotype": {
+      "wild_type": "ノーマル",
+      "patternless": "パターンレス",
+      "speckled": "斑点模様",
+      "conda": "コンダ"
+    }
+  },
+  "journal": {
+    "title": "生態日誌",
+    "new_entry": "新しい記録",
+    "category": {
+      "arrival": "新しい仲間の到着",
+      "ecdysis": "脱皮記録",
+      "mutation": "遺伝的変化",
+      "pure_color": "色彩変化",
+      "health": "健康記録",
+      "environment": "環境記録"
+    },
+    "default_entries": {
+      "patternless_discovered": "パターンレス個体を発見",
+      "speckled_discovered": "斑点模様の個体を発見"
+    }
+  },
+  "npcs": {
+    "old_mac": {
+      "name": "マックじいさん",
+      "title": "ベテラン生態学者",
+      "dialogue": {
+        "greeting": "研究所へようこそ、若者よ！",
+        "patternless_comment": "パターンレスの個体はとても珍しい。よく観察してみるといい。",
+        "speckled_comment": "この斑点模様は本当に美しい！"
+      }
+    },
+    "amy": {
+      "name": "エイミー",
+      "title": "研究所の助手",
+      "dialogue": {
+        "greeting": "こんにちは！今日は何か新しい発見がありましたか？",
+        "delivery": "ご注文の物資が届きました。"
+      }
+    },
+    "old_mo": {
+      "name": "モーじいさん",
+      "title": "謎めいた収集家",
+      "dialogue": {
+        "greeting": "しーっ……ここには特別な品があるんだ。",
+        "mystery_egg": "この卵には何か秘密が隠されているようだ。"
+      }
+    }
+  },
+  "vet": {
+    "title": "動物病院",
+    "outpatient": "一般診察",
+    "outpatient_desc": "生物の基本的な健康診断を行います。",
+    "emergency": "緊急治療",
+    "emergency_desc": "緊急の健康問題に対応します。",
+    "hospitalization": "入院観察",
+    "hospitalization_desc": "専門的な環境で生物の回復を見守ります。",
+    "death_report": "死亡報告",
+    "cause_of_death": "死亡原因"
+  },
+  "ad": {
+    "boost_title": "生態研究支援",
+    "boost_desc": "広告を見て追加の研究資源を獲得しましょう。",
+    "boost_button": "広告を見る",
+    "notice": "広告報酬はゲーム内の研究にのみ使用できます。"
+  }
+}
