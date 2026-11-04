@@ -1,0 +1,128 @@
+{
+  "game": {
+    "title": "Écailles et Graines",
+    "subtitle": "Contes de l'écosystème souterrain",
+    "version": "Alpha 2.0",
+    "role": "Écologue souterrain",
+    "motto": "Chaque écaille raconte une histoire. Chaque graine porte la promesse d'une nouvelle vie."
+  },
+  "login": {
+    "welcome": "Bienvenue dans votre monde écologique souterrain",
+    "welcome_message": "Chaque écaille a son histoire et chaque graine renferme la promesse de la vie.",
+    "start_exploring": "Commencer l'exploration",
+    "login": "Se connecter",
+    "create_account": "Créer un compte"
+  },
+  "ui": {
+    "day": "Jour {day}",
+    "time": "Heure",
+    "action_points": "Points d'action",
+    "creature_energy": "Énergie de la créature",
+    "temperature": "Température",
+    "humidity": "Humidité",
+    "journal": "Journal écologique",
+    "terrarium": "Terrarium",
+    "shop": "Boutique",
+    "vet": "Clinique vétérinaire",
+    "inventory": "Inventaire",
+    "encyclopedia": "Encyclopédie écologique",
+    "confirm": "Confirmer",
+    "cancel": "Annuler",
+    "close": "Fermer",
+    "save": "Enregistrer",
+    "settings": "Paramètres",
+    "language": "Langue",
+    "time_phase": {
+      "morning": "Matin",
+      "day": "Journée",
+      "dusk": "Crépuscule",
+      "night": "Nuit"
+    }
+  },
+  "creature": {
+    "species": {
+      "hognose": "Serpent à nez retroussé",
+      "hognose_desc": "Un serpent reconnaissable à son museau retroussé, qui aime creuser et explorer son environnement."
+    },
+    "stage": {
+      "egg": "Œuf",
+      "hatchling": "Nouveau-né",
+      "juvenile": "Juvénile",
+      "adult": "Adulte"
+    },
+    "status": {
+      "healthy": "En bonne santé",
+      "hungry": "Affamé",
+      "dehydrated": "Déshydraté",
+      "shedding": "En mue",
+      "sick": "Malade",
+      "critical": "État critique"
+    },
+    "phenotype": {
+      "wild_type": "Type sauvage",
+      "patternless": "Sans motif",
+      "speckled": "Tacheté",
+      "conda": "Conda"
+    }
+  },
+  "journal": {
+    "title": "Journal écologique",
+    "new_entry": "Nouvelle entrée",
+    "category": {
+      "arrival": "Arrivée d'un nouveau pensionnaire",
+      "ecdysis": "Compte rendu de mue",
+      "mutation": "Variation génétique",
+      "pure_color": "Variation de couleur",
+      "health": "Suivi de santé",
+      "environment": "Suivi de l'environnement"
+    },
+    "default_entries": {
+      "patternless_discovered": "Découverte d'un spécimen sans motif",
+      "speckled_discovered": "Découverte d'un spécimen tacheté"
+    }
+  },
+  "npcs": {
+    "old_mac": {
+      "name": "Vieux Mac",
+      "title": "Écologue chevronné",
+      "dialogue": {
+        "greeting": "Bienvenue à la station de recherche, jeune ami !",
+        "patternless_comment": "Les spécimens sans motif sont très particuliers. Observe-les attentivement.",
+        "speckled_comment": "Ces taches sont vraiment magnifiques !"
+      }
+    },
+    "amy": {
+      "name": "Amy",
+      "title": "Assistante de recherche",
+      "dialogue": {
+        "greeting": "Bonjour ! As-tu fait de nouvelles découvertes aujourd'hui ?",
+        "delivery": "Tes fournitures sont arrivées."
+      }
+    },
+    "old_mo": {
+      "name": "Vieux Mo",
+      "title": "Collectionneur mystérieux",
+      "dialogue": {
+        "greeting": "Chut... J'ai quelques objets très spéciaux ici.",
+        "mystery_egg": "Cet œuf semble cacher un secret."
+      }
+    }
+  },
+  "vet": {
+    "title": "Clinique vétérinaire",
+    "outpatient": "Consultation générale",
+    "outpatient_desc": "Effectuer un bilan de santé de base pour la créature.",
+    "emergency": "Soins d'urgence",
+    "emergency_desc": "Traiter les problèmes de santé urgents.",
+    "hospitalization": "Hospitalisation et observation",
+    "hospitalization_desc": "Permettre à la créature de récupérer dans un environnement adapté.",
+    "death_report": "Rapport de décès",
+    "cause_of_death": "Cause du décès"
+  },
+  "ad": {
+    "boost_title": "Soutien à la recherche écologique",
+    "boost_desc": "Regardez une publicité pour obtenir des ressources de recherche supplémentaires.",
+    "boost_button": "Regarder la publicité",
+    "notice": "Les récompenses publicitaires sont uniquement utilisables pour la recherche dans le jeu."
+  }
+}
