@@ -652,6 +652,7 @@ export class LoginScene extends Phaser.Scene {
         this.settingsPanelY = panelY;
 
         this.settingsPanel = this.add.rectangle(
+        this.settingsPanel.setInteractive();
             panelX,
             panelY,
             panelWidth,
