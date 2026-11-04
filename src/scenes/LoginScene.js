@@ -1,5 +1,6 @@
+
 // 鱗片與種子：地下生態物語
-// Login Scene - Cozy Fantasy Underground Research Station
+// Login Scene - Multilingual Underground Research Station
 
 import { LanguageSystem } from '../systems/language-system.js';
 
@@ -17,7 +18,6 @@ export class LoginScene extends Phaser.Scene {
         this.drawButtons();
         this.drawLanguageSelector();
 
-        // 監聽語言切換
         this.languageListener = () => {
             this.scene.restart();
         };
@@ -35,14 +35,11 @@ export class LoginScene extends Phaser.Scene {
         });
     }
 
-    /**
-     * 繪製溫馨地下生態背景
-     */
+    // 地下洞穴背景
     drawBackground() {
 
         const graphics = this.add.graphics();
 
-        // 地下洞穴背景
         graphics.fillGradientStyle(
             0x263b32,
             0x263b32,
@@ -53,31 +50,26 @@ export class LoginScene extends Phaser.Scene {
 
         graphics.fillRect(0, 0, 1024, 768);
 
-        // 遠方暖色光源
         graphics.fillStyle(0xe6c58b, 0.12);
         graphics.fillCircle(510, 280, 230);
 
         graphics.fillStyle(0xd8b878, 0.08);
         graphics.fillCircle(510, 280, 160);
 
-        // 地面
         graphics.fillStyle(0x17251d, 1);
         graphics.fillEllipse(512, 720, 1200, 230);
 
-        // 左側岩石
         graphics.fillStyle(0x526354, 0.9);
         graphics.fillEllipse(70, 610, 240, 180);
 
         graphics.fillStyle(0x394b3d, 1);
         graphics.fillEllipse(950, 620, 280, 190);
 
-        // 發光植物
         this.drawPlant(110, 590, 0x8fc99b);
         this.drawPlant(900, 600, 0x9bcf9a);
         this.drawPlant(190, 660, 0xb5d8a2);
         this.drawPlant(830, 670, 0xb5d8a2);
 
-        // 空氣中的微光
         for (let i = 0; i < 35; i++) {
 
             const x = Phaser.Math.Between(30, 994);
@@ -103,9 +95,7 @@ export class LoginScene extends Phaser.Scene {
         }
     }
 
-    /**
-     * 繪製植物
-     */
+    // 繪製植物
     drawPlant(x, y, color) {
 
         const graphics = this.add.graphics();
@@ -137,49 +127,46 @@ export class LoginScene extends Phaser.Scene {
         graphics.fillCircle(x, y - 45, 30);
     }
 
-    /**
-     * 遊戲標題
-     */
+    // 遊戲標題
     drawTitle() {
 
-        const title = this.add.text(
+        this.add.text(
             512,
             125,
-            LanguageSystem.t('gameTitle'),
+            LanguageSystem.t('game.title'),
             {
                 fontFamily: 'Georgia, serif',
-                fontSize: '58px',
+                fontSize: '48px',
                 color: '#f3e8cb',
                 fontStyle: 'bold',
                 stroke: '#243b2e',
-                strokeThickness: 6
+                strokeThickness: 6,
+                align: 'center',
+                wordWrap: { width: 900 }
             }
-        );
-
-        title.setOrigin(0.5);
+        ).setOrigin(0.5);
 
         this.add.text(
             512,
             185,
-            LanguageSystem.t('gameSubtitle'),
+            LanguageSystem.t('game.subtitle'),
             {
                 fontFamily: 'Georgia, serif',
                 fontSize: '22px',
                 color: '#d5c9a5',
-                letterSpacing: 3
+                align: 'center',
+                wordWrap: { width: 850 }
             }
         ).setOrigin(0.5);
     }
 
-    /**
-     * 歡迎文字
-     */
+    // 歡迎文字
     drawWelcome() {
 
         this.add.text(
             512,
             275,
-            LanguageSystem.t('welcome'),
+            LanguageSystem.t('login.welcome'),
             {
                 fontFamily: 'Georgia, serif',
                 fontSize: '25px',
@@ -191,22 +178,18 @@ export class LoginScene extends Phaser.Scene {
         this.add.text(
             512,
             325,
-            LanguageSystem.t('welcomeMessage'),
+            LanguageSystem.t('login.welcome_message'),
             {
                 fontFamily: 'Arial, sans-serif',
                 fontSize: '16px',
                 color: '#d2d8c1',
                 align: 'center',
-                wordWrap: {
-                    width: 780
-                }
+                wordWrap: { width: 780 }
             }
         ).setOrigin(0.5);
     }
 
-    /**
-     * 建立按鈕
-     */
+    // 建立按鈕
     createButton(x, y, label, eventName) {
 
         const container = this.add.container(x, y);
@@ -234,14 +217,13 @@ export class LoginScene extends Phaser.Scene {
                 fontFamily: 'Arial, sans-serif',
                 fontSize: '21px',
                 color: '#f5ecd9',
-                fontStyle: 'bold'
+                fontStyle: 'bold',
+                align: 'center',
+                wordWrap: { width: 300 }
             }
         ).setOrigin(0.5);
 
-        container.add([
-            background,
-            text
-        ]);
+        container.add([background, text]);
 
         background.setInteractive({
             useHandCursor: true
@@ -270,93 +252,82 @@ export class LoginScene extends Phaser.Scene {
         });
 
         background.on('pointerdown', () => {
-
             this.events.emit(eventName);
         });
 
         return container;
     }
 
-    /**
-     * 三種入口功能
-     */
+    // 三種入口功能
     drawButtons() {
 
         this.createButton(
             512,
             430,
-            LanguageSystem.t('startExploring'),
+            LanguageSystem.t('login.start_exploring'),
             'guestSelected'
         );
 
         this.createButton(
             512,
             515,
-            LanguageSystem.t('login'),
+            LanguageSystem.t('login.login'),
             'loginSelected'
         );
 
         this.createButton(
             512,
             600,
-            LanguageSystem.t('createAccount'),
+            LanguageSystem.t('login.create_account'),
             'registerSelected'
         );
     }
 
-    /**
-     * 語言選擇
-     */
+    // 十種語言選擇
     drawLanguageSelector() {
 
         this.add.text(
             512,
-            700,
-            `${LanguageSystem.t('language')}:`,
+            680,
+            LanguageSystem.t('ui.language'),
             {
                 fontSize: '16px',
                 color: '#e5dcc5'
             }
         ).setOrigin(0.5);
 
-        const english = this.add.text(
-            455,
-            735,
-            'English',
-            {
-                fontSize: '17px',
-                color: LanguageSystem.isEnglish()
-                    ? '#f5d68d'
-                    : '#c5c5b5'
-            }
-        ).setOrigin(0.5);
+        const languages = LanguageSystem.getAvailableLanguages();
 
-        const chinese = this.add.text(
-            570,
-            735,
-            '繁體中文',
-            {
-                fontSize: '17px',
-                color: LanguageSystem.isTraditionalChinese()
-                    ? '#f5d68d'
-                    : '#c5c5b5'
-            }
-        ).setOrigin(0.5);
+        const currentLanguage = LanguageSystem.getLanguage();
 
-        english.setInteractive({
-            useHandCursor: true
-        });
+        const startX = 512 - ((languages.length - 1) * 82) / 2;
 
-        chinese.setInteractive({
-            useHandCursor: true
-        });
+        languages.forEach((language, index) => {
 
-        english.on('pointerdown', () => {
-            LanguageSystem.setLanguage('en');
-        });
+            const x = startX + index * 82;
 
-        chinese.on('pointerdown', () => {
-            LanguageSystem.setLanguage('zh-TW');
+            const label = this.add.text(
+                x,
+                720,
+                language.code,
+                {
+                    fontSize: '14px',
+                    color: currentLanguage === language.code
+                        ? '#f5d68d'
+                        : '#c5c5b5',
+                    fontStyle: currentLanguage === language.code
+                        ? 'bold'
+                        : 'normal'
+                }
+            ).setOrigin(0.5);
+
+            label.setInteractive({
+                useHandCursor: true
+            });
+
+            label.on('pointerdown', () => {
+                LanguageSystem.setLanguage(language.code);
+            });
         });
     }
 }
