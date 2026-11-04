@@ -1,6 +1,6 @@
 
 // 鱗片與種子：地下生態物語
-// Main Entry Point - Fullscreen Responsive Layout
+// Main Entry Point - iPhone Responsive Fullscreen
 
 import { LanguageSystem } from './systems/language-system.js';
 
@@ -22,13 +22,30 @@ window.addEventListener('DOMContentLoaded', async () => {
             LanguageSystem.getLanguage()
         );
 
+        const container = document.getElementById('game-container');
+
+        if (!container) {
+            throw new Error('找不到 game-container');
+        }
+
+        const getScreenSize = () => {
+
+            const rect = container.getBoundingClientRect();
+
+            return {
+                width: Math.max(1, Math.round(rect.width)),
+                height: Math.max(1, Math.round(rect.height))
+            };
+        };
+
+        const initialSize = getScreenSize();
+
         const config = {
 
             type: Phaser.AUTO,
 
-            // 初始尺寸，啟動後會依照容器調整
-            width: window.innerWidth,
-            height: window.innerHeight,
+            width: initialSize.width,
+            height: initialSize.height,
 
             parent: 'game-container',
 
@@ -36,10 +53,10 @@ window.addEventListener('DOMContentLoaded', async () => {
 
             scale: {
 
-                // 真正依照容器尺寸調整遊戲世界
                 mode: Phaser.Scale.RESIZE,
 
-                autoCenter: Phaser.Scale.CENTER_BOTH,
+                // 關閉 Phaser 自動置中
+                autoCenter: Phaser.Scale.NO_CENTER,
 
                 expandParent: false
             },
@@ -54,42 +71,63 @@ window.addEventListener('DOMContentLoaded', async () => {
 
         window.game = new Phaser.Game(config);
 
-        // 監聽螢幕尺寸變化
         let resizeTimer = null;
 
         const resizeGame = () => {
 
-            if (!window.game) return;
+            if (!window.game || !window.game.scale) {
+                return;
+            }
 
             clearTimeout(resizeTimer);
 
             resizeTimer = setTimeout(() => {
 
-                const container = document.getElementById('game-container');
+                const size = getScreenSize();
 
-                if (!container) return;
-
-                const width = container.clientWidth;
-                const height = container.clientHeight;
-
-                if (width <= 0 || height <= 0) return;
-
-                window.game.scale.resize(width, height);
+                window.game.scale.resize(
+                    size.width,
+                    size.height
+                );
 
                 console.log(
                     '【畫面調整】',
-                    width >= height ? '橫向模式' : '直向模式',
-                    width + ' × ' + height
+                    size.width >= size.height
+                        ? '橫向模式'
+                        : '直向模式',
+                    size.width + ' × ' + size.height
                 );
 
-            }, 100);
+            }, 150);
         };
 
+        // 監聽一般視窗尺寸變化
         window.addEventListener('resize', resizeGame);
 
+        // 監聽手機方向變化
         window.addEventListener('orientationchange', () => {
             setTimeout(resizeGame, 300);
+            setTimeout(resizeGame, 700);
         });
+
+        // 監聽 iPhone Safari 可視區域變化
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener(
+                'resize',
+                resizeGame
+            );
+        }
+
+        // 監聽遊戲容器尺寸變化
+        if (window.ResizeObserver) {
+
+            const observer = new ResizeObserver(() => {
+                resizeGame();
+            });
+
+            observer.observe(container);
+
+        }
 
         console.log('【系統】入口畫面初始化完成。');
 
