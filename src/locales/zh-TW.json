@@ -1,120 +1,129 @@
+
 {
-"game": {
-"title": "鱗片與種子：地下生態物語",
-"subtitle": "Scales & Seeds: Underground Ecosystem Tales",
-"version": "Alpha 2.0",
-"role": "地下生態學家",
-"motto": "每一片鱗片，都有自己的故事。每一顆種子，都孕育著新的生命。"
-},
-"ui": {
-"day": "第 {day} 天",
-"time": "目前時間",
-"action_points": "行動值",
-"creature_energy": "生物精力",
-"temperature": "溫度",
-"humidity": "濕度",
-"journal": "生態學家筆記",
-"terrarium": "生態箱",
-"shop": "黑市與生態商店",
-"vet": "寵物醫院",
-"inventory": "背包與資材",
-"encyclopedia": "生物圖鑑",
-"confirm": "確認",
-"cancel": "取消",
-"close": "關閉",
-"save": "儲存進度",
-"settings": "系統設定",
-"time_phase": {
-"morning": "清晨",
-"day": "白天",
-"dusk": "黃昏",
-"night": "夜晚"
-}
-},
-"creature": {
-"species": {
-"hognose": "西部豬鼻蛇",
-"hognose_desc": "帶有獨特豬鼻狀吻端的地面小型蛇類，性格溫和，喜歡在底材中挖掘穴居。"
-},
-"stage": {
-"egg": "卵",
-"hatchling": "幼體",
-"juvenile": "亞成體",
-"adult": "成體"
-},
-"status": {
-"healthy": "健康狀態良好",
-"hungry": "些許飢餓",
-"dehydrated": "輕微脫水",
-"shedding": "即將蛻皮 (眼睛白濁)",
-"sick": "身體不適 (建議就醫)",
-"critical": "生命危急 (需要急診)"
-},
-"phenotype": {
-"wild_type": "原色野生型",
-"patternless": "純色系 (Patternless)",
-"speckled": "隨機斑紋與白點突變",
-"conda": "減斑基因 (Conda)"
-}
-},
-"journal": {
-"title": "生態學家研究筆記",
-"new_entry": "新增紀錄",
-"category": {
-"arrival": "新個體到來",
-"ecdysis": "蛻皮觀察",
-"mutation": "基因變異發現",
-"pure_color": "特異色澤觀察",
-"health": "健康診斷紀錄",
-"environment": "微氣候調控"
-},
-"default_entries": {
-"patternless_discovered": "這隻個體身上沒有繁複的花紋，呈現乾淨俐落的純色系。在地下燈光照射下散發出純粹而安心的質感。",
-"speckled_discovered": "今日觀察到體表出現高對比的隨機白點與高顯性斑紋！這究竟是基因突變還是微氣候適應的成果？值得持續追蹤。"
-}
-},
-"npcs": {
-"old_mac": {
-"name": "老馬克",
-"title": "資深爬蟲學者與導師",
-"dialogue": {
-"greeting": "歡迎回到地下生態箱！今天有仔細檢查微氣候的溫濕度嗎？",
-"patternless_comment": "喔？這隻小傢伙身上沒有多餘的雜色，是相當純粹乾淨的純色系啊！這種簡約的高級感特別令人賞心悅目。",
-"speckled_comment": "快瞧瞧這背部的斑紋變化！每一塊斑點的分布都是獨一無二的，這孩子長大後肯定會成為圖鑑裡的焦點！"
-}
-},
-"amy": {
-"name": "艾米",
-"title": "溫控包裹快遞員",
-"dialogue": {
-"greeting": "嗨，生態學家！今天有你的地下溫控快遞包裹送到囉！",
-"delivery": "安心吧！運輸過程中的保溫與濕度控管我都細心確認過了，隨時可以拆封放置於生態箱。"
-}
-},
-"old_mo": {
-"name": "老莫",
-"title": "深層岩脈探索者",
-"dialogue": {
-"greeting": "嘿嘿……深層地道裡可藏著不少古老的遺傳線索與奇特植物種子呢。",
-"mystery_egg": "要不要試著培育這顆在深層岩隙發現的神祕卵？它可能會為你的生態箱帶來驚喜。"
-}
-}
-},
-"vet": {
-"title": "地下爬蟲專業診所",
-"outpatient": "一般門診",
-"outpatient_desc": "消耗少量行動值與基礎診金，適合常態健康檢查與初期輕微病徵。",
-"emergency": "急診處置",
-"emergency_desc": "優先排診處理危急病徵，消耗較多行動值與較高費用。",
-"hospitalization": "住院觀察",
-"hospitalization_desc": "留院進行長期環境適應與生理復原，依現實時間回報進度。",
-"death_report": "離線健康與生命追蹤報告",
-"cause_of_death": "死因分析與環境檢討"
-},
-"ad": {
-"boost_title": "成長觀察室加速",
-"boost_desc": "觀看自願獎勵廣告，獲得額外 +6 小時的有效生物成長時間（每日上限 2 次）。",
-"boost_button": "獲得 +6 小時成長時間",
-"notice": "※ 廣告加速不會影響疾病康復、生死判定或特殊基因產生機率。"
-}
+  "game": {
+    "title": "鱗片與種子：地下生態物語",
+    "subtitle": "地下生態物語",
+    "version": "Alpha 2.0",
+    "role": "地下生態學家",
+    "motto": "每一片鱗片，都有自己的故事。每一顆種子，都孕育著新的生命。"
+  },
+  "login": {
+    "welcome": "歡迎來到你的地下生態世界",
+    "welcome_message": "每一片鱗片，都有自己的故事；每一顆種子，都蘊藏著生命。",
+    "start_exploring": "開始探索",
+    "login": "登入帳號",
+    "create_account": "建立新帳號"
+  },
+  "ui": {
+    "day": "第 {day} 天",
+    "time": "目前時間",
+    "action_points": "行動值",
+    "creature_energy": "生物精力",
+    "temperature": "溫度",
+    "humidity": "濕度",
+    "journal": "生態學家筆記",
+    "terrarium": "生態箱",
+    "shop": "黑市與生態商店",
+    "vet": "寵物醫院",
+    "inventory": "背包與資材",
+    "encyclopedia": "生物圖鑑",
+    "confirm": "確認",
+    "cancel": "取消",
+    "close": "關閉",
+    "save": "儲存進度",
+    "settings": "系統設定",
+    "language": "語言",
+    "time_phase": {
+      "morning": "清晨",
+      "day": "白天",
+      "dusk": "黃昏",
+      "night": "夜晚"
+    }
+  },
+  "creature": {
+    "species": {
+      "hognose": "西部豬鼻蛇",
+      "hognose_desc": "帶有獨特豬鼻狀吻端的地面小型蛇類，性格溫和，喜歡在底材中挖掘穴居。"
+    },
+    "stage": {
+      "egg": "卵",
+      "hatchling": "幼體",
+      "juvenile": "亞成體",
+      "adult": "成體"
+    },
+    "status": {
+      "healthy": "健康狀態良好",
+      "hungry": "些許飢餓",
+      "dehydrated": "輕微脫水",
+      "shedding": "即將蛻皮（眼睛白濁）",
+      "sick": "身體不適（建議就醫）",
+      "critical": "生命危急（需要急診）"
+    },
+    "phenotype": {
+      "wild_type": "原色野生型",
+      "patternless": "純色系（Patternless）",
+      "speckled": "隨機斑紋與白點突變",
+      "conda": "減斑基因（Conda）"
+    }
+  },
+  "journal": {
+    "title": "生態學家研究筆記",
+    "new_entry": "新增紀錄",
+    "category": {
+      "arrival": "新個體到來",
+      "ecdysis": "蛻皮觀察",
+      "mutation": "基因變異發現",
+      "pure_color": "特異色澤觀察",
+      "health": "健康診斷紀錄",
+      "environment": "微氣候調控"
+    },
+    "default_entries": {
+      "patternless_discovered": "這隻個體身上沒有繁複的花紋，呈現乾淨俐落的純色系。在地下燈光照射下散發出純粹而安心的質感。",
+      "speckled_discovered": "今日觀察到體表出現高對比的隨機白點與高顯性斑紋！這究竟是基因突變還是微氣候適應的成果？值得持續追蹤。"
+    }
+  },
+  "npcs": {
+    "old_mac": {
+      "name": "老馬克",
+      "title": "資深爬蟲學者與導師",
+      "dialogue": {
+        "greeting": "歡迎回到地下生態箱！今天有仔細檢查微氣候的溫濕度嗎？",
+        "patternless_comment": "喔？這隻小傢伙身上沒有多餘的雜色，是相當純粹乾淨的純色系啊！這種簡約的高級感特別令人賞心悅目。",
+        "speckled_comment": "快瞧瞧這背部的斑紋變化！每一塊斑點的分布都是獨一無二的，這孩子長大後肯定會成為圖鑑裡的焦點！"
+      }
+    },
+    "amy": {
+      "name": "艾米",
+      "title": "溫控包裹快遞員",
+      "dialogue": {
+        "greeting": "嗨，生態學家！今天有你的地下溫控快遞包裹送到囉！",
+        "delivery": "安心吧！運輸過程中的保溫與濕度控管我都細心確認過了，隨時可以拆封放置於生態箱。"
+      }
+    },
+    "old_mo": {
+      "name": "老莫",
+      "title": "深層岩脈探索者",
+      "dialogue": {
+        "greeting": "嘿嘿……深層地道裡可藏著不少古老的遺傳線索與奇特植物種子呢。",
+        "mystery_egg": "要不要試著培育這顆在深層岩隙發現的神祕卵？它可能會為你的生態箱帶來驚喜。"
+      }
+    }
+  },
+  "vet": {
+    "title": "地下爬蟲專業診所",
+    "outpatient": "一般門診",
+    "outpatient_desc": "消耗少量行動值與基礎診金，適合常態健康檢查與初期輕微病徵。",
+    "emergency": "急診處置",
+    "emergency_desc": "優先排診處理危急病徵，消耗較多行動值與較高費用。",
+    "hospitalization": "住院觀察",
+    "hospitalization_desc": "留院進行長期環境適應與生理復原，依現實時間回報進度。",
+    "death_report": "離線健康與生命追蹤報告",
+    "cause_of_death": "死因分析與環境檢討"
+  },
+  "ad": {
+    "boost_title": "成長觀察室加速",
+    "boost_desc": "觀看自願獎勵廣告，獲得額外 +6 小時的有效生物成長時間（每日上限 2 次）。",
+    "boost_button": "獲得 +6 小時成長時間",
+    "notice": "※ 廣告加速不會影響疾病康復、生死判定或特殊基因產生機率。"
+  }
 }
