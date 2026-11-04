@@ -740,7 +740,7 @@ export class LoginScene extends Phaser.Scene {
         // 目前語言按鈕
         const currentButton = this.add.text(
             centerX,
-            centerY - 105,
+            centerY - 125,
             `${current.name}  ${expanded ? '▲' : '▼'}`,
             {
                 fontSize: '17px',
