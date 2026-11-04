@@ -1,0 +1,128 @@
+{
+  "game": {
+    "title": "Escamas e sementes: uma história de ecologia subterrânea",
+    "subtitle": "Uma história de ecologia subterrânea",
+    "version": "Alpha 2.0",
+    "role": "Ecologista subterrâneo",
+    "motto": "Cada escama conta sua própria história. Cada semente guarda a promessa de uma nova vida."
+  },
+  "login": {
+    "welcome": "Bem-vindo ao seu mundo de ecologia subterrânea",
+    "welcome_message": "Cada escama tem sua história, e cada semente carrega a esperança de uma nova vida.",
+    "start_exploring": "Começar a explorar",
+    "login": "Entrar",
+    "create_account": "Criar uma conta"
+  },
+  "ui": {
+    "day": "Dia {day}",
+    "time": "Hora",
+    "action_points": "Pontos de ação",
+    "creature_energy": "Energia da criatura",
+    "temperature": "Temperatura",
+    "humidity": "Umidade",
+    "journal": "Diário ecológico",
+    "terrarium": "Terrário",
+    "shop": "Loja",
+    "vet": "Clínica veterinária",
+    "inventory": "Inventário",
+    "encyclopedia": "Enciclopédia ecológica",
+    "confirm": "Confirmar",
+    "cancel": "Cancelar",
+    "close": "Fechar",
+    "save": "Salvar",
+    "settings": "Configurações",
+    "language": "Idioma",
+    "time_phase": {
+      "morning": "Manhã",
+      "day": "Dia",
+      "dusk": "Anoitecer",
+      "night": "Noite"
+    }
+  },
+  "creature": {
+    "species": {
+      "hognose": "Cobra-nariz-de-porco",
+      "hognose_desc": "Uma cobra com o focinho caracteristicamente arrebitado, que gosta de cavar e explorar o ambiente ao redor."
+    },
+    "stage": {
+      "egg": "Ovo",
+      "hatchling": "Recém-nascido",
+      "juvenile": "Jovem",
+      "adult": "Adulto"
+    },
+    "status": {
+      "healthy": "Saudável",
+      "hungry": "Com fome",
+      "dehydrated": "Desidratado",
+      "shedding": "Trocando de pele",
+      "sick": "Doente",
+      "critical": "Estado crítico"
+    },
+    "phenotype": {
+      "wild_type": "Tipo selvagem",
+      "patternless": "Sem padrão",
+      "speckled": "Manchado",
+      "conda": "Conda"
+    }
+  },
+  "journal": {
+    "title": "Diário ecológico",
+    "new_entry": "Adicionar novo registro",
+    "category": {
+      "arrival": "Chegada de um novo habitante",
+      "ecdysis": "Registro de troca de pele",
+      "mutation": "Alteração genética",
+      "pure_color": "Alteração de cor",
+      "health": "Registro de saúde",
+      "environment": "Registro do ambiente"
+    },
+    "default_entries": {
+      "patternless_discovered": "Uma cobra sem padrão foi descoberta",
+      "speckled_discovered": "Uma cobra manchada foi descoberta"
+    }
+  },
+  "npcs": {
+    "old_mac": {
+      "name": "Velho Mac",
+      "title": "Ecologista experiente",
+      "dialogue": {
+        "greeting": "Bem-vindo à estação de pesquisa, meu jovem!",
+        "patternless_comment": "As cobras sem padrão são muito especiais. Observe-as com atenção.",
+        "speckled_comment": "Essas manchas são realmente lindas!"
+      }
+    },
+    "amy": {
+      "name": "Amy",
+      "title": "Assistente de pesquisa",
+      "dialogue": {
+        "greeting": "Olá! Você descobriu algo novo hoje?",
+        "delivery": "Seus suprimentos chegaram."
+      }
+    },
+    "old_mo": {
+      "name": "Velho Mo",
+      "title": "Colecionador misterioso",
+      "dialogue": {
+        "greeting": "Psiu... Tenho alguns itens muito especiais aqui.",
+        "mystery_egg": "Parece que este ovo esconde algum segredo."
+      }
+    }
+  },
+  "vet": {
+    "title": "Clínica veterinária",
+    "outpatient": "Consulta geral",
+    "outpatient_desc": "Realizar um exame básico de saúde na criatura.",
+    "emergency": "Atendimento de emergência",
+    "emergency_desc": "Tratar problemas de saúde urgentes.",
+    "hospitalization": "Internação e observação",
+    "hospitalization_desc": "Permitir que a criatura se recupere em um ambiente adequado.",
+    "death_report": "Relatório de óbito",
+    "cause_of_death": "Causa do óbito"
+  },
+  "ad": {
+    "boost_title": "Apoie a pesquisa ecológica",
+    "boost_desc": "Assista a um anúncio para receber recursos adicionais de pesquisa.",
+    "boost_button": "Assistir ao anúncio",
+    "notice": "As recompensas dos anúncios só podem ser usadas em pesquisas dentro do jogo."
+  }
+}
