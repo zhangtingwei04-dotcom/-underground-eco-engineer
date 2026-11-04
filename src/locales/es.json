@@ -1,0 +1,128 @@
+{
+  "game": {
+    "title": "Escamas y semillas: una historia de ecología subterránea",
+    "subtitle": "Una historia de ecología subterránea",
+    "version": "Alpha 2.0",
+    "role": "Ecólogo subterráneo",
+    "motto": "Cada escama cuenta su propia historia. Cada semilla guarda la promesa de una nueva vida."
+  },
+  "login": {
+    "welcome": "Bienvenido a tu mundo de ecología subterránea",
+    "welcome_message": "Cada escama tiene su historia y cada semilla lleva la esperanza de una nueva vida.",
+    "start_exploring": "Comenzar a explorar",
+    "login": "Iniciar sesión",
+    "create_account": "Crear una cuenta"
+  },
+  "ui": {
+    "day": "Día {day}",
+    "time": "Hora",
+    "action_points": "Puntos de acción",
+    "creature_energy": "Energía de la criatura",
+    "temperature": "Temperatura",
+    "humidity": "Humedad",
+    "journal": "Diario ecológico",
+    "terrarium": "Terrario",
+    "shop": "Tienda",
+    "vet": "Clínica veterinaria",
+    "inventory": "Inventario",
+    "encyclopedia": "Enciclopedia ecológica",
+    "confirm": "Confirmar",
+    "cancel": "Cancelar",
+    "close": "Cerrar",
+    "save": "Guardar",
+    "settings": "Configuración",
+    "language": "Idioma",
+    "time_phase": {
+      "morning": "Mañana",
+      "day": "Día",
+      "dusk": "Atardecer",
+      "night": "Noche"
+    }
+  },
+  "creature": {
+    "species": {
+      "hognose": "Serpiente hocico de cerdo",
+      "hognose_desc": "Una serpiente reconocible por su hocico levantado, que disfruta cavando y explorando su entorno."
+    },
+    "stage": {
+      "egg": "Huevo",
+      "hatchling": "Recién nacido",
+      "juvenile": "Juvenil",
+      "adult": "Adulto"
+    },
+    "status": {
+      "healthy": "Saludable",
+      "hungry": "Hambriento",
+      "dehydrated": "Deshidratado",
+      "shedding": "En muda",
+      "sick": "Enfermo",
+      "critical": "Estado crítico"
+    },
+    "phenotype": {
+      "wild_type": "Tipo silvestre",
+      "patternless": "Sin patrón",
+      "speckled": "Moteado",
+      "conda": "Conda"
+    }
+  },
+  "journal": {
+    "title": "Diario ecológico",
+    "new_entry": "Añadir una nueva entrada",
+    "category": {
+      "arrival": "Llegada de un nuevo habitante",
+      "ecdysis": "Registro de muda",
+      "mutation": "Cambio genético",
+      "pure_color": "Cambio de color",
+      "health": "Registro de salud",
+      "environment": "Registro del entorno"
+    },
+    "default_entries": {
+      "patternless_discovered": "Se descubrió una serpiente sin patrón",
+      "speckled_discovered": "Se descubrió una serpiente moteada"
+    }
+  },
+  "npcs": {
+    "old_mac": {
+      "name": "Viejo Mac",
+      "title": "Ecólogo experimentado",
+      "dialogue": {
+        "greeting": "¡Bienvenido a la estación de investigación, joven amigo!",
+        "patternless_comment": "Las serpientes sin patrón son muy especiales. Obsérvalas con atención.",
+        "speckled_comment": "¡Estas manchas son realmente hermosas!"
+      }
+    },
+    "amy": {
+      "name": "Amy",
+      "title": "Asistente de investigación",
+      "dialogue": {
+        "greeting": "¡Hola! ¿Has descubierto algo nuevo hoy?",
+        "delivery": "Tus suministros han llegado."
+      }
+    },
+    "old_mo": {
+      "name": "Viejo Mo",
+      "title": "Coleccionista misterioso",
+      "dialogue": {
+        "greeting": "Shhh... Tengo aquí algunos objetos muy especiales.",
+        "mystery_egg": "Parece que este huevo esconde algún secreto."
+      }
+    }
+  },
+  "vet": {
+    "title": "Clínica veterinaria",
+    "outpatient": "Consulta general",
+    "outpatient_desc": "Realizar un chequeo básico de salud a la criatura.",
+    "emergency": "Atención de emergencia",
+    "emergency_desc": "Atender problemas de salud urgentes.",
+    "hospitalization": "Hospitalización y observación",
+    "hospitalization_desc": "Permitir que la criatura se recupere en un entorno adecuado.",
+    "death_report": "Informe de fallecimiento",
+    "cause_of_death": "Causa del fallecimiento"
+  },
+  "ad": {
+    "boost_title": "Apoya la investigación ecológica",
+    "boost_desc": "Mira un anuncio para obtener recursos de investigación adicionales.",
+    "boost_button": "Ver anuncio",
+    "notice": "Las recompensas publicitarias solo se pueden utilizar para la investigación dentro del juego."
+  }
+}
