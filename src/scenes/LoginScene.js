@@ -1,6 +1,6 @@
 
 // 鱗片與種子：地下生態物語
-// Login Scene - Fullscreen Responsive Layout
+// Login Scene - Responsive Portrait & Landscape Layout
 
 import { LanguageSystem } from '../systems/language-system.js';
 
@@ -23,44 +23,28 @@ export class LoginScene extends Phaser.Scene {
             this.scene.restart();
         };
 
-        window.addEventListener(
-            'languageChanged',
-            this.languageListener
-        );
+        window.addEventListener('languageChanged', this.languageListener);
 
         this.events.once('shutdown', () => {
-            window.removeEventListener(
-                'languageChanged',
-                this.languageListener
-            );
+            window.removeEventListener('languageChanged', this.languageListener);
+            this.scale.off('resize', this.handleResize, this);
         });
 
         this.scale.on('resize', this.handleResize, this);
-
-        this.events.once('shutdown', () => {
-            this.scale.off('resize', this.handleResize, this);
-        });
     }
 
     isPortrait() {
         return this.scale.height > this.scale.width;
     }
 
-    // 清除舊背景
     clearBackground() {
 
-        this.particles.forEach(particle => {
-            particle.destroy();
-        });
-
+        this.particles.forEach(particle => particle.destroy());
         this.particles = [];
-
-        this.tweens.killTweensOf(this.backgroundContainer);
 
         this.backgroundContainer.removeAll(true);
     }
 
-    // 建立全螢幕背景
     drawBackground() {
 
         this.clearBackground();
@@ -71,18 +55,13 @@ export class LoginScene extends Phaser.Scene {
         const graphics = this.add.graphics();
 
         graphics.fillGradientStyle(
-            0x263b32,
-            0x263b32,
-            0x14241e,
-            0x14241e,
-            1
+            0x263b32, 0x263b32,
+            0x14241e, 0x14241e, 1
         );
 
         graphics.fillRect(0, 0, width, height);
 
-        // 中央暖色光暈
         graphics.fillStyle(0xe6c58b, 0.12);
-
         graphics.fillCircle(
             width * 0.5,
             height * 0.37,
@@ -90,16 +69,13 @@ export class LoginScene extends Phaser.Scene {
         );
 
         graphics.fillStyle(0xd8b878, 0.08);
-
         graphics.fillCircle(
             width * 0.5,
             height * 0.37,
             Math.min(width, height) * 0.25
         );
 
-        // 底部地面
         graphics.fillStyle(0x17251d, 1);
-
         graphics.fillEllipse(
             width * 0.5,
             height * 1.01,
@@ -107,9 +83,7 @@ export class LoginScene extends Phaser.Scene {
             height * 0.30
         );
 
-        // 左側岩石
         graphics.fillStyle(0x526354, 0.9);
-
         graphics.fillEllipse(
             width * 0.04,
             height * 0.87,
@@ -117,9 +91,7 @@ export class LoginScene extends Phaser.Scene {
             height * 0.24
         );
 
-        // 右側岩石
         graphics.fillStyle(0x394b3d, 1);
-
         graphics.fillEllipse(
             width * 0.96,
             height * 0.88,
@@ -129,32 +101,11 @@ export class LoginScene extends Phaser.Scene {
 
         this.backgroundContainer.add(graphics);
 
-        // 植物
-        this.drawPlant(
-            width * 0.11,
-            height * 0.86,
-            0x8fc99b
-        );
+        this.drawPlant(width * 0.11, height * 0.86, 0x8fc99b);
+        this.drawPlant(width * 0.89, height * 0.87, 0x9bcf9a);
+        this.drawPlant(width * 0.19, height * 0.96, 0xb5d8a2);
+        this.drawPlant(width * 0.81, height * 0.96, 0xb5d8a2);
 
-        this.drawPlant(
-            width * 0.89,
-            height * 0.87,
-            0x9bcf9a
-        );
-
-        this.drawPlant(
-            width * 0.19,
-            height * 0.96,
-            0xb5d8a2
-        );
-
-        this.drawPlant(
-            width * 0.81,
-            height * 0.96,
-            0xb5d8a2
-        );
-
-        // 動態粒子
         const particleCount = Math.min(
             55,
             Math.max(20, Math.floor(width * height / 18000))
@@ -162,21 +113,17 @@ export class LoginScene extends Phaser.Scene {
 
         for (let i = 0; i < particleCount; i++) {
 
-            const x = Phaser.Math.Between(10, width - 10);
-            const y = Phaser.Math.Between(20, height - 20);
-
-            const radius = Phaser.Math.FloatBetween(1, 3);
+            const x = Phaser.Math.Between(10, Math.max(11, width - 10));
+            const y = Phaser.Math.Between(20, Math.max(21, height - 20));
 
             const particle = this.add.circle(
-                x,
-                y,
-                radius,
+                x, y,
+                Phaser.Math.FloatBetween(1, 3),
                 0xe8d9a5,
                 0.55
             );
 
             this.backgroundContainer.add(particle);
-
             this.particles.push(particle);
 
             this.tweens.add({
@@ -190,7 +137,6 @@ export class LoginScene extends Phaser.Scene {
         }
     }
 
-    // 植物
     drawPlant(x, y, color) {
 
         const graphics = this.add.graphics();
@@ -203,7 +149,6 @@ export class LoginScene extends Phaser.Scene {
         const size = Math.max(0.65, plantScale);
 
         graphics.lineStyle(4 * size, 0x789b72, 1);
-
         graphics.beginPath();
         graphics.moveTo(x, y);
         graphics.lineTo(x, y - 55 * size);
@@ -212,31 +157,21 @@ export class LoginScene extends Phaser.Scene {
         graphics.fillStyle(color, 0.9);
 
         graphics.fillEllipse(
-            x - 13 * size,
-            y - 35 * size,
-            25 * size,
-            12 * size
+            x - 13 * size, y - 35 * size,
+            25 * size, 12 * size
         );
 
         graphics.fillEllipse(
-            x + 13 * size,
-            y - 48 * size,
-            25 * size,
-            12 * size
+            x + 13 * size, y - 48 * size,
+            25 * size, 12 * size
         );
 
         graphics.fillStyle(color, 0.15);
-
-        graphics.fillCircle(
-            x,
-            y - 45 * size,
-            30 * size
-        );
+        graphics.fillCircle(x, y - 45 * size, 30 * size);
 
         this.backgroundContainer.add(graphics);
     }
 
-    // 螢幕尺寸變化
     handleResize() {
 
         if (!this.scene.isActive()) return;
@@ -245,52 +180,33 @@ export class LoginScene extends Phaser.Scene {
         this.drawLayout();
     }
 
-    // 清除介面
     clearLayout() {
-
-        if (this.layoutContainer) {
-            this.layoutContainer.removeAll(true);
-        }
+        this.layoutContainer.removeAll(true);
     }
 
-    // 建立介面
     drawLayout() {
 
         this.clearLayout();
 
         const width = this.scale.width;
         const height = this.scale.height;
-
         const centerX = width / 2;
 
         if (this.isPortrait()) {
-
-            this.drawPortraitLayout(
-                centerX,
-                width,
-                height
-            );
-
+            this.drawPortraitLayout(centerX, width, height);
         } else {
-
-            this.drawLandscapeLayout(
-                centerX,
-                width,
-                height
-            );
+            this.drawLandscapeLayout(centerX, width, height);
         }
     }
 
-    // 直向
+    // 直向版面：保留原本配置
     drawPortraitLayout(centerX, width, height) {
 
         const shortScreen = height < 650;
 
-        const titleY = height * 0.12;
-
         this.addLayoutText(
             centerX,
-            titleY,
+            height * 0.12,
             LanguageSystem.t('game.title'),
             {
                 fontFamily: 'Georgia, serif',
@@ -344,36 +260,27 @@ export class LoginScene extends Phaser.Scene {
         );
 
         const buttonWidth = Math.min(width - 48, 330);
-
         const buttonHeight = shortScreen ? 46 : 52;
-
         const buttonGap = shortScreen ? 58 : 66;
-
         const buttonStartY = height * 0.48;
 
         this.createResponsiveButton(
-            centerX,
-            buttonStartY,
-            buttonWidth,
-            buttonHeight,
+            centerX, buttonStartY,
+            buttonWidth, buttonHeight,
             LanguageSystem.t('login.start_exploring'),
             'guestSelected'
         );
 
         this.createResponsiveButton(
-            centerX,
-            buttonStartY + buttonGap,
-            buttonWidth,
-            buttonHeight,
+            centerX, buttonStartY + buttonGap,
+            buttonWidth, buttonHeight,
             LanguageSystem.t('login.login'),
             'loginSelected'
         );
 
         this.createResponsiveButton(
-            centerX,
-            buttonStartY + buttonGap * 2,
-            buttonWidth,
-            buttonHeight,
+            centerX, buttonStartY + buttonGap * 2,
+            buttonWidth, buttonHeight,
             LanguageSystem.t('login.create_account'),
             'registerSelected'
         );
@@ -384,195 +291,176 @@ export class LoginScene extends Phaser.Scene {
         );
 
         this.drawResponsiveLanguages(
-            centerX,
-            languageY,
-            width,
-            true
+            centerX, languageY, width, true
         );
     }
 
-    // 橫向
+    // 橫向版面：專門針對 iPhone 橫向小螢幕
     drawLandscapeLayout(centerX, width, height) {
 
-        const ratio = Math.min(
-            width / 1024,
-            height / 768
+        const margin = Math.max(18, width * 0.04);
+        const contentWidth = Math.min(width - margin * 2, 650);
+
+        // 依照高度縮放，避免文字過大
+        const scale = Math.min(
+            1,
+            height / 390,
+            width / 650
         );
+
+        const titleSize = Math.max(18, 30 * scale);
+        const subtitleSize = Math.max(11, 13 * scale);
+        const welcomeSize = Math.max(13, 17 * scale);
+        const messageSize = Math.max(10, 11 * scale);
+
+        const top = Math.max(22, height * 0.09);
 
         this.addLayoutText(
             centerX,
-            height * 0.15,
+            top,
             LanguageSystem.t('game.title'),
             {
                 fontFamily: 'Georgia, serif',
-                fontSize: `${Math.max(25, 48 * ratio)}px`,
+                fontSize: `${titleSize}px`,
                 color: '#f3e8cb',
                 fontStyle: 'bold',
                 stroke: '#243b2e',
-                strokeThickness: 5,
+                strokeThickness: 3,
                 align: 'center',
-                wordWrap: { width: width - 40 }
+                wordWrap: { width: contentWidth }
             }
         );
 
         this.addLayoutText(
             centerX,
-            height * 0.23,
+            top + height * 0.105,
             LanguageSystem.t('game.subtitle'),
             {
                 fontFamily: 'Georgia, serif',
-                fontSize: '19px',
+                fontSize: `${subtitleSize}px`,
                 color: '#d5c9a5',
-                align: 'center'
+                align: 'center',
+                wordWrap: { width: contentWidth }
             }
         );
 
         this.addLayoutText(
             centerX,
-            height * 0.34,
+            top + height * 0.22,
             LanguageSystem.t('login.welcome'),
             {
                 fontFamily: 'Georgia, serif',
-                fontSize: '21px',
+                fontSize: `${welcomeSize}px`,
                 color: '#f0e6ce',
-                align: 'center'
+                align: 'center',
+                wordWrap: { width: contentWidth }
             }
         );
 
         this.addLayoutText(
             centerX,
-            height * 0.42,
+            top + height * 0.30,
             LanguageSystem.t('login.welcome_message'),
             {
                 fontFamily: 'Arial, sans-serif',
-                fontSize: '14px',
+                fontSize: `${messageSize}px`,
                 color: '#d2d8c1',
                 align: 'center',
-                wordWrap: { width: width - 80 }
+                wordWrap: { width: contentWidth }
             }
         );
 
-        const buttonWidth = Math.min(330, width * 0.34);
+        // 三個按鈕垂直置中
+        const buttonWidth = Math.min(260, width * 0.42);
+        const buttonHeight = Math.max(34, Math.min(42, height * 0.12));
+        const buttonGap = buttonHeight + Math.max(8, height * 0.025);
 
-        const buttonHeight = 52;
-
-        const buttonGap = Math.min(
-            70,
-            height * 0.10
-        );
-
-        const buttonStartY = height * 0.56;
+        const buttonStartY = height * 0.53;
 
         this.createResponsiveButton(
-            centerX,
-            buttonStartY,
-            buttonWidth,
-            buttonHeight,
+            centerX, buttonStartY,
+            buttonWidth, buttonHeight,
             LanguageSystem.t('login.start_exploring'),
-            'guestSelected'
+            'guestSelected',
+            Math.max(12, 15 * scale)
         );
 
         this.createResponsiveButton(
-            centerX,
-            buttonStartY + buttonGap,
-            buttonWidth,
-            buttonHeight,
+            centerX, buttonStartY + buttonGap,
+            buttonWidth, buttonHeight,
             LanguageSystem.t('login.login'),
-            'loginSelected'
+            'loginSelected',
+            Math.max(12, 15 * scale)
         );
 
         this.createResponsiveButton(
-            centerX,
-            buttonStartY + buttonGap * 2,
-            buttonWidth,
-            buttonHeight,
+            centerX, buttonStartY + buttonGap * 2,
+            buttonWidth, buttonHeight,
             LanguageSystem.t('login.create_account'),
-            'registerSelected'
+            'registerSelected',
+            Math.max(12, 15 * scale)
         );
 
         this.drawResponsiveLanguages(
             centerX,
-            height * 0.91,
+            height - 43,
             width,
             false
         );
     }
 
-    // 文字
     addLayoutText(x, y, content, style) {
 
-        const text = this.add.text(
-            x,
-            y,
-            content,
-            style
-        ).setOrigin(0.5);
+        const text = this.add.text(x, y, content, style).setOrigin(0.5);
 
         this.layoutContainer.add(text);
 
         return text;
     }
 
-    // 按鈕
     createResponsiveButton(
-        x,
-        y,
-        width,
-        height,
-        label,
-        eventName
+        x, y, width, height, label, eventName, fontSize = 18
     ) {
 
         const container = this.add.container(x, y);
 
         const background = this.add.rectangle(
-            0,
-            0,
-            width,
-            height,
+            0, 0,
+            width, height,
             0x344e3d,
             0.96
         );
 
-        background.setStrokeStyle(
-            2,
-            0xc5b78e,
-            0.9
-        );
+        background.setStrokeStyle(2, 0xc5b78e, 0.9);
 
         const text = this.add.text(
-            0,
-            0,
+            0, 0,
             label,
             {
                 fontFamily: 'Arial, sans-serif',
-                fontSize: '18px',
+                fontSize: `${fontSize}px`,
                 color: '#f5ecd9',
                 fontStyle: 'bold',
                 align: 'center',
-                wordWrap: { width: width - 24 }
+                wordWrap: { width: width - 20 }
             }
         ).setOrigin(0.5);
 
         container.add([background, text]);
 
-        background.setInteractive({
-            useHandCursor: true
-        });
+        background.setInteractive({ useHandCursor: true });
 
         background.on('pointerover', () => {
-
             background.setFillStyle(0x58745a);
 
             this.tweens.add({
                 targets: container,
-                scale: 1.03,
+                scale: 1.02,
                 duration: 150
             });
         });
 
         background.on('pointerout', () => {
-
             background.setFillStyle(0x344e3d);
 
             this.tweens.add({
@@ -591,38 +479,30 @@ export class LoginScene extends Phaser.Scene {
         return container;
     }
 
-    // 語言選單
-    drawResponsiveLanguages(
-        centerX,
-        titleY,
-        width,
-        portrait
-    ) {
+    drawResponsiveLanguages(centerX, titleY, width, portrait) {
 
         this.addLayoutText(
             centerX,
             titleY,
             LanguageSystem.t('ui.language'),
             {
-                fontSize: '14px',
+                fontSize: portrait ? '14px' : '11px',
                 color: '#e5dcc5',
                 align: 'center'
             }
         );
 
         const languages = LanguageSystem.getAvailableLanguages();
-
         const currentLanguage = LanguageSystem.getLanguage();
 
         const columns = portrait ? 5 : 10;
 
         const gapX = portrait
             ? Math.min(65, (width - 32) / columns)
-            : Math.min(82, (width - 40) / columns);
+            : Math.min(55, (width - 40) / columns);
 
-        const gapY = 24;
-
-        const startY = titleY + 25;
+        const gapY = portrait ? 24 : 17;
+        const startY = titleY + (portrait ? 25 : 17);
 
         languages.forEach((language, index) => {
 
@@ -635,7 +515,6 @@ export class LoginScene extends Phaser.Scene {
             );
 
             const rowWidth = (rowCount - 1) * gapX;
-
             const startX = centerX - rowWidth / 2;
 
             const label = this.addLayoutText(
@@ -643,7 +522,7 @@ export class LoginScene extends Phaser.Scene {
                 startY + row * gapY,
                 language.code,
                 {
-                    fontSize: portrait ? '12px' : '14px',
+                    fontSize: portrait ? '12px' : '10px',
                     color: currentLanguage === language.code
                         ? '#f5d68d'
                         : '#c5c5b5',
@@ -653,9 +532,7 @@ export class LoginScene extends Phaser.Scene {
                 }
             );
 
-            label.setInteractive({
-                useHandCursor: true
-            });
+            label.setInteractive({ useHandCursor: true });
 
             label.on('pointerdown', () => {
                 LanguageSystem.setLanguage(language.code);
