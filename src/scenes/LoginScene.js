@@ -39,12 +39,18 @@ export class LoginScene extends Phaser.Scene {
         this.drawBackground();
         this.drawLayout();
 
+        // 語言切換監聽
         this.languageListener = () => {
-            this.drawLayout();
 
+            // 設定面板開啟時，只更新設定內容
+            // 不重新繪製登入主畫面
             if (this.settingsExpanded) {
                 this.refreshSettings();
+                return;
             }
+
+            // 設定面板關閉時，更新登入畫面文字
+            this.drawLayout();
         };
 
         window.addEventListener(
@@ -799,8 +805,8 @@ export class LoginScene extends Phaser.Scene {
         const heights = {
             language: 205,
             screen: 245,
-            sound: 300,
-            operation: 275,
+            sound: 345,
+            operation: 325,
             system: 235
         };
 
@@ -874,7 +880,7 @@ export class LoginScene extends Phaser.Scene {
 
         this.settingsPageContainer.add(glow);
 
-        // 深翡翠玻璃底
+        // 深翡翠不透明底板
         const panel = this.add.graphics();
 
         panel.fillStyle(0x061d18, 1);
@@ -946,7 +952,6 @@ export class LoginScene extends Phaser.Scene {
 
         this.settingsPageContainer.add(title);
 
-        // 分類內容
         const contentStartY = centerY - size.height / 2 + 64;
 
         switch (this.settingsCategory) {
@@ -1003,7 +1008,10 @@ export class LoginScene extends Phaser.Scene {
             strokeThickness: 3,
             align: 'center',
             wordWrap: {
-                width: Math.max(160, this.getPanelSize(this.settingsCategory).width - 30)
+                width: Math.max(
+                    160,
+                    this.getPanelSize(this.settingsCategory).width - 30
+                )
             }
         }).setOrigin(0.5);
 
@@ -1152,12 +1160,12 @@ export class LoginScene extends Phaser.Scene {
 
             const item = this.add.container(x, y);
 
-            // 選取語言的翡翠光圈
+            // 選取圈：上移並縮小，只包住旗幟
             if (selected) {
                 const selectedGlow = this.add.circle(
                     0,
-                    3,
-                    24,
+                    -8,
+                    18,
                     0x24d99b,
                     0.17
                 );
@@ -1227,11 +1235,14 @@ export class LoginScene extends Phaser.Scene {
             });
 
             hitArea.on('pointerdown', () => {
-                this.settingsCategory = null;
-                this.clearSettingsPage();
-                this.refreshSettingsRail();
+                // 保留語言分類與設定面板
+                this.settingsCategory = 'language';
 
+                // 執行語言切換
                 LanguageSystem.setLanguage(language.code);
+
+                // languageChanged 事件會呼叫 refreshSettings()
+                // 重新顯示目前語言的選取狀態
             });
 
             this.settingsPageContainer.add(item);
