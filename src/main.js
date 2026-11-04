@@ -1,6 +1,6 @@
 
 // 鱗片與種子：地下生態物語
-// Main Entry Point - Responsive Portrait & Landscape
+// Main Entry Point - Fullscreen Responsive Layout
 
 import { LanguageSystem } from './systems/language-system.js';
 
@@ -15,7 +15,6 @@ window.addEventListener('DOMContentLoaded', async () => {
 
         console.log('【系統】正在啟動地下生態研究站...');
 
-        // 初始化語言系統
         await LanguageSystem.initialize();
 
         console.log(
@@ -23,31 +22,28 @@ window.addEventListener('DOMContentLoaded', async () => {
             LanguageSystem.getLanguage()
         );
 
-        // 建立 Phaser 遊戲設定
         const config = {
 
             type: Phaser.AUTO,
 
-            width: 1024,
-            height: 768,
+            // 初始尺寸，啟動後會依照容器調整
+            width: window.innerWidth,
+            height: window.innerHeight,
 
             parent: 'game-container',
 
-            backgroundColor: '#1a1a1a',
+            backgroundColor: '#1a110b',
 
             scale: {
 
-                // 保持原始遊戲比例，自動適應螢幕
-                mode: Phaser.Scale.FIT,
+                // 真正依照容器尺寸調整遊戲世界
+                mode: Phaser.Scale.RESIZE,
 
-                // 自動置中
                 autoCenter: Phaser.Scale.CENTER_BOTH,
 
-                // 允許遊戲畫布隨螢幕尺寸調整
                 expandParent: false
             },
 
-            // 遊戲場景
             scene: [
                 LoginScene,
                 TerrariumSelectScene,
@@ -56,31 +52,43 @@ window.addEventListener('DOMContentLoaded', async () => {
             ]
         };
 
-        // 建立遊戲
         window.game = new Phaser.Game(config);
 
-        // 監聽螢幕方向與尺寸變化
+        // 監聽螢幕尺寸變化
+        let resizeTimer = null;
+
         const resizeGame = () => {
 
             if (!window.game) return;
 
-            const width = window.innerWidth;
-            const height = window.innerHeight;
+            clearTimeout(resizeTimer);
 
-            console.log(
-                '【畫面調整】',
-                width >= height ? '橫向模式' : '直向模式',
-                width + ' × ' + height
-            );
+            resizeTimer = setTimeout(() => {
 
-            window.game.scale.refresh();
+                const container = document.getElementById('game-container');
+
+                if (!container) return;
+
+                const width = container.clientWidth;
+                const height = container.clientHeight;
+
+                if (width <= 0 || height <= 0) return;
+
+                window.game.scale.resize(width, height);
+
+                console.log(
+                    '【畫面調整】',
+                    width >= height ? '橫向模式' : '直向模式',
+                    width + ' × ' + height
+                );
+
+            }, 100);
         };
 
-        // 監聽手機旋轉
         window.addEventListener('resize', resizeGame);
 
         window.addEventListener('orientationchange', () => {
-            setTimeout(resizeGame, 200);
+            setTimeout(resizeGame, 300);
         });
 
         console.log('【系統】入口畫面初始化完成。');
