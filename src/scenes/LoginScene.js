@@ -1,6 +1,6 @@
 
-// 鱗片與種子：地下生態物語
-// Login Scene - Responsive Portrait & Landscape Layout
+ // 鱗片與種子：地下生態物語
+// Login Scene - Responsive Layout & Settings Center
 
 import { LanguageSystem } from '../systems/language-system.js';
 
@@ -8,6 +8,7 @@ export class LoginScene extends Phaser.Scene {
 
     constructor() {
         super({ key: 'LoginScene' });
+        this.settingsContainer = null;
     }
 
     create() {
@@ -23,10 +24,17 @@ export class LoginScene extends Phaser.Scene {
             this.scene.restart();
         };
 
-        window.addEventListener('languageChanged', this.languageListener);
+        window.addEventListener(
+            'languageChanged',
+            this.languageListener
+        );
 
         this.events.once('shutdown', () => {
-            window.removeEventListener('languageChanged', this.languageListener);
+            window.removeEventListener(
+                'languageChanged',
+                this.languageListener
+            );
+
             this.scale.off('resize', this.handleResize, this);
         });
 
@@ -117,7 +125,8 @@ export class LoginScene extends Phaser.Scene {
             const y = Phaser.Math.Between(20, Math.max(21, height - 20));
 
             const particle = this.add.circle(
-                x, y,
+                x,
+                y,
                 Phaser.Math.FloatBetween(1, 3),
                 0xe8d9a5,
                 0.55
@@ -157,17 +166,25 @@ export class LoginScene extends Phaser.Scene {
         graphics.fillStyle(color, 0.9);
 
         graphics.fillEllipse(
-            x - 13 * size, y - 35 * size,
-            25 * size, 12 * size
+            x - 13 * size,
+            y - 35 * size,
+            25 * size,
+            12 * size
         );
 
         graphics.fillEllipse(
-            x + 13 * size, y - 48 * size,
-            25 * size, 12 * size
+            x + 13 * size,
+            y - 48 * size,
+            25 * size,
+            12 * size
         );
 
         graphics.fillStyle(color, 0.15);
-        graphics.fillCircle(x, y - 45 * size, 30 * size);
+        graphics.fillCircle(
+            x,
+            y - 45 * size,
+            30 * size
+        );
 
         this.backgroundContainer.add(graphics);
     }
@@ -175,6 +192,11 @@ export class LoginScene extends Phaser.Scene {
     handleResize() {
 
         if (!this.scene.isActive()) return;
+
+        if (this.settingsContainer) {
+            this.settingsContainer.destroy();
+            this.settingsContainer = null;
+        }
 
         this.drawBackground();
         this.drawLayout();
@@ -197,9 +219,11 @@ export class LoginScene extends Phaser.Scene {
         } else {
             this.drawLandscapeLayout(centerX, width, height);
         }
+
+        this.drawSettingsButton(width, height);
     }
 
-    // 直向版面：保留原本配置
+    // 直向版面
     drawPortraitLayout(centerX, width, height) {
 
         const shortScreen = height < 650;
@@ -265,43 +289,39 @@ export class LoginScene extends Phaser.Scene {
         const buttonStartY = height * 0.48;
 
         this.createResponsiveButton(
-            centerX, buttonStartY,
-            buttonWidth, buttonHeight,
+            centerX,
+            buttonStartY,
+            buttonWidth,
+            buttonHeight,
             LanguageSystem.t('login.start_exploring'),
             'guestSelected'
         );
 
         this.createResponsiveButton(
-            centerX, buttonStartY + buttonGap,
-            buttonWidth, buttonHeight,
+            centerX,
+            buttonStartY + buttonGap,
+            buttonWidth,
+            buttonHeight,
             LanguageSystem.t('login.login'),
             'loginSelected'
         );
 
         this.createResponsiveButton(
-            centerX, buttonStartY + buttonGap * 2,
-            buttonWidth, buttonHeight,
+            centerX,
+            buttonStartY + buttonGap * 2,
+            buttonWidth,
+            buttonHeight,
             LanguageSystem.t('login.create_account'),
             'registerSelected'
         );
-
-        const languageY = Math.min(
-            height - 90,
-            buttonStartY + buttonGap * 3 + 5
-        );
-
-        this.drawResponsiveLanguages(
-            centerX, languageY, width, true
-        );
     }
 
-    // 橫向版面：專門針對 iPhone 橫向小螢幕
+    // 橫向版面
     drawLandscapeLayout(centerX, width, height) {
 
         const margin = Math.max(18, width * 0.04);
         const contentWidth = Math.min(width - margin * 2, 650);
 
-        // 依照高度縮放，避免文字過大
         const scale = Math.min(
             1,
             height / 390,
@@ -370,71 +390,91 @@ export class LoginScene extends Phaser.Scene {
             }
         );
 
-        // 三個按鈕垂直置中
         const buttonWidth = Math.min(260, width * 0.42);
-        const buttonHeight = Math.max(34, Math.min(42, height * 0.12));
-        const buttonGap = buttonHeight + Math.max(8, height * 0.025);
+        const buttonHeight = Math.max(
+            34,
+            Math.min(42, height * 0.12)
+        );
 
+        const buttonGap = buttonHeight + Math.max(8, height * 0.025);
         const buttonStartY = height * 0.53;
 
         this.createResponsiveButton(
-            centerX, buttonStartY,
-            buttonWidth, buttonHeight,
+            centerX,
+            buttonStartY,
+            buttonWidth,
+            buttonHeight,
             LanguageSystem.t('login.start_exploring'),
             'guestSelected',
             Math.max(12, 15 * scale)
         );
 
         this.createResponsiveButton(
-            centerX, buttonStartY + buttonGap,
-            buttonWidth, buttonHeight,
+            centerX,
+            buttonStartY + buttonGap,
+            buttonWidth,
+            buttonHeight,
             LanguageSystem.t('login.login'),
             'loginSelected',
             Math.max(12, 15 * scale)
         );
 
         this.createResponsiveButton(
-            centerX, buttonStartY + buttonGap * 2,
-            buttonWidth, buttonHeight,
+            centerX,
+            buttonStartY + buttonGap * 2,
+            buttonWidth,
+            buttonHeight,
             LanguageSystem.t('login.create_account'),
             'registerSelected',
             Math.max(12, 15 * scale)
-        );
-
-        this.drawResponsiveLanguages(
-            centerX,
-            height - 43,
-            width,
-            false
         );
     }
 
     addLayoutText(x, y, content, style) {
 
-        const text = this.add.text(x, y, content, style).setOrigin(0.5);
+        const text = this.add.text(
+            x,
+            y,
+            content,
+            style
+        ).setOrigin(0.5);
 
         this.layoutContainer.add(text);
 
         return text;
     }
 
+    // 建立一般按鈕
     createResponsiveButton(
-        x, y, width, height, label, eventName, fontSize = 18
+        x,
+        y,
+        width,
+        height,
+        label,
+        eventName,
+        fontSize = 18
     ) {
 
         const container = this.add.container(x, y);
 
         const background = this.add.rectangle(
-            0, 0,
-            width, height,
+            0,
+            0,
+            width,
+            height,
             0x344e3d,
             0.96
         );
 
-        background.setStrokeStyle(2, 0xc5b78e, 0.9);
+        background.setStrokeStyle(
+            2,
+            0xc5b78e,
+            0.9
+        );
 
         const text = this.add.text(
-            0, 0,
+            0,
+            0,
             label,
             {
                 fontFamily: 'Arial, sans-serif',
@@ -448,9 +488,12 @@ export class LoginScene extends Phaser.Scene {
 
         container.add([background, text]);
 
-        background.setInteractive({ useHandCursor: true });
+        background.setInteractive({
+            useHandCursor: true
+        });
 
         background.on('pointerover', () => {
+
             background.setFillStyle(0x58745a);
 
             this.tweens.add({
@@ -461,6 +504,7 @@ export class LoginScene extends Phaser.Scene {
         });
 
         background.on('pointerout', () => {
+
             background.setFillStyle(0x344e3d);
 
             this.tweens.add({
@@ -479,64 +523,226 @@ export class LoginScene extends Phaser.Scene {
         return container;
     }
 
-    drawResponsiveLanguages(centerX, titleY, width, portrait) {
+    // 設定按鈕
+    drawSettingsButton(width, height) {
 
-        this.addLayoutText(
-            centerX,
-            titleY,
-            LanguageSystem.t('ui.language'),
+        const button = this.add.text(
+            width - 18,
+            18,
+            '⚙️',
             {
-                fontSize: portrait ? '14px' : '11px',
-                color: '#e5dcc5',
-                align: 'center'
+                fontSize: '27px',
+                backgroundColor: '#344e3d',
+                padding: {
+                    x: 9,
+                    y: 7
+                }
             }
+        ).setOrigin(1, 0);
+
+        button.setInteractive({
+            useHandCursor: true
+        });
+
+        button.on('pointerdown', () => {
+            this.openSettings();
+        });
+
+        this.layoutContainer.add(button);
+    }
+
+    // 開啟設定視窗
+    openSettings() {
+
+        if (this.settingsContainer) return;
+
+        const width = this.scale.width;
+        const height = this.scale.height;
+        const centerX = width / 2;
+        const centerY = height / 2;
+
+        this.settingsContainer = this.add.container(0, 0);
+        this.settingsContainer.setDepth(1000);
+
+        const panelWidth = Math.min(width - 28, 460);
+        const panelHeight = Math.min(height - 28, 500);
+
+        const overlay = this.add.rectangle(
+            centerX,
+            centerY,
+            width,
+            height,
+            0x000000,
+            0.78
         );
 
-        const languages = LanguageSystem.getAvailableLanguages();
+        const panel = this.add.rectangle(
+            centerX,
+            centerY,
+            panelWidth,
+            panelHeight,
+            0x263b32,
+            1
+        );
+
+        panel.setStrokeStyle(
+            3,
+            0xc5b78e,
+            1
+        );
+
+        this.settingsContainer.add([
+            overlay,
+            panel
+        ]);
+
+        const title = this.add.text(
+            centerX,
+            centerY - panelHeight / 2 + 35,
+            '⚙️ 設定 / Settings',
+            {
+                fontSize: '23px',
+                color: '#f3e8cb',
+                fontStyle: 'bold'
+            }
+        ).setOrigin(0.5);
+
+        const subtitle = this.add.text(
+            centerX,
+            centerY - panelHeight / 2 + 72,
+            '選擇遊戲語言 / Select Language',
+            {
+                fontSize: '14px',
+                color: '#d5c9a5'
+            }
+        ).setOrigin(0.5);
+
+        this.settingsContainer.add([
+            title,
+            subtitle
+        ]);
+
+        this.createSettingsLanguages(
+            centerX,
+            centerY,
+            panelWidth,
+            panelHeight
+        );
+
+        const closeButton = this.add.text(
+            centerX,
+            centerY + panelHeight / 2 - 32,
+            '關閉 / Close',
+            {
+                fontSize: '16px',
+                color: '#ffffff',
+                backgroundColor: '#72513b',
+                padding: {
+                    x: 22,
+                    y: 9
+                }
+            }
+        ).setOrigin(0.5);
+
+        closeButton.setInteractive({
+            useHandCursor: true
+        });
+
+        closeButton.on('pointerdown', () => {
+            this.closeSettings();
+        });
+
+        this.settingsContainer.add(closeButton);
+    }
+
+    // 十種語言選單
+    createSettingsLanguages(
+        centerX,
+        centerY,
+        panelWidth,
+        panelHeight
+    ) {
+
+        const languages = [
+            { code: 'zh-TW', name: '繁體中文' },
+            { code: 'zh-CN', name: '简体中文' },
+            { code: 'en', name: 'English' },
+            { code: 'ja', name: '日本語' },
+            { code: 'ko', name: '한국어' },
+            { code: 'th', name: 'ไทย' },
+            { code: 'fr', name: 'Français' },
+            { code: 'de', name: 'Deutsch' },
+            { code: 'es', name: 'Español' },
+            { code: 'pt-BR', name: 'Português' }
+        ];
+
         const currentLanguage = LanguageSystem.getLanguage();
 
-        const columns = portrait ? 5 : 10;
+        const columns = 2;
+        const gapX = Math.min(170, panelWidth * 0.39);
+        const rowGap = Math.min(42, panelHeight * 0.105);
 
-        const gapX = portrait
-            ? Math.min(65, (width - 32) / columns)
-            : Math.min(55, (width - 40) / columns);
-
-        const gapY = portrait ? 24 : 17;
-        const startY = titleY + (portrait ? 25 : 17);
+        const startY = centerY - rowGap * 2;
 
         languages.forEach((language, index) => {
 
             const column = index % columns;
             const row = Math.floor(index / columns);
 
-            const rowCount = Math.min(
-                columns,
-                languages.length - row * columns
-            );
+            const x = centerX +
+                (column === 0 ? -gapX / 2 : gapX / 2);
 
-            const rowWidth = (rowCount - 1) * gapX;
-            const startX = centerX - rowWidth / 2;
+            const y = startY + row * rowGap;
 
-            const label = this.addLayoutText(
-                startX + column * gapX,
-                startY + row * gapY,
-                language.code,
+            const selected =
+                currentLanguage === language.code;
+
+            const button = this.add.text(
+                x,
+                y,
+                (selected ? '✓ ' : '') + language.name,
                 {
-                    fontSize: portrait ? '12px' : '10px',
-                    color: currentLanguage === language.code
-                        ? '#f5d68d'
-                        : '#c5c5b5',
-                    fontStyle: currentLanguage === language.code
-                        ? 'bold'
-                        : 'normal'
+                    fontSize: '15px',
+                    color: selected ? '#f5d68d' : '#ffffff',
+                    backgroundColor: selected
+                        ? '#526b4e'
+                        : '#344e3d',
+                    padding: {
+                        x: 8,
+                        y: 8
+                    },
+                    fixedWidth: Math.min(150, panelWidth * 0.42),
+                    align: 'center'
                 }
-            );
+            ).setOrigin(0.5);
 
-            label.setInteractive({ useHandCursor: true });
-
-            label.on('pointerdown', () => {
-                LanguageSystem.setLanguage(language.code);
+            button.setInteractive({
+                useHandCursor: true
             });
+
+            button.on('pointerdown', () => {
+
+                if (
+                    LanguageSystem.getLanguage() === language.code
+                ) {
+                    return;
+                }
+
+                LanguageSystem.setLanguage(language.code);
+
+                // 語言系統會通知場景更新
+            });
+
+            this.settingsContainer.add(button);
         });
+    }
+
+    // 關閉設定
+    closeSettings() {
+
+        if (this.settingsContainer) {
+            this.settingsContainer.destroy();
+            this.settingsContainer = null;
+        }
     }
 }
