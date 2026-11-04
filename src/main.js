@@ -79,6 +79,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         };
 
         window.game = new Phaser.Game(config);
+        AudioSystem.initialize(window.game);
 
         let resizeTimer = null;
 
