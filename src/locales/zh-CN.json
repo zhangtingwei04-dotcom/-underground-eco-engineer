@@ -1,0 +1,128 @@
+{
+  "game": {
+    "title": "鳞片与种子",
+    "subtitle": "地下生态物语",
+    "version": "Alpha 2.0",
+    "role": "地下生态学家",
+    "motto": "每一片鳞片，都有自己的故事。每一颗种子，都孕育着新的生命。"
+  },
+  "login": {
+    "welcome": "欢迎来到你的地下生态世界",
+    "welcome_message": "每一片鳞片都有自己的故事，每一颗种子都蕴藏着生命。",
+    "start_exploring": "开始探索",
+    "login": "登录账号",
+    "create_account": "创建新账号"
+  },
+  "ui": {
+    "day": "第 {day} 天",
+    "time": "时间",
+    "action_points": "行动点数",
+    "creature_energy": "生物体力",
+    "temperature": "温度",
+    "humidity": "湿度",
+    "journal": "生态日志",
+    "terrarium": "生态缸",
+    "shop": "商店",
+    "vet": "兽医诊所",
+    "inventory": "背包",
+    "encyclopedia": "生态百科",
+    "confirm": "确认",
+    "cancel": "取消",
+    "close": "关闭",
+    "save": "保存",
+    "settings": "设置",
+    "language": "语言",
+    "time_phase": {
+      "morning": "早晨",
+      "day": "白天",
+      "dusk": "黄昏",
+      "night": "夜晚"
+    }
+  },
+  "creature": {
+    "species": {
+      "hognose": "猪鼻蛇",
+      "hognose_desc": "一种拥有独特上翘吻部的蛇类，擅长挖掘与探索。"
+    },
+    "stage": {
+      "egg": "蛇蛋",
+      "hatchling": "幼体",
+      "juvenile": "亚成体",
+      "adult": "成体"
+    },
+    "status": {
+      "healthy": "健康",
+      "hungry": "饥饿",
+      "dehydrated": "脱水",
+      "shedding": "蜕皮中",
+      "sick": "生病",
+      "critical": "危急"
+    },
+    "phenotype": {
+      "wild_type": "原色",
+      "patternless": "无纹",
+      "speckled": "斑点",
+      "conda": "康达"
+    }
+  },
+  "journal": {
+    "title": "生态日志",
+    "new_entry": "新增记录",
+    "category": {
+      "arrival": "新成员到来",
+      "ecdysis": "蜕皮记录",
+      "mutation": "基因变化",
+      "pure_color": "颜色变化",
+      "health": "健康记录",
+      "environment": "环境记录"
+    },
+    "default_entries": {
+      "patternless_discovered": "发现无纹个体",
+      "speckled_discovered": "发现斑点个体"
+    }
+  },
+  "npcs": {
+    "old_mac": {
+      "name": "老麦克",
+      "title": "资深生态学家",
+      "dialogue": {
+        "greeting": "欢迎来到研究站，年轻人！",
+        "patternless_comment": "无纹个体非常特别，值得好好观察。",
+        "speckled_comment": "这些斑点真漂亮！"
+      }
+    },
+    "amy": {
+      "name": "艾米",
+      "title": "研究站助手",
+      "dialogue": {
+        "greeting": "你好！今天有什么新发现吗？",
+        "delivery": "你的物资已经送到了。"
+      }
+    },
+    "old_mo": {
+      "name": "老莫",
+      "title": "神秘收藏家",
+      "dialogue": {
+        "greeting": "嘘……我这里有些特别的东西。",
+        "mystery_egg": "这颗蛋似乎隐藏着一个秘密。"
+      }
+    }
+  },
+  "vet": {
+    "title": "兽医诊所",
+    "outpatient": "门诊检查",
+    "outpatient_desc": "为生物进行基本健康检查。",
+    "emergency": "紧急治疗",
+    "emergency_desc": "处理紧急健康问题。",
+    "hospitalization": "住院观察",
+    "hospitalization_desc": "让生物在专业环境中恢复。",
+    "death_report": "死亡报告",
+    "cause_of_death": "死亡原因"
+  },
+  "ad": {
+    "boost_title": "生态研究支援",
+    "boost_desc": "观看广告以获得额外研究资源。",
+    "boost_button": "观看广告",
+    "notice": "广告奖励仅用于游戏内研究。"
+  }
+}
