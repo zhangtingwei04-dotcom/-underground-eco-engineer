@@ -1,5 +1,5 @@
 
- // 鱗片與種子：地下生態物語
+// 鱗片與種子：地下生態物語
 // Login Scene - Responsive Layout & Settings Center
 
 import { LanguageSystem } from '../systems/language-system.js';
@@ -13,6 +13,8 @@ export class LoginScene extends Phaser.Scene {
 
     create() {
 
+        this.settingsContainer = null;
+
         this.backgroundContainer = this.add.container(0, 0);
         this.layoutContainer = this.add.container(0, 0);
         this.particles = [];
@@ -21,6 +23,14 @@ export class LoginScene extends Phaser.Scene {
         this.drawLayout();
 
         this.languageListener = () => {
+
+            // 先清除舊設定視窗，避免重新啟動後留下舊參照
+            if (this.settingsContainer) {
+                this.settingsContainer.destroy();
+                this.settingsContainer = null;
+            }
+
+            // 重新建立登入畫面
             this.scene.restart();
         };
 
@@ -30,6 +40,7 @@ export class LoginScene extends Phaser.Scene {
         );
 
         this.events.once('shutdown', () => {
+
             window.removeEventListener(
                 'languageChanged',
                 this.languageListener
@@ -576,6 +587,9 @@ export class LoginScene extends Phaser.Scene {
             0.78
         );
 
+        // 阻擋設定視窗後方的點擊
+        overlay.setInteractive();
+
         const panel = this.add.rectangle(
             centerX,
             centerY,
@@ -729,8 +743,6 @@ export class LoginScene extends Phaser.Scene {
                 }
 
                 LanguageSystem.setLanguage(language.code);
-
-                // 語言系統會通知場景更新
             });
 
             this.settingsContainer.add(button);
