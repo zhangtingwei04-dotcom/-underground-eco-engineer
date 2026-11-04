@@ -1,0 +1,128 @@
+{
+  "game": {
+    "title": "비늘과 씨앗",
+    "subtitle": "지하 생태 이야기",
+    "version": "Alpha 2.0",
+    "role": "지하 생태학자",
+    "motto": "비늘 하나하나에는 저마다의 이야기가 있고, 씨앗 하나하나에는 새로운 생명이 자라고 있습니다."
+  },
+  "login": {
+    "welcome": "당신만의 지하 생태 세계에 오신 것을 환영합니다",
+    "welcome_message": "모든 비늘에는 이야기가 있고, 모든 씨앗에는 생명의 가능성이 담겨 있습니다.",
+    "start_exploring": "탐험 시작",
+    "login": "로그인",
+    "create_account": "새 계정 만들기"
+  },
+  "ui": {
+    "day": "{day}일차",
+    "time": "시간",
+    "action_points": "행동 포인트",
+    "creature_energy": "생물 체력",
+    "temperature": "온도",
+    "humidity": "습도",
+    "journal": "생태 일지",
+    "terrarium": "테라리움",
+    "shop": "상점",
+    "vet": "동물 병원",
+    "inventory": "인벤토리",
+    "encyclopedia": "생태 백과사전",
+    "confirm": "확인",
+    "cancel": "취소",
+    "close": "닫기",
+    "save": "저장",
+    "settings": "설정",
+    "language": "언어",
+    "time_phase": {
+      "morning": "아침",
+      "day": "낮",
+      "dusk": "해 질 녘",
+      "night": "밤"
+    }
+  },
+  "creature": {
+    "species": {
+      "hognose": "돼지코뱀",
+      "hognose_desc": "독특하게 위로 솟은 주둥이를 가지고 있으며 땅을 파고 탐험하는 것을 좋아하는 뱀입니다."
+    },
+    "stage": {
+      "egg": "알",
+      "hatchling": "갓 부화한 개체",
+      "juvenile": "아성체",
+      "adult": "성체"
+    },
+    "status": {
+      "healthy": "건강함",
+      "hungry": "배고픔",
+      "dehydrated": "탈수",
+      "shedding": "탈피 중",
+      "sick": "아픔",
+      "critical": "위급"
+    },
+    "phenotype": {
+      "wild_type": "노멀",
+      "patternless": "패턴리스",
+      "speckled": "스페클드",
+      "conda": "콘다"
+    }
+  },
+  "journal": {
+    "title": "생태 일지",
+    "new_entry": "새 기록 추가",
+    "category": {
+      "arrival": "새로운 개체의 도착",
+      "ecdysis": "탈피 기록",
+      "mutation": "유전적 변화",
+      "pure_color": "색상 변화",
+      "health": "건강 기록",
+      "environment": "환경 기록"
+    },
+    "default_entries": {
+      "patternless_discovered": "패턴리스 개체 발견",
+      "speckled_discovered": "스페클드 개체 발견"
+    }
+  },
+  "npcs": {
+    "old_mac": {
+      "name": "맥 아저씨",
+      "title": "베테랑 생태학자",
+      "dialogue": {
+        "greeting": "연구소에 온 것을 환영하네, 젊은이!",
+        "patternless_comment": "패턴리스 개체는 정말 특별하니 잘 관찰해 보게.",
+        "speckled_comment": "이 점무늬는 정말 아름답군!"
+      }
+    },
+    "amy": {
+      "name": "에이미",
+      "title": "연구소 조수",
+      "dialogue": {
+        "greeting": "안녕하세요! 오늘은 새로운 발견이 있었나요?",
+        "delivery": "주문하신 물품이 도착했습니다."
+      }
+    },
+    "old_mo": {
+      "name": "모 아저씨",
+      "title": "수수께끼의 수집가",
+      "dialogue": {
+        "greeting": "쉿…… 여기 특별한 물건이 몇 가지 있지.",
+        "mystery_egg": "이 알에는 뭔가 비밀이 숨겨져 있는 것 같군."
+      }
+    }
+  },
+  "vet": {
+    "title": "동물 병원",
+    "outpatient": "외래 진료",
+    "outpatient_desc": "생물의 기본적인 건강 검진을 진행합니다.",
+    "emergency": "응급 치료",
+    "emergency_desc": "긴급한 건강 문제를 치료합니다.",
+    "hospitalization": "입원 관찰",
+    "hospitalization_desc": "전문적인 환경에서 생물의 회복을 돕습니다.",
+    "death_report": "사망 보고서",
+    "cause_of_death": "사망 원인"
+  },
+  "ad": {
+    "boost_title": "생태 연구 지원",
+    "boost_desc": "광고를 시청하고 추가 연구 자원을 획득하세요.",
+    "boost_button": "광고 보기",
+    "notice": "광고 보상은 게임 내 연구에만 사용할 수 있습니다."
+  }
+}
