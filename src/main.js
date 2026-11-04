@@ -1,22 +1,33 @@
+
 // 鱗片與種子：地下生態物語
-// Main Entry Point - Mobile Responsive Version
+// Main Entry Point - Unified Language Initialization
+
+import { LanguageSystem } from './systems/language-system.js';
 
 import { LoginScene } from './scenes/LoginScene.js';
 import { TerrariumSelectScene } from './scenes/TerrariumSelectScene.js';
 import { UndergroundScene } from './scenes/UndergroundScene.js';
 import { EncyclopediaScene } from './scenes/EncyclopediaScene.js';
 
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', async () => {
 
     try {
 
         console.log('【系統】正在啟動地下生態研究站...');
 
+        // 先初始化語言系統
+        await LanguageSystem.initialize();
+
+        console.log(
+            '【語系系統】目前語言：',
+            LanguageSystem.getLanguage()
+        );
+
+        // 建立 Phaser 遊戲設定
         const config = {
 
             type: Phaser.AUTO,
 
-            // 遊戲原始設計尺寸
             width: 1024,
             height: 768,
 
@@ -24,13 +35,11 @@ window.addEventListener('DOMContentLoaded', () => {
 
             backgroundColor: '#1a1a1a',
 
-            // 手機、平板與電腦自動縮放
             scale: {
                 mode: Phaser.Scale.FIT,
                 autoCenter: Phaser.Scale.CENTER_BOTH
             },
 
-            // 遊戲場景
             scene: [
                 LoginScene,
                 TerrariumSelectScene,
