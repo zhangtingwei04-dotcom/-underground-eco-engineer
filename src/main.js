@@ -1,6 +1,6 @@
 
 // 鱗片與種子：地下生態物語
-// Main Entry Point - Unified Language Initialization
+// Main Entry Point - Responsive Portrait & Landscape
 
 import { LanguageSystem } from './systems/language-system.js';
 
@@ -15,7 +15,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 
         console.log('【系統】正在啟動地下生態研究站...');
 
-        // 先初始化語言系統
+        // 初始化語言系統
         await LanguageSystem.initialize();
 
         console.log(
@@ -36,10 +36,18 @@ window.addEventListener('DOMContentLoaded', async () => {
             backgroundColor: '#1a1a1a',
 
             scale: {
+
+                // 保持原始遊戲比例，自動適應螢幕
                 mode: Phaser.Scale.FIT,
-                autoCenter: Phaser.Scale.CENTER_BOTH
+
+                // 自動置中
+                autoCenter: Phaser.Scale.CENTER_BOTH,
+
+                // 允許遊戲畫布隨螢幕尺寸調整
+                expandParent: false
             },
 
+            // 遊戲場景
             scene: [
                 LoginScene,
                 TerrariumSelectScene,
@@ -50,6 +58,30 @@ window.addEventListener('DOMContentLoaded', async () => {
 
         // 建立遊戲
         window.game = new Phaser.Game(config);
+
+        // 監聽螢幕方向與尺寸變化
+        const resizeGame = () => {
+
+            if (!window.game) return;
+
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+
+            console.log(
+                '【畫面調整】',
+                width >= height ? '橫向模式' : '直向模式',
+                width + ' × ' + height
+            );
+
+            window.game.scale.refresh();
+        };
+
+        // 監聽手機旋轉
+        window.addEventListener('resize', resizeGame);
+
+        window.addEventListener('orientationchange', () => {
+            setTimeout(resizeGame, 200);
+        });
 
         console.log('【系統】入口畫面初始化完成。');
 
