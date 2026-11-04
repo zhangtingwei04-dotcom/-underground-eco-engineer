@@ -1,6 +1,6 @@
 
 // 鱗片與種子：地下生態物語
-// Login Scene - Responsive Portrait & Landscape
+// Login Scene - Fullscreen Responsive Layout
 
 import { LanguageSystem } from '../systems/language-system.js';
 
@@ -11,6 +11,10 @@ export class LoginScene extends Phaser.Scene {
     }
 
     create() {
+
+        this.backgroundContainer = this.add.container(0, 0);
+        this.layoutContainer = this.add.container(0, 0);
+        this.particles = [];
 
         this.drawBackground();
         this.drawLayout();
@@ -38,13 +42,31 @@ export class LoginScene extends Phaser.Scene {
         });
     }
 
-    // 判斷目前方向
     isPortrait() {
         return this.scale.height > this.scale.width;
     }
 
-    // 背景
+    // 清除舊背景
+    clearBackground() {
+
+        this.particles.forEach(particle => {
+            particle.destroy();
+        });
+
+        this.particles = [];
+
+        this.tweens.killTweensOf(this.backgroundContainer);
+
+        this.backgroundContainer.removeAll(true);
+    }
+
+    // 建立全螢幕背景
     drawBackground() {
+
+        this.clearBackground();
+
+        const width = this.scale.width;
+        const height = this.scale.height;
 
         const graphics = this.add.graphics();
 
@@ -56,32 +78,92 @@ export class LoginScene extends Phaser.Scene {
             1
         );
 
-        graphics.fillRect(0, 0, 1024, 768);
+        graphics.fillRect(0, 0, width, height);
 
+        // 中央暖色光暈
         graphics.fillStyle(0xe6c58b, 0.12);
-        graphics.fillCircle(510, 280, 230);
+
+        graphics.fillCircle(
+            width * 0.5,
+            height * 0.37,
+            Math.min(width, height) * 0.36
+        );
 
         graphics.fillStyle(0xd8b878, 0.08);
-        graphics.fillCircle(510, 280, 160);
 
+        graphics.fillCircle(
+            width * 0.5,
+            height * 0.37,
+            Math.min(width, height) * 0.25
+        );
+
+        // 底部地面
         graphics.fillStyle(0x17251d, 1);
-        graphics.fillEllipse(512, 720, 1200, 230);
 
+        graphics.fillEllipse(
+            width * 0.5,
+            height * 1.01,
+            width * 1.35,
+            height * 0.30
+        );
+
+        // 左側岩石
         graphics.fillStyle(0x526354, 0.9);
-        graphics.fillEllipse(70, 610, 240, 180);
 
+        graphics.fillEllipse(
+            width * 0.04,
+            height * 0.87,
+            width * 0.27,
+            height * 0.24
+        );
+
+        // 右側岩石
         graphics.fillStyle(0x394b3d, 1);
-        graphics.fillEllipse(950, 620, 280, 190);
 
-        this.drawPlant(110, 590, 0x8fc99b);
-        this.drawPlant(900, 600, 0x9bcf9a);
-        this.drawPlant(190, 660, 0xb5d8a2);
-        this.drawPlant(830, 670, 0xb5d8a2);
+        graphics.fillEllipse(
+            width * 0.96,
+            height * 0.88,
+            width * 0.30,
+            height * 0.25
+        );
 
-        for (let i = 0; i < 35; i++) {
+        this.backgroundContainer.add(graphics);
 
-            const x = Phaser.Math.Between(30, 994);
-            const y = Phaser.Math.Between(100, 700);
+        // 植物
+        this.drawPlant(
+            width * 0.11,
+            height * 0.86,
+            0x8fc99b
+        );
+
+        this.drawPlant(
+            width * 0.89,
+            height * 0.87,
+            0x9bcf9a
+        );
+
+        this.drawPlant(
+            width * 0.19,
+            height * 0.96,
+            0xb5d8a2
+        );
+
+        this.drawPlant(
+            width * 0.81,
+            height * 0.96,
+            0xb5d8a2
+        );
+
+        // 動態粒子
+        const particleCount = Math.min(
+            55,
+            Math.max(20, Math.floor(width * height / 18000))
+        );
+
+        for (let i = 0; i < particleCount; i++) {
+
+            const x = Phaser.Math.Between(10, width - 10);
+            const y = Phaser.Math.Between(20, height - 20);
 
             const radius = Phaser.Math.FloatBetween(1, 3);
 
@@ -93,10 +175,14 @@ export class LoginScene extends Phaser.Scene {
                 0.55
             );
 
+            this.backgroundContainer.add(particle);
+
+            this.particles.push(particle);
+
             this.tweens.add({
                 targets: particle,
-                alpha: 0.15,
-                y: y - Phaser.Math.Between(10, 35),
+                alpha: 0.12,
+                y: y - Phaser.Math.Between(12, 35),
                 duration: Phaser.Math.Between(1800, 3500),
                 yoyo: true,
                 repeat: -1
@@ -109,108 +195,98 @@ export class LoginScene extends Phaser.Scene {
 
         const graphics = this.add.graphics();
 
-        graphics.lineStyle(4, 0x789b72, 1);
+        const plantScale = Math.min(
+            this.scale.width / 1024,
+            this.scale.height / 768
+        );
+
+        const size = Math.max(0.65, plantScale);
+
+        graphics.lineStyle(4 * size, 0x789b72, 1);
 
         graphics.beginPath();
         graphics.moveTo(x, y);
-        graphics.lineTo(x, y - 55);
+        graphics.lineTo(x, y - 55 * size);
         graphics.strokePath();
 
         graphics.fillStyle(color, 0.9);
 
         graphics.fillEllipse(
-            x - 13,
-            y - 35,
-            25,
-            12
+            x - 13 * size,
+            y - 35 * size,
+            25 * size,
+            12 * size
         );
 
         graphics.fillEllipse(
-            x + 13,
-            y - 48,
-            25,
-            12
+            x + 13 * size,
+            y - 48 * size,
+            25 * size,
+            12 * size
         );
 
         graphics.fillStyle(color, 0.15);
-        graphics.fillCircle(x, y - 45, 30);
+
+        graphics.fillCircle(
+            x,
+            y - 45 * size,
+            30 * size
+        );
+
+        this.backgroundContainer.add(graphics);
     }
 
-    // 重新排版
+    // 螢幕尺寸變化
     handleResize() {
 
         if (!this.scene.isActive()) return;
 
+        this.drawBackground();
         this.drawLayout();
     }
 
-    // 清除舊版面
+    // 清除介面
     clearLayout() {
 
         if (this.layoutContainer) {
-            this.layoutContainer.destroy(true);
+            this.layoutContainer.removeAll(true);
         }
     }
 
-    // 建立版面
+    // 建立介面
     drawLayout() {
 
         this.clearLayout();
 
-        this.layoutContainer = this.add.container(0, 0);
-
-        const portrait = this.isPortrait();
-
         const width = this.scale.width;
         const height = this.scale.height;
 
-        if (portrait) {
-            this.drawPortraitLayout(width, height);
+        const centerX = width / 2;
+
+        if (this.isPortrait()) {
+
+            this.drawPortraitLayout(
+                centerX,
+                width,
+                height
+            );
+
         } else {
-            this.drawLandscapeLayout(width, height);
+
+            this.drawLandscapeLayout(
+                centerX,
+                width,
+                height
+            );
         }
     }
 
-    // 直向版面
-    drawPortraitLayout(width, height) {
+    // 直向
+    drawPortraitLayout(centerX, width, height) {
 
-        const centerX = width / 2;
+        const shortScreen = height < 650;
 
-        const scaleFactor = Math.min(
-            width / 390,
-            height / 700
-        );
-
-        const titleSize = Math.max(
-            23,
-            Math.min(34, 34 * scaleFactor)
-        );
-
-        const subtitleSize = Math.max(
-            13,
-            Math.min(18, 18 * scaleFactor)
-        );
-
-        const buttonWidth = Math.min(width - 48, 330);
-        const buttonHeight = 54;
-
-        const compact = height < 650;
-
-        const titleY = height * 0.13;
-        const subtitleY = height * 0.20;
-        const welcomeY = height * 0.30;
-        const messageY = height * 0.37;
-
-        const buttonStartY = compact
-            ? height * 0.49
-            : height * 0.48;
-
-        const buttonGap = compact ? 65 : 72;
-
-        const languageTitleY = Math.min(
-            height - 95,
-            buttonStartY + buttonGap * 3 + 5
-        );
+        const titleY = height * 0.12;
 
         this.addLayoutText(
             centerX,
@@ -218,7 +294,7 @@ export class LoginScene extends Phaser.Scene {
             LanguageSystem.t('game.title'),
             {
                 fontFamily: 'Georgia, serif',
-                fontSize: `${titleSize}px`,
+                fontSize: width < 360 ? '22px' : '28px',
                 color: '#f3e8cb',
                 fontStyle: 'bold',
                 stroke: '#243b2e',
@@ -230,42 +306,50 @@ export class LoginScene extends Phaser.Scene {
 
         this.addLayoutText(
             centerX,
-            subtitleY,
+            height * 0.20,
             LanguageSystem.t('game.subtitle'),
             {
                 fontFamily: 'Georgia, serif',
-                fontSize: `${subtitleSize}px`,
+                fontSize: '15px',
                 color: '#d5c9a5',
                 align: 'center',
-                wordWrap: { width: width - 40 }
+                wordWrap: { width: width - 32 }
             }
         );
 
         this.addLayoutText(
             centerX,
-            welcomeY,
+            height * 0.29,
             LanguageSystem.t('login.welcome'),
             {
                 fontFamily: 'Georgia, serif',
                 fontSize: '18px',
                 color: '#f0e6ce',
                 align: 'center',
-                wordWrap: { width: width - 40 }
+                wordWrap: { width: width - 32 }
             }
         );
 
         this.addLayoutText(
             centerX,
-            messageY,
+            height * 0.36,
             LanguageSystem.t('login.welcome_message'),
             {
                 fontFamily: 'Arial, sans-serif',
                 fontSize: '13px',
                 color: '#d2d8c1',
                 align: 'center',
-                wordWrap: { width: width - 48 }
+                wordWrap: { width: width - 40 }
             }
         );
+
+        const buttonWidth = Math.min(width - 48, 330);
+
+        const buttonHeight = shortScreen ? 46 : 52;
+
+        const buttonGap = shortScreen ? 58 : 66;
+
+        const buttonStartY = height * 0.48;
 
         this.createResponsiveButton(
             centerX,
@@ -294,19 +378,21 @@ export class LoginScene extends Phaser.Scene {
             'registerSelected'
         );
 
+        const languageY = Math.min(
+            height - 90,
+            buttonStartY + buttonGap * 3 + 5
+        );
+
         this.drawResponsiveLanguages(
             centerX,
-            languageTitleY,
+            languageY,
             width,
-            height,
             true
         );
     }
 
-    // 橫向版面
-    drawLandscapeLayout(width, height) {
-
-        const centerX = width / 2;
+    // 橫向
+    drawLandscapeLayout(centerX, width, height) {
 
         const ratio = Math.min(
             width / 1024,
@@ -315,15 +401,15 @@ export class LoginScene extends Phaser.Scene {
 
         this.addLayoutText(
             centerX,
-            height * 0.16,
+            height * 0.15,
             LanguageSystem.t('game.title'),
             {
                 fontFamily: 'Georgia, serif',
-                fontSize: `${Math.max(27, 48 * ratio)}px`,
+                fontSize: `${Math.max(25, 48 * ratio)}px`,
                 color: '#f3e8cb',
                 fontStyle: 'bold',
                 stroke: '#243b2e',
-                strokeThickness: 6,
+                strokeThickness: 5,
                 align: 'center',
                 wordWrap: { width: width - 40 }
             }
@@ -331,11 +417,11 @@ export class LoginScene extends Phaser.Scene {
 
         this.addLayoutText(
             centerX,
-            height * 0.24,
+            height * 0.23,
             LanguageSystem.t('game.subtitle'),
             {
                 fontFamily: 'Georgia, serif',
-                fontSize: '20px',
+                fontSize: '19px',
                 color: '#d5c9a5',
                 align: 'center'
             }
@@ -343,11 +429,11 @@ export class LoginScene extends Phaser.Scene {
 
         this.addLayoutText(
             centerX,
-            height * 0.36,
+            height * 0.34,
             LanguageSystem.t('login.welcome'),
             {
                 fontFamily: 'Georgia, serif',
-                fontSize: '22px',
+                fontSize: '21px',
                 color: '#f0e6ce',
                 align: 'center'
             }
@@ -355,23 +441,27 @@ export class LoginScene extends Phaser.Scene {
 
         this.addLayoutText(
             centerX,
-            height * 0.43,
+            height * 0.42,
             LanguageSystem.t('login.welcome_message'),
             {
                 fontFamily: 'Arial, sans-serif',
-                fontSize: '15px',
+                fontSize: '14px',
                 color: '#d2d8c1',
                 align: 'center',
-                wordWrap: { width: width - 100 }
+                wordWrap: { width: width - 80 }
             }
         );
 
         const buttonWidth = Math.min(330, width * 0.34);
-        const buttonHeight = 55;
 
-        const buttonGap = Math.min(78, height * 0.105);
+        const buttonHeight = 52;
 
-        const buttonStartY = height * 0.59;
+        const buttonGap = Math.min(
+            70,
+            height * 0.10
+        );
+
+        const buttonStartY = height * 0.56;
 
         this.createResponsiveButton(
             centerX,
@@ -402,14 +492,13 @@ export class LoginScene extends Phaser.Scene {
 
         this.drawResponsiveLanguages(
             centerX,
-            height * 0.93,
+            height * 0.91,
             width,
-            height,
             false
         );
     }
 
-    // 加入版面文字
+    // 文字
     addLayoutText(x, y, content, style) {
 
         const text = this.add.text(
@@ -424,7 +513,7 @@ export class LoginScene extends Phaser.Scene {
         return text;
     }
 
-    // 自適應按鈕
+    // 按鈕
     createResponsiveButton(
         x,
         y,
@@ -507,11 +596,10 @@ export class LoginScene extends Phaser.Scene {
         centerX,
         titleY,
         width,
-        height,
         portrait
     ) {
 
-        const title = this.addLayoutText(
+        this.addLayoutText(
             centerX,
             titleY,
             LanguageSystem.t('ui.language'),
@@ -528,15 +616,13 @@ export class LoginScene extends Phaser.Scene {
 
         const columns = portrait ? 5 : 10;
 
-        const rows = Math.ceil(languages.length / columns);
-
         const gapX = portrait
             ? Math.min(65, (width - 32) / columns)
             : Math.min(82, (width - 40) / columns);
 
-        const gapY = 25;
+        const gapY = 24;
 
-        const startY = titleY + 27;
+        const startY = titleY + 25;
 
         languages.forEach((language, index) => {
 
