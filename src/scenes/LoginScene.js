@@ -10,16 +10,16 @@ export class LoginScene extends Phaser.Scene {
         this.settingsContainer = null;
         this.settingsPageContainer = null;
         this.settingsButtonContainer = null;
-        this.languageMenuExpanded = false;
         this.settingsCategory = 'language';
+        this.languageMenuExpanded = false;
     }
 
     create() {
         this.settingsContainer = null;
         this.settingsPageContainer = null;
         this.settingsButtonContainer = null;
-        this.languageMenuExpanded = false;
         this.settingsCategory = 'language';
+        this.languageMenuExpanded = false;
 
         SettingsSystem.load();
 
@@ -42,7 +42,10 @@ export class LoginScene extends Phaser.Scene {
             }
         };
 
-        window.addEventListener('languageChanged', this.languageListener);
+        window.addEventListener(
+            'languageChanged',
+            this.languageListener
+        );
 
         this.events.once('shutdown', () => {
             window.removeEventListener(
@@ -51,6 +54,8 @@ export class LoginScene extends Phaser.Scene {
             );
 
             this.scale.off('resize', this.handleResize, this);
+
+            this.closeSettings();
         });
 
         this.scale.on('resize', this.handleResize, this);
@@ -84,10 +89,21 @@ export class LoginScene extends Phaser.Scene {
         return this.scale.height > this.scale.width;
     }
 
+    // ==============================
+    // 背景
+    // ==============================
+
     clearBackground() {
-        this.particles.forEach(particle => particle.destroy());
+        this.particles.forEach(particle => {
+            this.tweens.killTweensOf(particle);
+            particle.destroy();
+        });
+
         this.particles = [];
-        this.backgroundContainer.removeAll(true);
+
+        if (this.backgroundContainer) {
+            this.backgroundContainer.removeAll(true);
+        }
     }
 
     drawBackground() {
@@ -159,8 +175,15 @@ export class LoginScene extends Phaser.Scene {
         );
 
         for (let i = 0; i < particleCount; i++) {
-            const x = Phaser.Math.Between(10, Math.max(11, width - 10));
-            const y = Phaser.Math.Between(20, Math.max(21, height - 20));
+            const x = Phaser.Math.Between(
+                10,
+                Math.max(11, width - 10)
+            );
+
+            const y = Phaser.Math.Between(
+                20,
+                Math.max(21, height - 20)
+            );
 
             const particle = this.add.circle(
                 x,
@@ -195,14 +218,27 @@ export class LoginScene extends Phaser.Scene {
         const size = Math.max(0.65, plantScale);
 
         graphics.lineStyle(4 * size, 0x789b72, 1);
+
         graphics.beginPath();
         graphics.moveTo(x, y);
         graphics.lineTo(x, y - 55 * size);
         graphics.strokePath();
 
         graphics.fillStyle(color, 0.9);
-        graphics.fillEllipse(x - 13 * size, y - 35 * size, 25 * size, 12 * size);
-        graphics.fillEllipse(x + 13 * size, y - 48 * size, 25 * size, 12 * size);
+
+        graphics.fillEllipse(
+            x - 13 * size,
+            y - 35 * size,
+            25 * size,
+            12 * size
+        );
+
+        graphics.fillEllipse(
+            x + 13 * size,
+            y - 48 * size,
+            25 * size,
+            12 * size
+        );
 
         graphics.fillStyle(color, 0.15);
         graphics.fillCircle(x, y - 45 * size, 30 * size);
@@ -210,14 +246,25 @@ export class LoginScene extends Phaser.Scene {
         this.backgroundContainer.add(graphics);
     }
 
+    // ==============================
+    // 螢幕尺寸調整
+    // ==============================
+
     handleResize() {
         if (!this.scene.isActive()) return;
+
+        const wasOpen = !!this.settingsContainer;
+        const previousCategory = this.settingsCategory;
+
+        if (wasOpen) {
+            this.closeSettings();
+        }
 
         this.drawBackground();
         this.drawLayout();
 
-        if (this.settingsContainer) {
-            this.closeSettings();
+        if (wasOpen) {
+            this.openSettings(previousCategory);
         }
     }
 
@@ -242,6 +289,7 @@ export class LoginScene extends Phaser.Scene {
         const scale = this.getScreenScale();
 
         this.layoutContainer.setScale(scale);
+
         this.layoutContainer.setPosition(
             centerX * (1 - scale),
             (height / 2) * (1 - scale)
@@ -249,6 +297,10 @@ export class LoginScene extends Phaser.Scene {
 
         this.drawSettingsButton(width, height);
     }
+
+    // ==============================
+    // 直式登入畫面
+    // ==============================
 
     drawPortraitLayout(centerX, width, height) {
         const shortScreen = height < 650;
@@ -302,20 +354,36 @@ export class LoginScene extends Phaser.Scene {
         const buttonStartY = height * 0.43;
 
         this.createResponsiveButton(
-            centerX, buttonStartY, buttonWidth, buttonHeight,
-            LanguageSystem.t('login.start_exploring'), 'guestSelected'
+            centerX,
+            buttonStartY,
+            buttonWidth,
+            buttonHeight,
+            LanguageSystem.t('login.start_exploring'),
+            'guestSelected'
         );
 
         this.createResponsiveButton(
-            centerX, buttonStartY + buttonGap, buttonWidth, buttonHeight,
-            LanguageSystem.t('login.login'), 'loginSelected'
+            centerX,
+            buttonStartY + buttonGap,
+            buttonWidth,
+            buttonHeight,
+            LanguageSystem.t('login.login'),
+            'loginSelected'
         );
 
         this.createResponsiveButton(
-            centerX, buttonStartY + buttonGap * 2, buttonWidth, buttonHeight,
-            LanguageSystem.t('login.create_account'), 'registerSelected'
+            centerX,
+            buttonStartY + buttonGap * 2,
+            buttonWidth,
+            buttonHeight,
+            LanguageSystem.t('login.create_account'),
+            'registerSelected'
         );
     }
+
+    // ==============================
+    // 橫式登入畫面
+    // ==============================
 
     drawLandscapeLayout(centerX, width, height) {
         const margin = Math.max(18, width * 0.04);
@@ -329,16 +397,21 @@ export class LoginScene extends Phaser.Scene {
         const messageSize = Math.max(10, 11 * scale);
         const top = Math.max(22, height * 0.09);
 
-        this.addLayoutText(centerX, top, LanguageSystem.t('game.title'), {
-            fontFamily: 'Georgia, serif',
-            fontSize: `${titleSize * textScale}px`,
-            color: '#f3e8cb',
-            fontStyle: 'bold',
-            stroke: '#243b2e',
-            strokeThickness: 3,
-            align: 'center',
-            wordWrap: { width: contentWidth }
-        });
+        this.addLayoutText(
+            centerX,
+            top,
+            LanguageSystem.t('game.title'),
+            {
+                fontFamily: 'Georgia, serif',
+                fontSize: `${titleSize * textScale}px`,
+                color: '#f3e8cb',
+                fontStyle: 'bold',
+                stroke: '#243b2e',
+                strokeThickness: 3,
+                align: 'center',
+                wordWrap: { width: contentWidth }
+            }
+        );
 
         this.addLayoutText(
             centerX,
@@ -367,40 +440,76 @@ export class LoginScene extends Phaser.Scene {
         );
 
         const buttonWidth = Math.min(260, width * 0.42);
-        const buttonHeight = Math.max(34, Math.min(42, height * 0.12));
+        const buttonHeight = Math.max(
+            34,
+            Math.min(42, height * 0.12)
+        );
+
         const buttonGap = buttonHeight + Math.max(8, height * 0.025);
         const buttonStartY = height * 0.48;
 
         this.createResponsiveButton(
-            centerX, buttonStartY, buttonWidth, buttonHeight,
-            LanguageSystem.t('login.start_exploring'), 'guestSelected',
+            centerX,
+            buttonStartY,
+            buttonWidth,
+            buttonHeight,
+            LanguageSystem.t('login.start_exploring'),
+            'guestSelected',
             Math.max(12, 15 * scale * textScale)
         );
 
         this.createResponsiveButton(
-            centerX, buttonStartY + buttonGap, buttonWidth, buttonHeight,
-            LanguageSystem.t('login.login'), 'loginSelected',
+            centerX,
+            buttonStartY + buttonGap,
+            buttonWidth,
+            buttonHeight,
+            LanguageSystem.t('login.login'),
+            'loginSelected',
             Math.max(12, 15 * scale * textScale)
         );
 
         this.createResponsiveButton(
-            centerX, buttonStartY + buttonGap * 2, buttonWidth, buttonHeight,
-            LanguageSystem.t('login.create_account'), 'registerSelected',
+            centerX,
+            buttonStartY + buttonGap * 2,
+            buttonWidth,
+            buttonHeight,
+            LanguageSystem.t('login.create_account'),
+            'registerSelected',
             Math.max(12, 15 * scale * textScale)
         );
     }
 
     addLayoutText(x, y, content, style) {
-        const text = this.add.text(x, y, content, style).setOrigin(0.5);
+        const text = this.add.text(
+            x,
+            y,
+            content,
+            style
+        ).setOrigin(0.5);
+
         this.layoutContainer.add(text);
+
         return text;
     }
 
-    createResponsiveButton(x, y, width, height, label, eventName, fontSize = 18) {
+    createResponsiveButton(
+        x,
+        y,
+        width,
+        height,
+        label,
+        eventName,
+        fontSize = 18
+    ) {
         const container = this.add.container(x, y);
 
         const background = this.add.rectangle(
-            0, 0, width, height, 0x344e3d, 0.96
+            0,
+            0,
+            width,
+            height,
+            0x344e3d,
+            0.96
         );
 
         background.setStrokeStyle(2, 0xc5b78e, 0.9);
@@ -415,6 +524,7 @@ export class LoginScene extends Phaser.Scene {
         }).setOrigin(0.5);
 
         container.add([background, text]);
+
         background.setInteractive({ useHandCursor: true });
 
         background.on('pointerover', () => {
@@ -442,313 +552,369 @@ export class LoginScene extends Phaser.Scene {
         });
 
         this.layoutContainer.add(container);
+
         return container;
     }
 
+    // ==============================
+    // 設定入口按鈕
+    // ==============================
+
     drawSettingsButton(width, height) {
-        const button = this.add.text(width - 18, 18, '⚙️', {
-            fontSize: '27px',
-            backgroundColor: '#344e3d',
-            padding: { x: 9, y: 7 }
-        }).setOrigin(1, 0);
+        const button = this.add.text(
+            width - 18,
+            18,
+            '⚙️',
+            {
+                fontSize: '27px',
+                backgroundColor: '#344e3d',
+                padding: { x: 9, y: 7 }
+            }
+        ).setOrigin(1, 0);
 
         button.setInteractive({ useHandCursor: true });
-        button.on('pointerdown', () => this.openSettings());
+
+        button.on('pointerdown', () => {
+            this.openSettings();
+        });
 
         this.settingsButtonContainer.add(button);
     }
 
-    openSettings() {
+    // ==============================
+    // 開啟設定中心
+    // ==============================
+
+    openSettings(category = 'language') {
         if (this.settingsContainer) return;
 
         const width = this.scale.width;
         const height = this.scale.height;
-        const centerX = width / 2;
-        const centerY = height / 2;
 
-        this.settingsCategory = 'language';
+        this.settingsCategory = category;
         this.languageMenuExpanded = false;
 
         this.settingsContainer = this.add.container(0, 0);
         this.settingsContainer.setDepth(1000);
 
-        const panelWidth = Math.min(width - 28, 460);
-        const panelHeight = Math.min(height - 28, 500);
-
         const overlay = this.add.rectangle(
-            centerX, centerY, width, height, 0x000000, 0.78
+            width / 2,
+            height / 2,
+            width,
+            height,
+            0x000000,
+            0.58
         );
 
         overlay.setInteractive();
 
-        const panel = this.add.rectangle(
-            centerX, centerY, panelWidth, panelHeight, 0x263b32, 1
+        overlay.on('pointerdown', () => {
+            this.closeSettings();
+        });
+
+        this.settingsContainer.add(overlay);
+
+        const railWidth = 64;
+
+        const panelWidth = Math.min(
+            320,
+            Math.max(210, width - railWidth - 22)
         );
 
-        panel.setStrokeStyle(3, 0xc5b78e, 1);
+        const panelHeight = Math.min(height - 24, 520);
 
-        this.settingsContainer.add([overlay, panel]);
+        const panelX = width - railWidth - panelWidth / 2 - 5;
+        const panelY = height / 2;
 
-        const title = this.add.text(
-            centerX,
-            centerY - panelHeight / 2 + 30,
-            '⚙️ 設定中心 / Settings',
-            {
-                fontSize: '20px',
-                color: '#f3e8cb',
-                fontStyle: 'bold'
-            }
-        ).setOrigin(0.5);
-
-        this.settingsContainer.add(title);
-
-        const closeButton = this.add.text(
-            centerX,
-            centerY + panelHeight / 2 - 24,
-            '關閉 / Close',
-            {
-                fontSize: '15px',
-                color: '#ffffff',
-                backgroundColor: '#72513b',
-                padding: { x: 22, y: 7 }
-            }
-        ).setOrigin(0.5);
-
-        closeButton.setInteractive({ useHandCursor: true });
-        closeButton.on('pointerdown', () => this.closeSettings());
-
-        this.settingsContainer.add(closeButton);
-
-        this.buildSettingsPage();
-    }
-
-    // 五張插畫式分類卡片
-    createSettingsCards(centerX, centerY, panelWidth, panelHeight) {
-        const categories = [
-            { id: 'language', title: '語言設定', subtitle: 'LANGUAGE', icon: 'globe', color: 0x567b69 },
-            { id: 'screen', title: '畫面設定', subtitle: 'DISPLAY', icon: 'screen', color: 0x657b70 },
-            { id: 'sound', title: '音效設定', subtitle: 'SOUND', icon: 'sound', color: 0x806b4e },
-            { id: 'operation', title: '操作與體驗', subtitle: 'EXPERIENCE', icon: 'controller', color: 0x6d7650 },
-            { id: 'system', title: '系統設定', subtitle: 'SYSTEM', icon: 'gear', color: 0x665f4c }
-        ];
-
-        const gap = 8;
-        const cardWidth = (panelWidth - 36) / 2;
-        const cardHeight = 57;
-        const startX = centerX - cardWidth - gap / 2;
-        const startY = centerY - panelHeight / 2 + 70;
-
-        categories.forEach((category, index) => {
-            const fullWidth = index === 4;
-            const x = fullWidth
-                ? centerX
-                : startX + (index % 2) * (cardWidth + gap);
-
-            const y = fullWidth
-                ? startY + 2 * (cardHeight + gap)
-                : startY + Math.floor(index / 2) * (cardHeight + gap);
-
-            const w = fullWidth ? panelWidth - 24 : cardWidth;
-
-            this.createCategoryCard(
-                x, y, w, cardHeight, category
-            );
-        });
-    }
-
-    createCategoryCard(x, y, width, height, category) {
-        const selected = this.settingsCategory === category.id;
-
-        const card = this.add.container(x, y);
-
-        const background = this.add.rectangle(
-            0, 0, width, height,
-            selected ? 0x82936b : category.color,
+        this.settingsPanel = this.add.rectangle(
+            panelX,
+            panelY,
+            panelWidth,
+            panelHeight,
+            0x263b32,
             0.98
         );
 
-        background.setStrokeStyle(
-            selected ? 3 : 1,
-            selected ? 0xf0d69c : 0xb6aa83,
+        this.settingsPanel.setStrokeStyle(
+            2,
+            0xc5b78e,
             1
         );
 
-        card.add(background);
+        this.settingsContainer.add(this.settingsPanel);
 
-        const art = this.add.graphics();
-        this.drawCardIcon(art, category.icon);
-        card.add(art);
+        this.createSettingsRail(width, height);
 
-        const title = this.add.text(
-            -width / 2 + 55,
-            -7,
-            category.title,
-            {
-                fontSize: '14px',
-                color: '#fff4dc',
-                fontStyle: 'bold'
-            }
-        ).setOrigin(0, 0.5);
+        this.settingsPanelWidth = panelWidth;
+        this.settingsPanelHeight = panelHeight;
+        this.settingsPanelX = panelX;
+        this.settingsPanelY = panelY;
 
-        const subtitle = this.add.text(
-            -width / 2 + 55,
-            13,
-            category.subtitle,
-            {
-                fontSize: '9px',
-                color: '#e4d8b8'
-            }
-        ).setOrigin(0, 0.5);
+        this.settingsPageContainer = null;
 
-        const arrow = this.add.text(
-            width / 2 - 18,
-            0,
-            selected ? '▼' : '›',
-            {
-                fontSize: '18px',
-                color: '#fff4dc'
-            }
-        ).setOrigin(0.5);
+        this.buildSettingsPage();
 
-        card.add([title, subtitle, arrow]);
+        // 面板從右側滑入
+        this.settingsPanel.x = width + panelWidth / 2;
 
-        background.setInteractive({ useHandCursor: true });
+        if (this.settingsPageContainer) {
+            this.settingsPageContainer.x =
+                width + panelWidth / 2 - panelX;
+        }
 
-        background.on('pointerdown', () => {
-            this.settingsCategory =
-                this.settingsCategory === category.id ? null : category.id;
-
-            this.languageMenuExpanded = false;
-            this.buildSettingsPage();
+        this.tweens.add({
+            targets: this.settingsPanel,
+            x: panelX,
+            duration: 220,
+            ease: 'Cubic.easeOut'
         });
 
-        this.settingsPageContainer.add(card);
-    }
-
-    drawCardIcon(graphics, type) {
-        graphics.lineStyle(2, 0xf1e4c3, 1);
-        graphics.fillStyle(0xf1e4c3, 0.12);
-
-        if (type === 'globe') {
-            graphics.strokeCircle(-1, 0, 15);
-            graphics.strokeEllipse(-1, 0, 9, 29);
-            graphics.beginPath();
-            graphics.moveTo(-16, 0);
-            graphics.lineTo(14, 0);
-            graphics.strokePath();
-            graphics.strokeEllipse(-1, 0, 29, 9);
-        }
-
-        if (type === 'screen') {
-            graphics.strokeRoundedRect(-17, -12, 32, 22, 3);
-            graphics.beginPath();
-            graphics.moveTo(-1, 10);
-            graphics.lineTo(-1, 16);
-            graphics.moveTo(-9, 16);
-            graphics.lineTo(7, 16);
-            graphics.strokePath();
-            graphics.fillCircle(8, -5, 2);
-        }
-
-        if (type === 'sound') {
-            graphics.beginPath();
-            graphics.moveTo(-15, -6);
-            graphics.lineTo(-7, -6);
-            graphics.lineTo(2, -14);
-            graphics.lineTo(2, 14);
-            graphics.lineTo(-7, 6);
-            graphics.lineTo(-15, 6);
-            graphics.closePath();
-            graphics.strokePath();
-            graphics.strokeArc(2, 0, 13, -0.9, 0.9, false);
-            graphics.strokeArc(2, 0, 19, -0.9, 0.9, false);
-        }
-
-        if (type === 'controller') {
-            graphics.strokeRoundedRect(-18, -9, 36, 19, 7);
-            graphics.beginPath();
-            graphics.moveTo(-10, 0);
-            graphics.lineTo(-2, 0);
-            graphics.moveTo(-6, -4);
-            graphics.lineTo(-6, 4);
-            graphics.strokePath();
-            graphics.fillCircle(8, -2, 2);
-            graphics.fillCircle(13, 3, 2);
-        }
-
-        if (type === 'gear') {
-            graphics.strokeCircle(0, 0, 12);
-            graphics.strokeCircle(0, 0, 5);
-            for (let i = 0; i < 8; i++) {
-                const angle = Math.PI * 2 * i / 8;
-                const x1 = Math.cos(angle) * 12;
-                const y1 = Math.sin(angle) * 12;
-                const x2 = Math.cos(angle) * 17;
-                const y2 = Math.sin(angle) * 17;
-
-                graphics.beginPath();
-                graphics.moveTo(x1, y1);
-                graphics.lineTo(x2, y2);
-                graphics.strokePath();
-            }
+        if (this.settingsPageContainer) {
+            this.tweens.add({
+                targets: this.settingsPageContainer,
+                x: 0,
+                duration: 220,
+                ease: 'Cubic.easeOut'
+            });
         }
     }
+
+    // ==============================
+    // 右側五個圖示
+    // ==============================
+
+    createSettingsRail(width, height) {
+        const categories = [
+            { id: 'language', icon: '🌐' },
+            { id: 'screen', icon: '🖥️' },
+            { id: 'sound', icon: '🔊' },
+            { id: 'operation', icon: '🎮' },
+            { id: 'system', icon: '⚙️' }
+        ];
+
+        this.settingsRail = this.add.container(0, 0);
+        this.settingsRail.setDepth(10);
+
+        this.settingsContainer.add(this.settingsRail);
+
+        const spacing = Math.min(62, height / 7);
+        const startY = height / 2 - spacing * 2;
+
+        categories.forEach((category, index) => {
+            const y = startY + index * spacing;
+            const selected = this.settingsCategory === category.id;
+
+            const background = this.add.circle(
+                width - 32,
+                y,
+                23,
+                selected ? 0x82936b : 0x344e3d,
+                0.98
+            );
+
+            background.setStrokeStyle(
+                selected ? 2 : 1,
+                0xc5b78e,
+                1
+            );
+
+            const icon = this.add.text(
+                width - 32,
+                y,
+                category.icon,
+                {
+                    fontSize: '22px'
+                }
+            ).setOrigin(0.5);
+
+            background.setInteractive({
+                useHandCursor: true
+            });
+
+            background.on('pointerdown', () => {
+                this.settingsCategory = category.id;
+                this.languageMenuExpanded = false;
+                this.buildSettingsPage();
+                this.refreshSettingsRail();
+            });
+
+            this.settingsRail.add([background, icon]);
+        });
+    }
+
+    refreshSettingsRail() {
+        if (!this.settingsRail) return;
+
+        this.settingsRail.removeAll(true);
+
+        const width = this.scale.width;
+        const height = this.scale.height;
+
+        const categories = [
+            { id: 'language', icon: '🌐' },
+            { id: 'screen', icon: '🖥️' },
+            { id: 'sound', icon: '🔊' },
+            { id: 'operation', icon: '🎮' },
+            { id: 'system', icon: '⚙️' }
+        ];
+
+        const spacing = Math.min(62, height / 7);
+        const startY = height / 2 - spacing * 2;
+
+        categories.forEach((category, index) => {
+            const y = startY + index * spacing;
+            const selected = this.settingsCategory === category.id;
+
+            const background = this.add.circle(
+                width - 32,
+                y,
+                23,
+                selected ? 0x82936b : 0x344e3d,
+                0.98
+            );
+
+            background.setStrokeStyle(
+                selected ? 2 : 1,
+                0xc5b78e,
+                1
+            );
+
+            const icon = this.add.text(
+                width - 32,
+                y,
+                category.icon,
+                {
+                    fontSize: '22px'
+                }
+            ).setOrigin(0.5);
+
+            background.setInteractive({
+                useHandCursor: true
+            });
+
+            background.on('pointerdown', () => {
+                this.settingsCategory = category.id;
+                this.languageMenuExpanded = false;
+                this.buildSettingsPage();
+                this.refreshSettingsRail();
+            });
+
+            this.settingsRail.add([background, icon]);
+        });
+    }
+
+    // ==============================
+    // 設定內容
+    // ==============================
 
     buildSettingsPage() {
         if (!this.settingsContainer) return;
 
         if (this.settingsPageContainer) {
+            this.tweens.killTweensOf(this.settingsPageContainer);
             this.settingsPageContainer.destroy();
         }
 
-        this.settingsPageContainer = this.add.container(0, 0);
-        this.settingsContainer.add(this.settingsPageContainer);
-
-        const centerX = this.scale.width / 2;
-        const centerY = this.scale.height / 2;
-        const panelHeight = Math.min(this.scale.height - 28, 500);
-        const panelWidth = Math.min(this.scale.width - 28, 460);
-
-        this.createSettingsCards(
-            centerX, centerY, panelWidth, panelHeight
+        const page = this.add.container(
+            this.settingsPanelX,
+            0
         );
 
-        if (!this.settingsCategory) return;
+        this.settingsPageContainer = page;
 
-        const contentY = centerY - panelHeight / 2 + 270;
+        this.settingsContainer.add(page);
 
-        if (this.settingsCategory === 'language') {
-            this.buildLanguagePage(centerX, contentY, panelWidth, panelHeight);
-        }
+        const centerX = this.settingsPanelX;
+        const top = this.settingsPanelY - this.settingsPanelHeight / 2;
 
-        if (this.settingsCategory === 'screen') {
-            this.buildScreenPage(centerX, contentY);
-        }
+        const panelWidth = this.settingsPanelWidth;
 
-        if (this.settingsCategory === 'sound') {
-            this.buildSoundPage(centerX, contentY);
-        }
+        // 標題
+        const title = this.add.text(
+            centerX,
+            top + 32,
+            '設定中心',
+            {
+                fontSize: '19px',
+                color: '#f3e8cb',
+                fontStyle: 'bold'
+            }
+        ).setOrigin(0.5);
 
-        if (this.settingsCategory === 'operation') {
-            this.buildOperationPage(centerX, contentY);
-        }
+        page.add(title);
 
-        if (this.settingsCategory === 'system') {
-            this.buildSystemPage(centerX, contentY);
+        // 關閉按鈕
+        const closeButton = this.add.text(
+            centerX + panelWidth / 2 - 20,
+            top + 30,
+            '✕',
+            {
+                fontSize: '19px',
+                color: '#f3e8cb'
+            }
+        ).setOrigin(0.5);
+
+        closeButton.setInteractive({ useHandCursor: true });
+
+        closeButton.on('pointerdown', () => {
+            this.closeSettings();
+        });
+
+        page.add(closeButton);
+
+        // 分隔線
+        const divider = this.add.rectangle(
+            centerX,
+            top + 58,
+            panelWidth - 30,
+            1,
+            0xc5b78e,
+            0.7
+        );
+
+        page.add(divider);
+
+        const contentY = top + 88;
+
+        switch (this.settingsCategory) {
+            case 'language':
+                this.buildLanguagePage(centerX, contentY, panelWidth);
+                break;
+
+            case 'screen':
+                this.buildScreenPage(centerX, contentY);
+                break;
+
+            case 'sound':
+                this.buildSoundPage(centerX, contentY);
+                break;
+
+            case 'operation':
+                this.buildOperationPage(centerX, contentY);
+                break;
+
+            case 'system':
+                this.buildSystemPage(centerX, contentY);
+                break;
         }
     }
 
-    addPageText(x, y, value, size = 15, color = '#ffffff') {
+    // ==============================
+    // 文字與按鈕工具
+    // ==============================
+
+    addPageText(x, y, value, size = 14, color = '#ffffff') {
         const text = this.add.text(x, y, value, {
             fontSize: `${size}px`,
             color,
             align: 'center',
             wordWrap: {
-                width: Math.min(this.scale.width - 70, 380)
+                width: Math.min(this.settingsPanelWidth - 35, 280)
             }
         }).setOrigin(0.5);
 
         this.settingsPageContainer.add(text);
+
         return text;
     }
 
@@ -763,26 +929,107 @@ export class LoginScene extends Phaser.Scene {
         }).setOrigin(0.5);
 
         button.setInteractive({ useHandCursor: true });
+
         button.on('pointerdown', callback);
 
         this.settingsPageContainer.add(button);
+
         return button;
     }
+
+    // ==============================
+    // 語言設定：十面國旗
+    // ==============================
+
+    buildLanguagePage(centerX, startY, panelWidth) {
+        const languages = [
+            { code: 'zh-TW', flag: '🇹🇼', name: '繁體中文' },
+            { code: 'zh-CN', flag: '🇨🇳', name: '简体中文' },
+            { code: 'en', flag: '🇺🇸', name: 'English' },
+            { code: 'ja', flag: '🇯🇵', name: '日本語' },
+            { code: 'ko', flag: '🇰🇷', name: '한국어' },
+            { code: 'th', flag: '🇹🇭', name: 'ไทย' },
+            { code: 'fr', flag: '🇫🇷', name: 'Français' },
+            { code: 'de', flag: '🇩🇪', name: 'Deutsch' },
+            { code: 'es', flag: '🇪🇸', name: 'Español' },
+            { code: 'pt-BR', flag: '🇧🇷', name: 'Português' }
+        ];
+
+        const currentCode = LanguageSystem.getLanguage();
+
+        this.addPageText(
+            centerX,
+            startY,
+            '選擇語言 / Language',
+            13,
+            '#d5c9a5'
+        );
+
+        const columns = 2;
+        const gapX = Math.min(72, panelWidth * 0.25);
+        const startListY = startY + 55;
+        const rowGap = 53;
+
+        languages.forEach((language, index) => {
+            const column = index % columns;
+            const row = Math.floor(index / columns);
+
+            const x = centerX + (column === 0 ? -gapX : gapX);
+            const y = startListY + row * rowGap;
+
+            const selected = currentCode === language.code;
+
+            const button = this.add.text(
+                x,
+                y,
+                `${language.flag}${selected ? ' ✓' : ''}`,
+                {
+                    fontSize: '25px',
+                    backgroundColor: selected ? '#526b4e' : '#344e3d',
+                    padding: { x: 12, y: 7 }
+                }
+            ).setOrigin(0.5);
+
+            button.setInteractive({ useHandCursor: true });
+
+            button.on('pointerdown', () => {
+                LanguageSystem.setLanguage(language.code);
+            });
+
+            this.settingsPageContainer.add(button);
+        });
+
+        this.addPageText(
+            centerX,
+            startListY + 5 * rowGap + 2,
+            '點擊國旗即可切換語言',
+            10,
+            '#c5b78e'
+        );
+    }
+
+    // ==============================
+    // 數值設定工具
+    // ==============================
 
     addSettingRow(centerX, y, label, key, options = {}) {
         const currentValue = this.getSetting(key);
 
+        const formatted = options.format
+            ? options.format(currentValue)
+            : currentValue;
+
         this.addPageText(
             centerX,
             y,
-            `${label}：${options.format ? options.format(currentValue) : currentValue}`,
-            13,
+            `${label}：${formatted}`,
+            12,
             '#f3e8cb'
         );
 
         this.addPageButton(
-            centerX - 65,
-            y + 27,
+            centerX - 55,
+            y + 28,
             '－',
             () => {
                 const next = Math.max(
@@ -790,14 +1037,17 @@ export class LoginScene extends Phaser.Scene {
                     Number(this.getSetting(key)) - options.step
                 );
 
-                this.setSetting(key, Number(next.toFixed(2)));
+                this.setSetting(
+                    key,
+                    Number(next.toFixed(2))
+                );
             },
             45
         );
 
         this.addPageButton(
-            centerX + 65,
-            y + 27,
+            centerX + 55,
+            y + 28,
             '＋',
             () => {
                 const next = Math.min(
@@ -805,7 +1055,10 @@ export class LoginScene extends Phaser.Scene {
                     Number(this.getSetting(key)) + options.step
                 );
 
-                this.setSetting(key, Number(next.toFixed(2)));
+                this.setSetting(
+                    key,
+                    Number(next.toFixed(2))
+                );
             },
             45
         );
@@ -815,91 +1068,42 @@ export class LoginScene extends Phaser.Scene {
         const enabled = !!this.getSetting(key);
 
         this.addPageText(
-            centerX - 30,
+            centerX - 28,
             y,
             `${label}：${enabled ? '開啟' : '關閉'}`,
-            13,
+            12,
             '#f3e8cb'
         );
 
         this.addPageButton(
-            centerX + 100,
+            centerX + 93,
             y,
             enabled ? '關閉' : '開啟',
-            () => this.setSetting(key, !enabled),
-            70
+            () => {
+                this.setSetting(key, !enabled);
+            },
+            65
         );
     }
 
-    buildLanguagePage(centerX, startY, panelWidth, panelHeight) {
-        const languages = [
-            { code: 'zh-TW', name: '繁體中文' },
-            { code: 'zh-CN', name: '简体中文' },
-            { code: 'en', name: 'English' },
-            { code: 'ja', name: '日本語' },
-            { code: 'ko', name: '한국어' },
-            { code: 'th', name: 'ไทย' },
-            { code: 'fr', name: 'Français' },
-            { code: 'de', name: 'Deutsch' },
-            { code: 'es', name: 'Español' },
-            { code: 'pt-BR', name: 'Português' }
-        ];
+    // ==============================
+    // 畫面設定
+    // ==============================
 
-        const currentCode = LanguageSystem.getLanguage();
-
-        const current = languages.find(
-            item => item.code === currentCode
-        ) || languages[2];
-
+    buildScreenPage(centerX, startY) {
         this.addPageText(
             centerX,
             startY,
-            '選擇遊戲語言 / Select Language',
-            13,
-            '#d5c9a5'
+            '畫面設定',
+            15,
+            '#f3e8cb'
         );
-
-        this.addPageButton(
-            centerX,
-            startY + 32,
-            `${current.name}  ${this.languageMenuExpanded ? '▲' : '▼'}`,
-            () => {
-                this.languageMenuExpanded = !this.languageMenuExpanded;
-                this.buildSettingsPage();
-            },
-            Math.min(220, panelWidth - 50)
-        );
-
-        if (!this.languageMenuExpanded) return;
-
-        const gapX = Math.min(75, panelWidth * 0.22);
-        const listStartY = startY + 78;
-        const rowGap = 27;
-
-        languages.forEach((language, index) => {
-            const column = index % 2;
-            const row = Math.floor(index / 2);
-
-            const x = centerX + (column === 0 ? -gapX : gapX);
-            const y = listStartY + row * rowGap;
-
-            const selected = currentCode === language.code;
-
-            this.addPageButton(
-                x,
-                y,
-                `${selected ? '✓ ' : ''}${language.name}`,
-                () => LanguageSystem.setLanguage(language.code),
-                Math.min(135, panelWidth * 0.40)
-            );
-        });
-    }
-
-    buildScreenPage(centerX, startY) {
-        this.addPageText(centerX, startY, '畫面大小', 15, '#f3e8cb');
 
         this.addSettingRow(
-            centerX, startY + 38, '介面比例', 'screenScale',
+            centerX,
+            startY + 48,
+            '介面比例',
+            'screenScale',
             {
                 min: 0.8,
                 max: 1.2,
@@ -909,7 +1113,10 @@ export class LoginScene extends Phaser.Scene {
         );
 
         this.addSettingRow(
-            centerX, startY + 105, '文字大小', 'textSize',
+            centerX,
+            startY + 125,
+            '文字大小',
+            'textSize',
             {
                 min: 0.8,
                 max: 1.4,
@@ -919,21 +1126,38 @@ export class LoginScene extends Phaser.Scene {
         );
 
         this.addPageText(
-            centerX, startY + 165,
+            centerX,
+            startY + 190,
             '調整後會立即套用於登入畫面',
-            11, '#c8c8b5'
+            10,
+            '#c8c8b5'
         );
     }
 
+    // ==============================
+    // 音效設定
+    // ==============================
+
     buildSoundPage(centerX, startY) {
-        this.addPageText(centerX, startY, '音效設定', 15, '#f3e8cb');
+        this.addPageText(
+            centerX,
+            startY,
+            '音效設定',
+            15,
+            '#f3e8cb'
+        );
 
         this.addToggleRow(
-            centerX, startY + 35, '背景音樂', 'backgroundMusicEnabled'
+            centerX,
+            startY + 43,
+            '背景音樂',
+            'backgroundMusicEnabled'
         );
 
         this.addSettingRow(
-            centerX, startY + 82, '背景音樂音量',
+            centerX,
+            startY + 95,
+            '背景音樂音量',
             'backgroundMusicVolume',
             {
                 min: 0,
@@ -944,11 +1168,16 @@ export class LoginScene extends Phaser.Scene {
         );
 
         this.addToggleRow(
-            centerX, startY + 145, '遊戲音效', 'soundEffectsEnabled'
+            centerX,
+            startY + 170,
+            '遊戲音效',
+            'soundEffectsEnabled'
         );
 
         this.addSettingRow(
-            centerX, startY + 190, '遊戲音效音量',
+            centerX,
+            startY + 220,
+            '遊戲音效音量',
             'soundEffectsVolume',
             {
                 min: 0,
@@ -959,79 +1188,149 @@ export class LoginScene extends Phaser.Scene {
         );
 
         this.addPageText(
-            centerX, startY + 245,
+            centerX,
+            startY + 280,
             '音效控制需等待遊戲音效系統接入',
-            10, '#d5c9a5'
+            10,
+            '#d5c9a5'
         );
     }
+
+    // ==============================
+    // 操作與體驗
+    // ==============================
 
     buildOperationPage(centerX, startY) {
-        this.addPageText(centerX, startY, '操作與體驗', 15, '#f3e8cb');
-
-        this.addToggleRow(
-            centerX, startY + 38, '操作提示', 'operationTipsEnabled'
+        this.addPageText(
+            centerX,
+            startY,
+            '操作與體驗',
+            15,
+            '#f3e8cb'
         );
 
         this.addToggleRow(
-            centerX, startY + 82, '場景動畫', 'animationsEnabled'
+            centerX,
+            startY + 48,
+            '操作提示',
+            'operationTipsEnabled'
         );
 
         this.addToggleRow(
-            centerX, startY + 126, '夜間模式', 'nightModeEnabled'
+            centerX,
+            startY + 98,
+            '場景動畫',
+            'animationsEnabled'
         );
 
         this.addToggleRow(
-            centerX, startY + 170, '省電模式', 'powerSavingEnabled'
+            centerX,
+            startY + 148,
+            '夜間模式',
+            'nightModeEnabled'
+        );
+
+        this.addToggleRow(
+            centerX,
+            startY + 198,
+            '省電模式',
+            'powerSavingEnabled'
         );
 
         this.addPageText(
-            centerX, startY + 225,
-            '這些選項目前先保存設定值，其他場景將逐步接入。',
-            10, '#d5c9a5'
+            centerX,
+            startY + 260,
+            '其他場景將逐步接入這些設定',
+            10,
+            '#d5c9a5'
         );
     }
 
-    buildSystemPage(centerX, startY) {
-        this.addPageText(centerX, startY, '系統設定', 15, '#f3e8cb');
+    // ==============================
+    // 系統設定
+    // ==============================
 
+    buildSystemPage(centerX, startY) {
         this.addPageText(
-            centerX, startY + 45,
-            '遊戲版本：Alpha 2.0',
-            13, '#ffffff'
+            centerX,
+            startY,
+            '系統設定',
+            15,
+            '#f3e8cb'
         );
 
         this.addPageText(
-            centerX, startY + 78,
+            centerX,
+            startY + 55,
+            '遊戲版本：Alpha 2.0',
+            12,
+            '#ffffff'
+        );
+
+        this.addPageText(
+            centerX,
+            startY + 90,
             '《鱗片與種子：地下生態物語》',
-            11, '#d5c9a5'
+            10,
+            '#d5c9a5'
         );
 
         this.addPageButton(
             centerX,
-            startY + 130,
+            startY + 150,
             '恢復預設設定',
             () => {
                 SettingsSystem.reset();
+
                 this.languageMenuExpanded = false;
+
                 this.buildSettingsPage();
+                this.refreshSettingsRail();
             },
-            170
+            160
         );
 
         this.addPageText(
-            centerX, startY + 185,
-            '恢復預設只重設遊戲設定，不會刪除遊戲存檔。',
-            10, '#d5c9a5'
+            centerX,
+            startY + 215,
+            '只重設遊戲設定，不會刪除遊戲存檔',
+            10,
+            '#d5c9a5'
         );
     }
 
+    // ==============================
+    // 關閉設定中心
+    // ==============================
+
     closeSettings() {
-        if (this.settingsContainer) {
-            this.settingsContainer.destroy();
+        if (!this.settingsContainer) return;
+
+        this.tweens.killTweensOf(this.settingsContainer);
+
+        if (this.settingsPanel) {
+            this.tweens.killTweensOf(this.settingsPanel);
         }
+
+        if (this.settingsPageContainer) {
+            this.tweens.killTweensOf(
+                this.settingsPageContainer
+            );
+        }
+
+        this.settingsContainer.removeAll(true);
+        this.settingsContainer.destroy();
 
         this.settingsContainer = null;
         this.settingsPageContainer = null;
+        this.settingsRail = null;
+        this.settingsPanel = null;
+
+        this.settingsPanelWidth = null;
+        this.settingsPanelHeight = null;
+        this.settingsPanelX = null;
+        this.settingsPanelY = null;
+
         this.languageMenuExpanded = false;
     }
 }
