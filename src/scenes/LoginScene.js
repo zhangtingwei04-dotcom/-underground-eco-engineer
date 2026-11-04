@@ -1,3 +1,4 @@
+
 import { LanguageSystem } from '../systems/language-system.js';
 import { SettingsSystem } from '../systems/settings-system.js';
 
@@ -13,7 +14,7 @@ export class LoginScene extends Phaser.Scene {
         this.settingsPanel = null;
 
         this.settingsCategory = null;
-        this.settingsAnchorY = null;
+        this.settingsExpanded = false;
 
         this.particles = [];
     }
@@ -23,7 +24,9 @@ export class LoginScene extends Phaser.Scene {
         this.settingsPageContainer = null;
         this.settingsRail = null;
         this.settingsPanel = null;
+
         this.settingsCategory = null;
+        this.settingsExpanded = false;
 
         SettingsSystem.load();
 
@@ -41,8 +44,8 @@ export class LoginScene extends Phaser.Scene {
         this.languageListener = () => {
             this.drawLayout();
 
-            if (this.settingsContainer) {
-                this.buildSettingsPage();
+            if (this.settingsExpanded) {
+                this.refreshSettings();
             }
         };
 
@@ -80,9 +83,8 @@ export class LoginScene extends Phaser.Scene {
             this.drawLayout();
         }
 
-        if (this.settingsContainer) {
-            this.buildSettingsPage();
-            this.refreshSettingsRail();
+        if (this.settingsExpanded) {
+            this.refreshSettings();
         }
     }
 
@@ -267,7 +269,7 @@ export class LoginScene extends Phaser.Scene {
     handleResize() {
         if (!this.scene.isActive()) return;
 
-        const wasOpen = !!this.settingsContainer;
+        const wasOpen = this.settingsExpanded;
         const previousCategory = this.settingsCategory;
 
         if (wasOpen) {
@@ -277,8 +279,13 @@ export class LoginScene extends Phaser.Scene {
         this.drawBackground();
         this.drawLayout();
 
-        if (wasOpen && previousCategory) {
-            this.openSettings(previousCategory);
+        if (wasOpen) {
+            this.openSettings();
+
+            if (previousCategory) {
+                this.settingsCategory = previousCategory;
+                this.refreshSettings();
+            }
         }
     }
 
@@ -495,12 +502,8 @@ export class LoginScene extends Phaser.Scene {
     }
 
     addLayoutText(x, y, content, style) {
-        const text = this.add.text(
-            x,
-            y,
-            content,
-            style
-        ).setOrigin(0.5);
+        const text = this.add.text(x, y, content, style)
+            .setOrigin(0.5);
 
         this.layoutContainer.add(text);
 
@@ -572,7 +575,57 @@ export class LoginScene extends Phaser.Scene {
     }
 
     // ==============================
-    // 右側五個設定圖示
+    // 單一設定圖示
+    // ==============================
+
+    drawSettingsButton(width, height) {
+        const button = this.add.container(
+            width - 30,
+            32
+        );
+
+        const background = this.add.circle(
+            0,
+            0,
+            23,
+            0x344e3d,
+            0.98
+        );
+
+        background.setStrokeStyle(
+            2,
+            0xc5b78e,
+            1
+        );
+
+        const icon = this.add.text(
+            0,
+            0,
+            '⚙️',
+            {
+                fontSize: '25px'
+            }
+        ).setOrigin(0.5);
+
+        background.setInteractive({
+            useHandCursor: true
+        });
+
+        background.on('pointerdown', () => {
+            if (this.settingsExpanded) {
+                this.closeSettings();
+            } else {
+                this.openSettings();
+            }
+        });
+
+        button.add([background, icon]);
+
+        this.settingsButtonContainer.add(button);
+    }
+
+    // ==============================
+    // 五個設定分類
     // ==============================
 
     getSettingsCategories() {
@@ -585,62 +638,23 @@ export class LoginScene extends Phaser.Scene {
         ];
     }
 
-    drawSettingsButton(width, height) {
+    openSettings() {
+        if (this.settingsExpanded) return;
+
+        this.settingsExpanded = true;
+
+        this.settingsContainer = this.add.container(0, 0);
+        this.settingsContainer.setDepth(1000);
+
         this.settingsRail = this.add.container(0, 0);
-        this.settingsButtonContainer.add(this.settingsRail);
+        this.settingsContainer.add(this.settingsRail);
 
-        const categories = this.getSettingsCategories();
-
-        const spacing = Math.min(
-            60,
-            Math.max(39, (height - 48) / 4)
-        );
-
-        const startY = height / 2 - spacing * 2;
-
-        categories.forEach((category, index) => {
-            const y = startY + index * spacing;
-
-            const selected =
-                this.settingsCategory === category.id;
-
-            const background = this.add.circle(
-                width - 30,
-                y,
-                22,
-                selected ? 0x82936b : 0x344e3d,
-                0.98
-            );
-
-            background.setStrokeStyle(
-                selected ? 2 : 1,
-                0xc5b78e,
-                1
-            );
-
-            const icon = this.add.text(
-                width - 30,
-                y,
-                category.icon,
-                {
-                    fontSize: '21px'
-                }
-            ).setOrigin(0.5);
-
-            background.setInteractive({
-                useHandCursor: true
-            });
-
-            background.on('pointerdown', () => {
-                this.toggleSettings(category.id, y);
-            });
-
-            this.settingsRail.add([
-                background,
-                icon
-            ]);
-        });
+        this.refreshSettingsRail();
     }
+
+    // ==============================
+    // 垂直展開分類
+    // ==============================
 
     refreshSettingsRail() {
         if (!this.settingsRail) return;
@@ -648,39 +662,34 @@ export class LoginScene extends Phaser.Scene {
         this.settingsRail.removeAll(true);
 
         const width = this.scale.width;
-        const height = this.scale.height;
 
         const categories = this.getSettingsCategories();
 
-        const spacing = Math.min(
-            60,
-            Math.max(39, (height - 48) / 4)
-        );
-
-        const startY = height / 2 - spacing * 2;
+        const startX = width - 30;
+        const startY = 91;
+        const spacing = 51;
 
         categories.forEach((category, index) => {
             const y = startY + index * spacing;
 
-            const selected =
-                this.settingsCategory === category.id;
-
             const background = this.add.circle(
-                width - 30,
+                startX,
                 y,
-                22,
-                selected ? 0x82936b : 0x344e3d,
+                21,
+                this.settingsCategory === category.id
+                    ? 0x82936b
+                    : 0x344e3d,
                 0.98
             );
 
             background.setStrokeStyle(
-                selected ? 2 : 1,
+                this.settingsCategory === category.id ? 2 : 1,
                 0xc5b78e,
                 1
             );
 
             const icon = this.add.text(
-                width - 30,
+                startX,
                 y,
                 category.icon,
                 {
@@ -693,155 +702,118 @@ export class LoginScene extends Phaser.Scene {
             });
 
             background.on('pointerdown', () => {
-                this.toggleSettings(category.id, y);
+                this.selectSettingsCategory(category.id);
             });
 
             this.settingsRail.add([
                 background,
                 icon
             ]);
+
+            if (index === 0) {
+                this.tweens.add({
+                    targets: [background, icon],
+                    alpha: { from: 0, to: 1 },
+                    x: { from: startX + 20, to: startX },
+                    duration: 160,
+                    delay: index * 35,
+                    ease: 'Cubic.easeOut'
+                });
+            } else {
+                this.tweens.add({
+                    targets: [background, icon],
+                    alpha: { from: 0, to: 1 },
+                    x: { from: startX + 20, to: startX },
+                    duration: 160,
+                    delay: index * 35,
+                    ease: 'Cubic.easeOut'
+                });
+            }
         });
     }
 
     // ==============================
-    // 開啟 / 切換設定選單
+    // 選取分類
     // ==============================
 
-    toggleSettings(category, anchorY) {
-        if (
-            this.settingsContainer &&
-            this.settingsCategory === category
-        ) {
-            this.closeSettings();
-            return;
-        }
-
-        this.closeSettings();
-
-        this.openSettings(category, anchorY);
-    }
-
-    openSettings(category = 'language', anchorY = null) {
-        if (this.settingsContainer) return;
-
-        const height = this.scale.height;
-
+    selectSettingsCategory(category) {
         this.settingsCategory = category;
 
-        const categories = this.getSettingsCategories();
-        const spacing = Math.min(
-            60,
-            Math.max(39, (height - 48) / 4)
-        );
-
-        const categoryIndex = categories.findIndex(
-            item => item.id === category
-        );
-
-        const startY = height / 2 - spacing * 2;
-
-        this.settingsAnchorY =
-            anchorY !== null
-                ? anchorY
-                : startY + Math.max(0, categoryIndex) * spacing;
-
-        this.settingsContainer = this.add.container(0, 0);
-        this.settingsContainer.setDepth(1000);
-
-        // 透明點擊區：點擊選單外的空白處即可關閉
-        const outsideArea = this.add.rectangle(
-            this.scale.width / 2,
-            height / 2,
-            this.scale.width,
-            height,
-            0x000000,
-            0.001
-        );
-
-        outsideArea.setInteractive();
-
-        outsideArea.on('pointerdown', () => {
-            this.closeSettings();
-        });
-
-        this.settingsContainer.add(outsideArea);
-
-        this.settingsPageContainer = null;
-        this.settingsPanel = null;
-
-        this.buildSettingsPage();
         this.refreshSettingsRail();
+        this.buildSettingsPage();
+    }
+
+    refreshSettings() {
+        if (!this.settingsExpanded) return;
+
+        this.refreshSettingsRail();
+        this.buildSettingsPage();
     }
 
     // ==============================
-    // 建立左側展開式選單
+    // 設定內容面板
     // ==============================
 
     getSettingsPanelSize() {
-        const height = this.scale.height;
-
         const sizes = {
-            language: 330,
-            screen: 255,
-            sound: 350,
-            operation: 310,
-            system: 250
+            language: { width: 235, height: 250 },
+            screen: { width: 235, height: 230 },
+            sound: { width: 235, height: 340 },
+            operation: { width: 235, height: 290 },
+            system: { width: 235, height: 235 }
         };
 
-        const panelHeight = Math.min(
-            sizes[this.settingsCategory] || 300,
-            height - 20
-        );
-
-        const panelWidth = Math.min(
-            250,
-            this.scale.width - 82
-        );
+        const size = sizes[this.settingsCategory] || sizes.language;
 
         return {
-            width: panelWidth,
-            height: Math.max(180, panelHeight)
+            width: Math.min(size.width, this.scale.width - 80),
+            height: Math.min(size.height, this.scale.height - 20)
         };
     }
 
     buildSettingsPage() {
-        if (!this.settingsContainer) return;
+        if (!this.settingsContainer || !this.settingsCategory) {
+            return;
+        }
 
         if (this.settingsPageContainer) {
             this.settingsPageContainer.destroy();
             this.settingsPageContainer = null;
         }
 
-        const width = this.scale.width;
-        const height = this.scale.height;
-
         const size = this.getSettingsPanelSize();
 
         const panelWidth = size.width;
         const panelHeight = size.height;
 
-        // 圖示位於右側，選單緊貼圖示左方
-        const panelX =
-            width - 64 - panelWidth / 2;
+        const width = this.scale.width;
+        const height = this.scale.height;
 
-        let panelY =
-            this.settingsAnchorY || height / 2;
-
-        let panelTop = panelY - panelHeight / 2;
-
-        panelTop = Phaser.Math.Clamp(
-            panelTop,
-            10,
-            Math.max(10, height - panelHeight - 10)
+        const iconSpacing = 51;
+        const categoryIndex = this.getSettingsCategories().findIndex(
+            item => item.id === this.settingsCategory
         );
 
-        panelY = panelTop + panelHeight / 2;
+        const anchorY = 91 + Math.max(0, categoryIndex) * iconSpacing;
+
+        const panelX = width - 70 - panelWidth / 2;
+
+        let panelY = anchorY + panelHeight / 2;
+
+        if (panelY + panelHeight / 2 > height - 8) {
+            panelY = anchorY - panelHeight / 2;
+        }
+
+        panelY = Phaser.Math.Clamp(
+            panelY,
+            panelHeight / 2 + 8,
+            height - panelHeight / 2 - 8
+        );
 
         this.settingsPanelWidth = panelWidth;
         this.settingsPanelHeight = panelHeight;
         this.settingsPanelX = panelX;
         this.settingsPanelY = panelY;
-        this.settingsPanelTop = panelTop;
 
         this.settingsPanel = this.add.rectangle(
             panelX,
@@ -858,7 +830,6 @@ export class LoginScene extends Phaser.Scene {
             1
         );
 
-        // 面板空白處不會關閉選單
         this.settingsPanel.setInteractive();
 
         this.settingsContainer.add(this.settingsPanel);
@@ -866,34 +837,38 @@ export class LoginScene extends Phaser.Scene {
         this.settingsPageContainer = this.add.container(0, 0);
         this.settingsContainer.add(this.settingsPageContainer);
 
-        const centerX = panelX;
-        const contentY = panelTop + 34;
+        const contentY = panelY - panelHeight / 2 + 30;
 
         switch (this.settingsCategory) {
             case 'language':
-                this.buildLanguagePage(
-                    centerX,
-                    contentY,
-                    panelWidth
-                );
+                this.buildLanguagePage(panelX, contentY, panelWidth);
                 break;
 
             case 'screen':
-                this.buildScreenPage(centerX, contentY);
+                this.buildScreenPage(panelX, contentY);
                 break;
 
             case 'sound':
-                this.buildSoundPage(centerX, contentY);
+                this.buildSoundPage(panelX, contentY);
                 break;
 
             case 'operation':
-                this.buildOperationPage(centerX, contentY);
+                this.buildOperationPage(panelX, contentY);
                 break;
 
             case 'system':
-                this.buildSystemPage(centerX, contentY);
+                this.buildSystemPage(panelX, contentY);
                 break;
         }
+
+        this.settingsPageContainer.setAlpha(0);
+
+        this.tweens.add({
+            targets: this.settingsPageContainer,
+            alpha: 1,
+            duration: 160,
+            ease: 'Cubic.easeOut'
+        });
     }
 
     // ==============================
@@ -913,8 +888,8 @@ export class LoginScene extends Phaser.Scene {
             align: 'center',
             wordWrap: {
                 width: Math.min(
-                    this.settingsPanelWidth - 25,
-                    220
+                    this.settingsPanelWidth - 24,
+                    215
                 )
             }
         }).setOrigin(0.5);
@@ -952,21 +927,21 @@ export class LoginScene extends Phaser.Scene {
     }
 
     // ==============================
-    // 語言設定：十面國旗
+    // 語言設定：兩排五面國旗
     // ==============================
 
     buildLanguagePage(centerX, startY, panelWidth) {
         const languages = [
-            { code: 'zh-TW', flag: '🇹🇼', name: '繁體中文' },
-            { code: 'zh-CN', flag: '🇨🇳', name: '简体中文' },
-            { code: 'en', flag: '🇺🇸', name: 'English' },
+            { code: 'zh-TW', flag: '🇹🇼', name: '繁中' },
+            { code: 'zh-CN', flag: '🇨🇳', name: '简中' },
+            { code: 'en', flag: '🇺🇸', name: 'EN' },
             { code: 'ja', flag: '🇯🇵', name: '日本語' },
             { code: 'ko', flag: '🇰🇷', name: '한국어' },
             { code: 'th', flag: '🇹🇭', name: 'ไทย' },
-            { code: 'fr', flag: '🇫🇷', name: 'Français' },
-            { code: 'de', flag: '🇩🇪', name: 'Deutsch' },
-            { code: 'es', flag: '🇪🇸', name: 'Español' },
-            { code: 'pt-BR', flag: '🇧🇷', name: 'Português' }
+            { code: 'fr', flag: '🇫🇷', name: 'FR' },
+            { code: 'de', flag: '🇩🇪', name: 'DE' },
+            { code: 'es', flag: '🇪🇸', name: 'ES' },
+            { code: 'pt-BR', flag: '🇧🇷', name: 'PT' }
         ];
 
         const currentCode = LanguageSystem.getLanguage();
@@ -979,17 +954,11 @@ export class LoginScene extends Phaser.Scene {
             '#f3e8cb'
         );
 
-        const columns = 2;
-        const gapX = Math.min(62, panelWidth * 0.25);
-        const startListY = startY + 43;
+        const columns = 5;
+        const gapX = Math.min(39, (panelWidth - 30) / 5);
+        const gapY = 75;
 
-        const rowGap = Math.min(
-            46,
-            Math.max(
-                35,
-                (this.settingsPanelHeight - 100) / 5
-            )
-        );
+        const startListY = startY + 65;
 
         languages.forEach((language, index) => {
             const column = index % columns;
@@ -997,47 +966,65 @@ export class LoginScene extends Phaser.Scene {
 
             const x =
                 centerX +
-                (column === 0 ? -gapX : gapX);
+                (column - 2) * gapX;
 
-            const y = startListY + row * rowGap;
+            const y = startListY + row * gapY;
 
             const selected = currentCode === language.code;
 
-            const label =
-                `${language.flag} ${language.name}` +
-                (selected ? ' ✓' : '');
-
-            const button = this.add.text(
+            const background = this.add.rectangle(
                 x,
                 y,
-                label,
+                38,
+                57,
+                selected ? 0x647d58 : 0x344e3d,
+                1
+            );
+
+            background.setStrokeStyle(
+                selected ? 2 : 1,
+                0xc5b78e,
+                0.9
+            );
+
+            const flag = this.add.text(
+                x,
+                y - 8,
+                language.flag,
                 {
-                    fontSize: '11px',
-                    color: '#ffffff',
-                    backgroundColor: selected
-                        ? '#647d58'
-                        : '#344e3d',
-                    padding: { x: 5, y: 8 },
-                    fixedWidth: Math.min(108, panelWidth * 0.45),
-                    align: 'center'
+                    fontSize: '22px'
                 }
             ).setOrigin(0.5);
 
-            button.setInteractive({
+            const name = this.add.text(
+                x,
+                y + 16,
+                language.name,
+                {
+                    fontSize: '9px',
+                    color: '#ffffff'
+                }
+            ).setOrigin(0.5);
+
+            background.setInteractive({
                 useHandCursor: true
             });
 
-            button.on('pointerdown', () => {
+            background.on('pointerdown', () => {
                 LanguageSystem.setLanguage(language.code);
             });
 
-            this.settingsPageContainer.add(button);
+            this.settingsPageContainer.add([
+                background,
+                flag,
+                name
+            ]);
         });
 
         this.addPageText(
             centerX,
-            startListY + 5 * rowGap + 3,
-            '點擊國旗即可切換語言',
+            startListY + gapY + 47,
+            '選擇你想使用的遊戲語言',
             10,
             '#c5b78e'
         );
@@ -1326,9 +1313,7 @@ export class LoginScene extends Phaser.Scene {
             '恢復預設設定',
             () => {
                 SettingsSystem.reset();
-
-                this.buildSettingsPage();
-                this.refreshSettingsRail();
+                this.refreshSettings();
             },
             160
         );
@@ -1348,6 +1333,7 @@ export class LoginScene extends Phaser.Scene {
 
     closeSettings() {
         if (!this.settingsContainer) {
+            this.settingsExpanded = false;
             this.settingsCategory = null;
             return;
         }
@@ -1356,15 +1342,9 @@ export class LoginScene extends Phaser.Scene {
             this.settingsContainer
         );
 
-        if (this.settingsPanel) {
+        if (this.settingsRail) {
             this.tweens.killTweensOf(
-                this.settingsPanel
-            );
-        }
-
-        if (this.settingsPageContainer) {
-            this.tweens.killTweensOf(
-                this.settingsPageContainer
+                this.settingsRail
             );
         }
 
@@ -1373,22 +1353,15 @@ export class LoginScene extends Phaser.Scene {
 
         this.settingsContainer = null;
         this.settingsPageContainer = null;
+        this.settingsRail = null;
         this.settingsPanel = null;
 
         this.settingsPanelWidth = null;
         this.settingsPanelHeight = null;
         this.settingsPanelX = null;
         this.settingsPanelY = null;
-        this.settingsPanelTop = null;
 
         this.settingsCategory = null;
-        this.settingsAnchorY = null;
-
-        if (
-            this.settingsRail &&
-            this.settingsButtonContainer
-        ) {
-            this.refreshSettingsRail();
-        }
+        this.settingsExpanded = false;
     }
 }
