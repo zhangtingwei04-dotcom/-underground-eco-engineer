@@ -12,13 +12,10 @@
 
     <title>鱗片與種子：地下生態物語</title>
 
-    <!-- Phaser 3 遊戲引擎 -->
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
 
-    <!-- Supabase 雲端資料庫 -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    <!-- Supabase 連線設定 -->
     <script src="supabase-config.js"></script>
 
     <style>
@@ -32,78 +29,45 @@
             padding: 0;
             width: 100%;
             height: 100%;
-            min-height: 100%;
             overflow: hidden;
-            background-color: #1a110b;
-            overscroll-behavior: none;
+            background: #1a110b;
         }
 
         body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-
-            /* 支援 iPhone 安全區域 */
-            padding:
-                env(safe-area-inset-top)
-                env(safe-area-inset-right)
-                env(safe-area-inset-bottom)
-                env(safe-area-inset-left);
+            position: fixed;
+            inset: 0;
+            overscroll-behavior: none;
         }
 
         #game-container {
-            width: 100%;
-            height: 100%;
-            max-width: 1024px;
-            max-height: 768px;
+            position: fixed;
+
+            top: env(safe-area-inset-top, 0px);
+            right: env(safe-area-inset-right, 0px);
+            bottom: env(safe-area-inset-bottom, 0px);
+            left: env(safe-area-inset-left, 0px);
+
+            width: auto;
+            height: auto;
+
+            max-width: none;
+            max-height: none;
 
             display: flex;
             justify-content: center;
             align-items: center;
 
             overflow: hidden;
-            position: relative;
+            background: #1a110b;
         }
 
         #game-container canvas {
             display: block;
-
-            width: 100%;
-            height: 100%;
-
-            max-width: 100%;
-            max-height: 100%;
-
-            object-fit: contain;
+            width: 100% !important;
+            height: 100% !important;
+            max-width: none;
+            max-height: none;
             touch-action: none;
-        }
-
-        /* 手機直向 */
-        @media screen and (orientation: portrait) {
-            #game-container {
-                width: 100%;
-                height: 100%;
-                max-width: 100%;
-                max-height: 100%;
-            }
-        }
-
-        /* 手機橫向 */
-        @media screen and (orientation: landscape) {
-            #game-container {
-                width: 100%;
-                height: 100%;
-                max-width: 1024px;
-                max-height: 768px;
-            }
-        }
-
-        /* 桌面與平板 */
-        @media screen and (min-width: 768px) {
-            #game-container {
-                width: min(100%, 1024px);
-                height: min(100%, 768px);
-            }
         }
     </style>
 </head>
@@ -112,7 +76,6 @@
 
     <div id="game-container"></div>
 
-    <!-- 載入遊戲主程式 -->
     <script type="module" src="src/main.js"></script>
 
 </body>
