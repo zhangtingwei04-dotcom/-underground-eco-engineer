@@ -7,6 +7,13 @@
     "role": "Underground Ecologist",
     "motto": "Every scale tells a story. Every seed holds the promise of new life."
   },
+  "login": {
+    "welcome": "Welcome to Your Underground Ecosystem",
+    "welcome_message": "Every scale tells a story; every seed holds the promise of life.",
+    "start_exploring": "Start Exploring",
+    "login": "Log In",
+    "create_account": "Create Account"
+  },
   "ui": {
     "day": "Day {day}",
     "time": "Current Time",
@@ -25,6 +32,7 @@
     "close": "Close",
     "save": "Save Progress",
     "settings": "Settings",
+    "language": "Language",
     "time_phase": {
       "morning": "Morning",
       "day": "Daytime",
