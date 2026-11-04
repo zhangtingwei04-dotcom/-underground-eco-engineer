@@ -1,6 +1,7 @@
 // 鱗片與種子：地下生態物語
 // Main Entry Point - iPhone Responsive Fullscreen
 
+import { AudioSystem } from './systems/AudioSystem.js';
 import { LanguageSystem } from './systems/language-system.js';
 import { SettingsSystem } from './systems/settings-system.js';
 
