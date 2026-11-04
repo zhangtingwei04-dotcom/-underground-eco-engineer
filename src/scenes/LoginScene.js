@@ -1,6 +1,6 @@
 
 // 鱗片與種子：地下生態物語
-// Login Scene - Multilingual Underground Research Station
+// Login Scene - Responsive Portrait & Landscape
 
 import { LanguageSystem } from '../systems/language-system.js';
 
@@ -13,10 +13,7 @@ export class LoginScene extends Phaser.Scene {
     create() {
 
         this.drawBackground();
-        this.drawTitle();
-        this.drawWelcome();
-        this.drawButtons();
-        this.drawLanguageSelector();
+        this.drawLayout();
 
         this.languageListener = () => {
             this.scene.restart();
@@ -33,9 +30,20 @@ export class LoginScene extends Phaser.Scene {
                 this.languageListener
             );
         });
+
+        this.scale.on('resize', this.handleResize, this);
+
+        this.events.once('shutdown', () => {
+            this.scale.off('resize', this.handleResize, this);
+        });
     }
 
-    // 地下洞穴背景
+    // 判斷目前方向
+    isPortrait() {
+        return this.scale.height > this.scale.width;
+    }
+
+    // 背景
     drawBackground() {
 
         const graphics = this.add.graphics();
@@ -74,6 +82,7 @@ export class LoginScene extends Phaser.Scene {
 
             const x = Phaser.Math.Between(30, 994);
             const y = Phaser.Math.Between(100, 700);
+
             const radius = Phaser.Math.FloatBetween(1, 3);
 
             const particle = this.add.circle(
@@ -95,7 +104,7 @@ export class LoginScene extends Phaser.Scene {
         }
     }
 
-    // 繪製植物
+    // 植物
     drawPlant(x, y, color) {
 
         const graphics = this.add.graphics();
@@ -127,78 +136,311 @@ export class LoginScene extends Phaser.Scene {
         graphics.fillCircle(x, y - 45, 30);
     }
 
-    // 遊戲標題
-    drawTitle() {
+    // 重新排版
+    handleResize() {
 
-        this.add.text(
-            512,
-            125,
+        if (!this.scene.isActive()) return;
+
+        this.drawLayout();
+    }
+
+    // 清除舊版面
+    clearLayout() {
+
+        if (this.layoutContainer) {
+            this.layoutContainer.destroy(true);
+        }
+    }
+
+    // 建立版面
+    drawLayout() {
+
+        this.clearLayout();
+
+        this.layoutContainer = this.add.container(0, 0);
+
+        const portrait = this.isPortrait();
+
+        const width = this.scale.width;
+        const height = this.scale.height;
+
+        if (portrait) {
+            this.drawPortraitLayout(width, height);
+        } else {
+            this.drawLandscapeLayout(width, height);
+        }
+    }
+
+    // 直向版面
+    drawPortraitLayout(width, height) {
+
+        const centerX = width / 2;
+
+        const scaleFactor = Math.min(
+            width / 390,
+            height / 700
+        );
+
+        const titleSize = Math.max(
+            23,
+            Math.min(34, 34 * scaleFactor)
+        );
+
+        const subtitleSize = Math.max(
+            13,
+            Math.min(18, 18 * scaleFactor)
+        );
+
+        const buttonWidth = Math.min(width - 48, 330);
+        const buttonHeight = 54;
+
+        const compact = height < 650;
+
+        const titleY = height * 0.13;
+        const subtitleY = height * 0.20;
+        const welcomeY = height * 0.30;
+        const messageY = height * 0.37;
+
+        const buttonStartY = compact
+            ? height * 0.49
+            : height * 0.48;
+
+        const buttonGap = compact ? 65 : 72;
+
+        const languageTitleY = Math.min(
+            height - 95,
+            buttonStartY + buttonGap * 3 + 5
+        );
+
+        this.addLayoutText(
+            centerX,
+            titleY,
             LanguageSystem.t('game.title'),
             {
                 fontFamily: 'Georgia, serif',
-                fontSize: '48px',
+                fontSize: `${titleSize}px`,
+                color: '#f3e8cb',
+                fontStyle: 'bold',
+                stroke: '#243b2e',
+                strokeThickness: 4,
+                align: 'center',
+                wordWrap: { width: width - 32 }
+            }
+        );
+
+        this.addLayoutText(
+            centerX,
+            subtitleY,
+            LanguageSystem.t('game.subtitle'),
+            {
+                fontFamily: 'Georgia, serif',
+                fontSize: `${subtitleSize}px`,
+                color: '#d5c9a5',
+                align: 'center',
+                wordWrap: { width: width - 40 }
+            }
+        );
+
+        this.addLayoutText(
+            centerX,
+            welcomeY,
+            LanguageSystem.t('login.welcome'),
+            {
+                fontFamily: 'Georgia, serif',
+                fontSize: '18px',
+                color: '#f0e6ce',
+                align: 'center',
+                wordWrap: { width: width - 40 }
+            }
+        );
+
+        this.addLayoutText(
+            centerX,
+            messageY,
+            LanguageSystem.t('login.welcome_message'),
+            {
+                fontFamily: 'Arial, sans-serif',
+                fontSize: '13px',
+                color: '#d2d8c1',
+                align: 'center',
+                wordWrap: { width: width - 48 }
+            }
+        );
+
+        this.createResponsiveButton(
+            centerX,
+            buttonStartY,
+            buttonWidth,
+            buttonHeight,
+            LanguageSystem.t('login.start_exploring'),
+            'guestSelected'
+        );
+
+        this.createResponsiveButton(
+            centerX,
+            buttonStartY + buttonGap,
+            buttonWidth,
+            buttonHeight,
+            LanguageSystem.t('login.login'),
+            'loginSelected'
+        );
+
+        this.createResponsiveButton(
+            centerX,
+            buttonStartY + buttonGap * 2,
+            buttonWidth,
+            buttonHeight,
+            LanguageSystem.t('login.create_account'),
+            'registerSelected'
+        );
+
+        this.drawResponsiveLanguages(
+            centerX,
+            languageTitleY,
+            width,
+            height,
+            true
+        );
+    }
+
+    // 橫向版面
+    drawLandscapeLayout(width, height) {
+
+        const centerX = width / 2;
+
+        const ratio = Math.min(
+            width / 1024,
+            height / 768
+        );
+
+        this.addLayoutText(
+            centerX,
+            height * 0.16,
+            LanguageSystem.t('game.title'),
+            {
+                fontFamily: 'Georgia, serif',
+                fontSize: `${Math.max(27, 48 * ratio)}px`,
                 color: '#f3e8cb',
                 fontStyle: 'bold',
                 stroke: '#243b2e',
                 strokeThickness: 6,
                 align: 'center',
-                wordWrap: { width: 900 }
+                wordWrap: { width: width - 40 }
             }
-        ).setOrigin(0.5);
+        );
 
-        this.add.text(
-            512,
-            185,
+        this.addLayoutText(
+            centerX,
+            height * 0.24,
             LanguageSystem.t('game.subtitle'),
             {
                 fontFamily: 'Georgia, serif',
-                fontSize: '22px',
+                fontSize: '20px',
                 color: '#d5c9a5',
-                align: 'center',
-                wordWrap: { width: 850 }
+                align: 'center'
             }
-        ).setOrigin(0.5);
-    }
+        );
 
-    // 歡迎文字
-    drawWelcome() {
-
-        this.add.text(
-            512,
-            275,
+        this.addLayoutText(
+            centerX,
+            height * 0.36,
             LanguageSystem.t('login.welcome'),
             {
                 fontFamily: 'Georgia, serif',
-                fontSize: '25px',
+                fontSize: '22px',
                 color: '#f0e6ce',
                 align: 'center'
             }
-        ).setOrigin(0.5);
+        );
 
-        this.add.text(
-            512,
-            325,
+        this.addLayoutText(
+            centerX,
+            height * 0.43,
             LanguageSystem.t('login.welcome_message'),
             {
                 fontFamily: 'Arial, sans-serif',
-                fontSize: '16px',
+                fontSize: '15px',
                 color: '#d2d8c1',
                 align: 'center',
-                wordWrap: { width: 780 }
+                wordWrap: { width: width - 100 }
             }
-        ).setOrigin(0.5);
+        );
+
+        const buttonWidth = Math.min(330, width * 0.34);
+        const buttonHeight = 55;
+
+        const buttonGap = Math.min(78, height * 0.105);
+
+        const buttonStartY = height * 0.59;
+
+        this.createResponsiveButton(
+            centerX,
+            buttonStartY,
+            buttonWidth,
+            buttonHeight,
+            LanguageSystem.t('login.start_exploring'),
+            'guestSelected'
+        );
+
+        this.createResponsiveButton(
+            centerX,
+            buttonStartY + buttonGap,
+            buttonWidth,
+            buttonHeight,
+            LanguageSystem.t('login.login'),
+            'loginSelected'
+        );
+
+        this.createResponsiveButton(
+            centerX,
+            buttonStartY + buttonGap * 2,
+            buttonWidth,
+            buttonHeight,
+            LanguageSystem.t('login.create_account'),
+            'registerSelected'
+        );
+
+        this.drawResponsiveLanguages(
+            centerX,
+            height * 0.93,
+            width,
+            height,
+            false
+        );
     }
 
-    // 建立按鈕
-    createButton(x, y, label, eventName) {
+    // 加入版面文字
+    addLayoutText(x, y, content, style) {
+
+        const text = this.add.text(
+            x,
+            y,
+            content,
+            style
+        ).setOrigin(0.5);
+
+        this.layoutContainer.add(text);
+
+        return text;
+    }
+
+    // 自適應按鈕
+    createResponsiveButton(
+        x,
+        y,
+        width,
+        height,
+        label,
+        eventName
+    ) {
 
         const container = this.add.container(x, y);
 
         const background = this.add.rectangle(
             0,
             0,
-            330,
-            62,
+            width,
+            height,
             0x344e3d,
             0.96
         );
@@ -215,11 +457,11 @@ export class LoginScene extends Phaser.Scene {
             label,
             {
                 fontFamily: 'Arial, sans-serif',
-                fontSize: '21px',
+                fontSize: '18px',
                 color: '#f5ecd9',
                 fontStyle: 'bold',
                 align: 'center',
-                wordWrap: { width: 300 }
+                wordWrap: { width: width - 24 }
             }
         ).setOrigin(0.5);
 
@@ -235,7 +477,7 @@ export class LoginScene extends Phaser.Scene {
 
             this.tweens.add({
                 targets: container,
-                scale: 1.04,
+                scale: 1.03,
                 duration: 150
             });
         });
@@ -255,63 +497,67 @@ export class LoginScene extends Phaser.Scene {
             this.events.emit(eventName);
         });
 
+        this.layoutContainer.add(container);
+
         return container;
     }
 
-    // 三種入口功能
-    drawButtons() {
+    // 語言選單
+    drawResponsiveLanguages(
+        centerX,
+        titleY,
+        width,
+        height,
+        portrait
+    ) {
 
-        this.createButton(
-            512,
-            430,
-            LanguageSystem.t('login.start_exploring'),
-            'guestSelected'
-        );
-
-        this.createButton(
-            512,
-            515,
-            LanguageSystem.t('login.login'),
-            'loginSelected'
-        );
-
-        this.createButton(
-            512,
-            600,
-            LanguageSystem.t('login.create_account'),
-            'registerSelected'
-        );
-    }
-
-    // 十種語言選擇
-    drawLanguageSelector() {
-
-        this.add.text(
-            512,
-            680,
+        const title = this.addLayoutText(
+            centerX,
+            titleY,
             LanguageSystem.t('ui.language'),
             {
-                fontSize: '16px',
-                color: '#e5dcc5'
+                fontSize: '14px',
+                color: '#e5dcc5',
+                align: 'center'
             }
-        ).setOrigin(0.5);
+        );
 
         const languages = LanguageSystem.getAvailableLanguages();
 
         const currentLanguage = LanguageSystem.getLanguage();
 
-        const startX = 512 - ((languages.length - 1) * 82) / 2;
+        const columns = portrait ? 5 : 10;
+
+        const rows = Math.ceil(languages.length / columns);
+
+        const gapX = portrait
+            ? Math.min(65, (width - 32) / columns)
+            : Math.min(82, (width - 40) / columns);
+
+        const gapY = 25;
+
+        const startY = titleY + 27;
 
         languages.forEach((language, index) => {
 
-            const x = startX + index * 82;
+            const column = index % columns;
+            const row = Math.floor(index / columns);
 
-            const label = this.add.text(
-                x,
-                720,
+            const rowCount = Math.min(
+                columns,
+                languages.length - row * columns
+            );
+
+            const rowWidth = (rowCount - 1) * gapX;
+
+            const startX = centerX - rowWidth / 2;
+
+            const label = this.addLayoutText(
+                startX + column * gapX,
+                startY + row * gapY,
                 language.code,
                 {
-                    fontSize: '14px',
+                    fontSize: portrait ? '12px' : '14px',
                     color: currentLanguage === language.code
                         ? '#f5d68d'
                         : '#c5c5b5',
@@ -319,7 +565,7 @@ export class LoginScene extends Phaser.Scene {
                         ? 'bold'
                         : 'normal'
                 }
-            ).setOrigin(0.5);
+            );
 
             label.setInteractive({
                 useHandCursor: true
