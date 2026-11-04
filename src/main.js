@@ -1,8 +1,8 @@
-
 // 鱗片與種子：地下生態物語
 // Main Entry Point - iPhone Responsive Fullscreen
 
 import { LanguageSystem } from './systems/language-system.js';
+import { SettingsSystem } from './systems/settings-system.js';
 
 import { LoginScene } from './scenes/LoginScene.js';
 import { TerrariumSelectScene } from './scenes/TerrariumSelectScene.js';
@@ -15,11 +15,20 @@ window.addEventListener('DOMContentLoaded', async () => {
 
         console.log('【系統】正在啟動地下生態研究站...');
 
+        // 1. 初始化語言系統
         await LanguageSystem.initialize();
 
         console.log(
             '【語系系統】目前語言：',
             LanguageSystem.getLanguage()
+        );
+
+        // 2. 初始化遊戲設定
+        SettingsSystem.load();
+
+        console.log(
+            '【設定系統】設定載入完成：',
+            SettingsSystem.getSettings()
         );
 
         const container = document.getElementById('game-container');
@@ -55,7 +64,6 @@ window.addEventListener('DOMContentLoaded', async () => {
 
                 mode: Phaser.Scale.RESIZE,
 
-                // 關閉 Phaser 自動置中
                 autoCenter: Phaser.Scale.NO_CENTER,
 
                 expandParent: false
@@ -101,16 +109,13 @@ window.addEventListener('DOMContentLoaded', async () => {
             }, 150);
         };
 
-        // 監聽一般視窗尺寸變化
         window.addEventListener('resize', resizeGame);
 
-        // 監聽手機方向變化
         window.addEventListener('orientationchange', () => {
             setTimeout(resizeGame, 300);
             setTimeout(resizeGame, 700);
         });
 
-        // 監聽 iPhone Safari 可視區域變化
         if (window.visualViewport) {
             window.visualViewport.addEventListener(
                 'resize',
@@ -118,7 +123,6 @@ window.addEventListener('DOMContentLoaded', async () => {
             );
         }
 
-        // 監聽遊戲容器尺寸變化
         if (window.ResizeObserver) {
 
             const observer = new ResizeObserver(() => {
