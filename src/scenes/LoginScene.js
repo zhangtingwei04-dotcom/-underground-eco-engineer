@@ -579,21 +579,39 @@ export class LoginScene extends Phaser.Scene {
     drawSettingsButton(width, height) {
         const button = this.add.container(width - 30, 32);
 
+        const glow = this.add.circle(
+            0,
+            0,
+            25,
+            0x20b982,
+            0.10
+        );
+
         const background = this.add.circle(
             0,
             0,
             22,
-            0x344e3d,
-            0.35
+            0x09271f,
+            0.88
         );
 
-        background.setStrokeStyle(1.5, 0xc5b78e, 0.9);
+        background.setStrokeStyle(1.5, 0x55d6a4, 0.95);
 
         const icon = this.add.text(0, 0, '⚙️', {
-            fontSize: '25px'
+            fontSize: '24px'
         }).setOrigin(0.5);
 
         background.setInteractive({ useHandCursor: true });
+
+        background.on('pointerover', () => {
+            glow.setAlpha(0.3);
+            background.setStrokeStyle(2, 0x9affd3, 1);
+        });
+
+        background.on('pointerout', () => {
+            glow.setAlpha(0.1);
+            background.setStrokeStyle(1.5, 0x55d6a4, 0.95);
+        });
 
         background.on('pointerdown', () => {
             if (this.settingsExpanded) {
@@ -603,20 +621,21 @@ export class LoginScene extends Phaser.Scene {
             }
         });
 
-        button.add([background, icon]);
+        button.add([glow, background, icon]);
         this.settingsButtonContainer.add(button);
     }
 
     // ==============================
     // 分類資料
+    // 語言放在倒數第二個
     // ==============================
 
     getSettingsCategories() {
         return [
-            { id: 'language', icon: '🌐', label: '語言' },
             { id: 'screen', icon: '🖥️', label: '畫面' },
             { id: 'sound', icon: '🔊', label: '音效' },
             { id: 'operation', icon: '🎮', label: '操作' },
+            { id: 'language', icon: '🌐', label: '語言' },
             { id: 'system', icon: '⚙️', label: '系統' }
         ];
     }
@@ -647,6 +666,7 @@ export class LoginScene extends Phaser.Scene {
     refreshSettingsRail() {
         if (!this.settingsRail) return;
 
+        this.tweens.killTweensOf(this.settingsRail);
         this.settingsRail.removeAll(true);
 
         const x = this.scale.width - 30;
@@ -655,44 +675,67 @@ export class LoginScene extends Phaser.Scene {
 
         this.getSettingsCategories().forEach((category, index) => {
             const y = startY + index * spacing;
-
             const selected = this.settingsCategory === category.id;
+
+            const glow = this.add.circle(
+                x,
+                y,
+                24,
+                0x20d69a,
+                selected ? 0.22 : 0.07
+            );
 
             const background = this.add.circle(
                 x,
                 y,
-                20,
-                selected ? 0x82936b : 0x344e3d,
-                0.30
+                19,
+                selected ? 0x12513d : 0x09271f,
+                0.94
             );
 
             background.setStrokeStyle(
-                1.5,
-                selected ? 0xf0d99b : 0xc5b78e,
-                0.9
+                selected ? 2 : 1.2,
+                selected ? 0x9affd3 : 0x4abf91,
+                1
             );
 
             const icon = this.add.text(x, y, category.icon, {
-                fontSize: '21px'
+                fontSize: '20px'
             }).setOrigin(0.5);
 
             background.setInteractive({ useHandCursor: true });
+
+            background.on('pointerover', () => {
+                glow.setAlpha(0.32);
+                background.setStrokeStyle(2, 0xb5ffdf, 1);
+            });
+
+            background.on('pointerout', () => {
+                glow.setAlpha(selected ? 0.22 : 0.07);
+
+                background.setStrokeStyle(
+                    selected ? 2 : 1.2,
+                    selected ? 0x9affd3 : 0x4abf91,
+                    1
+                );
+            });
 
             background.on('pointerdown', () => {
                 this.selectSettingsCategory(category.id);
             });
 
-            this.settingsRail.add([background, icon]);
+            this.settingsRail.add([glow, background, icon]);
 
+            glow.setAlpha(0);
             background.setAlpha(0);
             icon.setAlpha(0);
 
             this.tweens.add({
-                targets: [background, icon],
+                targets: [glow, background, icon],
                 alpha: 1,
-                x: { from: x + 16, to: x },
+                x: { from: x + 12, to: x },
                 duration: 180,
-                delay: index * 65,
+                delay: index * 45,
                 ease: 'Cubic.easeOut'
             });
         });
@@ -703,7 +746,6 @@ export class LoginScene extends Phaser.Scene {
     // ==============================
 
     selectSettingsCategory(category) {
-        // 再點一次相同分類：收起內容
         if (this.settingsCategory === category) {
             this.settingsCategory = null;
             this.clearSettingsPage();
@@ -711,7 +753,6 @@ export class LoginScene extends Phaser.Scene {
             return;
         }
 
-        // 點其他分類：切換內容
         this.settingsCategory = category;
 
         this.refreshSettingsRail();
@@ -744,28 +785,60 @@ export class LoginScene extends Phaser.Scene {
     }
 
     // ==============================
-    // 浮動式選單位置
+    // 全息面板尺寸
     // ==============================
 
-    getSettingsPosition() {
-        const index = this.getSettingsCategories().findIndex(
-            item => item.id === this.settingsCategory
+    getPanelSize(category) {
+        const width = this.scale.width;
+
+        const panelWidth = Math.min(
+            320,
+            Math.max(230, width - 76)
         );
 
-        const anchorY = 91 + Math.max(0, index) * 49;
+        const heights = {
+            language: 205,
+            screen: 245,
+            sound: 300,
+            operation: 275,
+            system: 235
+        };
 
         return {
-            x: this.scale.width - 145,
-            y: Phaser.Math.Clamp(
-                anchorY,
-                45,
-                this.scale.height - 45
-            )
+            width: Math.min(panelWidth, width - 72),
+            height: heights[category] || 245
         };
     }
 
     // ==============================
-    // 建立透明設定內容
+    // 固定面板位置
+    // ==============================
+
+    getSettingsPosition() {
+        const size = this.getPanelSize(this.settingsCategory);
+
+        const railX = this.scale.width - 30;
+        const panelCenterX = railX - 27 - size.width / 2;
+
+        const minY = size.height / 2 + 12;
+        const maxY = this.scale.height - size.height / 2 - 12;
+
+        const centerY = minY <= maxY
+            ? Phaser.Math.Clamp(
+                this.scale.height * 0.5,
+                minY,
+                maxY
+            )
+            : this.scale.height / 2;
+
+        return {
+            x: panelCenterX,
+            y: centerY
+        };
+    }
+
+    // ==============================
+    // 建立翡翠全息設定面板
     // ==============================
 
     buildSettingsPage() {
@@ -778,45 +851,159 @@ export class LoginScene extends Phaser.Scene {
         this.settingsPageContainer = this.add.container(0, 0);
         this.settingsContainer.add(this.settingsPageContainer);
 
+        const size = this.getPanelSize(this.settingsCategory);
         const position = this.getSettingsPosition();
+
+        const centerX = position.x;
+        const centerY = position.y;
+
+        const panelLeft = centerX - size.width / 2;
+        const panelTop = centerY - size.height / 2;
+
+        // 外圍柔和光暈
+        const glow = this.add.graphics();
+
+        glow.fillStyle(0x13d995, 0.10);
+        glow.fillRoundedRect(
+            panelLeft - 5,
+            panelTop - 5,
+            size.width + 10,
+            size.height + 10,
+            17
+        );
+
+        this.settingsPageContainer.add(glow);
+
+        // 深翡翠玻璃底
+        const panel = this.add.graphics();
+
+        panel.fillStyle(0x061d18, 0.96);
+        panel.fillRoundedRect(
+            panelLeft,
+            panelTop,
+            size.width,
+            size.height,
+            13
+        );
+
+        // 外框
+        panel.lineStyle(2, 0x42dba5, 0.95);
+        panel.strokeRoundedRect(
+            panelLeft,
+            panelTop,
+            size.width,
+            size.height,
+            13
+        );
+
+        // 內框
+        panel.lineStyle(1, 0x9affd3, 0.35);
+        panel.strokeRoundedRect(
+            panelLeft + 5,
+            panelTop + 5,
+            size.width - 10,
+            size.height - 10,
+            10
+        );
+
+        // 頂部裝飾線
+        panel.lineStyle(2, 0x53dca8, 0.75);
+        panel.beginPath();
+        panel.moveTo(panelLeft + 18, panelTop + 35);
+        panel.lineTo(panelLeft + size.width - 18, panelTop + 35);
+        panel.strokePath();
+
+        // 左上角與右上角光點
+        panel.fillStyle(0xb1ffe0, 0.9);
+        panel.fillCircle(panelLeft + 13, panelTop + 13, 2);
+        panel.fillCircle(panelLeft + size.width - 13, panelTop + 13, 2);
+
+        this.settingsPageContainer.add(panel);
+
+        // 標題
+        const titleMap = {
+            language: 'LANGUAGE / 語言',
+            screen: 'DISPLAY / 畫面',
+            sound: 'AUDIO / 音效',
+            operation: 'CONTROL / 操作',
+            system: 'SYSTEM / 系統'
+        };
+
+        const title = this.add.text(
+            centerX,
+            panelTop + 19,
+            titleMap[this.settingsCategory],
+            {
+                fontFamily: 'Arial, sans-serif',
+                fontSize: '13px',
+                fontStyle: 'bold',
+                color: '#baffdf',
+                stroke: '#09291f',
+                strokeThickness: 2,
+                align: 'center'
+            }
+        ).setOrigin(0.5);
+
+        this.settingsPageContainer.add(title);
+
+        // 分類內容
+        const contentStartY = centerY - size.height / 2 + 64;
 
         switch (this.settingsCategory) {
             case 'language':
-                this.buildLanguagePage(position.x, position.y);
+                this.buildLanguagePage(centerX, contentStartY);
                 break;
 
             case 'screen':
-                this.buildScreenPage(position.x, position.y);
+                this.buildScreenPage(centerX, contentStartY);
                 break;
 
             case 'sound':
-                this.buildSoundPage(position.x, position.y);
+                this.buildSoundPage(centerX, contentStartY);
                 break;
 
             case 'operation':
-                this.buildOperationPage(position.x, position.y);
+                this.buildOperationPage(centerX, contentStartY);
                 break;
 
             case 'system':
-                this.buildSystemPage(position.x, position.y);
+                this.buildSystemPage(centerX, contentStartY);
                 break;
         }
+
+        // 面板淡入
+        this.settingsPageContainer.setAlpha(0);
+        this.settingsPageContainer.setScale(0.97);
+
+        this.tweens.add({
+            targets: this.settingsPageContainer,
+            alpha: 1,
+            scale: 1,
+            duration: 180,
+            ease: 'Cubic.easeOut'
+        });
     }
 
     // ==============================
-    // 透明文字
+    // 清晰文字
     // ==============================
 
-    addPageText(x, y, value, size = 13, color = '#f3e8cb') {
+    addPageText(
+        x,
+        y,
+        value,
+        size = 13,
+        color = '#f0ffeF'
+    ) {
         const text = this.add.text(x, y, value, {
             fontSize: `${size}px`,
             color,
             fontFamily: 'Arial, sans-serif',
-            stroke: '#17251d',
-            strokeThickness: 2,
+            stroke: '#04130f',
+            strokeThickness: 3,
             align: 'center',
             wordWrap: {
-                width: 210
+                width: Math.max(160, this.getPanelSize(this.settingsCategory).width - 30)
             }
         }).setOrigin(0.5);
 
@@ -826,108 +1013,220 @@ export class LoginScene extends Phaser.Scene {
     }
 
     // ==============================
-    // 無方框文字按鈕
+    // 全息文字按鈕
     // ==============================
 
     addPageButton(x, y, label, callback, width = 90) {
-        const button = this.add.text(x, y, label, {
-            fontSize: '13px',
-            color: '#f3e8cb',
-            padding: { x: 5, y: 5 },
-            fixedWidth: width,
-            align: 'center',
-            stroke: '#17251d',
-            strokeThickness: 2
+        const buttonContainer = this.add.container(x, y);
+
+        const background = this.add.graphics();
+
+        background.fillStyle(0x104936, 0.95);
+        background.fillRoundedRect(
+            -width / 2,
+            -13,
+            width,
+            26,
+            6
+        );
+
+        background.lineStyle(1, 0x55d9a5, 0.9);
+        background.strokeRoundedRect(
+            -width / 2,
+            -13,
+            width,
+            26,
+            6
+        );
+
+        const text = this.add.text(0, 0, label, {
+            fontSize: '12px',
+            color: '#e5fff2',
+            fontStyle: 'bold',
+            align: 'center'
         }).setOrigin(0.5);
 
-        button.setInteractive({ useHandCursor: true });
+        buttonContainer.add([background, text]);
 
-        button.on('pointerover', () => {
-            button.setColor('#ffe5a5');
-            button.setScale(1.08);
+        const hitArea = this.add.rectangle(
+            0,
+            0,
+            width,
+            28,
+            0xffffff,
+            0.001
+        );
+
+        hitArea.setInteractive({ useHandCursor: true });
+        buttonContainer.add(hitArea);
+
+        hitArea.on('pointerover', () => {
+            background.clear();
+
+            background.fillStyle(0x1c7252, 1);
+            background.fillRoundedRect(
+                -width / 2,
+                -13,
+                width,
+                26,
+                6
+            );
+
+            background.lineStyle(1.5, 0xa4ffda, 1);
+            background.strokeRoundedRect(
+                -width / 2,
+                -13,
+                width,
+                26,
+                6
+            );
+
+            buttonContainer.setScale(1.04);
         });
 
-        button.on('pointerout', () => {
-            button.setColor('#f3e8cb');
-            button.setScale(1);
+        hitArea.on('pointerout', () => {
+            background.clear();
+
+            background.fillStyle(0x104936, 0.95);
+            background.fillRoundedRect(
+                -width / 2,
+                -13,
+                width,
+                26,
+                6
+            );
+
+            background.lineStyle(1, 0x55d9a5, 0.9);
+            background.strokeRoundedRect(
+                -width / 2,
+                -13,
+                width,
+                26,
+                6
+            );
+
+            buttonContainer.setScale(1);
         });
 
-        button.on('pointerdown', callback);
+        hitArea.on('pointerdown', callback);
 
-        this.settingsPageContainer.add(button);
+        this.settingsPageContainer.add(buttonContainer);
 
-        return button;
+        return buttonContainer;
     }
 
     // ==============================
-    // 語言：兩排五面國旗
+    // 語言：兩排五面國旗＋語言名稱
     // ==============================
 
-    buildLanguagePage(centerX, centerY) {
+    buildLanguagePage(centerX, startY) {
         const languages = [
-            { code: 'zh-TW', flag: '🇹🇼' },
-            { code: 'zh-CN', flag: '🇨🇳' },
-            { code: 'en', flag: '🇺🇸' },
-            { code: 'ja', flag: '🇯🇵' },
-            { code: 'ko', flag: '🇰🇷' },
-            { code: 'th', flag: '🇹🇭' },
-            { code: 'fr', flag: '🇫🇷' },
-            { code: 'de', flag: '🇩🇪' },
-            { code: 'es', flag: '🇪🇸' },
-            { code: 'pt-BR', flag: '🇧🇷' }
+            { code: 'zh-TW', flag: '🇹🇼', label: '繁體中文' },
+            { code: 'zh-CN', flag: '🇨🇳', label: '简体中文' },
+            { code: 'en', flag: '🇺🇸', label: 'English' },
+            { code: 'ja', flag: '🇯🇵', label: '日本語' },
+            { code: 'ko', flag: '🇰🇷', label: '한국어' },
+            { code: 'th', flag: '🇹🇭', label: 'ไทย' },
+            { code: 'fr', flag: '🇫🇷', label: 'Français' },
+            { code: 'de', flag: '🇩🇪', label: 'Deutsch' },
+            { code: 'es', flag: '🇪🇸', label: 'Español' },
+            { code: 'pt-BR', flag: '🇧🇷', label: 'Português' }
         ];
 
         const currentCode = LanguageSystem.getLanguage();
 
-        // 依照螢幕寬度調整間距
-        const spacingX = Math.min(
-            35,
-            Math.max(27, (this.scale.width - 90) / 4)
-        );
+        const panelWidth = this.getPanelSize('language').width;
+        const cellWidth = (panelWidth - 24) / 5;
 
-        const spacingY = 43;
-
-        // 國旗排列在語言圖標左側
-        const gridCenterX = Math.min(
-            this.scale.width - 30 - spacingX * 2 - 15,
-            centerX
-        );
-
-        const startX = gridCenterX - spacingX * 2;
-        const startY = centerY - spacingY / 2;
+        const startX = centerX - panelWidth / 2 + 12 + cellWidth / 2;
+        const rowGap = 62;
 
         languages.forEach((language, index) => {
             const column = index % 5;
             const row = Math.floor(index / 5);
 
-            const x = startX + column * spacingX;
-            const y = startY + row * spacingY;
+            const x = startX + column * cellWidth;
+            const y = startY + 18 + row * rowGap;
 
             const selected = currentCode === language.code;
 
+            const item = this.add.container(x, y);
+
+            // 選取語言的翡翠光圈
+            if (selected) {
+                const selectedGlow = this.add.circle(
+                    0,
+                    3,
+                    24,
+                    0x24d99b,
+                    0.17
+                );
+
+                selectedGlow.setStrokeStyle(
+                    1.5,
+                    0x9affd3,
+                    0.85
+                );
+
+                item.add(selectedGlow);
+            }
+
             const flag = this.add.text(
-                x,
-                y,
+                0,
+                -8,
                 language.flag,
                 {
-                    fontSize: selected ? '29px' : '26px',
-                    stroke: selected ? '#f5d98f' : '#17251d',
-                    strokeThickness: selected ? 2 : 1
+                    fontSize: selected ? '27px' : '25px'
                 }
             ).setOrigin(0.5);
 
-            flag.setInteractive({ useHandCursor: true });
+            const label = this.add.text(
+                0,
+                19,
+                language.label,
+                {
+                    fontFamily: 'Arial, sans-serif',
+                    fontSize: '8px',
+                    fontStyle: selected ? 'bold' : 'normal',
+                    color: selected ? '#aaffd8' : '#effff5',
+                    stroke: '#04130f',
+                    strokeThickness: 2,
+                    align: 'center',
+                    fixedWidth: cellWidth - 1,
+                    wordWrap: {
+                        width: cellWidth - 1
+                    }
+                }
+            ).setOrigin(0.5);
 
-            flag.on('pointerover', () => {
-                flag.setScale(1.2);
+            item.add([flag, label]);
+
+            const hitArea = this.add.rectangle(
+                0,
+                4,
+                cellWidth - 2,
+                55,
+                0xffffff,
+                0.001
+            );
+
+            hitArea.setInteractive({ useHandCursor: true });
+            item.add(hitArea);
+
+            hitArea.on('pointerover', () => {
+                item.setScale(1.12);
+                label.setColor('#b5ffdc');
             });
 
-            flag.on('pointerout', () => {
-                flag.setScale(1);
+            hitArea.on('pointerout', () => {
+                item.setScale(1);
+
+                label.setColor(
+                    selected ? '#aaffd8' : '#effff5'
+                );
             });
 
-            flag.on('pointerdown', () => {
-                // 選擇語言後自動收起國旗
+            hitArea.on('pointerdown', () => {
                 this.settingsCategory = null;
                 this.clearSettingsPage();
                 this.refreshSettingsRail();
@@ -935,18 +1234,17 @@ export class LoginScene extends Phaser.Scene {
                 LanguageSystem.setLanguage(language.code);
             });
 
-            this.settingsPageContainer.add(flag);
+            this.settingsPageContainer.add(item);
 
-            // 國旗逐一淡入
-            flag.setAlpha(0);
-            flag.setScale(0.65);
+            item.setAlpha(0);
+            item.setScale(0.75);
 
             this.tweens.add({
-                targets: flag,
+                targets: item,
                 alpha: 1,
-                scale: selected ? 1.08 : 1,
-                duration: 170,
-                delay: index * 75,
+                scale: selected ? 1.06 : 1,
+                duration: 200,
+                delay: index * 45,
                 ease: 'Back.easeOut'
             });
         });
@@ -971,7 +1269,7 @@ export class LoginScene extends Phaser.Scene {
         );
 
         this.addPageButton(
-            centerX - 45,
+            centerX - 48,
             y + 28,
             '－',
             () => {
@@ -980,13 +1278,16 @@ export class LoginScene extends Phaser.Scene {
                     Number(this.getSetting(key)) - options.step
                 );
 
-                this.setSetting(key, Number(next.toFixed(2)));
+                this.setSetting(
+                    key,
+                    Number(next.toFixed(2))
+                );
             },
-            45
+            42
         );
 
         this.addPageButton(
-            centerX + 45,
+            centerX + 48,
             y + 28,
             '＋',
             () => {
@@ -995,9 +1296,12 @@ export class LoginScene extends Phaser.Scene {
                     Number(this.getSetting(key)) + options.step
                 );
 
-                this.setSetting(key, Number(next.toFixed(2)));
+                this.setSetting(
+                    key,
+                    Number(next.toFixed(2))
+                );
             },
-            45
+            42
         );
     }
 
@@ -1005,20 +1309,20 @@ export class LoginScene extends Phaser.Scene {
         const enabled = !!this.getSetting(key);
 
         this.addPageText(
-            centerX - 20,
+            centerX - 25,
             y,
             `${label}：${enabled ? '開啟' : '關閉'}`,
             12
         );
 
         this.addPageButton(
-            centerX + 82,
+            centerX + 83,
             y,
-            enabled ? '●' : '○',
+            enabled ? '● 開啟' : '○ 關閉',
             () => {
                 this.setSetting(key, !enabled);
             },
-            30
+            66
         );
     }
 
@@ -1031,7 +1335,8 @@ export class LoginScene extends Phaser.Scene {
             centerX,
             startY,
             '畫面設定',
-            14
+            14,
+            '#baffdf'
         );
 
         this.addSettingRow(
@@ -1072,7 +1377,8 @@ export class LoginScene extends Phaser.Scene {
             centerX,
             startY,
             '音效設定',
-            14
+            14,
+            '#baffdf'
         );
 
         this.addToggleRow(
@@ -1127,7 +1433,8 @@ export class LoginScene extends Phaser.Scene {
             centerX,
             startY,
             '操作設定',
-            14
+            14,
+            '#baffdf'
         );
 
         this.addToggleRow(
@@ -1168,7 +1475,8 @@ export class LoginScene extends Phaser.Scene {
             centerX,
             startY,
             '系統設定',
-            14
+            14,
+            '#baffdf'
         );
 
         this.addPageText(
