@@ -1,6 +1,5 @@
-
 // 鱗片與種子：地下生態物語
-// Login Scene - Responsive Layout & Settings Center
+// Login Scene - Responsive Layout & Collapsible Language Settings
 
 import { LanguageSystem } from '../systems/language-system.js';
 
@@ -8,12 +7,15 @@ export class LoginScene extends Phaser.Scene {
 
     constructor() {
         super({ key: 'LoginScene' });
+
         this.settingsContainer = null;
+        this.languageMenuContainer = null;
     }
 
     create() {
 
         this.settingsContainer = null;
+        this.languageMenuContainer = null;
 
         this.backgroundContainer = this.add.container(0, 0);
         this.layoutContainer = this.add.container(0, 0);
@@ -27,6 +29,7 @@ export class LoginScene extends Phaser.Scene {
             if (this.settingsContainer) {
                 this.settingsContainer.destroy();
                 this.settingsContainer = null;
+                this.languageMenuContainer = null;
             }
 
             this.drawLayout();
@@ -130,8 +133,15 @@ export class LoginScene extends Phaser.Scene {
 
         for (let i = 0; i < particleCount; i++) {
 
-            const x = Phaser.Math.Between(10, Math.max(11, width - 10));
-            const y = Phaser.Math.Between(20, Math.max(21, height - 20));
+            const x = Phaser.Math.Between(
+                10,
+                Math.max(11, width - 10)
+            );
+
+            const y = Phaser.Math.Between(
+                20,
+                Math.max(21, height - 20)
+            );
 
             const particle = this.add.circle(
                 x,
@@ -205,6 +215,7 @@ export class LoginScene extends Phaser.Scene {
         if (this.settingsContainer) {
             this.settingsContainer.destroy();
             this.settingsContainer = null;
+            this.languageMenuContainer = null;
         }
 
         this.drawBackground();
@@ -232,7 +243,7 @@ export class LoginScene extends Phaser.Scene {
         this.drawSettingsButton(width, height);
     }
 
-    // 直向版面：保留主標題，移除副標題
+    // 直向版面
     drawPortraitLayout(centerX, width, height) {
 
         const shortScreen = height < 650;
@@ -312,7 +323,7 @@ export class LoginScene extends Phaser.Scene {
         );
     }
 
-    // 橫向版面：保留主標題，移除副標題
+    // 橫向版面
     drawLandscapeLayout(centerX, width, height) {
 
         const margin = Math.max(18, width * 0.04);
@@ -373,6 +384,7 @@ export class LoginScene extends Phaser.Scene {
         );
 
         const buttonWidth = Math.min(260, width * 0.42);
+
         const buttonHeight = Math.max(
             34,
             Math.min(42, height * 0.12)
@@ -610,7 +622,8 @@ export class LoginScene extends Phaser.Scene {
             centerX,
             centerY,
             panelWidth,
-            panelHeight
+            panelHeight,
+            false
         );
 
         const closeButton = this.add.text(
@@ -639,12 +652,13 @@ export class LoginScene extends Phaser.Scene {
         this.settingsContainer.add(closeButton);
     }
 
-    // 十種語言選單
+    // 十種語言收合式選單
     createSettingsLanguages(
         centerX,
         centerY,
         panelWidth,
-        panelHeight
+        panelHeight,
+        expanded = false
     ) {
 
         const languages = [
@@ -662,11 +676,68 @@ export class LoginScene extends Phaser.Scene {
 
         const currentLanguage = LanguageSystem.getLanguage();
 
-        const columns = 2;
-        const gapX = Math.min(170, panelWidth * 0.39);
-        const rowGap = Math.min(42, panelHeight * 0.105);
+        const current = languages.find(
+            language => language.code === currentLanguage
+        ) || languages[2];
 
-        const startY = centerY - rowGap * 2;
+        // 清除舊選單
+        if (this.languageMenuContainer) {
+            this.languageMenuContainer.destroy();
+        }
+
+        this.languageMenuContainer = this.add.container(0, 0);
+
+        this.settingsContainer.add(
+            this.languageMenuContainer
+        );
+
+        // 目前語言按鈕
+        const currentButton = this.add.text(
+            centerX,
+            centerY - 65,
+            `${current.name}  ${expanded ? '▲' : '▼'}`,
+            {
+                fontSize: '17px',
+                color: '#f5d68d',
+                backgroundColor: '#526b4e',
+                padding: {
+                    x: 20,
+                    y: 12
+                },
+                fixedWidth: Math.min(260, panelWidth * 0.75),
+                align: 'center'
+            }
+        ).setOrigin(0.5);
+
+        currentButton.setInteractive({
+            useHandCursor: true
+        });
+
+        currentButton.on('pointerdown', () => {
+
+            this.createSettingsLanguages(
+                centerX,
+                centerY,
+                panelWidth,
+                panelHeight,
+                !expanded
+            );
+
+        });
+
+        this.languageMenuContainer.add(currentButton);
+
+        // 收合狀態
+        if (!expanded) {
+            return;
+        }
+
+        // 展開狀態
+        const columns = 2;
+        const gapX = Math.min(170, panelWidth * 0.38);
+        const rowGap = Math.min(36, panelHeight * 0.09);
+
+        const startY = centerY - 15;
 
         languages.forEach((language, index) => {
 
@@ -686,14 +757,14 @@ export class LoginScene extends Phaser.Scene {
                 y,
                 (selected ? '✓ ' : '') + language.name,
                 {
-                    fontSize: '15px',
+                    fontSize: '14px',
                     color: selected ? '#f5d68d' : '#ffffff',
                     backgroundColor: selected
                         ? '#526b4e'
                         : '#344e3d',
                     padding: {
                         x: 8,
-                        y: 8
+                        y: 7
                     },
                     fixedWidth: Math.min(150, panelWidth * 0.42),
                     align: 'center'
@@ -709,13 +780,24 @@ export class LoginScene extends Phaser.Scene {
                 if (
                     LanguageSystem.getLanguage() === language.code
                 ) {
+
+                    this.createSettingsLanguages(
+                        centerX,
+                        centerY,
+                        panelWidth,
+                        panelHeight,
+                        false
+                    );
+
                     return;
                 }
 
                 LanguageSystem.setLanguage(language.code);
+
             });
 
-            this.settingsContainer.add(button);
+            this.languageMenuContainer.add(button);
+
         });
     }
 
@@ -723,8 +805,11 @@ export class LoginScene extends Phaser.Scene {
     closeSettings() {
 
         if (this.settingsContainer) {
+
             this.settingsContainer.destroy();
+
             this.settingsContainer = null;
+            this.languageMenuContainer = null;
         }
     }
 }
