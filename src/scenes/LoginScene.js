@@ -1,7 +1,8 @@
 // 鱗片與種子：地下生態物語
-// Login Scene - Responsive Layout & Collapsible Language Settings
+// Login Scene - Complete Settings Center
 
 import { LanguageSystem } from '../systems/language-system.js';
+import { SettingsSystem } from '../systems/settings-system.js';
 
 export class LoginScene extends Phaser.Scene {
 
@@ -9,15 +10,19 @@ export class LoginScene extends Phaser.Scene {
         super({ key: 'LoginScene' });
 
         this.settingsContainer = null;
-        this.languageMenuContainer = null;
+        this.settingsPageContainer = null;
         this.languageMenuExpanded = false;
+        this.settingsCategory = 'language';
     }
 
     create() {
 
         this.settingsContainer = null;
-        this.languageMenuContainer = null;
+        this.settingsPageContainer = null;
         this.languageMenuExpanded = false;
+        this.settingsCategory = 'language';
+
+        SettingsSystem.load();
 
         this.backgroundContainer = this.add.container(0, 0);
         this.layoutContainer = this.add.container(0, 0);
@@ -26,28 +31,12 @@ export class LoginScene extends Phaser.Scene {
         this.drawBackground();
         this.drawLayout();
 
-        // 語言切換監聽器
         this.languageListener = () => {
 
-            // 記住設定視窗是否開啟
-            const settingsIsOpen = !!this.settingsContainer;
-
-            // 記住語言選單是否展開
-            const wasExpanded = this.languageMenuExpanded;
-
-            // 更新主畫面文字
             this.drawLayout();
 
-            // 不關閉設定視窗
-            if (settingsIsOpen) {
-
-                this.createSettingsLanguages(
-                    this.scale.width / 2,
-                    this.scale.height / 2,
-                    Math.min(this.scale.width - 28, 460),
-                    Math.min(this.scale.height - 28, 500),
-                    wasExpanded
-                );
+            if (this.settingsContainer) {
+                this.buildSettingsPage();
             }
         };
 
@@ -69,16 +58,50 @@ export class LoginScene extends Phaser.Scene {
         this.scale.on('resize', this.handleResize, this);
     }
 
+    // ==============================
+    // 基礎設定
+    // ==============================
+
+    getSetting(key) {
+        return SettingsSystem.get(key);
+    }
+
+    setSetting(key, value) {
+
+        SettingsSystem.set(key, value);
+
+        if (key === 'screenScale' || key === 'textSize') {
+            this.drawLayout();
+        }
+
+        if (this.settingsContainer) {
+            this.buildSettingsPage();
+        }
+    }
+
+    getScreenScale() {
+        return Number(this.getSetting('screenScale')) || 1;
+    }
+
+    getTextScale() {
+        return Number(this.getSetting('textSize')) || 1;
+    }
+
     isPortrait() {
         return this.scale.height > this.scale.width;
     }
 
+    // ==============================
+    // 背景
+    // ==============================
+
     clearBackground() {
 
-        this.particles.forEach(particle => particle.destroy());
+        this.particles.forEach(particle => {
+            particle.destroy();
+        });
 
         this.particles = [];
-
         this.backgroundContainer.removeAll(true);
     }
 
@@ -102,7 +125,6 @@ export class LoginScene extends Phaser.Scene {
         graphics.fillRect(0, 0, width, height);
 
         graphics.fillStyle(0xe6c58b, 0.12);
-
         graphics.fillCircle(
             width * 0.5,
             height * 0.37,
@@ -110,7 +132,6 @@ export class LoginScene extends Phaser.Scene {
         );
 
         graphics.fillStyle(0xd8b878, 0.08);
-
         graphics.fillCircle(
             width * 0.5,
             height * 0.37,
@@ -118,7 +139,6 @@ export class LoginScene extends Phaser.Scene {
         );
 
         graphics.fillStyle(0x17251d, 1);
-
         graphics.fillEllipse(
             width * 0.5,
             height * 1.01,
@@ -127,7 +147,6 @@ export class LoginScene extends Phaser.Scene {
         );
 
         graphics.fillStyle(0x526354, 0.9);
-
         graphics.fillEllipse(
             width * 0.04,
             height * 0.87,
@@ -136,7 +155,6 @@ export class LoginScene extends Phaser.Scene {
         );
 
         graphics.fillStyle(0x394b3d, 1);
-
         graphics.fillEllipse(
             width * 0.96,
             height * 0.88,
@@ -177,7 +195,6 @@ export class LoginScene extends Phaser.Scene {
             );
 
             this.backgroundContainer.add(particle);
-
             this.particles.push(particle);
 
             this.tweens.add({
@@ -203,7 +220,6 @@ export class LoginScene extends Phaser.Scene {
         const size = Math.max(0.65, plantScale);
 
         graphics.lineStyle(4 * size, 0x789b72, 1);
-
         graphics.beginPath();
         graphics.moveTo(x, y);
         graphics.lineTo(x, y - 55 * size);
@@ -226,32 +242,30 @@ export class LoginScene extends Phaser.Scene {
         );
 
         graphics.fillStyle(color, 0.15);
-
-        graphics.fillCircle(
-            x,
-            y - 45 * size,
-            30 * size
-        );
+        graphics.fillCircle(x, y - 45 * size, 30 * size);
 
         this.backgroundContainer.add(graphics);
     }
+
+    // ==============================
+    // 螢幕尺寸變更
+    // ==============================
 
     handleResize() {
 
         if (!this.scene.isActive()) return;
 
-        if (this.settingsContainer) {
-
-            this.settingsContainer.destroy();
-
-            this.settingsContainer = null;
-            this.languageMenuContainer = null;
-            this.languageMenuExpanded = false;
-        }
-
         this.drawBackground();
         this.drawLayout();
+
+        if (this.settingsContainer) {
+            this.closeSettings();
+        }
     }
+
+    // ==============================
+    // 登入畫面
+    // ==============================
 
     clearLayout() {
         this.layoutContainer.removeAll(true);
@@ -266,29 +280,20 @@ export class LoginScene extends Phaser.Scene {
         const centerX = width / 2;
 
         if (this.isPortrait()) {
-
-            this.drawPortraitLayout(
-                centerX,
-                width,
-                height
-            );
-
+            this.drawPortraitLayout(centerX, width, height);
         } else {
-
-            this.drawLandscapeLayout(
-                centerX,
-                width,
-                height
-            );
+            this.drawLandscapeLayout(centerX, width, height);
         }
 
         this.drawSettingsButton(width, height);
+
+        this.layoutContainer.setScale(this.getScreenScale());
     }
 
-    // 直向版面
     drawPortraitLayout(centerX, width, height) {
 
         const shortScreen = height < 650;
+        const textScale = this.getTextScale();
 
         this.addLayoutText(
             centerX,
@@ -296,7 +301,7 @@ export class LoginScene extends Phaser.Scene {
             LanguageSystem.t('game.title'),
             {
                 fontFamily: 'Georgia, serif',
-                fontSize: width < 360 ? '22px' : '28px',
+                fontSize: `${(width < 360 ? 22 : 28) * textScale}px`,
                 color: '#f3e8cb',
                 fontStyle: 'bold',
                 stroke: '#243b2e',
@@ -312,7 +317,7 @@ export class LoginScene extends Phaser.Scene {
             LanguageSystem.t('login.welcome'),
             {
                 fontFamily: 'Georgia, serif',
-                fontSize: '18px',
+                fontSize: `${18 * textScale}px`,
                 color: '#f0e6ce',
                 align: 'center',
                 wordWrap: { width: width - 32 }
@@ -325,7 +330,7 @@ export class LoginScene extends Phaser.Scene {
             LanguageSystem.t('login.welcome_message'),
             {
                 fontFamily: 'Arial, sans-serif',
-                fontSize: '13px',
+                fontSize: `${13 * textScale}px`,
                 color: '#d2d8c1',
                 align: 'center',
                 wordWrap: { width: width - 40 }
@@ -338,38 +343,32 @@ export class LoginScene extends Phaser.Scene {
         const buttonStartY = height * 0.43;
 
         this.createResponsiveButton(
-            centerX,
-            buttonStartY,
-            buttonWidth,
-            buttonHeight,
+            centerX, buttonStartY,
+            buttonWidth, buttonHeight,
             LanguageSystem.t('login.start_exploring'),
             'guestSelected'
         );
 
         this.createResponsiveButton(
-            centerX,
-            buttonStartY + buttonGap,
-            buttonWidth,
-            buttonHeight,
+            centerX, buttonStartY + buttonGap,
+            buttonWidth, buttonHeight,
             LanguageSystem.t('login.login'),
             'loginSelected'
         );
 
         this.createResponsiveButton(
-            centerX,
-            buttonStartY + buttonGap * 2,
-            buttonWidth,
-            buttonHeight,
+            centerX, buttonStartY + buttonGap * 2,
+            buttonWidth, buttonHeight,
             LanguageSystem.t('login.create_account'),
             'registerSelected'
         );
     }
 
-    // 橫向版面
     drawLandscapeLayout(centerX, width, height) {
 
         const margin = Math.max(18, width * 0.04);
         const contentWidth = Math.min(width - margin * 2, 650);
+        const textScale = this.getTextScale();
 
         const scale = Math.min(
             1,
@@ -380,7 +379,6 @@ export class LoginScene extends Phaser.Scene {
         const titleSize = Math.max(18, 30 * scale);
         const welcomeSize = Math.max(13, 17 * scale);
         const messageSize = Math.max(10, 11 * scale);
-
         const top = Math.max(22, height * 0.09);
 
         this.addLayoutText(
@@ -389,7 +387,7 @@ export class LoginScene extends Phaser.Scene {
             LanguageSystem.t('game.title'),
             {
                 fontFamily: 'Georgia, serif',
-                fontSize: `${titleSize}px`,
+                fontSize: `${titleSize * textScale}px`,
                 color: '#f3e8cb',
                 fontStyle: 'bold',
                 stroke: '#243b2e',
@@ -405,7 +403,7 @@ export class LoginScene extends Phaser.Scene {
             LanguageSystem.t('login.welcome'),
             {
                 fontFamily: 'Georgia, serif',
-                fontSize: `${welcomeSize}px`,
+                fontSize: `${welcomeSize * textScale}px`,
                 color: '#f0e6ce',
                 align: 'center',
                 wordWrap: { width: contentWidth }
@@ -418,7 +416,7 @@ export class LoginScene extends Phaser.Scene {
             LanguageSystem.t('login.welcome_message'),
             {
                 fontFamily: 'Arial, sans-serif',
-                fontSize: `${messageSize}px`,
+                fontSize: `${messageSize * textScale}px`,
                 color: '#d2d8c1',
                 align: 'center',
                 wordWrap: { width: contentWidth }
@@ -426,112 +424,73 @@ export class LoginScene extends Phaser.Scene {
         );
 
         const buttonWidth = Math.min(260, width * 0.42);
-
-        const buttonHeight = Math.max(
-            34,
-            Math.min(42, height * 0.12)
-        );
-
-        const buttonGap =
-            buttonHeight + Math.max(8, height * 0.025);
-
+        const buttonHeight = Math.max(34, Math.min(42, height * 0.12));
+        const buttonGap = buttonHeight + Math.max(8, height * 0.025);
         const buttonStartY = height * 0.48;
 
         this.createResponsiveButton(
-            centerX,
-            buttonStartY,
-            buttonWidth,
-            buttonHeight,
+            centerX, buttonStartY,
+            buttonWidth, buttonHeight,
             LanguageSystem.t('login.start_exploring'),
             'guestSelected',
-            Math.max(12, 15 * scale)
+            Math.max(12, 15 * scale * textScale)
         );
 
         this.createResponsiveButton(
-            centerX,
-            buttonStartY + buttonGap,
-            buttonWidth,
-            buttonHeight,
+            centerX, buttonStartY + buttonGap,
+            buttonWidth, buttonHeight,
             LanguageSystem.t('login.login'),
             'loginSelected',
-            Math.max(12, 15 * scale)
+            Math.max(12, 15 * scale * textScale)
         );
 
         this.createResponsiveButton(
-            centerX,
-            buttonStartY + buttonGap * 2,
-            buttonWidth,
-            buttonHeight,
+            centerX, buttonStartY + buttonGap * 2,
+            buttonWidth, buttonHeight,
             LanguageSystem.t('login.create_account'),
             'registerSelected',
-            Math.max(12, 15 * scale)
+            Math.max(12, 15 * scale * textScale)
         );
     }
 
     addLayoutText(x, y, content, style) {
 
-        const text = this.add.text(
-            x,
-            y,
-            content,
-            style
-        ).setOrigin(0.5);
+        const text = this.add.text(x, y, content, style)
+            .setOrigin(0.5);
 
         this.layoutContainer.add(text);
 
         return text;
     }
 
-    // 建立一般按鈕
     createResponsiveButton(
-        x,
-        y,
-        width,
-        height,
-        label,
-        eventName,
-        fontSize = 18
+        x, y, width, height,
+        label, eventName, fontSize = 18
     ) {
 
         const container = this.add.container(x, y);
 
         const background = this.add.rectangle(
-            0,
-            0,
-            width,
-            height,
-            0x344e3d,
-            0.96
+            0, 0, width, height,
+            0x344e3d, 0.96
         );
 
-        background.setStrokeStyle(
-            2,
-            0xc5b78e,
-            0.9
-        );
+        background.setStrokeStyle(2, 0xc5b78e, 0.9);
 
-        const text = this.add.text(
-            0,
-            0,
-            label,
-            {
-                fontFamily: 'Arial, sans-serif',
-                fontSize: `${fontSize}px`,
-                color: '#f5ecd9',
-                fontStyle: 'bold',
-                align: 'center',
-                wordWrap: { width: width - 20 }
-            }
-        ).setOrigin(0.5);
+        const text = this.add.text(0, 0, label, {
+            fontFamily: 'Arial, sans-serif',
+            fontSize: `${fontSize}px`,
+            color: '#f5ecd9',
+            fontStyle: 'bold',
+            align: 'center',
+            wordWrap: { width: width - 20 }
+        }).setOrigin(0.5);
 
         container.add([background, text]);
 
-        background.setInteractive({
-            useHandCursor: true
-        });
+        background.setInteractive({ useHandCursor: true });
 
         background.on('pointerover', () => {
-
             background.setFillStyle(0x58745a);
 
             this.tweens.add({
@@ -542,7 +501,6 @@ export class LoginScene extends Phaser.Scene {
         });
 
         background.on('pointerout', () => {
-
             background.setFillStyle(0x344e3d);
 
             this.tweens.add({
@@ -561,7 +519,6 @@ export class LoginScene extends Phaser.Scene {
         return container;
     }
 
-    // 設定按鈕
     drawSettingsButton(width, height) {
 
         const button = this.add.text(
@@ -571,16 +528,11 @@ export class LoginScene extends Phaser.Scene {
             {
                 fontSize: '27px',
                 backgroundColor: '#344e3d',
-                padding: {
-                    x: 9,
-                    y: 7
-                }
+                padding: { x: 9, y: 7 }
             }
         ).setOrigin(1, 0);
 
-        button.setInteractive({
-            useHandCursor: true
-        });
+        button.setInteractive({ useHandCursor: true });
 
         button.on('pointerdown', () => {
             this.openSettings();
@@ -589,7 +541,10 @@ export class LoginScene extends Phaser.Scene {
         this.layoutContainer.add(button);
     }
 
-    // 開啟設定視窗
+    // ==============================
+    // 設定視窗
+    // ==============================
+
     openSettings() {
 
         if (this.settingsContainer) return;
@@ -599,6 +554,9 @@ export class LoginScene extends Phaser.Scene {
         const centerX = width / 2;
         const centerY = height / 2;
 
+        this.settingsCategory = 'language';
+        this.languageMenuExpanded = false;
+
         this.settingsContainer = this.add.container(0, 0);
         this.settingsContainer.setDepth(1000);
 
@@ -606,104 +564,269 @@ export class LoginScene extends Phaser.Scene {
         const panelHeight = Math.min(height - 28, 500);
 
         const overlay = this.add.rectangle(
-            centerX,
-            centerY,
-            width,
-            height,
-            0x000000,
-            0.78
+            centerX, centerY,
+            width, height,
+            0x000000, 0.78
         );
 
         overlay.setInteractive();
 
         const panel = this.add.rectangle(
-            centerX,
-            centerY,
-            panelWidth,
-            panelHeight,
-            0x263b32,
-            1
+            centerX, centerY,
+            panelWidth, panelHeight,
+            0x263b32, 1
         );
 
-        panel.setStrokeStyle(
-            3,
-            0xc5b78e,
-            1
-        );
+        panel.setStrokeStyle(3, 0xc5b78e, 1);
 
-        this.settingsContainer.add([
-            overlay,
-            panel
-        ]);
+        this.settingsContainer.add([overlay, panel]);
 
         const title = this.add.text(
             centerX,
-            centerY - panelHeight / 2 + 35,
-            '⚙️ 設定 / Settings',
+            centerY - panelHeight / 2 + 32,
+            '⚙️ 設定中心 / Settings',
             {
-                fontSize: '23px',
+                fontSize: '21px',
                 color: '#f3e8cb',
                 fontStyle: 'bold'
             }
         ).setOrigin(0.5);
 
-        const subtitle = this.add.text(
-            centerX,
-            centerY - panelHeight / 2 + 72,
-            '選擇遊戲語言 / Select Language',
-            {
-                fontSize: '14px',
-                color: '#d5c9a5'
-            }
-        ).setOrigin(0.5);
+        this.settingsContainer.add(title);
 
-        this.settingsContainer.add([
-            title,
-            subtitle
-        ]);
-
-        this.createSettingsLanguages(
+        this.createSettingsTabs(
             centerX,
             centerY,
             panelWidth,
-            panelHeight,
-            false
+            panelHeight
         );
 
         const closeButton = this.add.text(
             centerX,
-            centerY + panelHeight / 2 - 32,
+            centerY + panelHeight / 2 - 28,
             '關閉 / Close',
             {
-                fontSize: '16px',
+                fontSize: '15px',
                 color: '#ffffff',
                 backgroundColor: '#72513b',
-                padding: {
-                    x: 22,
-                    y: 9
-                }
+                padding: { x: 22, y: 8 }
             }
         ).setOrigin(0.5);
 
-        closeButton.setInteractive({
-            useHandCursor: true
-        });
+        closeButton.setInteractive({ useHandCursor: true });
 
         closeButton.on('pointerdown', () => {
             this.closeSettings();
         });
 
         this.settingsContainer.add(closeButton);
+
+        this.buildSettingsPage();
     }
 
-    // 十種語言收合式選單
-    createSettingsLanguages(
-        centerX,
-        centerY,
-        panelWidth,
-        panelHeight,
-        expanded = false
-    ) {
+    // ==============================
+    // 設定分類按鈕
+    // ==============================
+
+    createSettingsTabs(centerX, centerY, panelWidth, panelHeight) {
+
+        const tabs = [
+            { id: 'language', label: '語言' },
+            { id: 'screen', label: '畫面' },
+            { id: 'sound', label: '音效' },
+            { id: 'operation', label: '操作' },
+            { id: 'system', label: '系統' }
+        ];
+
+        const tabWidth = (panelWidth - 24) / 5;
+        const startX = centerX - panelWidth / 2 + 12;
+        const y = centerY - panelHeight / 2 + 76;
+
+        tabs.forEach((tab, index) => {
+
+            const x = startX + tabWidth * index + tabWidth / 2;
+
+            const button = this.add.text(
+                x,
+                y,
+                tab.label,
+                {
+                    fontSize: '13px',
+                    color: '#ffffff',
+                    backgroundColor:
+                        this.settingsCategory === tab.id
+                            ? '#647c55'
+                            : '#344e3d',
+                    padding: { x: 5, y: 9 },
+                    fixedWidth: tabWidth - 3,
+                    align: 'center'
+                }
+            ).setOrigin(0.5);
+
+            button.setInteractive({ useHandCursor: true });
+
+            button.on('pointerdown', () => {
+                this.settingsCategory = tab.id;
+                this.languageMenuExpanded = false;
+                this.buildSettingsPage();
+            });
+
+            this.settingsContainer.add(button);
+        });
+    }
+
+    // ==============================
+    // 建立設定頁面
+    // ==============================
+
+    buildSettingsPage() {
+
+        if (!this.settingsContainer) return;
+
+        if (this.settingsPageContainer) {
+            this.settingsPageContainer.destroy();
+        }
+
+        this.settingsPageContainer = this.add.container(0, 0);
+        this.settingsContainer.add(this.settingsPageContainer);
+
+        const centerX = this.scale.width / 2;
+        const centerY = this.scale.height / 2;
+        const panelHeight = Math.min(this.scale.height - 28, 500);
+        const panelWidth = Math.min(this.scale.width - 28, 460);
+
+        const startY = centerY - panelHeight / 2 + 122;
+
+        if (this.settingsCategory === 'language') {
+            this.buildLanguagePage(centerX, centerY, panelWidth, panelHeight);
+        }
+
+        if (this.settingsCategory === 'screen') {
+            this.buildScreenPage(centerX, startY);
+        }
+
+        if (this.settingsCategory === 'sound') {
+            this.buildSoundPage(centerX, startY);
+        }
+
+        if (this.settingsCategory === 'operation') {
+            this.buildOperationPage(centerX, startY);
+        }
+
+        if (this.settingsCategory === 'system') {
+            this.buildSystemPage(centerX, startY);
+        }
+    }
+
+    // ==============================
+    // 通用文字
+    // ==============================
+
+    addPageText(x, y, value, size = 15, color = '#ffffff') {
+
+        const text = this.add.text(x, y, value, {
+            fontSize: `${size}px`,
+            color,
+            align: 'center',
+            wordWrap: { width: Math.min(this.scale.width - 70, 380) }
+        }).setOrigin(0.5);
+
+        this.settingsPageContainer.add(text);
+
+        return text;
+    }
+
+    addPageButton(x, y, label, callback, width = 100) {
+
+        const button = this.add.text(x, y, label, {
+            fontSize: '14px',
+            color: '#ffffff',
+            backgroundColor: '#526b4e',
+            padding: { x: 10, y: 8 },
+            fixedWidth: width,
+            align: 'center'
+        }).setOrigin(0.5);
+
+        button.setInteractive({ useHandCursor: true });
+
+        button.on('pointerdown', callback);
+
+        this.settingsPageContainer.add(button);
+
+        return button;
+    }
+
+    addSettingRow(centerX, y, label, key, options = {}) {
+
+        const currentValue = this.getSetting(key);
+
+        this.addPageText(
+            centerX,
+            y,
+            `${label}：${options.format ? options.format(currentValue) : currentValue}`,
+            14,
+            '#f3e8cb'
+        );
+
+        this.addPageButton(
+            centerX - 80,
+            y + 29,
+            '－',
+            () => {
+                const next = Math.max(
+                    options.min,
+                    Number(this.getSetting(key)) - options.step
+                );
+
+                this.setSetting(key, Number(next.toFixed(2)));
+            },
+            48
+        );
+
+        this.addPageButton(
+            centerX + 80,
+            y + 29,
+            '＋',
+            () => {
+                const next = Math.min(
+                    options.max,
+                    Number(this.getSetting(key)) + options.step
+                );
+
+                this.setSetting(key, Number(next.toFixed(2)));
+            },
+            48
+        );
+    }
+
+    addToggleRow(centerX, y, label, key) {
+
+        const enabled = !!this.getSetting(key);
+
+        this.addPageText(
+            centerX - 35,
+            y,
+            `${label}：${enabled ? '開啟' : '關閉'}`,
+            14,
+            '#f3e8cb'
+        );
+
+        this.addPageButton(
+            centerX + 105,
+            y,
+            enabled ? '關閉' : '開啟',
+            () => {
+                this.setSetting(key, !enabled);
+            },
+            75
+        );
+    }
+
+    // ==============================
+    // 語言頁面
+    // ==============================
+
+    buildLanguagePage(centerX, centerY, panelWidth, panelHeight) {
 
         const languages = [
             { code: 'zh-TW', name: '繁體中文' },
@@ -718,153 +841,261 @@ export class LoginScene extends Phaser.Scene {
             { code: 'pt-BR', name: 'Português' }
         ];
 
-        const currentLanguage = LanguageSystem.getLanguage();
+        const currentCode = LanguageSystem.getLanguage();
 
         const current = languages.find(
-            language => language.code === currentLanguage
+            item => item.code === currentCode
         ) || languages[2];
 
-        this.languageMenuExpanded = expanded;
-
-        // 清除舊選單
-        if (this.languageMenuContainer) {
-            this.languageMenuContainer.destroy();
-        }
-
-        this.languageMenuContainer = this.add.container(0, 0);
-
-        this.settingsContainer.add(
-            this.languageMenuContainer
-        );
-
-        // 目前語言按鈕
-        const currentButton = this.add.text(
+        this.addPageText(
             centerX,
-            centerY - 125,
-            `${current.name}  ${expanded ? '▲' : '▼'}`,
-            {
-                fontSize: '17px',
-                color: '#f5d68d',
-                backgroundColor: '#526b4e',
-                padding: {
-                    x: 20,
-                    y: 12
-                },
-                fixedWidth: Math.min(260, panelWidth * 0.75),
-                align: 'center'
-            }
-        ).setOrigin(0.5);
-
-        currentButton.setInteractive({
-            useHandCursor: true
-        });
-
-        currentButton.on('pointerdown', () => {
-
-            this.createSettingsLanguages(
-                centerX,
-                centerY,
-                panelWidth,
-                panelHeight,
-                !this.languageMenuExpanded
-            );
-        });
-
-        this.languageMenuContainer.add(currentButton);
-
-        // 收合狀態
-        if (!expanded) {
-            return;
-        }
-
-        // 展開狀態
-        const columns = 2;
-
-        const gapX = Math.min(
-            170,
-            panelWidth * 0.38
+            centerY - panelHeight / 2 + 112,
+            '選擇遊戲語言 / Select Language',
+            14,
+            '#d5c9a5'
         );
 
-        const rowGap = Math.min(
-            36,
-            panelHeight * 0.09
+        const currentButton = this.addPageButton(
+            centerX,
+            centerY - panelHeight / 2 + 153,
+            `${current.name}  ${this.languageMenuExpanded ? '▲' : '▼'}`,
+            () => {
+                this.languageMenuExpanded = !this.languageMenuExpanded;
+                this.buildSettingsPage();
+            },
+            Math.min(250, panelWidth - 50)
         );
 
-        const startY = centerY - 55;
+        if (!this.languageMenuExpanded) return;
+
+        const gapX = Math.min(85, panelWidth * 0.23);
+        const startY = centerY - panelHeight / 2 + 210;
+        const rowGap = 38;
 
         languages.forEach((language, index) => {
 
-            const column = index % columns;
-            const row = Math.floor(index / columns);
+            const column = index % 2;
+            const row = Math.floor(index / 2);
 
-            const x = centerX +
-                (column === 0 ? -gapX / 2 : gapX / 2);
-
+            const x = centerX + (column === 0 ? -gapX : gapX);
             const y = startY + row * rowGap;
 
-            const selected =
-                currentLanguage === language.code;
+            const selected = currentCode === language.code;
 
-            const button = this.add.text(
+            this.addPageButton(
                 x,
                 y,
-                (selected ? '✓ ' : '') + language.name,
-                {
-                    fontSize: '14px',
-                    color: selected ? '#f5d68d' : '#ffffff',
-                    backgroundColor: selected
-                        ? '#526b4e'
-                        : '#344e3d',
-                    padding: {
-                        x: 8,
-                        y: 7
-                    },
-                    fixedWidth: Math.min(
-                        150,
-                        panelWidth * 0.42
-                    ),
-                    align: 'center'
-                }
-            ).setOrigin(0.5);
-
-            button.setInteractive({
-                useHandCursor: true
-            });
-
-            button.on('pointerdown', () => {
-
-                if (
-                    LanguageSystem.getLanguage() === language.code
-                ) {
-
-                    this.createSettingsLanguages(
-                        centerX,
-                        centerY,
-                        panelWidth,
-                        panelHeight,
-                        false
-                    );
-
-                    return;
-                }
-
-                LanguageSystem.setLanguage(language.code);
-            });
-
-            this.languageMenuContainer.add(button);
+                `${selected ? '✓ ' : ''}${language.name}`,
+                () => {
+                    LanguageSystem.setLanguage(language.code);
+                },
+                Math.min(145, panelWidth * 0.42)
+            );
         });
     }
 
+    // ==============================
+    // 畫面設定
+    // ==============================
+
+    buildScreenPage(centerX, startY) {
+
+        this.addPageText(centerX, startY, '畫面大小', 16, '#f3e8cb');
+
+        this.addSettingRow(
+            centerX,
+            startY + 55,
+            '介面比例',
+            'screenScale',
+            {
+                min: 0.8,
+                max: 1.2,
+                step: 0.1,
+                format: value => `${Math.round(value * 100)}%`
+            }
+        );
+
+        this.addSettingRow(
+            centerX,
+            startY + 145,
+            '文字大小',
+            'textSize',
+            {
+                min: 0.8,
+                max: 1.4,
+                step: 0.1,
+                format: value => `${Math.round(value * 100)}%`
+            }
+        );
+
+        this.addPageText(
+            centerX,
+            startY + 235,
+            '調整後會立即套用於登入畫面',
+            12,
+            '#c8c8b5'
+        );
+    }
+
+    // ==============================
+    // 音效設定
+    // ==============================
+
+    buildSoundPage(centerX, startY) {
+
+        this.addPageText(centerX, startY, '音效設定', 16, '#f3e8cb');
+
+        this.addToggleRow(
+            centerX,
+            startY + 55,
+            '背景音樂',
+            'backgroundMusicEnabled'
+        );
+
+        this.addSettingRow(
+            centerX,
+            startY + 105,
+            '背景音樂音量',
+            'backgroundMusicVolume',
+            {
+                min: 0,
+                max: 1,
+                step: 0.1,
+                format: value => `${Math.round(value * 100)}%`
+            }
+        );
+
+        this.addToggleRow(
+            centerX,
+            startY + 195,
+            '遊戲音效',
+            'soundEffectsEnabled'
+        );
+
+        this.addSettingRow(
+            centerX,
+            startY + 245,
+            '遊戲音效音量',
+            'soundEffectsVolume',
+            {
+                min: 0,
+                max: 1,
+                step: 0.1,
+                format: value => `${Math.round(value * 100)}%`
+            }
+        );
+
+        this.addPageText(
+            centerX,
+            startY + 330,
+            '音效控制需等待遊戲音效系統接入',
+            11,
+            '#d5c9a5'
+        );
+    }
+
+    // ==============================
+    // 操作設定
+    // ==============================
+
+    buildOperationPage(centerX, startY) {
+
+        this.addPageText(centerX, startY, '操作與體驗', 16, '#f3e8cb');
+
+        this.addToggleRow(
+            centerX,
+            startY + 55,
+            '操作提示',
+            'operationTipsEnabled'
+        );
+
+        this.addToggleRow(
+            centerX,
+            startY + 105,
+            '場景動畫',
+            'animationsEnabled'
+        );
+
+        this.addToggleRow(
+            centerX,
+            startY + 155,
+            '夜間模式',
+            'nightModeEnabled'
+        );
+
+        this.addToggleRow(
+            centerX,
+            startY + 205,
+            '省電模式',
+            'powerSavingEnabled'
+        );
+
+        this.addPageText(
+            centerX,
+            startY + 275,
+            '這些選項目前先保存設定值，其他場景將逐步接入。',
+            11,
+            '#d5c9a5'
+        );
+    }
+
+    // ==============================
+    // 系統設定
+    // ==============================
+
+    buildSystemPage(centerX, startY) {
+
+        this.addPageText(centerX, startY, '系統設定', 16, '#f3e8cb');
+
+        this.addPageText(
+            centerX,
+            startY + 65,
+            '遊戲版本：Alpha 2.0',
+            14,
+            '#ffffff'
+        );
+
+        this.addPageText(
+            centerX,
+            startY + 110,
+            '《鱗片與種子：地下生態物語》',
+            12,
+            '#d5c9a5'
+        );
+
+        this.addPageButton(
+            centerX,
+            startY + 190,
+            '恢復預設設定',
+            () => {
+                SettingsSystem.reset();
+                this.languageMenuExpanded = false;
+                this.buildSettingsPage();
+            },
+            190
+        );
+
+        this.addPageText(
+            centerX,
+            startY + 250,
+            '恢復預設只重設遊戲設定，不會刪除遊戲存檔。',
+            11,
+            '#d5c9a5'
+        );
+    }
+
+    // ==============================
     // 關閉設定
+    // ==============================
+
     closeSettings() {
 
         if (this.settingsContainer) {
-
             this.settingsContainer.destroy();
-
-            this.settingsContainer = null;
-            this.languageMenuContainer = null;
-            this.languageMenuExpanded = false;
         }
+
+        this.settingsContainer = null;
+        this.settingsPageContainer = null;
+        this.languageMenuExpanded = false;
     }
 }
