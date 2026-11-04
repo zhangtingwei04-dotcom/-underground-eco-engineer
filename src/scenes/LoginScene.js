@@ -10,12 +10,14 @@ export class LoginScene extends Phaser.Scene {
 
         this.settingsContainer = null;
         this.languageMenuContainer = null;
+        this.languageMenuExpanded = false;
     }
 
     create() {
 
         this.settingsContainer = null;
         this.languageMenuContainer = null;
+        this.languageMenuExpanded = false;
 
         this.backgroundContainer = this.add.container(0, 0);
         this.layoutContainer = this.add.container(0, 0);
@@ -24,15 +26,29 @@ export class LoginScene extends Phaser.Scene {
         this.drawBackground();
         this.drawLayout();
 
+        // 語言切換監聽器
         this.languageListener = () => {
 
-            if (this.settingsContainer) {
-                this.settingsContainer.destroy();
-                this.settingsContainer = null;
-                this.languageMenuContainer = null;
-            }
+            // 記住設定視窗是否開啟
+            const settingsIsOpen = !!this.settingsContainer;
 
+            // 記住語言選單是否展開
+            const wasExpanded = this.languageMenuExpanded;
+
+            // 更新主畫面文字
             this.drawLayout();
+
+            // 不關閉設定視窗
+            if (settingsIsOpen) {
+
+                this.createSettingsLanguages(
+                    this.scale.width / 2,
+                    this.scale.height / 2,
+                    Math.min(this.scale.width - 28, 460),
+                    Math.min(this.scale.height - 28, 500),
+                    wasExpanded
+                );
+            }
         };
 
         window.addEventListener(
@@ -60,6 +76,7 @@ export class LoginScene extends Phaser.Scene {
     clearBackground() {
 
         this.particles.forEach(particle => particle.destroy());
+
         this.particles = [];
 
         this.backgroundContainer.removeAll(true);
@@ -75,13 +92,17 @@ export class LoginScene extends Phaser.Scene {
         const graphics = this.add.graphics();
 
         graphics.fillGradientStyle(
-            0x263b32, 0x263b32,
-            0x14241e, 0x14241e, 1
+            0x263b32,
+            0x263b32,
+            0x14241e,
+            0x14241e,
+            1
         );
 
         graphics.fillRect(0, 0, width, height);
 
         graphics.fillStyle(0xe6c58b, 0.12);
+
         graphics.fillCircle(
             width * 0.5,
             height * 0.37,
@@ -89,6 +110,7 @@ export class LoginScene extends Phaser.Scene {
         );
 
         graphics.fillStyle(0xd8b878, 0.08);
+
         graphics.fillCircle(
             width * 0.5,
             height * 0.37,
@@ -96,6 +118,7 @@ export class LoginScene extends Phaser.Scene {
         );
 
         graphics.fillStyle(0x17251d, 1);
+
         graphics.fillEllipse(
             width * 0.5,
             height * 1.01,
@@ -104,6 +127,7 @@ export class LoginScene extends Phaser.Scene {
         );
 
         graphics.fillStyle(0x526354, 0.9);
+
         graphics.fillEllipse(
             width * 0.04,
             height * 0.87,
@@ -112,6 +136,7 @@ export class LoginScene extends Phaser.Scene {
         );
 
         graphics.fillStyle(0x394b3d, 1);
+
         graphics.fillEllipse(
             width * 0.96,
             height * 0.88,
@@ -152,6 +177,7 @@ export class LoginScene extends Phaser.Scene {
             );
 
             this.backgroundContainer.add(particle);
+
             this.particles.push(particle);
 
             this.tweens.add({
@@ -177,6 +203,7 @@ export class LoginScene extends Phaser.Scene {
         const size = Math.max(0.65, plantScale);
 
         graphics.lineStyle(4 * size, 0x789b72, 1);
+
         graphics.beginPath();
         graphics.moveTo(x, y);
         graphics.lineTo(x, y - 55 * size);
@@ -199,6 +226,7 @@ export class LoginScene extends Phaser.Scene {
         );
 
         graphics.fillStyle(color, 0.15);
+
         graphics.fillCircle(
             x,
             y - 45 * size,
@@ -213,9 +241,12 @@ export class LoginScene extends Phaser.Scene {
         if (!this.scene.isActive()) return;
 
         if (this.settingsContainer) {
+
             this.settingsContainer.destroy();
+
             this.settingsContainer = null;
             this.languageMenuContainer = null;
+            this.languageMenuExpanded = false;
         }
 
         this.drawBackground();
@@ -235,9 +266,20 @@ export class LoginScene extends Phaser.Scene {
         const centerX = width / 2;
 
         if (this.isPortrait()) {
-            this.drawPortraitLayout(centerX, width, height);
+
+            this.drawPortraitLayout(
+                centerX,
+                width,
+                height
+            );
+
         } else {
-            this.drawLandscapeLayout(centerX, width, height);
+
+            this.drawLandscapeLayout(
+                centerX,
+                width,
+                height
+            );
         }
 
         this.drawSettingsButton(width, height);
@@ -390,7 +432,9 @@ export class LoginScene extends Phaser.Scene {
             Math.min(42, height * 0.12)
         );
 
-        const buttonGap = buttonHeight + Math.max(8, height * 0.025);
+        const buttonGap =
+            buttonHeight + Math.max(8, height * 0.025);
+
         const buttonStartY = height * 0.48;
 
         this.createResponsiveButton(
@@ -680,6 +724,8 @@ export class LoginScene extends Phaser.Scene {
             language => language.code === currentLanguage
         ) || languages[2];
 
+        this.languageMenuExpanded = expanded;
+
         // 清除舊選單
         if (this.languageMenuContainer) {
             this.languageMenuContainer.destroy();
@@ -720,9 +766,8 @@ export class LoginScene extends Phaser.Scene {
                 centerY,
                 panelWidth,
                 panelHeight,
-                !expanded
+                !this.languageMenuExpanded
             );
-
         });
 
         this.languageMenuContainer.add(currentButton);
@@ -734,10 +779,18 @@ export class LoginScene extends Phaser.Scene {
 
         // 展開狀態
         const columns = 2;
-        const gapX = Math.min(170, panelWidth * 0.38);
-        const rowGap = Math.min(36, panelHeight * 0.09);
 
-        const startY = centerY - 15;
+        const gapX = Math.min(
+            170,
+            panelWidth * 0.38
+        );
+
+        const rowGap = Math.min(
+            36,
+            panelHeight * 0.09
+        );
+
+        const startY = centerY - 55;
 
         languages.forEach((language, index) => {
 
@@ -766,7 +819,10 @@ export class LoginScene extends Phaser.Scene {
                         x: 8,
                         y: 7
                     },
-                    fixedWidth: Math.min(150, panelWidth * 0.42),
+                    fixedWidth: Math.min(
+                        150,
+                        panelWidth * 0.42
+                    ),
                     align: 'center'
                 }
             ).setOrigin(0.5);
@@ -793,11 +849,9 @@ export class LoginScene extends Phaser.Scene {
                 }
 
                 LanguageSystem.setLanguage(language.code);
-
             });
 
             this.languageMenuContainer.add(button);
-
         });
     }
 
@@ -810,6 +864,7 @@ export class LoginScene extends Phaser.Scene {
 
             this.settingsContainer = null;
             this.languageMenuContainer = null;
+            this.languageMenuExpanded = false;
         }
     }
 }
