@@ -1,7 +1,121 @@
+
 {
-  "game_title": "Underground Eco-Engineer",
-  "menu_start": "Start Game",
-  "menu_settings": "Settings",
-  "creature_hognose_snake": "Hognose Snake",
-  "creature_hognose_desc": "Features a distinctive upturned snout used for digging. A master actor known for playing dead when threatened."
+  "game": {
+    "title": "Scales & Seeds: Underground Ecosystem Tales",
+    "subtitle": "A Living World Beneath the Surface",
+    "version": "Alpha 2.0",
+    "role": "Underground Ecologist",
+    "motto": "Every scale tells a story. Every seed holds the promise of new life."
+  },
+  "ui": {
+    "day": "Day {day}",
+    "time": "Current Time",
+    "action_points": "Action Points",
+    "creature_energy": "Creature Energy",
+    "temperature": "Temperature",
+    "humidity": "Humidity",
+    "journal": "Ecologist's Journal",
+    "terrarium": "Terrarium",
+    "shop": "Black Market & Eco Shop",
+    "vet": "Veterinary Clinic",
+    "inventory": "Inventory & Supplies",
+    "encyclopedia": "Creature Encyclopedia",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "close": "Close",
+    "save": "Save Progress",
+    "settings": "Settings",
+    "time_phase": {
+      "morning": "Morning",
+      "day": "Daytime",
+      "dusk": "Dusk",
+      "night": "Night"
+    }
+  },
+  "creature": {
+    "species": {
+      "hognose": "Western Hognose Snake",
+      "hognose_desc": "A small terrestrial snake with a distinctive upturned snout. Known for its gentle temperament and habit of burrowing into substrate."
+    },
+    "stage": {
+      "egg": "Egg",
+      "hatchling": "Hatchling",
+      "juvenile": "Juvenile",
+      "adult": "Adult"
+    },
+    "status": {
+      "healthy": "Healthy",
+      "hungry": "Slightly Hungry",
+      "dehydrated": "Mild Dehydration",
+      "shedding": "Preparing to Shed (Cloudy Eyes)",
+      "sick": "Unwell (Veterinary Care Recommended)",
+      "critical": "Critical Condition (Emergency Care Required)"
+    },
+    "phenotype": {
+      "wild_type": "Wild Type",
+      "patternless": "Patternless",
+      "speckled": "Speckled Mutation",
+      "conda": "Conda (Reduced Pattern)"
+    }
+  },
+  "journal": {
+    "title": "Ecologist's Research Journal",
+    "new_entry": "New Entry",
+    "category": {
+      "arrival": "New Arrival",
+      "ecdysis": "Shedding Observation",
+      "mutation": "Genetic Mutation Discovery",
+      "pure_color": "Distinctive Color Observation",
+      "health": "Health Examination Record",
+      "environment": "Microclimate Regulation"
+    },
+    "default_entries": {
+      "patternless_discovered": "This individual has no elaborate markings, displaying a clean and elegant patternless appearance. Under the underground lighting, its simple beauty creates a calm and reassuring impression.",
+      "speckled_discovered": "Today's observation revealed high-contrast random white spots and distinctive markings across the body! Is this the result of a genetic mutation or adaptation to the microclimate? Further observation is needed."
+    }
+  },
+  "npcs": {
+    "old_mac": {
+      "name": "Old Mac",
+      "title": "Senior Reptile Scholar & Mentor",
+      "dialogue": {
+        "greeting": "Welcome back to the underground terrarium! Have you carefully checked the temperature and humidity of the microclimate today?",
+        "patternless_comment": "Oh? This little one has no unnecessary markings. Such a pure and clean patternless appearance! Its simple elegance is truly pleasing to the eye.",
+        "speckled_comment": "Take a look at the changing patterns on its back! Every spot is uniquely distributed. This little one will surely become a highlight of the encyclopedia!"
+      }
+    },
+    "amy": {
+      "name": "Amy",
+      "title": "Climate-Controlled Package Courier",
+      "dialogue": {
+        "greeting": "Hey, Ecologist! Your climate-controlled underground package has arrived today!",
+        "delivery": "Don't worry! I carefully checked the temperature and humidity controls throughout transportation. Your package is ready to be opened and placed in the terrarium."
+      }
+    },
+    "old_mo": {
+      "name": "Old Mo",
+      "title": "Deep Vein Explorer",
+      "dialogue": {
+        "greeting": "Heh heh... The deep underground tunnels hide many ancient genetic clues and unusual plant seeds.",
+        "mystery_egg": "Would you like to try incubating this mysterious egg found in a deep rock crevice? It might bring a wonderful surprise to your terrarium."
+      }
+    }
+  },
+  "vet": {
+    "title": "Underground Reptile Veterinary Clinic",
+    "outpatient": "General Consultation",
+    "outpatient_desc": "Uses a small amount of Action Points and a basic consultation fee. Suitable for routine health checks and mild early symptoms.",
+    "emergency": "Emergency Treatment",
+    "emergency_desc": "Prioritizes critical conditions and requires more Action Points and a higher treatment fee.",
+    "hospitalization": "Hospitalization",
+    "hospitalization_desc": "Provides long-term environmental adaptation and physical recovery under observation. Progress updates according to real-world time.",
+    "death_report": "Health & Life Tracking Report",
+    "cause_of_death": "Cause of Death Analysis & Environmental Review"
+  },
+  "ad": {
+    "boost_title": "Growth Observation Chamber Boost",
+    "boost_desc": "Watch an optional rewarded advertisement to gain an additional 6 hours of effective creature growth time. Limited to 2 uses per day.",
+    "boost_button": "Get +6 Hours of Growth Time",
+    "notice": "Note: Advertisement boosts do not affect disease recovery, life-or-death decisions, or the probability of special genetic traits."
+  }
 }
