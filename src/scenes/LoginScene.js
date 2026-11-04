@@ -22,7 +22,6 @@ export class LoginScene extends Phaser.Scene {
         this.drawBackground();
         this.drawLayout();
 
-        // 語言變更時，只更新畫面，不重新啟動場景
         this.languageListener = () => {
 
             if (this.settingsContainer) {
@@ -233,7 +232,7 @@ export class LoginScene extends Phaser.Scene {
         this.drawSettingsButton(width, height);
     }
 
-    // 直向版面
+    // 直向版面：保留主標題，移除副標題
     drawPortraitLayout(centerX, width, height) {
 
         const shortScreen = height < 650;
@@ -256,20 +255,7 @@ export class LoginScene extends Phaser.Scene {
 
         this.addLayoutText(
             centerX,
-            height * 0.20,
-            LanguageSystem.t('game.subtitle'),
-            {
-                fontFamily: 'Georgia, serif',
-                fontSize: '15px',
-                color: '#d5c9a5',
-                align: 'center',
-                wordWrap: { width: width - 32 }
-            }
-        );
-
-        this.addLayoutText(
-            centerX,
-            height * 0.29,
+            height * 0.23,
             LanguageSystem.t('login.welcome'),
             {
                 fontFamily: 'Georgia, serif',
@@ -282,7 +268,7 @@ export class LoginScene extends Phaser.Scene {
 
         this.addLayoutText(
             centerX,
-            height * 0.36,
+            height * 0.30,
             LanguageSystem.t('login.welcome_message'),
             {
                 fontFamily: 'Arial, sans-serif',
@@ -296,7 +282,7 @@ export class LoginScene extends Phaser.Scene {
         const buttonWidth = Math.min(width - 48, 330);
         const buttonHeight = shortScreen ? 46 : 52;
         const buttonGap = shortScreen ? 58 : 66;
-        const buttonStartY = height * 0.48;
+        const buttonStartY = height * 0.43;
 
         this.createResponsiveButton(
             centerX,
@@ -326,7 +312,7 @@ export class LoginScene extends Phaser.Scene {
         );
     }
 
-    // 橫向版面
+    // 橫向版面：保留主標題，移除副標題
     drawLandscapeLayout(centerX, width, height) {
 
         const margin = Math.max(18, width * 0.04);
@@ -339,7 +325,6 @@ export class LoginScene extends Phaser.Scene {
         );
 
         const titleSize = Math.max(18, 30 * scale);
-        const subtitleSize = Math.max(11, 13 * scale);
         const welcomeSize = Math.max(13, 17 * scale);
         const messageSize = Math.max(10, 11 * scale);
 
@@ -363,20 +348,7 @@ export class LoginScene extends Phaser.Scene {
 
         this.addLayoutText(
             centerX,
-            top + height * 0.105,
-            LanguageSystem.t('game.subtitle'),
-            {
-                fontFamily: 'Georgia, serif',
-                fontSize: `${subtitleSize}px`,
-                color: '#d5c9a5',
-                align: 'center',
-                wordWrap: { width: contentWidth }
-            }
-        );
-
-        this.addLayoutText(
-            centerX,
-            top + height * 0.22,
+            top + height * 0.16,
             LanguageSystem.t('login.welcome'),
             {
                 fontFamily: 'Georgia, serif',
@@ -389,7 +361,7 @@ export class LoginScene extends Phaser.Scene {
 
         this.addLayoutText(
             centerX,
-            top + height * 0.30,
+            top + height * 0.24,
             LanguageSystem.t('login.welcome_message'),
             {
                 fontFamily: 'Arial, sans-serif',
@@ -407,7 +379,7 @@ export class LoginScene extends Phaser.Scene {
         );
 
         const buttonGap = buttonHeight + Math.max(8, height * 0.025);
-        const buttonStartY = height * 0.53;
+        const buttonStartY = height * 0.48;
 
         this.createResponsiveButton(
             centerX,
