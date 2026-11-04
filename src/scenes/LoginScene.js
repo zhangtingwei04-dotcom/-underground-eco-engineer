@@ -10,14 +10,21 @@ export class LoginScene extends Phaser.Scene {
         this.settingsContainer = null;
         this.settingsPageContainer = null;
         this.settingsButtonContainer = null;
+        this.settingsRail = null;
+        this.settingsPanel = null;
+
         this.settingsCategory = 'language';
         this.languageMenuExpanded = false;
+        this.particles = [];
     }
 
     create() {
         this.settingsContainer = null;
         this.settingsPageContainer = null;
         this.settingsButtonContainer = null;
+        this.settingsRail = null;
+        this.settingsPanel = null;
+
         this.settingsCategory = 'language';
         this.languageMenuExpanded = false;
 
@@ -60,6 +67,10 @@ export class LoginScene extends Phaser.Scene {
 
         this.scale.on('resize', this.handleResize, this);
     }
+
+    // ==============================
+    // 設定讀取與寫入
+    // ==============================
 
     getSetting(key) {
         return SettingsSystem.get(key);
@@ -125,6 +136,7 @@ export class LoginScene extends Phaser.Scene {
         graphics.fillRect(0, 0, width, height);
 
         graphics.fillStyle(0xe6c58b, 0.12);
+
         graphics.fillCircle(
             width * 0.5,
             height * 0.37,
@@ -132,6 +144,7 @@ export class LoginScene extends Phaser.Scene {
         );
 
         graphics.fillStyle(0xd8b878, 0.08);
+
         graphics.fillCircle(
             width * 0.5,
             height * 0.37,
@@ -139,6 +152,7 @@ export class LoginScene extends Phaser.Scene {
         );
 
         graphics.fillStyle(0x17251d, 1);
+
         graphics.fillEllipse(
             width * 0.5,
             height * 1.01,
@@ -147,6 +161,7 @@ export class LoginScene extends Phaser.Scene {
         );
 
         graphics.fillStyle(0x526354, 0.9);
+
         graphics.fillEllipse(
             width * 0.04,
             height * 0.87,
@@ -155,6 +170,7 @@ export class LoginScene extends Phaser.Scene {
         );
 
         graphics.fillStyle(0x394b3d, 1);
+
         graphics.fillEllipse(
             width * 0.96,
             height * 0.88,
@@ -440,6 +456,7 @@ export class LoginScene extends Phaser.Scene {
         );
 
         const buttonWidth = Math.min(260, width * 0.42);
+
         const buttonHeight = Math.max(
             34,
             Math.min(42, height * 0.12)
@@ -621,10 +638,18 @@ export class LoginScene extends Phaser.Scene {
             Math.max(210, width - railWidth - 22)
         );
 
-        const panelHeight = Math.min(height - 24, 520);
+        const panelHeight = Math.max(
+            280,
+            Math.min(height - 24, 520)
+        );
 
         const panelX = width - railWidth - panelWidth / 2 - 5;
         const panelY = height / 2;
+
+        this.settingsPanelWidth = panelWidth;
+        this.settingsPanelHeight = panelHeight;
+        this.settingsPanelX = panelX;
+        this.settingsPanelY = panelY;
 
         this.settingsPanel = this.add.rectangle(
             panelX,
@@ -641,25 +666,23 @@ export class LoginScene extends Phaser.Scene {
             1
         );
 
+        // 防止點擊面板空白處時誤觸背景遮罩
+        this.settingsPanel.setInteractive();
+
         this.settingsContainer.add(this.settingsPanel);
 
         this.createSettingsRail(width, height);
-
-        this.settingsPanelWidth = panelWidth;
-        this.settingsPanelHeight = panelHeight;
-        this.settingsPanelX = panelX;
-        this.settingsPanelY = panelY;
 
         this.settingsPageContainer = null;
 
         this.buildSettingsPage();
 
-        // 面板從右側滑入
+        // 面板由右側滑入
         this.settingsPanel.x = width + panelWidth / 2;
 
+        // 設定內容跟隨面板滑入
         if (this.settingsPageContainer) {
-            this.settingsPageContainer.x =
-                width + panelWidth / 2 - panelX;
+            this.settingsPageContainer.x = panelWidth + 40;
         }
 
         this.tweens.add({
@@ -683,63 +706,23 @@ export class LoginScene extends Phaser.Scene {
     // 右側五個圖示
     // ==============================
 
-    createSettingsRail(width, height) {
-        const categories = [
+    getSettingsCategories() {
+        return [
             { id: 'language', icon: '🌐' },
             { id: 'screen', icon: '🖥️' },
             { id: 'sound', icon: '🔊' },
             { id: 'operation', icon: '🎮' },
             { id: 'system', icon: '⚙️' }
         ];
+    }
 
+    createSettingsRail(width, height) {
         this.settingsRail = this.add.container(0, 0);
         this.settingsRail.setDepth(10);
 
         this.settingsContainer.add(this.settingsRail);
 
-        const spacing = Math.min(62, height / 7);
-        const startY = height / 2 - spacing * 2;
-
-        categories.forEach((category, index) => {
-            const y = startY + index * spacing;
-            const selected = this.settingsCategory === category.id;
-
-            const background = this.add.circle(
-                width - 32,
-                y,
-                23,
-                selected ? 0x82936b : 0x344e3d,
-                0.98
-            );
-
-            background.setStrokeStyle(
-                selected ? 2 : 1,
-                0xc5b78e,
-                1
-            );
-
-            const icon = this.add.text(
-                width - 32,
-                y,
-                category.icon,
-                {
-                    fontSize: '22px'
-                }
-            ).setOrigin(0.5);
-
-            background.setInteractive({
-                useHandCursor: true
-            });
-
-            background.on('pointerdown', () => {
-                this.settingsCategory = category.id;
-                this.languageMenuExpanded = false;
-                this.buildSettingsPage();
-                this.refreshSettingsRail();
-            });
-
-            this.settingsRail.add([background, icon]);
-        });
+        this.refreshSettingsRail();
     }
 
     refreshSettingsRail() {
@@ -750,20 +733,16 @@ export class LoginScene extends Phaser.Scene {
         const width = this.scale.width;
         const height = this.scale.height;
 
-        const categories = [
-            { id: 'language', icon: '🌐' },
-            { id: 'screen', icon: '🖥️' },
-            { id: 'sound', icon: '🔊' },
-            { id: 'operation', icon: '🎮' },
-            { id: 'system', icon: '⚙️' }
-        ];
+        const categories = this.getSettingsCategories();
 
         const spacing = Math.min(62, height / 7);
         const startY = height / 2 - spacing * 2;
 
         categories.forEach((category, index) => {
             const y = startY + index * spacing;
-            const selected = this.settingsCategory === category.id;
+
+            const selected =
+                this.settingsCategory === category.id;
 
             const background = this.add.circle(
                 width - 32,
@@ -795,11 +774,15 @@ export class LoginScene extends Phaser.Scene {
             background.on('pointerdown', () => {
                 this.settingsCategory = category.id;
                 this.languageMenuExpanded = false;
+
                 this.buildSettingsPage();
                 this.refreshSettingsRail();
             });
 
-            this.settingsRail.add([background, icon]);
+            this.settingsRail.add([
+                background,
+                icon
+            ]);
         });
     }
 
@@ -811,21 +794,26 @@ export class LoginScene extends Phaser.Scene {
         if (!this.settingsContainer) return;
 
         if (this.settingsPageContainer) {
-            this.tweens.killTweensOf(this.settingsPageContainer);
+            this.tweens.killTweensOf(
+                this.settingsPageContainer
+            );
+
             this.settingsPageContainer.destroy();
         }
 
-        const page = this.add.container(
-            this.settingsPanelX,
-            0
-        );
+        // 重要：內容容器從 0,0 開始
+        // 子物件使用畫面座標，不再重複加上 panelX
+        const page = this.add.container(0, 0);
 
         this.settingsPageContainer = page;
 
         this.settingsContainer.add(page);
 
         const centerX = this.settingsPanelX;
-        const top = this.settingsPanelY - this.settingsPanelHeight / 2;
+
+        const top =
+            this.settingsPanelY -
+            this.settingsPanelHeight / 2;
 
         const panelWidth = this.settingsPanelWidth;
 
@@ -854,7 +842,9 @@ export class LoginScene extends Phaser.Scene {
             }
         ).setOrigin(0.5);
 
-        closeButton.setInteractive({ useHandCursor: true });
+        closeButton.setInteractive({
+            useHandCursor: true
+        });
 
         closeButton.on('pointerdown', () => {
             this.closeSettings();
@@ -878,7 +868,11 @@ export class LoginScene extends Phaser.Scene {
 
         switch (this.settingsCategory) {
             case 'language':
-                this.buildLanguagePage(centerX, contentY, panelWidth);
+                this.buildLanguagePage(
+                    centerX,
+                    contentY,
+                    panelWidth
+                );
                 break;
 
             case 'screen':
@@ -903,13 +897,22 @@ export class LoginScene extends Phaser.Scene {
     // 文字與按鈕工具
     // ==============================
 
-    addPageText(x, y, value, size = 14, color = '#ffffff') {
+    addPageText(
+        x,
+        y,
+        value,
+        size = 14,
+        color = '#ffffff'
+    ) {
         const text = this.add.text(x, y, value, {
             fontSize: `${size}px`,
             color,
             align: 'center',
             wordWrap: {
-                width: Math.min(this.settingsPanelWidth - 35, 280)
+                width: Math.min(
+                    this.settingsPanelWidth - 35,
+                    280
+                )
             }
         }).setOrigin(0.5);
 
@@ -918,7 +921,13 @@ export class LoginScene extends Phaser.Scene {
         return text;
     }
 
-    addPageButton(x, y, label, callback, width = 100) {
+    addPageButton(
+        x,
+        y,
+        label,
+        callback,
+        width = 100
+    ) {
         const button = this.add.text(x, y, label, {
             fontSize: '13px',
             color: '#ffffff',
@@ -928,7 +937,9 @@ export class LoginScene extends Phaser.Scene {
             align: 'center'
         }).setOrigin(0.5);
 
-        button.setInteractive({ useHandCursor: true });
+        button.setInteractive({
+            useHandCursor: true
+        });
 
         button.on('pointerdown', callback);
 
@@ -966,15 +977,31 @@ export class LoginScene extends Phaser.Scene {
         );
 
         const columns = 2;
-        const gapX = Math.min(72, panelWidth * 0.25);
-        const startListY = startY + 55;
-        const rowGap = 53;
+
+        const gapX = Math.min(
+            72,
+            panelWidth * 0.25
+        );
+
+        const startListY = startY + 48;
+
+        // 根據面板高度調整國旗間距
+        const rowGap = Math.min(
+            53,
+            Math.max(
+                35,
+                (this.settingsPanelHeight - 190) / 5
+            )
+        );
 
         languages.forEach((language, index) => {
             const column = index % columns;
             const row = Math.floor(index / columns);
 
-            const x = centerX + (column === 0 ? -gapX : gapX);
+            const x =
+                centerX +
+                (column === 0 ? -gapX : gapX);
+
             const y = startListY + row * rowGap;
 
             const selected = currentCode === language.code;
@@ -985,12 +1012,16 @@ export class LoginScene extends Phaser.Scene {
                 `${language.flag}${selected ? ' ✓' : ''}`,
                 {
                     fontSize: '25px',
-                    backgroundColor: selected ? '#526b4e' : '#344e3d',
+                    backgroundColor: selected
+                        ? '#526b4e'
+                        : '#344e3d',
                     padding: { x: 12, y: 7 }
                 }
             ).setOrigin(0.5);
 
-            button.setInteractive({ useHandCursor: true });
+            button.setInteractive({
+                useHandCursor: true
+            });
 
             button.on('pointerdown', () => {
                 LanguageSystem.setLanguage(language.code);
@@ -1012,7 +1043,13 @@ export class LoginScene extends Phaser.Scene {
     // 數值設定工具
     // ==============================
 
-    addSettingRow(centerX, y, label, key, options = {}) {
+    addSettingRow(
+        centerX,
+        y,
+        label,
+        key,
+        options = {}
+    ) {
         const currentValue = this.getSetting(key);
 
         const formatted = options.format
@@ -1108,7 +1145,8 @@ export class LoginScene extends Phaser.Scene {
                 min: 0.8,
                 max: 1.2,
                 step: 0.1,
-                format: value => `${Math.round(value * 100)}%`
+                format: value =>
+                    `${Math.round(value * 100)}%`
             }
         );
 
@@ -1121,7 +1159,8 @@ export class LoginScene extends Phaser.Scene {
                 min: 0.8,
                 max: 1.4,
                 step: 0.1,
-                format: value => `${Math.round(value * 100)}%`
+                format: value =>
+                    `${Math.round(value * 100)}%`
             }
         );
 
@@ -1163,7 +1202,8 @@ export class LoginScene extends Phaser.Scene {
                 min: 0,
                 max: 1,
                 step: 0.1,
-                format: value => `${Math.round(value * 100)}%`
+                format: value =>
+                    `${Math.round(value * 100)}%`
             }
         );
 
@@ -1183,7 +1223,8 @@ export class LoginScene extends Phaser.Scene {
                 min: 0,
                 max: 1,
                 step: 0.1,
-                format: value => `${Math.round(value * 100)}%`
+                format: value =>
+                    `${Math.round(value * 100)}%`
             }
         );
 
@@ -1306,10 +1347,14 @@ export class LoginScene extends Phaser.Scene {
     closeSettings() {
         if (!this.settingsContainer) return;
 
-        this.tweens.killTweensOf(this.settingsContainer);
+        this.tweens.killTweensOf(
+            this.settingsContainer
+        );
 
         if (this.settingsPanel) {
-            this.tweens.killTweensOf(this.settingsPanel);
+            this.tweens.killTweensOf(
+                this.settingsPanel
+            );
         }
 
         if (this.settingsPageContainer) {
@@ -1318,6 +1363,13 @@ export class LoginScene extends Phaser.Scene {
             );
         }
 
+        if (this.settingsRail) {
+            this.tweens.killTweensOf(
+                this.settingsRail
+            );
+        }
+
+        // 移除所有設定元件，避免關閉後殘留
         this.settingsContainer.removeAll(true);
         this.settingsContainer.destroy();
 
