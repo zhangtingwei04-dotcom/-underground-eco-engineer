@@ -1,5 +1,7 @@
+
 // 鱗片與種子：地下生態物語
 // Login Scene - Complete Settings Center
+// 修正版：中央縮放 + 獨立設定按鈕 + 手機觸控修正
 
 import { LanguageSystem } from '../systems/language-system.js';
 import { SettingsSystem } from '../systems/settings-system.js';
@@ -11,6 +13,8 @@ export class LoginScene extends Phaser.Scene {
 
         this.settingsContainer = null;
         this.settingsPageContainer = null;
+        this.settingsButtonContainer = null;
+
         this.languageMenuExpanded = false;
         this.settingsCategory = 'language';
     }
@@ -25,7 +29,14 @@ export class LoginScene extends Phaser.Scene {
         SettingsSystem.load();
 
         this.backgroundContainer = this.add.container(0, 0);
+
+        // 登入畫面縮放容器
         this.layoutContainer = this.add.container(0, 0);
+
+        // 設定按鈕獨立容器，不受登入畫面縮放影響
+        this.settingsButtonContainer = this.add.container(0, 0);
+        this.settingsButtonContainer.setDepth(50);
+
         this.particles = [];
 
         this.drawBackground();
@@ -275,6 +286,9 @@ export class LoginScene extends Phaser.Scene {
 
         this.clearLayout();
 
+        // 清除舊的獨立設定按鈕
+        this.settingsButtonContainer.removeAll(true);
+
         const width = this.scale.width;
         const height = this.scale.height;
         const centerX = width / 2;
@@ -285,9 +299,21 @@ export class LoginScene extends Phaser.Scene {
             this.drawLandscapeLayout(centerX, width, height);
         }
 
-        this.drawSettingsButton(width, height);
+        // ==============================
+        // 修正重點：以畫面中心作為縮放基準
+        // ==============================
 
-        this.layoutContainer.setScale(this.getScreenScale());
+        const scale = this.getScreenScale();
+
+        this.layoutContainer.setScale(scale);
+
+        this.layoutContainer.setPosition(
+            centerX * (1 - scale),
+            (height / 2) * (1 - scale)
+        );
+
+        // 設定按鈕不放進縮放容器
+        this.drawSettingsButton(width, height);
     }
 
     drawPortraitLayout(centerX, width, height) {
@@ -343,22 +369,28 @@ export class LoginScene extends Phaser.Scene {
         const buttonStartY = height * 0.43;
 
         this.createResponsiveButton(
-            centerX, buttonStartY,
-            buttonWidth, buttonHeight,
+            centerX,
+            buttonStartY,
+            buttonWidth,
+            buttonHeight,
             LanguageSystem.t('login.start_exploring'),
             'guestSelected'
         );
 
         this.createResponsiveButton(
-            centerX, buttonStartY + buttonGap,
-            buttonWidth, buttonHeight,
+            centerX,
+            buttonStartY + buttonGap,
+            buttonWidth,
+            buttonHeight,
             LanguageSystem.t('login.login'),
             'loginSelected'
         );
 
         this.createResponsiveButton(
-            centerX, buttonStartY + buttonGap * 2,
-            buttonWidth, buttonHeight,
+            centerX,
+            buttonStartY + buttonGap * 2,
+            buttonWidth,
+            buttonHeight,
             LanguageSystem.t('login.create_account'),
             'registerSelected'
         );
@@ -429,24 +461,30 @@ export class LoginScene extends Phaser.Scene {
         const buttonStartY = height * 0.48;
 
         this.createResponsiveButton(
-            centerX, buttonStartY,
-            buttonWidth, buttonHeight,
+            centerX,
+            buttonStartY,
+            buttonWidth,
+            buttonHeight,
             LanguageSystem.t('login.start_exploring'),
             'guestSelected',
             Math.max(12, 15 * scale * textScale)
         );
 
         this.createResponsiveButton(
-            centerX, buttonStartY + buttonGap,
-            buttonWidth, buttonHeight,
+            centerX,
+            buttonStartY + buttonGap,
+            buttonWidth,
+            buttonHeight,
             LanguageSystem.t('login.login'),
             'loginSelected',
             Math.max(12, 15 * scale * textScale)
         );
 
         this.createResponsiveButton(
-            centerX, buttonStartY + buttonGap * 2,
-            buttonWidth, buttonHeight,
+            centerX,
+            buttonStartY + buttonGap * 2,
+            buttonWidth,
+            buttonHeight,
             LanguageSystem.t('login.create_account'),
             'registerSelected',
             Math.max(12, 15 * scale * textScale)
@@ -519,6 +557,10 @@ export class LoginScene extends Phaser.Scene {
         return container;
     }
 
+    // ==============================
+    // 獨立設定按鈕
+    // ==============================
+
     drawSettingsButton(width, height) {
 
         const button = this.add.text(
@@ -538,7 +580,7 @@ export class LoginScene extends Phaser.Scene {
             this.openSettings();
         });
 
-        this.layoutContainer.add(button);
+        this.settingsButtonContainer.add(button);
     }
 
     // ==============================
@@ -564,17 +606,23 @@ export class LoginScene extends Phaser.Scene {
         const panelHeight = Math.min(height - 28, 500);
 
         const overlay = this.add.rectangle(
-            centerX, centerY,
-            width, height,
-            0x000000, 0.78
+            centerX,
+            centerY,
+            width,
+            height,
+            0x000000,
+            0.78
         );
 
         overlay.setInteractive();
 
         const panel = this.add.rectangle(
-            centerX, centerY,
-            panelWidth, panelHeight,
-            0x263b32, 1
+            centerX,
+            centerY,
+            panelWidth,
+            panelHeight,
+            0x263b32,
+            1
         );
 
         panel.setStrokeStyle(3, 0xc5b78e, 1);
@@ -692,13 +740,19 @@ export class LoginScene extends Phaser.Scene {
 
         const centerX = this.scale.width / 2;
         const centerY = this.scale.height / 2;
+
         const panelHeight = Math.min(this.scale.height - 28, 500);
         const panelWidth = Math.min(this.scale.width - 28, 460);
 
         const startY = centerY - panelHeight / 2 + 122;
 
         if (this.settingsCategory === 'language') {
-            this.buildLanguagePage(centerX, centerY, panelWidth, panelHeight);
+            this.buildLanguagePage(
+                centerX,
+                centerY,
+                panelWidth,
+                panelHeight
+            );
         }
 
         if (this.settingsCategory === 'screen') {
@@ -728,7 +782,9 @@ export class LoginScene extends Phaser.Scene {
             fontSize: `${size}px`,
             color,
             align: 'center',
-            wordWrap: { width: Math.min(this.scale.width - 70, 380) }
+            wordWrap: {
+                width: Math.min(this.scale.width - 70, 380)
+            }
         }).setOrigin(0.5);
 
         this.settingsPageContainer.add(text);
@@ -773,12 +829,16 @@ export class LoginScene extends Phaser.Scene {
             y + 29,
             '－',
             () => {
+
                 const next = Math.max(
                     options.min,
                     Number(this.getSetting(key)) - options.step
                 );
 
-                this.setSetting(key, Number(next.toFixed(2)));
+                this.setSetting(
+                    key,
+                    Number(next.toFixed(2))
+                );
             },
             48
         );
@@ -788,12 +848,16 @@ export class LoginScene extends Phaser.Scene {
             y + 29,
             '＋',
             () => {
+
                 const next = Math.min(
                     options.max,
                     Number(this.getSetting(key)) + options.step
                 );
 
-                this.setSetting(key, Number(next.toFixed(2)));
+                this.setSetting(
+                    key,
+                    Number(next.toFixed(2))
+                );
             },
             48
         );
@@ -855,7 +919,7 @@ export class LoginScene extends Phaser.Scene {
             '#d5c9a5'
         );
 
-        const currentButton = this.addPageButton(
+        this.addPageButton(
             centerX,
             centerY - panelHeight / 2 + 153,
             `${current.name}  ${this.languageMenuExpanded ? '▲' : '▼'}`,
@@ -900,7 +964,13 @@ export class LoginScene extends Phaser.Scene {
 
     buildScreenPage(centerX, startY) {
 
-        this.addPageText(centerX, startY, '畫面大小', 16, '#f3e8cb');
+        this.addPageText(
+            centerX,
+            startY,
+            '畫面大小',
+            16,
+            '#f3e8cb'
+        );
 
         this.addSettingRow(
             centerX,
@@ -943,7 +1013,13 @@ export class LoginScene extends Phaser.Scene {
 
     buildSoundPage(centerX, startY) {
 
-        this.addPageText(centerX, startY, '音效設定', 16, '#f3e8cb');
+        this.addPageText(
+            centerX,
+            startY,
+            '音效設定',
+            16,
+            '#f3e8cb'
+        );
 
         this.addToggleRow(
             centerX,
@@ -1000,7 +1076,13 @@ export class LoginScene extends Phaser.Scene {
 
     buildOperationPage(centerX, startY) {
 
-        this.addPageText(centerX, startY, '操作與體驗', 16, '#f3e8cb');
+        this.addPageText(
+            centerX,
+            startY,
+            '操作與體驗',
+            16,
+            '#f3e8cb'
+        );
 
         this.addToggleRow(
             centerX,
@@ -1045,7 +1127,13 @@ export class LoginScene extends Phaser.Scene {
 
     buildSystemPage(centerX, startY) {
 
-        this.addPageText(centerX, startY, '系統設定', 16, '#f3e8cb');
+        this.addPageText(
+            centerX,
+            startY,
+            '系統設定',
+            16,
+            '#f3e8cb'
+        );
 
         this.addPageText(
             centerX,
@@ -1068,7 +1156,9 @@ export class LoginScene extends Phaser.Scene {
             startY + 190,
             '恢復預設設定',
             () => {
+
                 SettingsSystem.reset();
+
                 this.languageMenuExpanded = false;
                 this.buildSettingsPage();
             },
