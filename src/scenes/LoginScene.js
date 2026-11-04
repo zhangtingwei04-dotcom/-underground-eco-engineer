@@ -22,16 +22,15 @@ export class LoginScene extends Phaser.Scene {
         this.drawBackground();
         this.drawLayout();
 
+        // 語言變更時，只更新畫面，不重新啟動場景
         this.languageListener = () => {
 
-            // 先清除舊設定視窗，避免重新啟動後留下舊參照
             if (this.settingsContainer) {
                 this.settingsContainer.destroy();
                 this.settingsContainer = null;
             }
 
-            // 重新建立登入畫面
-            this.scene.restart();
+            this.drawLayout();
         };
 
         window.addEventListener(
@@ -587,7 +586,6 @@ export class LoginScene extends Phaser.Scene {
             0.78
         );
 
-        // 阻擋設定視窗後方的點擊
         overlay.setInteractive();
 
         const panel = this.add.rectangle(
