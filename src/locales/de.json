@@ -1,0 +1,128 @@
+{
+  "game": {
+    "title": "Schuppen und Samen: Eine Geschichte der unterirdischen Ökologie",
+    "subtitle": "Eine Geschichte der unterirdischen Ökologie",
+    "version": "Alpha 2.0",
+    "role": "Unterirdischer Ökologe",
+    "motto": "Jede Schuppe erzählt ihre eigene Geschichte. Jeder Samen birgt das Versprechen neuen Lebens."
+  },
+  "login": {
+    "welcome": "Willkommen in deiner unterirdischen Ökologiewelt",
+    "welcome_message": "Jede Schuppe hat ihre Geschichte, und jeder Samen trägt die Hoffnung auf neues Leben in sich.",
+    "start_exploring": "Erkundung beginnen",
+    "login": "Anmelden",
+    "create_account": "Konto erstellen"
+  },
+  "ui": {
+    "day": "Tag {day}",
+    "time": "Uhrzeit",
+    "action_points": "Aktionspunkte",
+    "creature_energy": "Energie der Kreatur",
+    "temperature": "Temperatur",
+    "humidity": "Luftfeuchtigkeit",
+    "journal": "Ökologisches Tagebuch",
+    "terrarium": "Terrarium",
+    "shop": "Shop",
+    "vet": "Tierklinik",
+    "inventory": "Inventar",
+    "encyclopedia": "Ökologische Enzyklopädie",
+    "confirm": "Bestätigen",
+    "cancel": "Abbrechen",
+    "close": "Schließen",
+    "save": "Speichern",
+    "settings": "Einstellungen",
+    "language": "Sprache",
+    "time_phase": {
+      "morning": "Morgen",
+      "day": "Tag",
+      "dusk": "Abenddämmerung",
+      "night": "Nacht"
+    }
+  },
+  "creature": {
+    "species": {
+      "hognose": "Hakennasennatter",
+      "hognose_desc": "Eine Schlange mit charakteristisch nach oben gebogener Schnauze, die gerne gräbt und ihre Umgebung erkundet."
+    },
+    "stage": {
+      "egg": "Ei",
+      "hatchling": "Schlüpfling",
+      "juvenile": "Jungtier",
+      "adult": "Erwachsen"
+    },
+    "status": {
+      "healthy": "Gesund",
+      "hungry": "Hungrig",
+      "dehydrated": "Dehydriert",
+      "shedding": "Häutet sich",
+      "sick": "Krank",
+      "critical": "Kritischer Zustand"
+    },
+    "phenotype": {
+      "wild_type": "Wildtyp",
+      "patternless": "Musterlos",
+      "speckled": "Gefleckt",
+      "conda": "Conda"
+    }
+  },
+  "journal": {
+    "title": "Ökologisches Tagebuch",
+    "new_entry": "Neuen Eintrag hinzufügen",
+    "category": {
+      "arrival": "Ankunft eines neuen Bewohners",
+      "ecdysis": "Häutungsbericht",
+      "mutation": "Genetische Veränderung",
+      "pure_color": "Farbveränderung",
+      "health": "Gesundheitsbericht",
+      "environment": "Umweltbericht"
+    },
+    "default_entries": {
+      "patternless_discovered": "Eine musterlose Schlange wurde entdeckt",
+      "speckled_discovered": "Eine gefleckte Schlange wurde entdeckt"
+    }
+  },
+  "npcs": {
+    "old_mac": {
+      "name": "Alter Mac",
+      "title": "Erfahrener Ökologe",
+      "dialogue": {
+        "greeting": "Willkommen in der Forschungsstation, junger Freund!",
+        "patternless_comment": "Musterlose Schlangen sind etwas ganz Besonderes. Beobachte sie genau.",
+        "speckled_comment": "Diese Flecken sind wirklich wunderschön!"
+      }
+    },
+    "amy": {
+      "name": "Amy",
+      "title": "Forschungsassistentin",
+      "dialogue": {
+        "greeting": "Hallo! Hast du heute etwas Neues entdeckt?",
+        "delivery": "Deine bestellten Vorräte sind angekommen."
+      }
+    },
+    "old_mo": {
+      "name": "Alter Mo",
+      "title": "Geheimnisvoller Sammler",
+      "dialogue": {
+        "greeting": "Pssst ... Ich habe hier ein paar ganz besondere Dinge.",
+        "mystery_egg": "Dieses Ei scheint ein Geheimnis zu verbergen."
+      }
+    }
+  },
+  "vet": {
+    "title": "Tierklinik",
+    "outpatient": "Allgemeine Untersuchung",
+    "outpatient_desc": "Eine grundlegende Gesundheitsuntersuchung für die Kreatur durchführen.",
+    "emergency": "Notfallbehandlung",
+    "emergency_desc": "Dringende gesundheitliche Probleme behandeln.",
+    "hospitalization": "Stationäre Aufnahme",
+    "hospitalization_desc": "Der Kreatur ermöglichen, sich in einer geeigneten Umgebung zu erholen.",
+    "death_report": "Todesbericht",
+    "cause_of_death": "Todesursache"
+  },
+  "ad": {
+    "boost_title": "Unterstützung der ökologischen Forschung",
+    "boost_desc": "Sieh dir eine Werbung an, um zusätzliche Forschungsressourcen zu erhalten.",
+    "boost_button": "Werbung ansehen",
+    "notice": "Werbeprämien können nur für Forschungszwecke innerhalb des Spiels verwendet werden."
+  }
+}
