@@ -1,129 +1,129 @@
 
 {
   "game": {
-    "title": "鱗片與種子：地下生態物語",
-    "subtitle": "地下生態物語",
+    "title": "鳞片与种子：地下生态物语",
+    "subtitle": "地下生态物语",
     "version": "Alpha 2.0",
-    "role": "地下生態學家",
-    "motto": "每一片鱗片，都有自己的故事。每一顆種子，都孕育著新的生命。"
+    "role": "地下生态学家",
+    "motto": "每一片鳞片，都有自己的故事。每一颗种子，都孕育着新的生命。"
   },
   "login": {
-    "welcome": "歡迎來到你的地下生態世界",
-    "welcome_message": "每一片鱗片，都有自己的故事；每一顆種子，都蘊藏著生命。",
-    "start_exploring": "開始探索",
-    "login": "登入帳號",
-    "create_account": "建立新帳號"
+    "welcome": "欢迎来到你的地下生态世界",
+    "welcome_message": "每一片鳞片，都有自己的故事；每一颗种子，都蕴藏着生命。",
+    "start_exploring": "开始探索",
+    "login": "登录账号",
+    "create_account": "创建新账号"
   },
   "ui": {
     "day": "第 {day} 天",
-    "time": "目前時間",
-    "action_points": "行動值",
+    "time": "当前时间",
+    "action_points": "行动值",
     "creature_energy": "生物精力",
-    "temperature": "溫度",
-    "humidity": "濕度",
-    "journal": "生態學家筆記",
-    "terrarium": "生態箱",
-    "shop": "黑市與生態商店",
-    "vet": "寵物醫院",
-    "inventory": "背包與資材",
-    "encyclopedia": "生物圖鑑",
-    "confirm": "確認",
+    "temperature": "温度",
+    "humidity": "湿度",
+    "journal": "生态学家笔记",
+    "terrarium": "生态箱",
+    "shop": "黑市与生态商店",
+    "vet": "宠物医院",
+    "inventory": "背包与物资",
+    "encyclopedia": "生物图鉴",
+    "confirm": "确认",
     "cancel": "取消",
-    "close": "關閉",
-    "save": "儲存進度",
-    "settings": "系統設定",
-    "language": "語言",
+    "close": "关闭",
+    "save": "保存进度",
+    "settings": "系统设置",
+    "language": "语言",
     "time_phase": {
       "morning": "清晨",
       "day": "白天",
-      "dusk": "黃昏",
+      "dusk": "黄昏",
       "night": "夜晚"
     }
   },
   "creature": {
     "species": {
-      "hognose": "西部豬鼻蛇",
-      "hognose_desc": "帶有獨特豬鼻狀吻端的地面小型蛇類，性格溫和，喜歡在底材中挖掘穴居。"
+      "hognose": "西部猪鼻蛇",
+      "hognose_desc": "带有独特猪鼻状吻端的小型地栖蛇类，性格温和，喜欢在垫材中挖掘穴居。"
     },
     "stage": {
       "egg": "卵",
-      "hatchling": "幼體",
-      "juvenile": "亞成體",
-      "adult": "成體"
+      "hatchling": "幼体",
+      "juvenile": "亚成体",
+      "adult": "成体"
     },
     "status": {
-      "healthy": "健康狀態良好",
-      "hungry": "些許飢餓",
-      "dehydrated": "輕微脫水",
-      "shedding": "即將蛻皮（眼睛白濁）",
-      "sick": "身體不適（建議就醫）",
-      "critical": "生命危急（需要急診）"
+      "healthy": "健康状况良好",
+      "hungry": "略微饥饿",
+      "dehydrated": "轻微脱水",
+      "shedding": "即将蜕皮（眼睛浑浊）",
+      "sick": "身体不适（建议就医）",
+      "critical": "生命垂危（需要急诊）"
     },
     "phenotype": {
       "wild_type": "原色野生型",
-      "patternless": "純色系（Patternless）",
-      "speckled": "隨機斑紋與白點突變",
-      "conda": "減斑基因（Conda）"
+      "patternless": "纯色系（Patternless）",
+      "speckled": "随机斑纹与白点突变",
+      "conda": "减斑基因（Conda）"
     }
   },
   "journal": {
-    "title": "生態學家研究筆記",
-    "new_entry": "新增紀錄",
+    "title": "生态学家研究笔记",
+    "new_entry": "新增记录",
     "category": {
-      "arrival": "新個體到來",
-      "ecdysis": "蛻皮觀察",
-      "mutation": "基因變異發現",
-      "pure_color": "特異色澤觀察",
-      "health": "健康診斷紀錄",
-      "environment": "微氣候調控"
+      "arrival": "新个体到来",
+      "ecdysis": "蜕皮观察",
+      "mutation": "基因变异发现",
+      "pure_color": "特殊色泽观察",
+      "health": "健康诊断记录",
+      "environment": "微气候调控"
     },
     "default_entries": {
-      "patternless_discovered": "這隻個體身上沒有繁複的花紋，呈現乾淨俐落的純色系。在地下燈光照射下散發出純粹而安心的質感。",
-      "speckled_discovered": "今日觀察到體表出現高對比的隨機白點與高顯性斑紋！這究竟是基因突變還是微氣候適應的成果？值得持續追蹤。"
+      "patternless_discovered": "这只个体身上没有繁复的花纹，呈现出干净利落的纯色系。在地下灯光照射下，散发出纯粹而令人安心的质感。",
+      "speckled_discovered": "今天观察到体表出现高对比度的随机白点与显性斑纹！这究竟是基因突变，还是微气候适应的成果？值得持续追踪。"
     }
   },
   "npcs": {
     "old_mac": {
-      "name": "老馬克",
-      "title": "資深爬蟲學者與導師",
+      "name": "老马克",
+      "title": "资深爬虫学者与导师",
       "dialogue": {
-        "greeting": "歡迎回到地下生態箱！今天有仔細檢查微氣候的溫濕度嗎？",
-        "patternless_comment": "喔？這隻小傢伙身上沒有多餘的雜色，是相當純粹乾淨的純色系啊！這種簡約的高級感特別令人賞心悅目。",
-        "speckled_comment": "快瞧瞧這背部的斑紋變化！每一塊斑點的分布都是獨一無二的，這孩子長大後肯定會成為圖鑑裡的焦點！"
+        "greeting": "欢迎回到地下生态箱！今天有仔细检查微气候的温湿度吗？",
+        "patternless_comment": "哦？这只小家伙身上没有多余的杂色，是相当纯粹干净的纯色系啊！这种简约的高级感特别令人赏心悦目。",
+        "speckled_comment": "快看看这背部的斑纹变化！每一块斑点的分布都是独一无二的，这孩子长大后肯定会成为图鉴里的焦点！"
       }
     },
     "amy": {
       "name": "艾米",
-      "title": "溫控包裹快遞員",
+      "title": "温控包裹快递员",
       "dialogue": {
-        "greeting": "嗨，生態學家！今天有你的地下溫控快遞包裹送到囉！",
-        "delivery": "安心吧！運輸過程中的保溫與濕度控管我都細心確認過了，隨時可以拆封放置於生態箱。"
+        "greeting": "嗨，生态学家！今天有你的地下温控快递包裹送到啦！",
+        "delivery": "放心吧！运输过程中的保温与湿度控制我都仔细确认过了，随时可以拆封并放置于生态箱中。"
       }
     },
     "old_mo": {
       "name": "老莫",
-      "title": "深層岩脈探索者",
+      "title": "深层岩脉探索者",
       "dialogue": {
-        "greeting": "嘿嘿……深層地道裡可藏著不少古老的遺傳線索與奇特植物種子呢。",
-        "mystery_egg": "要不要試著培育這顆在深層岩隙發現的神祕卵？它可能會為你的生態箱帶來驚喜。"
+        "greeting": "嘿嘿……深层地道里可藏着不少古老的遗传线索与奇特植物种子呢。",
+        "mystery_egg": "要不要试着培育这颗在深层岩隙中发现的神秘卵？它可能会为你的生态箱带来惊喜。"
       }
     }
   },
   "vet": {
-    "title": "地下爬蟲專業診所",
-    "outpatient": "一般門診",
-    "outpatient_desc": "消耗少量行動值與基礎診金，適合常態健康檢查與初期輕微病徵。",
-    "emergency": "急診處置",
-    "emergency_desc": "優先排診處理危急病徵，消耗較多行動值與較高費用。",
-    "hospitalization": "住院觀察",
-    "hospitalization_desc": "留院進行長期環境適應與生理復原，依現實時間回報進度。",
-    "death_report": "離線健康與生命追蹤報告",
-    "cause_of_death": "死因分析與環境檢討"
+    "title": "地下爬虫专业诊所",
+    "outpatient": "普通门诊",
+    "outpatient_desc": "消耗少量行动值与基础诊金，适合常规健康检查与初期轻微病征。",
+    "emergency": "急诊处理",
+    "emergency_desc": "优先安排诊疗，处理危急病征，消耗较多行动值与较高费用。",
+    "hospitalization": "住院观察",
+    "hospitalization_desc": "留院进行长期环境适应与生理恢复，根据现实时间汇报进度。",
+    "death_report": "离线健康与生命追踪报告",
+    "cause_of_death": "死因分析与环境检讨"
   },
   "ad": {
-    "boost_title": "成長觀察室加速",
-    "boost_desc": "觀看自願獎勵廣告，獲得額外 +6 小時的有效生物成長時間（每日上限 2 次）。",
-    "boost_button": "獲得 +6 小時成長時間",
-    "notice": "※ 廣告加速不會影響疾病康復、生死判定或特殊基因產生機率。"
+    "boost_title": "成长观察室加速",
+    "boost_desc": "观看自愿奖励广告，获得额外 +6 小时的有效生物成长时间（每日上限 2 次）。",
+    "boost_button": "获得 +6 小时成长时间",
+    "notice": "※ 广告加速不会影响疾病康复、生死判定或特殊基因产生概率。"
   }
 }
