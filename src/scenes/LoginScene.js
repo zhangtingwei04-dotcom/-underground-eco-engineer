@@ -877,7 +877,7 @@ export class LoginScene extends Phaser.Scene {
         // 深翡翠玻璃底
         const panel = this.add.graphics();
 
-        panel.fillStyle(0x061d18, 0.96);
+        panel.fillStyle(0x061d18, 1);
         panel.fillRoundedRect(
             panelLeft,
             panelTop,
