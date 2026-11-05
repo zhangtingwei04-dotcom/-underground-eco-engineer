@@ -1,9 +1,4 @@
 
-// 鱗片與種子：地下生態物語
-// LoginScene
-// Stable Settings Rail + Language Refresh
-// Compact Audio Panel + Responsive Layout
-
 import { LanguageSystem } from '../systems/language-system.js';
 import { SettingsSystem } from '../systems/settings-system.js';
 
@@ -16,7 +11,6 @@ export class LoginScene extends Phaser.Scene {
         this.settingsPageContainer = null;
         this.settingsButtonContainer = null;
         this.settingsRail = null;
-
         this.settingsRailItems = [];
 
         this.settingsCategory = null;
@@ -28,9 +22,9 @@ export class LoginScene extends Phaser.Scene {
         this.languageReadyListener = null;
     }
 
-    // ==============================
+    // =====================================
     // 初始化
-    // ==============================
+    // =====================================
 
     create() {
 
@@ -136,9 +130,9 @@ export class LoginScene extends Phaser.Scene {
         );
     }
 
-    // ==============================
+    // =====================================
     // 設定讀取與寫入
-    // ==============================
+    // =====================================
 
     getSetting(key) {
         return SettingsSystem.get(key);
@@ -172,9 +166,9 @@ export class LoginScene extends Phaser.Scene {
         return this.scale.height > this.scale.width;
     }
 
-    // ==============================
+    // =====================================
     // 背景
-    // ==============================
+    // =====================================
 
     clearBackground() {
 
@@ -338,9 +332,9 @@ export class LoginScene extends Phaser.Scene {
         this.backgroundContainer.add(graphics);
     }
 
-    // ==============================
+    // =====================================
     // 螢幕尺寸調整
-    // ==============================
+    // =====================================
 
     handleResize() {
 
@@ -397,9 +391,9 @@ export class LoginScene extends Phaser.Scene {
         this.drawSettingsButton(width, height);
     }
 
-    // ==============================
+    // =====================================
     // 直式登入畫面
-    // ==============================
+    // =====================================
 
     drawPortraitLayout(centerX, width, height) {
 
@@ -481,9 +475,9 @@ export class LoginScene extends Phaser.Scene {
         );
     }
 
-    // ==============================
+    // =====================================
     // 橫式登入畫面
-    // ==============================
+    // =====================================
 
     drawLandscapeLayout(centerX, width, height) {
 
@@ -662,9 +656,9 @@ export class LoginScene extends Phaser.Scene {
         return container;
     }
 
-    // ==============================
+    // =====================================
     // 設定主按鈕
-    // ==============================
+    // =====================================
 
     drawSettingsButton(width, height) {
 
@@ -718,9 +712,9 @@ export class LoginScene extends Phaser.Scene {
         this.settingsButtonContainer.add(button);
     }
 
-    // ==============================
+    // =====================================
     // 五個設定分類
-    // ==============================
+    // =====================================
 
     getSettingsCategories() {
 
@@ -733,9 +727,9 @@ export class LoginScene extends Phaser.Scene {
         ];
     }
 
-    // ==============================
+    // =====================================
     // 開啟設定
-    // ==============================
+    // =====================================
 
     openSettings() {
 
@@ -755,9 +749,9 @@ export class LoginScene extends Phaser.Scene {
         this.refreshSettingsRail();
     }
 
-    // ==============================
+    // =====================================
     // 建立或更新五個分類圖標
-    // ==============================
+    // =====================================
 
     refreshSettingsRail() {
 
@@ -899,9 +893,9 @@ export class LoginScene extends Phaser.Scene {
         });
     }
 
-    // ==============================
+    // =====================================
     // 分類切換
-    // ==============================
+    // =====================================
 
     selectSettingsCategory(category) {
 
@@ -924,9 +918,9 @@ export class LoginScene extends Phaser.Scene {
         this.buildSettingsPage();
     }
 
-    // ==============================
+    // =====================================
     // 清除面板內容
-    // ==============================
+    // =====================================
 
     clearSettingsPage() {
 
@@ -942,9 +936,9 @@ export class LoginScene extends Phaser.Scene {
         this.settingsPageContainer = null;
     }
 
-    // ==============================
+    // =====================================
     // 更新設定
-    // ==============================
+    // =====================================
 
     refreshSettings() {
 
@@ -957,15 +951,14 @@ export class LoginScene extends Phaser.Scene {
         }
     }
 
-    // ==============================
+    // =====================================
     // 面板尺寸
-    // ==============================
+    // =====================================
 
     getPanelSize(category) {
 
         const width = this.scale.width;
 
-        // 所有設定頁共用相同寬度
         const panelWidth = Math.min(
             320,
             Math.max(230, width - 76)
@@ -985,9 +978,9 @@ export class LoginScene extends Phaser.Scene {
         };
     }
 
-    // ==============================
+    // =====================================
     // 面板位置
-    // ==============================
+    // =====================================
 
     getSettingsPosition() {
 
@@ -1015,9 +1008,9 @@ export class LoginScene extends Phaser.Scene {
         };
     }
 
-    // ==============================
+    // =====================================
     // 建立翡翠全息設定面板
-    // ==============================
+    // =====================================
 
     buildSettingsPage() {
 
@@ -1042,7 +1035,6 @@ export class LoginScene extends Phaser.Scene {
         const panelLeft = centerX - size.width / 2;
         const panelTop = centerY - size.height / 2;
 
-        // 外圍柔和光暈
         const glow = this.add.graphics();
 
         glow.fillStyle(0x13d995, 0.10);
@@ -1057,7 +1049,6 @@ export class LoginScene extends Phaser.Scene {
 
         this.settingsPageContainer.add(glow);
 
-        // 深翡翠底板
         const panel = this.add.graphics();
 
         panel.fillStyle(0x061d18, 1);
@@ -1070,7 +1061,6 @@ export class LoginScene extends Phaser.Scene {
             13
         );
 
-        // 外框
         panel.lineStyle(2, 0x42dba5, 0.95);
 
         panel.strokeRoundedRect(
@@ -1081,7 +1071,6 @@ export class LoginScene extends Phaser.Scene {
             13
         );
 
-        // 內框
         panel.lineStyle(1, 0x9affd3, 0.35);
 
         panel.strokeRoundedRect(
@@ -1092,7 +1081,6 @@ export class LoginScene extends Phaser.Scene {
             10
         );
 
-        // 頂部裝飾線
         panel.lineStyle(2, 0x53dca8, 0.75);
 
         panel.beginPath();
@@ -1100,14 +1088,12 @@ export class LoginScene extends Phaser.Scene {
         panel.lineTo(panelLeft + size.width - 18, panelTop + 35);
         panel.strokePath();
 
-        // 光點
         panel.fillStyle(0xb1ffe0, 0.9);
         panel.fillCircle(panelLeft + 13, panelTop + 13, 2);
         panel.fillCircle(panelLeft + size.width - 13, panelTop + 13, 2);
 
         this.settingsPageContainer.add(panel);
 
-        // 標題
         const titleMap = {
             language: 'LANGUAGE / 語言',
             screen: 'DISPLAY / 畫面',
@@ -1163,9 +1149,9 @@ export class LoginScene extends Phaser.Scene {
         this.settingsPageContainer.setScale(1);
     }
 
-    // ==============================
+    // =====================================
     // 設定文字
-    // ==============================
+    // =====================================
 
     addPageText(
         x,
@@ -1195,9 +1181,9 @@ export class LoginScene extends Phaser.Scene {
         return text;
     }
 
-    // ==============================
+    // =====================================
     // 全息文字按鈕
-    // ==============================
+    // =====================================
 
     addPageButton(x, y, label, callback, width = 90) {
 
@@ -1313,9 +1299,9 @@ export class LoginScene extends Phaser.Scene {
         return buttonContainer;
     }
 
-    // ==============================
+    // =====================================
     // 十種語言
-    // ==============================
+    // =====================================
 
     buildLanguagePage(centerX, startY) {
 
@@ -1462,9 +1448,9 @@ export class LoginScene extends Phaser.Scene {
         });
     }
 
-    // ==============================
+    // =====================================
     // 數值設定工具
-    // ==============================
+    // =====================================
 
     addSettingRow(centerX, y, label, key, options = {}) {
 
@@ -1520,9 +1506,9 @@ export class LoginScene extends Phaser.Scene {
         );
     }
 
-    // ==============================
+    // =====================================
     // 開關設定
-    // ==============================
+    // =====================================
 
     addToggleRow(centerX, y, label, key) {
 
@@ -1549,9 +1535,10 @@ export class LoginScene extends Phaser.Scene {
         );
     }
 
-    // ==============================
-    // 五大音效頻道：緊湊版
-    // ==============================
+    // =====================================
+    // AUDIO 五個音效頻道
+    // 水平對齊精緻版
+    // =====================================
 
     addAudioChannelRow(
         centerX,
@@ -1569,54 +1556,43 @@ export class LoginScene extends Phaser.Scene {
 
         const controlAlpha = enabled ? 1 : 0.45;
 
-        // 頻道名稱：向中央靠攏
-        const channelName = this.addPageText(
-            centerX - 35,
+        // ---------------------------------
+        // 項目名稱
+        // X = centerX - 80
+        // Y = y
+        // 右側對齊
+        // ---------------------------------
+
+        const channelName = this.add.text(
+            centerX - 80,
             y,
             label,
-            11,
-            '#effff5'
-        );
+            {
+                fontFamily: 'Arial, sans-serif',
+                fontSize: '10px',
+                color: '#effff5',
+                stroke: '#04130f',
+                strokeThickness: 2,
+                align: 'right',
+                fixedWidth: 75
+            }
+        ).setOrigin(1, 0.5);
 
         channelName.setAlpha(controlAlpha);
 
-        // 開關：由右側向中央收攏
-        this.addPageButton(
-            centerX + 50,
-            y + 5,
-            enabled ? '● 開啟' : '○ 關閉',
-            () => {
+        this.settingsPageContainer.add(channelName);
 
-                this.setSetting(
-                    enabledKey,
-                    !this.getSetting(enabledKey)
-                );
-            },
-            65
-        );
+        // ---------------------------------
+        // 緊湊型加減按鈕
+        // ---------------------------------
 
-        // 百分比
-        const percentage = this.addPageText(
-            centerX,
-            y + 25,
-            `${Math.round(volume * 100)}%`,
-            11,
-            '#baffdf'
-        );
-
-        percentage.setAlpha(controlAlpha);
-
-        // 建立 36 × 36 音量按鈕
-        const createVolumeButton = (
+        const createCompactButton = (
             x,
-            buttonLabel,
+            symbol,
             callback
         ) => {
 
-            const button = this.add.container(
-                x,
-                y + 25
-            );
+            const button = this.add.container(x, y);
 
             const background = this.add.graphics();
 
@@ -1626,11 +1602,11 @@ export class LoginScene extends Phaser.Scene {
             );
 
             background.fillRoundedRect(
-                -18,
-                -18,
-                36,
-                36,
-                7
+                -12,
+                -14,
+                24,
+                28,
+                5
             );
 
             background.lineStyle(
@@ -1640,29 +1616,28 @@ export class LoginScene extends Phaser.Scene {
             );
 
             background.strokeRoundedRect(
-                -18,
-                -18,
-                36,
-                36,
-                7
+                -12,
+                -14,
+                24,
+                28,
+                5
             );
 
             const text = this.add.text(
                 0,
                 0,
-                buttonLabel,
+                symbol,
                 {
                     fontSize: '15px',
                     color: '#e5fff2',
-                    fontStyle: 'bold',
-                    align: 'center'
+                    fontStyle: 'bold'
                 }
             ).setOrigin(0.5);
 
             const hitArea = this.add.rectangle(
                 0,
                 0,
-                36,
+                32,
                 36,
                 0xffffff,
                 0.001
@@ -1689,14 +1664,17 @@ export class LoginScene extends Phaser.Scene {
 
                     background.clear();
 
-                    background.fillStyle(0x1c7252, 1);
+                    background.fillStyle(
+                        0x1c7252,
+                        1
+                    );
 
                     background.fillRoundedRect(
-                        -18,
-                        -18,
-                        36,
-                        36,
-                        7
+                        -12,
+                        -14,
+                        24,
+                        28,
+                        5
                     );
 
                     background.lineStyle(
@@ -1706,11 +1684,11 @@ export class LoginScene extends Phaser.Scene {
                     );
 
                     background.strokeRoundedRect(
-                        -18,
-                        -18,
-                        36,
-                        36,
-                        7
+                        -12,
+                        -14,
+                        24,
+                        28,
+                        5
                     );
                 });
 
@@ -1718,14 +1696,17 @@ export class LoginScene extends Phaser.Scene {
 
                     background.clear();
 
-                    background.fillStyle(0x104936, 0.95);
+                    background.fillStyle(
+                        0x104936,
+                        0.95
+                    );
 
                     background.fillRoundedRect(
-                        -18,
-                        -18,
-                        36,
-                        36,
-                        7
+                        -12,
+                        -14,
+                        24,
+                        28,
+                        5
                     );
 
                     background.lineStyle(
@@ -1735,11 +1716,11 @@ export class LoginScene extends Phaser.Scene {
                     );
 
                     background.strokeRoundedRect(
-                        -18,
-                        -18,
-                        36,
-                        36,
-                        7
+                        -12,
+                        -14,
+                        24,
+                        28,
+                        5
                     );
                 });
 
@@ -1751,9 +1732,14 @@ export class LoginScene extends Phaser.Scene {
             return button;
         };
 
-        // 降低音量
-        createVolumeButton(
-            centerX - 24,
+        // ---------------------------------
+        // 減號
+        // X = centerX - 30
+        // Y = y
+        // ---------------------------------
+
+        createCompactButton(
+            centerX - 30,
             '－',
             () => {
 
@@ -1773,9 +1759,38 @@ export class LoginScene extends Phaser.Scene {
             }
         );
 
-        // 增加音量
-        createVolumeButton(
-            centerX + 24,
+        // ---------------------------------
+        // 音量百分比
+        // X = centerX
+        // Y = y
+        // ---------------------------------
+
+        const percentage = this.add.text(
+            centerX,
+            y,
+            `${Math.round(volume * 100)}%`,
+            {
+                fontFamily: 'Arial, sans-serif',
+                fontSize: '10px',
+                color: '#baffdf',
+                stroke: '#04130f',
+                strokeThickness: 2,
+                align: 'center'
+            }
+        ).setOrigin(0.5);
+
+        percentage.setAlpha(controlAlpha);
+
+        this.settingsPageContainer.add(percentage);
+
+        // ---------------------------------
+        // 加號
+        // X = centerX + 30
+        // Y = y
+        // ---------------------------------
+
+        createCompactButton(
+            centerX + 30,
             '＋',
             () => {
 
@@ -1794,11 +1809,31 @@ export class LoginScene extends Phaser.Scene {
                 );
             }
         );
+
+        // ---------------------------------
+        // 開啟 / 關閉
+        // X = centerX + 75
+        // Y = y
+        // ---------------------------------
+
+        this.addPageButton(
+            centerX + 75,
+            y,
+            enabled ? '● 開啟' : '○ 關閉',
+            () => {
+
+                this.setSetting(
+                    enabledKey,
+                    !this.getSetting(enabledKey)
+                );
+            },
+            62
+        );
     }
 
-    // ==============================
+    // =====================================
     // 畫面設定
-    // ==============================
+    // =====================================
 
     buildScreenPage(centerX, startY) {
 
@@ -1839,9 +1874,9 @@ export class LoginScene extends Phaser.Scene {
         );
     }
 
-    // ==============================
-    // 音效設定：精緻緊湊版
-    // ==============================
+    // =====================================
+    // 音效設定
+    // =====================================
 
     buildSoundPage(centerX, startY) {
 
@@ -1903,9 +1938,9 @@ export class LoginScene extends Phaser.Scene {
         });
     }
 
-    // ==============================
+    // =====================================
     // 操作設定
-    // ==============================
+    // =====================================
 
     buildOperationPage(centerX, startY) {
 
@@ -1946,9 +1981,9 @@ export class LoginScene extends Phaser.Scene {
         );
     }
 
-    // ==============================
+    // =====================================
     // 系統設定
-    // ==============================
+    // =====================================
 
     buildSystemPage(centerX, startY) {
 
@@ -1988,9 +2023,9 @@ export class LoginScene extends Phaser.Scene {
         );
     }
 
-    // ==============================
+    // =====================================
     // 關閉全部設定
-    // ==============================
+    // =====================================
 
     closeSettings() {
 
