@@ -1,3 +1,4 @@
+
 // 鱗片與種子：地下生態物語
 // Main Entry Point - iPhone Responsive Fullscreen
 
@@ -32,12 +33,14 @@ window.addEventListener('DOMContentLoaded', async () => {
             SettingsSystem.getSettings()
         );
 
+        // 3. 確認遊戲容器
         const container = document.getElementById('game-container');
 
         if (!container) {
             throw new Error('找不到 game-container');
         }
 
+        // 4. 取得畫面尺寸
         const getScreenSize = () => {
 
             const rect = container.getBoundingClientRect();
@@ -50,6 +53,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 
         const initialSize = getScreenSize();
 
+        // 5. Phaser 遊戲設定
         const config = {
 
             type: Phaser.AUTO,
@@ -78,9 +82,13 @@ window.addEventListener('DOMContentLoaded', async () => {
             ]
         };
 
+        // 6. 建立遊戲
         window.game = new Phaser.Game(config);
+
+        // 7. 初始化音效系統
         AudioSystem.initialize(window.game);
 
+        // 8. 畫面尺寸調整
         let resizeTimer = null;
 
         const resizeGame = () => {
@@ -111,20 +119,28 @@ window.addEventListener('DOMContentLoaded', async () => {
             }, 150);
         };
 
+        // 9. 監聽瀏覽器尺寸
         window.addEventListener('resize', resizeGame);
 
+        // 10. 監聽手機方向
         window.addEventListener('orientationchange', () => {
+
             setTimeout(resizeGame, 300);
             setTimeout(resizeGame, 700);
+
         });
 
+        // 11. 監聽 iPhone 可視範圍
         if (window.visualViewport) {
+
             window.visualViewport.addEventListener(
                 'resize',
                 resizeGame
             );
+
         }
 
+        // 12. 監聽遊戲容器尺寸
         if (window.ResizeObserver) {
 
             const observer = new ResizeObserver(() => {
@@ -139,13 +155,19 @@ window.addEventListener('DOMContentLoaded', async () => {
 
     } catch (error) {
 
-    console.error('【系統錯誤】遊戲啟動失敗：', error);
+        console.error(
+            '【系統錯誤】遊戲啟動失敗：',
+            error
+        );
 
-    const errorMessage = error?.message || String(error);
+        const errorMessage = error?.message || String(error);
 
-    alert(
-        '遊戲啟動失敗！\n\n' +
-        '錯誤原因：' + errorMessage +
-        '\n\n請截圖或複製錯誤內容，提供給開發者。'
-    );
-}
+        alert(
+            '遊戲啟動失敗！\n\n' +
+            '錯誤原因：' + errorMessage +
+            '\n\n請截圖或複製錯誤內容，提供給開發者。'
+        );
+
+    }
+
+});
