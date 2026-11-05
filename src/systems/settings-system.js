@@ -1,8 +1,7 @@
 
 // 鱗片與種子：地下生態物語
-// Unified Settings System
-// 統一遊戲設定管理系統
-// Version 2.0
+// Settings System Version 2.1
+// Local Storage + Audio + Display + Language
 
 import { LanguageSystem } from './language-system.js';
 
@@ -10,7 +9,6 @@ export class SettingsSystem {
 
     static STORAGE_KEY = 'scales_seeds_settings';
 
-    // 所有設定的預設值
     static DEFAULT_SETTINGS = {
 
         language: 'en',
@@ -19,380 +17,264 @@ export class SettingsSystem {
         screenScale: 1,
         textSize: 1,
 
-        // 頻道一：背景音樂
+        // 背景音樂
         backgroundMusicEnabled: true,
         backgroundMusicVolume: 0.8,
 
-        // 頻道二：環境音
+        // 環境音效
         ambientSoundEnabled: true,
         ambientSoundVolume: 0.7,
 
-        // 頻道三：NPC 特殊音樂
+        // NPC 音樂
         npcMusicEnabled: true,
         npcMusicVolume: 0.8,
 
-        // 頻道四：遊戲音效
-        soundEffectsEnabled: true,
-        soundEffectsVolume: 0.8,
-
-        // 頻道五：爬蟲與兩棲動物聲音
+        // 爬蟲與兩棲動物音效
         creatureSoundEnabled: true,
         creatureSoundVolume: 0.7,
 
-        // 系統設定
+        // 遊戲音效
+        soundEffectsEnabled: true,
+        soundEffectsVolume: 0.8,
+
+        // 其他設定
         animationsEnabled: true,
         nightModeEnabled: false,
         powerSavingEnabled: false,
-
-        // 操作設定
         operationTipsEnabled: true
     };
 
-    static settings = null;
-    static languageListenerRegistered = false;
-
-    // 數值設定範圍
     static NUMERIC_RULES = {
-        screenScale: [0.8, 1.2, 1],
-        textSize: [0.8, 1.3, 1],
 
-        backgroundMusicVolume: [0, 1, 0.8],
-        ambientSoundVolume: [0, 1, 0.7],
-        npcMusicVolume: [0, 1, 0.8],
-        soundEffectsVolume: [0, 1, 0.8],
-        creatureSoundVolume: [0, 1, 0.7]
+        screenScale: {
+            min: 0.8,
+            max: 1.2,
+            step: 0.05
+        },
+
+        textSize: {
+            min: 0.8,
+            max: 1.3,
+            step: 0.05
+        },
+
+        backgroundMusicVolume: {
+            min: 0,
+            max: 1,
+            step: 0.1
+        },
+
+        ambientSoundVolume: {
+            min: 0,
+            max: 1,
+            step: 0.1
+        },
+
+        npcMusicVolume: {
+            min: 0,
+            max: 1,
+            step: 0.1
+        },
+
+        creatureSoundVolume: {
+            min: 0,
+            max: 1,
+            step: 0.1
+        },
+
+        soundEffectsVolume: {
+            min: 0,
+            max: 1,
+            step: 0.1
+        }
     };
 
-    // 布林設定
     static BOOLEAN_KEYS = [
+
         'backgroundMusicEnabled',
         'ambientSoundEnabled',
         'npcMusicEnabled',
-        'soundEffectsEnabled',
         'creatureSoundEnabled',
+        'soundEffectsEnabled',
 
         'animationsEnabled',
         'nightModeEnabled',
         'powerSavingEnabled',
-
         'operationTipsEnabled'
     ];
 
-    // 支援語言
-    static getSupportedLanguages() {
+    static settings = null;
+    static loaded = false;
+    static languageListener = null;
 
-        const languages = LanguageSystem.SUPPORTED_LANGUAGES;
-
-        return Array.isArray(languages)
-            ? languages
-            : ['zh-TW', 'zh-CN', 'en', 'ja', 'ko',
-               'th', 'fr', 'de', 'es', 'pt-BR'];
-    }
-
-    // 檢查語言是否合法
-    static isValidLanguage(language) {
-
-        return this.getSupportedLanguages().includes(language);
-    }
-
-    // 取得預設設定
-    static getDefaults() {
-
-        return { ...this.DEFAULT_SETTINGS };
-    }
-
-    // 註冊語言同步監聽
-    static registerLanguageListener() {
-
-        if (
-            this.languageListenerRegistered ||
-            typeof window === 'undefined'
-        ) {
-            return;
-        }
-
-        window.addEventListener('languageChanged', event => {
-
-            if (!this.settings) {
-                this.settings = this.getDefaults();
-            }
-
-            const eventLanguage =
-                typeof event.detail === 'string'
-                    ? event.detail
-                    : event.detail?.language;
-
-            const language = this.isValidLanguage(eventLanguage)
-                ? eventLanguage
-                : LanguageSystem.getLanguage();
-
-            if (!this.isValidLanguage(language)) {
-                return;
-            }
-
-            // 只有語言真的改變時才儲存
-            if (this.settings.language !== language) {
-
-                this.settings.language = language;
-
-                this.save();
-            }
-        });
-
-        this.languageListenerRegistered = true;
-    }
-
-    // 整理並驗證設定資料
-    static sanitizeSettings(settings) {
-
-        const result = {
-            ...this.getDefaults(),
-            ...settings
-        };
-
-        // 數值設定檢查
-        Object.entries(this.NUMERIC_RULES).forEach(
-            ([key, rule]) => {
-
-                const [min, max, fallback] = rule;
-
-                result[key] = this.clamp(
-                    result[key],
-                    min,
-                    max,
-                    fallback
-                );
-            }
-        );
-
-        // 布林設定檢查
-        this.BOOLEAN_KEYS.forEach(key => {
-
-            if (typeof result[key] !== 'boolean') {
-
-                result[key] = this.DEFAULT_SETTINGS[key];
-            }
-        });
-
-        // 語言檢查
-        if (!this.isValidLanguage(result.language)) {
-
-            result.language = this.DEFAULT_SETTINGS.language;
-        }
-
-        return result;
-    }
-
-    // 讀取設定
+    // 初始化設定
     static load() {
+
+        if (this.loaded && this.settings) {
+            return this.settings;
+        }
 
         let savedSettings = {};
 
         try {
 
-            const raw = localStorage.getItem(
+            const saved = localStorage.getItem(
                 this.STORAGE_KEY
             );
 
-            if (raw) {
-
-                const parsed = JSON.parse(raw);
+            if (saved) {
+                savedSettings = JSON.parse(saved);
 
                 if (
-                    parsed &&
-                    typeof parsed === 'object' &&
-                    !Array.isArray(parsed)
+                    !savedSettings ||
+                    typeof savedSettings !== 'object' ||
+                    Array.isArray(savedSettings)
                 ) {
-                    savedSettings = parsed;
+                    savedSettings = {};
                 }
             }
 
         } catch (error) {
 
-            console.error(
-                '[SettingsSystem] 設定讀取失敗：',
+            console.warn(
+                '[SettingsSystem] 讀取設定失敗，使用預設設定',
                 error
             );
+
+            savedSettings = {};
         }
 
-        // 合併舊設定與新設定
-        this.settings = this.sanitizeSettings(
-            savedSettings
-        );
+        this.settings = {
+            ...this.DEFAULT_SETTINGS,
+            ...savedSettings
+        };
 
-        // 語言由 LanguageSystem 統一管理
-        const currentLanguage = LanguageSystem.getLanguage();
+        this.sanitizeAll();
 
-        if (this.isValidLanguage(currentLanguage)) {
+        // 語言以 LanguageSystem 為主要來源
+        this.settings.language =
+            LanguageSystem.getLanguage();
 
-            this.settings.language = currentLanguage;
-        }
+        this.loaded = true;
 
-        // 註冊語言監聽
         this.registerLanguageListener();
 
-        // 儲存補齊後的設定
         this.save();
 
         console.log(
-            '[SettingsSystem] 設定載入完成',
-            this.getSettings()
+            '[SettingsSystem] 設定初始化完成',
+            this.settings
         );
 
-        return this.getSettings();
+        return this.settings;
     }
 
-    // 儲存設定
-    static save() {
+    // 確保設定已初始化
+    static ensureLoaded() {
 
-        if (!this.settings) {
-
-            this.settings = this.getDefaults();
-        }
-
-        try {
-
-            localStorage.setItem(
-                this.STORAGE_KEY,
-                JSON.stringify(this.settings)
-            );
-
-            if (typeof window !== 'undefined') {
-
-                window.dispatchEvent(
-                    new CustomEvent('settingsChanged', {
-                        detail: this.getSettings()
-                    })
-                );
-            }
-
-            return true;
-
-        } catch (error) {
-
-            console.error(
-                '[SettingsSystem] 設定儲存失敗：',
-                error
-            );
-
-            return false;
-        }
-    }
-
-    // 取得全部設定
-    static getSettings() {
-
-        if (!this.settings) {
-
+        if (!this.loaded || !this.settings) {
             this.load();
         }
-
-        return { ...this.settings };
     }
 
-    // 取得單一設定
+    // 整理全部設定
+    static sanitizeAll() {
+
+        if (!this.settings) {
+            this.settings = {
+                ...this.DEFAULT_SETTINGS
+            };
+        }
+
+        for (const key of Object.keys(this.DEFAULT_SETTINGS)) {
+
+            if (this.settings[key] === undefined) {
+                this.settings[key] =
+                    this.DEFAULT_SETTINGS[key];
+            }
+        }
+
+        for (const key of Object.keys(this.NUMERIC_RULES)) {
+
+            this.settings[key] = this.clamp(
+                key,
+                this.settings[key]
+            );
+        }
+
+        for (const key of this.BOOLEAN_KEYS) {
+
+            this.settings[key] =
+                Boolean(this.settings[key]);
+        }
+
+        if (
+            !LanguageSystem.SUPPORTED_LANGUAGES.includes(
+                this.settings.language
+            )
+        ) {
+            this.settings.language =
+                this.DEFAULT_SETTINGS.language;
+        }
+    }
+
+    // 數值限制
+    static clamp(key, value) {
+
+        const rule = this.NUMERIC_RULES[key];
+
+        if (!rule) {
+            return value;
+        }
+
+        let number = Number(value);
+
+        if (!Number.isFinite(number)) {
+            number = this.DEFAULT_SETTINGS[key];
+        }
+
+        number = Math.max(
+            rule.min,
+            Math.min(rule.max, number)
+        );
+
+        const precision =
+            String(rule.step).split('.')[1]?.length || 0;
+
+        return Number(
+            number.toFixed(precision)
+        );
+    }
+
+    // 取得單項設定
     static get(key) {
 
-        if (!this.settings) {
-
-            this.load();
-        }
+        this.ensureLoaded();
 
         return this.settings[key];
     }
 
-    // 驗證單一設定值
-    static validateValue(key, value) {
+    // 取得全部設定
+    static getAll() {
 
-        if (!(key in this.DEFAULT_SETTINGS)) {
+        this.ensureLoaded();
 
-            console.warn(
-                '[SettingsSystem] 未知設定項目：',
-                key
-            );
-
-            return {
-                valid: false,
-                value: undefined
-            };
-        }
-
-        // 數值檢查
-        if (this.NUMERIC_RULES[key]) {
-
-            const [min, max, fallback] =
-                this.NUMERIC_RULES[key];
-
-            return {
-                valid: true,
-                value: this.clamp(
-                    value,
-                    min,
-                    max,
-                    fallback
-                )
-            };
-        }
-
-        // 布林檢查
-        if (this.BOOLEAN_KEYS.includes(key)) {
-
-            if (typeof value !== 'boolean') {
-
-                return {
-                    valid: false,
-                    value: undefined
-                };
-            }
-
-            return {
-                valid: true,
-                value
-            };
-        }
-
-        // 語言檢查
-        if (key === 'language') {
-
-            if (!this.isValidLanguage(value)) {
-
-                console.warn(
-                    '[SettingsSystem] 不支援的語言：',
-                    value
-                );
-
-                return {
-                    valid: false,
-                    value: undefined
-                };
-            }
-
-            return {
-                valid: true,
-                value
-            };
-        }
-
-        return {
-            valid: false,
-            value: undefined
-        };
+        return { ...this.settings };
     }
 
-    // 修改單一設定
+    // 修改單項設定
     static set(key, value) {
 
-        if (!this.settings) {
+        this.ensureLoaded();
 
-            this.load();
-        }
-
-        const result = this.validateValue(
-            key,
-            value
-        );
-
-        if (!result.valid) {
+        if (!Object.prototype.hasOwnProperty.call(
+            this.DEFAULT_SETTINGS,
+            key
+        )) {
+            console.warn(
+                '[SettingsSystem] 未知設定項目:',
+                key
+            );
 
             return false;
         }
@@ -400,28 +282,33 @@ export class SettingsSystem {
         // 語言交由 LanguageSystem 管理
         if (key === 'language') {
 
-            if (
-                LanguageSystem.getLanguage() === result.value
-            ) {
-                this.settings.language = result.value;
-                return this.save();
-            }
-
-            LanguageSystem.setLanguage(result.value);
-
-            this.settings.language =
-                LanguageSystem.getLanguage();
-
-            return this.save();
+            return LanguageSystem.setLanguage(value);
         }
 
-        this.settings[key] = result.value;
+        if (
+            Object.prototype.hasOwnProperty.call(
+                this.NUMERIC_RULES,
+                key
+            )
+        ) {
+            value = this.clamp(key, value);
+        }
 
-        return this.save();
+        if (this.BOOLEAN_KEYS.includes(key)) {
+            value = Boolean(value);
+        }
+
+        this.settings[key] = value;
+
+        this.save();
+
+        return true;
     }
 
-    // 修改多個設定
-    static setMultiple(values) {
+    // 同時修改多項設定
+    static setMultiple(values = {}) {
+
+        this.ensureLoaded();
 
         if (
             !values ||
@@ -431,93 +318,163 @@ export class SettingsSystem {
             return false;
         }
 
-        if (!this.settings) {
+        let languageChanged = false;
 
-            this.load();
-        }
-
-        let changed = false;
-        let languageToSet = null;
-
-        Object.entries(values).forEach(([key, value]) => {
-
-            const result = this.validateValue(
-                key,
-                value
-            );
-
-            if (!result.valid) return;
-
-            if (key === 'language') {
-
-                languageToSet = result.value;
-                return;
-            }
-
-            if (this.settings[key] !== result.value) {
-
-                this.settings[key] = result.value;
-
-                changed = true;
-            }
-        });
-
-        // 最後才處理語言，避免中途重複儲存
-        if (languageToSet !== null) {
+        for (const [key, value] of Object.entries(values)) {
 
             if (
-                LanguageSystem.getLanguage() !== languageToSet
+                !Object.prototype.hasOwnProperty.call(
+                    this.DEFAULT_SETTINGS,
+                    key
+                )
             ) {
-
-                LanguageSystem.setLanguage(languageToSet);
+                continue;
             }
 
-            this.settings.language =
-                LanguageSystem.getLanguage();
+            if (key === 'language') {
+                languageChanged = true;
+                continue;
+            }
 
-            changed = true;
+            if (
+                Object.prototype.hasOwnProperty.call(
+                    this.NUMERIC_RULES,
+                    key
+                )
+            ) {
+                this.settings[key] =
+                    this.clamp(key, value);
+
+                continue;
+            }
+
+            if (this.BOOLEAN_KEYS.includes(key)) {
+                this.settings[key] = Boolean(value);
+                continue;
+            }
+
+            this.settings[key] = value;
         }
 
-        return changed ? this.save() : false;
+        this.save();
+
+        if (languageChanged) {
+            LanguageSystem.setLanguage(values.language);
+        }
+
+        return true;
     }
 
-    // 恢復全部預設設定
+    // 恢復預設設定
     static reset() {
 
-        this.settings = this.getDefaults();
+        this.ensureLoaded();
 
-        // 語言恢復英文
-        LanguageSystem.setLanguage('en');
+        this.settings = {
+            ...this.DEFAULT_SETTINGS
+        };
 
-        this.settings.language =
-            LanguageSystem.getLanguage();
+        this.save();
+
+        LanguageSystem.setLanguage(
+            this.DEFAULT_SETTINGS.language
+        );
 
         console.log(
             '[SettingsSystem] 已恢復預設設定'
         );
 
-        return this.save();
+        return true;
     }
 
-    // 數值限制
-    static clamp(value, min, max, fallback) {
+    // 儲存設定
+    static save() {
 
-        const number = Number(value);
+        this.ensureLoadedWithoutRecursion();
 
-        if (!Number.isFinite(number)) {
+        try {
 
-            return fallback;
+            localStorage.setItem(
+                this.STORAGE_KEY,
+                JSON.stringify(this.settings)
+            );
+
+            return true;
+
+        } catch (error) {
+
+            console.error(
+                '[SettingsSystem] 儲存設定失敗',
+                error
+            );
+
+            return false;
+        }
+    }
+
+    // 避免 save 與 load 互相呼叫
+    static ensureLoadedWithoutRecursion() {
+
+        if (!this.settings) {
+            this.settings = {
+                ...this.DEFAULT_SETTINGS
+            };
+        }
+    }
+
+    // 語言切換同步
+    static registerLanguageListener() {
+
+        if (typeof window === 'undefined') {
+            return;
         }
 
-        return Math.min(
-            max,
-            Math.max(min, number)
+        if (this.languageListener) {
+            window.removeEventListener(
+                'languageChanged',
+                this.languageListener
+            );
+        }
+
+        this.languageListener = event => {
+
+            const language =
+                event.detail?.language ||
+                LanguageSystem.getLanguage();
+
+            if (!LanguageSystem.SUPPORTED_LANGUAGES.includes(
+                language
+            )) {
+                return;
+            }
+
+            this.ensureLoaded();
+
+            this.settings.language = language;
+
+            this.save();
+        };
+
+        window.addEventListener(
+            'languageChanged',
+            this.languageListener
         );
     }
-}
 
-// 掛載至全域
-if (typeof window !== 'undefined') {
+    // 移除事件監聽
+    static destroy() {
 
-    window.SettingsSystem = SettingsSystem;
+        if (
+            typeof window !== 'undefined' &&
+            this.languageListener
+        ) {
+            window.removeEventListener(
+                'languageChanged',
+                this.languageListener
+            );
+        }
+
+        this.languageListener = null;
+    }
+
 }
