@@ -1,7 +1,7 @@
 
 // 鱗片與種子：地下生態物語
 // Unified Language System
-// 10 Languages + Auto Detection + JSON Dictionaries + Subtitle Debug
+// 10 Languages + Auto Detection + JSON Dictionaries
 
 export class LanguageSystem {
 
@@ -93,6 +93,17 @@ export class LanguageSystem {
         }
     };
 
+    // 舊版翻譯鍵值對照
+    static LEGACY_KEY_MAP = {
+        'game.title': 'gameTitle',
+        'game.subtitle': 'gameSubtitle',
+        'login.welcome': 'welcome',
+        'login.welcome_message': 'welcomeMessage',
+        'login.start_exploring': 'startExploring',
+        'login.login': 'login',
+        'login.create_account': 'createAccount'
+    };
+
     // 偵測裝置語言
     static detectDeviceLanguage() {
 
@@ -159,7 +170,6 @@ export class LanguageSystem {
     static getLanguage() {
 
         try {
-
             const saved = localStorage.getItem(
                 this.STORAGE_KEY
             );
@@ -189,11 +199,11 @@ export class LanguageSystem {
                 '[LanguageSystem] 不支援的語言:',
                 language
             );
+
             return false;
         }
 
         try {
-
             localStorage.setItem(
                 this.STORAGE_KEY,
                 language
@@ -220,8 +230,12 @@ export class LanguageSystem {
         return true;
     }
 
-    // 載入 JSON 語言字典
+    // 載入全部 JSON 語言字典
     static async initialize() {
+
+        if (this.initialized) {
+            return true;
+        }
 
         if (this.loadingPromise) {
             return this.loadingPromise;
@@ -229,41 +243,71 @@ export class LanguageSystem {
 
         this.loadingPromise = (async () => {
 
-            for (const language of this.SUPPORTED_LANGUAGES) {
+            const results = await Promise.all(
+                this.SUPPORTED_LANGUAGES.map(
+                    async language => {
 
-                try {
+                        try {
+                            const response = await fetch(
+                                `src/locales/${language}.json`
+                            );
 
-                    const response = await fetch(
-                        `src/locales/${language}.json`
-                    );
+                            if (!response.ok) {
+                                console.warn(
+                                    `[LanguageSystem] ${language} 載入失敗：`,
+                                    response.status
+                                );
 
-                    if (!response.ok) {
-                        console.warn(
-                            `[LanguageSystem] ${language} 載入失敗：`,
-                            response.status
-                        );
-                        continue;
+                                return false;
+                            }
+
+                            const dictionary = await response.json();
+
+                            if (
+                                !dictionary ||
+                                typeof dictionary !== 'object' ||
+                                Array.isArray(dictionary)
+                            ) {
+                                console.warn(
+                                    `[LanguageSystem] ${language} 字典格式錯誤`
+                                );
+
+                                return false;
+                            }
+
+                            this.dictionaries[language] = dictionary;
+
+                            console.log(
+                                `[LanguageSystem] ${language} 載入成功`
+                            );
+
+                            return true;
+
+                        } catch (error) {
+
+                            console.warn(
+                                `[LanguageSystem] 無法載入 ${language}`,
+                                error
+                            );
+
+                            return false;
+                        }
                     }
-
-                    const dictionary = await response.json();
-
-                    this.dictionaries[language] = dictionary;
-
-                    console.log(
-                        `[LanguageSystem] ${language} 載入成功`
-                    );
-
-                } catch (error) {
-
-                    console.warn(
-                        `[LanguageSystem] 無法載入 ${language}`,
-                        error
-                    );
-
-                }
-            }
+                )
+            );
 
             this.initialized = true;
+
+            if (typeof window !== 'undefined') {
+                window.dispatchEvent(
+                    new CustomEvent('languageDictionariesReady', {
+                        detail: {
+                            loaded: Object.keys(this.dictionaries),
+                            successCount: results.filter(Boolean).length
+                        }
+                    })
+                );
+            }
 
             console.log(
                 '[LanguageSystem] 初始化完成',
@@ -275,7 +319,11 @@ export class LanguageSystem {
 
         })();
 
-        return this.loadingPromise;
+        try {
+            return await this.loadingPromise;
+        } finally {
+            this.loadingPromise = null;
+        }
     }
 
     // 讀取巢狀 JSON 欄位
@@ -320,21 +368,24 @@ export class LanguageSystem {
             key
         );
 
+        // 目前語言沒有時，使用英文字典
         if (value === undefined) {
-
             value = this.getNestedValue(
                 englishDictionary,
                 key
             );
+        }
 
+        // 舊版翻譯鍵值相容
+        const legacyKey =
+            this.LEGACY_KEY_MAP[key] || key;
+
+        if (value === undefined) {
+            value = this.translations[language]?.[legacyKey];
         }
 
         if (value === undefined) {
-            value = this.translations[language]?.[key];
-        }
-
-        if (value === undefined) {
-            value = this.translations.en?.[key];
+            value = this.translations.en?.[legacyKey];
         }
 
         if (typeof value !== 'string') {
@@ -343,26 +394,7 @@ export class LanguageSystem {
                 : String(value);
         }
 
-        // 副標題診斷測試
-        if (key === 'game.subtitle') {
-
-            console.log(
-                '[副標題測試]',
-                {
-                    language,
-                    value,
-                    dictionaryLoaded: !!currentDictionary,
-                    subtitleFromDictionary:
-                        this.getNestedValue(
-                            currentDictionary,
-                            'game.subtitle'
-                        )
-                }
-            );
-
-            return `【${language}】${value}`;
-        }
-
+        // 替換動態變數
         return value.replace(
             /\{(\w+)\}/g,
             (match, name) => {
@@ -384,6 +416,7 @@ export class LanguageSystem {
         return this.getLanguage() === 'zh-TW';
     }
 
+    // 取得可用語言
     static getAvailableLanguages() {
 
         const names = {
@@ -408,22 +441,25 @@ export class LanguageSystem {
 }
 
 // 舊版全域 API
-window.gameLocales = {
+if (typeof window !== 'undefined') {
 
-    translate(key, variables = {}) {
-        return LanguageSystem.t(key, variables);
-    },
+    window.gameLocales = {
 
-    switchLanguage(language) {
-        return LanguageSystem.setLanguage(language);
-    },
+        translate(key, variables = {}) {
+            return LanguageSystem.t(key, variables);
+        },
 
-    initialize() {
-        return LanguageSystem.initialize();
-    },
+        switchLanguage(language) {
+            return LanguageSystem.setLanguage(language);
+        },
 
-    get currentLanguage() {
-        return LanguageSystem.getLanguage();
-    }
+        initialize() {
+            return LanguageSystem.initialize();
+        },
 
-};
+        get currentLanguage() {
+            return LanguageSystem.getLanguage();
+        }
+
+    };
+}
