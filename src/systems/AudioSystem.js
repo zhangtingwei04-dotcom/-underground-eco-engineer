@@ -1,2029 +1,1202 @@
-import { LanguageSystem } from '../systems/language-system.js';
-import { SettingsSystem } from '../systems/settings-system.js';
-import { AudioSystem } from '../systems/AudioSystem.js';
+// 鱗片與種子：地下生態物語
+// Audio System V2.2
+// Centralized Audio Manager
+// 五頻道音訊管理 + 場景背景音樂 + 淡入淡出
+// 支援 iPhone Safari、設定即時更新、音樂自動恢復
 
-export class LoginScene extends Phaser.Scene {
+import { SettingsSystem } from './settings-system.js';
 
-    constructor() {
-        super({ key: 'LoginScene' });
+export class AudioSystem {
 
-        this.settingsContainer = null;
-        this.settingsPageContainer = null;
-        this.settingsButtonContainer = null;
-        this.settingsRail = null;
-        this.settingsRailItems = [];
+    static game = null;
+    static activeSounds = new Set();
+    static currentBGM = null;
+    static desiredBGM = null;
+    static initialized = false;
+    static settingsListener = null;
+    static firstGestureRegistered = false;
+    static gestureHandler = null;
+    static audioUnlocked = false;
+    static missingAudioWarnings = new Set();
 
-        this.settingsCategory = null;
-        this.settingsExpanded = false;
+    // ==========================================
+    // 音訊頻道
+    // ==========================================
 
-        this.particles = [];
+    static CHANNELS = {
+        BGM: {
+            enabled: 'backgroundMusicEnabled',
+            volume: 'backgroundMusicVolume'
+        },
+        AMBIENT: {
+            enabled: 'ambientSoundEnabled',
+            volume: 'ambientSoundVolume'
+        },
+        NPC: {
+            enabled: 'npcMusicEnabled',
+            volume: 'npcMusicVolume'
+        },
+        CREATURE: {
+            enabled: 'creatureSoundEnabled',
+            volume: 'creatureSoundVolume'
+        },
+        SFX: {
+            enabled: 'soundEffectsEnabled',
+            volume: 'soundEffectsVolume'
+        }
+    };
 
-        this.languageListener = null;
-        this.languageReadyListener = null;
-    }
+    // ==========================================
+    // 場景背景音樂設定
+    // ==========================================
 
-    // =====================================
-    // 背景音樂預載
-    // =====================================
+    static SCENE_MUSIC = {
 
-    preload() {
+        // 主畫面背景音樂
+        LoginScene: {
+            enabled: true,
+            key: 'bgm_login',
+            path: 'assets/audio/login-theme.mp3',
+            fadeIn: 1500,
+            fadeOut: 1000
+        },
 
-        AudioSystem.preloadSceneBGM(this);
+        // 生態箱選擇場景
+        TerrariumSelectScene: {
+            enabled: false,
+            key: 'bgm_terrarium',
+            path: 'assets/audio/terrarium-theme.mp3',
+            fadeIn: 1200,
+            fadeOut: 1000
+        },
 
-    }
+        // 地下生態場景
+        UndergroundScene: {
+            enabled: false,
+            key: 'bgm_underground',
+            path: 'assets/audio/underground-theme.mp3',
+            fadeIn: 1500,
+            fadeOut: 1200
+        },
 
-    // =====================================
+        // 生物圖鑑場景
+        EncyclopediaScene: {
+            enabled: false,
+            key: 'bgm_encyclopedia',
+            path: 'assets/audio/encyclopedia-theme.mp3',
+            fadeIn: 1200,
+            fadeOut: 1000
+        }
+    };
+
+    // ==========================================
     // 初始化
-    // =====================================
+    // ==========================================
 
-    create() {
+    static initialize(game) {
 
-        this.settingsContainer = null;
-        this.settingsPageContainer = null;
-        this.settingsRail = null;
-        this.settingsRailItems = [];
+        this.game = game;
 
-        this.settingsCategory = null;
-        this.settingsExpanded = false;
+        if (this.initialized) {
+            this.applySettings();
+            this.registerFirstGesture();
+            return;
+        }
 
-        SettingsSystem.load();
-
-        // 啟動登入場景背景音樂
-        // 若尚未啟用音樂素材，AudioSystem 會自動略過
-        AudioSystem.playSceneBGM(this);
-
-        this.backgroundContainer = this.add.container(0, 0);
-        this.layoutContainer = this.add.container(0, 0);
-
-        this.settingsButtonContainer = this.add.container(0, 0);
-        this.settingsButtonContainer.setDepth(1100);
-
-        this.particles = [];
-
-        this.drawBackground();
-        this.drawLayout();
-
-        this.languageListener = () => {
-
-            if (!this.scene.isActive()) return;
-
-            this.drawLayout();
-
-            if (this.settingsExpanded) {
-                this.refreshSettings();
-            }
-        };
-
-        this.languageReadyListener = () => {
-
-            if (!this.scene.isActive()) return;
-
-            this.drawLayout();
-
-            if (this.settingsExpanded) {
-                this.refreshSettings();
-            }
+        this.settingsListener = () => {
+            this.applySettings();
         };
 
         window.addEventListener(
-            'languageChanged',
-            this.languageListener
+            'settingsChanged',
+            this.settingsListener
         );
 
-        window.addEventListener(
-            'languageDictionariesReady',
-            this.languageReadyListener
+        this.initialized = true;
+
+        this.registerFirstGesture();
+        this.applySettings();
+
+        console.log(
+            '[AudioSystem] 五頻道音訊系統 V2.2 初始化完成'
         );
+    }
 
-        LanguageSystem.initialize()
-            .then(() => {
+    // ==========================================
+    // 首次使用者操作
+    // 適用 iPhone Safari 音訊限制
+    // ==========================================
 
-                if (!this.scene.isActive()) return;
+    static registerFirstGesture() {
 
-                this.drawLayout();
+        if (this.firstGestureRegistered) return;
 
-                if (this.settingsExpanded) {
-                    this.refreshSettings();
+        this.firstGestureRegistered = true;
+
+        this.gestureHandler = async () => {
+
+            if (!this.game || !this.game.sound) return;
+
+            try {
+
+                const context = this.game.sound.context;
+
+                if (
+                    context &&
+                    context.state === 'suspended'
+                ) {
+                    await context.resume();
                 }
 
-            })
-            .catch(error => {
+                if (
+                    context &&
+                    context.state !== 'running'
+                ) {
+                    return;
+                }
 
-                console.error(
-                    '[LoginScene] 語言初始化失敗',
+                this.audioUnlocked = true;
+
+                console.log(
+                    '[AudioSystem] 使用者已啟動音訊'
+                );
+
+                this.removeFirstGesture();
+
+                this.startDesiredBGM();
+
+            } catch (error) {
+
+                console.warn(
+                    '[AudioSystem] 音訊啟動受限',
                     error
                 );
 
-            });
-
-        this.events.once('shutdown', () => {
-
-            window.removeEventListener(
-                'languageChanged',
-                this.languageListener
-            );
-
-            window.removeEventListener(
-                'languageDictionariesReady',
-                this.languageReadyListener
-            );
-
-            this.scale.off(
-                'resize',
-                this.handleResize,
-                this
-            );
-
-            this.closeSettings();
-        });
-
-        this.scale.on(
-            'resize',
-            this.handleResize,
-            this
-        );
-    }
-
-    // =====================================
-    // 設定讀取與寫入
-    // =====================================
-
-    getSetting(key) {
-        return SettingsSystem.get(key);
-    }
-
-    setSetting(key, value) {
-
-        SettingsSystem.set(key, value);
-
-        if (
-            key === 'screenScale' ||
-            key === 'textSize'
-        ) {
-            this.drawLayout();
-        }
-
-        if (this.settingsExpanded) {
-            this.refreshSettings();
-        }
-    }
-
-    getScreenScale() {
-        return Number(this.getSetting('screenScale')) || 1;
-    }
-
-    getTextScale() {
-        return Number(this.getSetting('textSize')) || 1;
-    }
-
-    isPortrait() {
-        return this.scale.height > this.scale.width;
-    }
-
-    // =====================================
-    // 背景
-    // =====================================
-
-    clearBackground() {
-
-        this.particles.forEach(particle => {
-            this.tweens.killTweensOf(particle);
-            particle.destroy();
-        });
-
-        this.particles = [];
-
-        if (this.backgroundContainer) {
-            this.backgroundContainer.removeAll(true);
-        }
-    }
-
-    drawBackground() {
-
-        this.clearBackground();
-
-        const width = this.scale.width;
-        const height = this.scale.height;
-
-        const graphics = this.add.graphics();
-
-        graphics.fillGradientStyle(
-            0x263b32,
-            0x263b32,
-            0x14241e,
-            0x14241e,
-            1
-        );
-
-        graphics.fillRect(0, 0, width, height);
-
-        graphics.fillStyle(0xe6c58b, 0.12);
-
-        graphics.fillCircle(
-            width * 0.5,
-            height * 0.37,
-            Math.min(width, height) * 0.36
-        );
-
-        graphics.fillStyle(0xd8b878, 0.08);
-
-        graphics.fillCircle(
-            width * 0.5,
-            height * 0.37,
-            Math.min(width, height) * 0.25
-        );
-
-        graphics.fillStyle(0x17251d, 1);
-
-        graphics.fillEllipse(
-            width * 0.5,
-            height * 1.01,
-            width * 1.35,
-            height * 0.30
-        );
-
-        graphics.fillStyle(0x526354, 0.9);
-
-        graphics.fillEllipse(
-            width * 0.04,
-            height * 0.87,
-            width * 0.27,
-            height * 0.24
-        );
-
-        graphics.fillStyle(0x394b3d, 1);
-
-        graphics.fillEllipse(
-            width * 0.96,
-            height * 0.88,
-            width * 0.30,
-            height * 0.25
-        );
-
-        this.backgroundContainer.add(graphics);
-
-        this.drawPlant(width * 0.11, height * 0.86, 0x8fc99b);
-        this.drawPlant(width * 0.89, height * 0.87, 0x9bcf9a);
-        this.drawPlant(width * 0.19, height * 0.96, 0xb5d8a2);
-        this.drawPlant(width * 0.81, height * 0.96, 0xb5d8a2);
-
-        const particleCount = Math.min(
-            55,
-            Math.max(20, Math.floor(width * height / 18000))
-        );
-
-        for (let i = 0; i < particleCount; i++) {
-
-            const x = Phaser.Math.Between(
-                10,
-                Math.max(11, width - 10)
-            );
-
-            const y = Phaser.Math.Between(
-                20,
-                Math.max(21, height - 20)
-            );
-
-            const particle = this.add.circle(
-                x,
-                y,
-                Phaser.Math.FloatBetween(1, 3),
-                0xe8d9a5,
-                0.55
-            );
-
-            this.backgroundContainer.add(particle);
-            this.particles.push(particle);
-
-            this.tweens.add({
-                targets: particle,
-                alpha: 0.12,
-                y: y - Phaser.Math.Between(12, 35),
-                duration: Phaser.Math.Between(1800, 3500),
-                yoyo: true,
-                repeat: -1
-            });
-        }
-    }
-
-    drawPlant(x, y, color) {
-
-        const graphics = this.add.graphics();
-
-        const plantScale = Math.min(
-            this.scale.width / 1024,
-            this.scale.height / 768
-        );
-
-        const size = Math.max(0.65, plantScale);
-
-        graphics.lineStyle(4 * size, 0x789b72, 1);
-
-        graphics.beginPath();
-        graphics.moveTo(x, y);
-        graphics.lineTo(x, y - 55 * size);
-        graphics.strokePath();
-
-        graphics.fillStyle(color, 0.9);
-
-        graphics.fillEllipse(
-            x - 13 * size,
-            y - 35 * size,
-            25 * size,
-            12 * size
-        );
-
-        graphics.fillEllipse(
-            x + 13 * size,
-            y - 48 * size,
-            25 * size,
-            12 * size
-        );
-
-        graphics.fillStyle(color, 0.15);
-        graphics.fillCircle(x, y - 45 * size, 30 * size);
-
-        this.backgroundContainer.add(graphics);
-    }
-
-    // =====================================
-    // 螢幕尺寸調整
-    // =====================================
-
-    handleResize() {
-
-        if (!this.scene.isActive()) return;
-
-        const wasOpen = this.settingsExpanded;
-        const previousCategory = this.settingsCategory;
-
-        if (wasOpen) {
-            this.closeSettings();
-        }
-
-        this.drawBackground();
-        this.drawLayout();
-
-        if (wasOpen) {
-
-            this.openSettings();
-
-            if (previousCategory) {
-                this.selectSettingsCategory(previousCategory);
             }
-        }
-    }
-
-    clearLayout() {
-        this.layoutContainer.removeAll(true);
-    }
-
-    drawLayout() {
-
-        this.clearLayout();
-        this.settingsButtonContainer.removeAll(true);
-
-        const width = this.scale.width;
-        const height = this.scale.height;
-        const centerX = width / 2;
-
-        if (this.isPortrait()) {
-            this.drawPortraitLayout(centerX, width, height);
-        } else {
-            this.drawLandscapeLayout(centerX, width, height);
-        }
-
-        const scale = this.getScreenScale();
-
-        this.layoutContainer.setScale(scale);
-
-        this.layoutContainer.setPosition(
-            centerX * (1 - scale),
-            (height / 2) * (1 - scale)
-        );
-
-        this.drawSettingsButton(width, height);
-    }
-
-    // =====================================
-    // 直式登入畫面
-    // =====================================
-
-    drawPortraitLayout(centerX, width, height) {
-
-        const shortScreen = height < 650;
-        const textScale = this.getTextScale();
-
-        this.addLayoutText(
-            centerX,
-            height * 0.12,
-            LanguageSystem.t('game.title'),
-            {
-                fontFamily: 'Georgia, serif',
-                fontSize: `${(width < 360 ? 22 : 28) * textScale}px`,
-                color: '#f3e8cb',
-                fontStyle: 'bold',
-                stroke: '#243b2e',
-                strokeThickness: 4,
-                align: 'center',
-                wordWrap: { width: width - 32 }
-            }
-        );
-
-        this.addLayoutText(
-            centerX,
-            height * 0.23,
-            LanguageSystem.t('login.welcome'),
-            {
-                fontFamily: 'Georgia, serif',
-                fontSize: `${18 * textScale}px`,
-                color: '#f0e6ce',
-                align: 'center',
-                wordWrap: { width: width - 32 }
-            }
-        );
-
-        this.addLayoutText(
-            centerX,
-            height * 0.30,
-            LanguageSystem.t('login.welcome_message'),
-            {
-                fontFamily: 'Arial, sans-serif',
-                fontSize: `${13 * textScale}px`,
-                color: '#d2d8c1',
-                align: 'center',
-                wordWrap: { width: width - 40 }
-            }
-        );
-
-        const buttonWidth = Math.min(width - 48, 330);
-        const buttonHeight = shortScreen ? 46 : 52;
-        const buttonGap = shortScreen ? 58 : 66;
-        const buttonStartY = height * 0.43;
-
-        this.createResponsiveButton(
-            centerX,
-            buttonStartY,
-            buttonWidth,
-            buttonHeight,
-            LanguageSystem.t('login.start_exploring'),
-            'guestSelected'
-        );
-
-        this.createResponsiveButton(
-            centerX,
-            buttonStartY + buttonGap,
-            buttonWidth,
-            buttonHeight,
-            LanguageSystem.t('login.login'),
-            'loginSelected'
-        );
-
-        this.createResponsiveButton(
-            centerX,
-            buttonStartY + buttonGap * 2,
-            buttonWidth,
-            buttonHeight,
-            LanguageSystem.t('login.create_account'),
-            'registerSelected'
-        );
-    }
-
-    // =====================================
-    // 橫式登入畫面
-    // =====================================
-
-    drawLandscapeLayout(centerX, width, height) {
-
-        const margin = Math.max(18, width * 0.04);
-        const contentWidth = Math.min(width - margin * 2, 650);
-        const textScale = this.getTextScale();
-
-        const scale = Math.min(
-            1,
-            height / 390,
-            width / 650
-        );
-
-        const titleSize = Math.max(18, 30 * scale);
-        const welcomeSize = Math.max(13, 17 * scale);
-        const messageSize = Math.max(10, 11 * scale);
-        const top = Math.max(22, height * 0.09);
-
-        this.addLayoutText(
-            centerX,
-            top,
-            LanguageSystem.t('game.title'),
-            {
-                fontFamily: 'Georgia, serif',
-                fontSize: `${titleSize * textScale}px`,
-                color: '#f3e8cb',
-                fontStyle: 'bold',
-                stroke: '#243b2e',
-                strokeThickness: 3,
-                align: 'center',
-                wordWrap: { width: contentWidth }
-            }
-        );
-
-        this.addLayoutText(
-            centerX,
-            top + height * 0.16,
-            LanguageSystem.t('login.welcome'),
-            {
-                fontFamily: 'Georgia, serif',
-                fontSize: `${welcomeSize * textScale}px`,
-                color: '#f0e6ce',
-                align: 'center',
-                wordWrap: { width: contentWidth }
-            }
-        );
-
-        this.addLayoutText(
-            centerX,
-            top + height * 0.24,
-            LanguageSystem.t('login.welcome_message'),
-            {
-                fontFamily: 'Arial, sans-serif',
-                fontSize: `${messageSize * textScale}px`,
-                color: '#d2d8c1',
-                align: 'center',
-                wordWrap: { width: contentWidth }
-            }
-        );
-
-        const buttonWidth = Math.min(260, width * 0.42);
-
-        const buttonHeight = Math.max(
-            34,
-            Math.min(42, height * 0.12)
-        );
-
-        const buttonGap = buttonHeight + Math.max(8, height * 0.025);
-        const buttonStartY = height * 0.48;
-
-        this.createResponsiveButton(
-            centerX,
-            buttonStartY,
-            buttonWidth,
-            buttonHeight,
-            LanguageSystem.t('login.start_exploring'),
-            'guestSelected',
-            Math.max(12, 15 * scale * textScale)
-        );
-
-        this.createResponsiveButton(
-            centerX,
-            buttonStartY + buttonGap,
-            buttonWidth,
-            buttonHeight,
-            LanguageSystem.t('login.login'),
-            'loginSelected',
-            Math.max(12, 15 * scale * textScale)
-        );
-
-        this.createResponsiveButton(
-            centerX,
-            buttonStartY + buttonGap * 2,
-            buttonWidth,
-            buttonHeight,
-            LanguageSystem.t('login.create_account'),
-            'registerSelected',
-            Math.max(12, 15 * scale * textScale)
-        );
-    }
-
-    addLayoutText(x, y, content, style) {
-
-        const text = this.add.text(x, y, content, style)
-            .setOrigin(0.5);
-
-        this.layoutContainer.add(text);
-
-        return text;
-    }
-
-    createResponsiveButton(
-        x,
-        y,
-        width,
-        height,
-        label,
-        eventName,
-        fontSize = 18
-    ) {
-
-        const container = this.add.container(x, y);
-
-        const background = this.add.rectangle(
-            0,
-            0,
-            width,
-            height,
-            0x344e3d,
-            0.96
-        );
-
-        background.setStrokeStyle(2, 0xc5b78e, 0.9);
-
-        const text = this.add.text(0, 0, label, {
-            fontFamily: 'Arial, sans-serif',
-            fontSize: `${fontSize}px`,
-            color: '#f5ecd9',
-            fontStyle: 'bold',
-            align: 'center',
-            wordWrap: { width: width - 20 }
-        }).setOrigin(0.5);
-
-        container.add([background, text]);
-
-        background.setInteractive({ useHandCursor: true });
-
-        background.on('pointerover', () => {
-
-            background.setFillStyle(0x58745a);
-
-            this.tweens.add({
-                targets: container,
-                scale: 1.02,
-                duration: 150
-            });
-        });
-
-        background.on('pointerout', () => {
-
-            background.setFillStyle(0x344e3d);
-
-            this.tweens.add({
-                targets: container,
-                scale: 1,
-                duration: 150
-            });
-        });
-
-        background.on('pointerdown', () => {
-            this.events.emit(eventName);
-        });
-
-        this.layoutContainer.add(container);
-
-        return container;
-    }
-
-    // =====================================
-    // 設定主按鈕
-    // =====================================
-
-    drawSettingsButton(width, height) {
-
-        const button = this.add.container(width - 30, 32);
-
-        const glow = this.add.circle(
-            0,
-            0,
-            25,
-            0x20b982,
-            0.10
-        );
-
-        const background = this.add.circle(
-            0,
-            0,
-            22,
-            0x09271f,
-            0.88
-        );
-
-        background.setStrokeStyle(1.5, 0x55d6a4, 0.95);
-
-        const icon = this.add.text(0, 0, '⚙️', {
-            fontSize: '24px'
-        }).setOrigin(0.5);
-
-        background.setInteractive({ useHandCursor: true });
-
-        background.on('pointerover', () => {
-            glow.setAlpha(0.3);
-            background.setStrokeStyle(2, 0x9affd3, 1);
-        });
-
-        background.on('pointerout', () => {
-            glow.setAlpha(0.1);
-            background.setStrokeStyle(1.5, 0x55d6a4, 0.95);
-        });
-
-        background.on('pointerdown', () => {
-
-            if (this.settingsExpanded) {
-                this.closeSettings();
-            } else {
-                this.openSettings();
-            }
-        });
-
-        button.add([glow, background, icon]);
-
-        this.settingsButtonContainer.add(button);
-    }
-
-    // =====================================
-    // 五個設定分類
-    // =====================================
-
-    getSettingsCategories() {
-
-        return [
-            { id: 'screen', icon: '🖥️', label: '畫面' },
-            { id: 'sound', icon: '🔊', label: '音效' },
-            { id: 'operation', icon: '🎮', label: '操作' },
-            { id: 'language', icon: '🌐', label: '語言' },
-            { id: 'system', icon: '⚙️', label: '系統' }
-        ];
-    }
-
-    // =====================================
-    // 開啟設定
-    // =====================================
-
-    openSettings() {
-
-        if (this.settingsExpanded) return;
-
-        this.settingsExpanded = true;
-        this.settingsCategory = null;
-
-        this.settingsContainer = this.add.container(0, 0);
-        this.settingsContainer.setDepth(1000);
-
-        this.settingsRail = this.add.container(0, 0);
-        this.settingsContainer.add(this.settingsRail);
-
-        this.settingsRailItems = [];
-
-        this.refreshSettingsRail();
-    }
-
-    // =====================================
-    // 建立或更新五個分類圖標
-    // =====================================
-
-    refreshSettingsRail() {
-
-        if (!this.settingsRail) return;
-
-        const categories = this.getSettingsCategories();
-
-        const x = this.scale.width - 30;
-        const startY = 91;
-        const spacing = 49;
-
-        if (this.settingsRailItems.length > 0) {
-
-            this.settingsRailItems.forEach(item => {
-
-                const selected =
-                    this.settingsCategory === item.category.id;
-
-                item.glow.setFillStyle(
-                    0x20d69a,
-                    selected ? 0.22 : 0.07
-                );
-
-                item.glow.setAlpha(
-                    selected ? 1 : 0.7
-                );
-
-                item.background.setFillStyle(
-                    selected ? 0x12513d : 0x09271f,
-                    0.94
-                );
-
-                item.background.setStrokeStyle(
-                    selected ? 2 : 1.2,
-                    selected ? 0x9affd3 : 0x4abf91,
-                    1
-                );
-
-                item.icon.setAlpha(1);
-            });
-
-            return;
-        }
-
-        categories.forEach((category, index) => {
-
-            const y = startY + index * spacing;
-            const selected = this.settingsCategory === category.id;
-
-            const glow = this.add.circle(
-                x,
-                y,
-                24,
-                0x20d69a,
-                selected ? 0.22 : 0.07
-            );
-
-            const background = this.add.circle(
-                x,
-                y,
-                19,
-                selected ? 0x12513d : 0x09271f,
-                0.94
-            );
-
-            background.setStrokeStyle(
-                selected ? 2 : 1.2,
-                selected ? 0x9affd3 : 0x4abf91,
-                1
-            );
-
-            const icon = this.add.text(
-                x,
-                y,
-                category.icon,
-                {
-                    fontSize: '20px'
-                }
-            ).setOrigin(0.5);
-
-            background.setInteractive({
-                useHandCursor: true
-            });
-
-            background.on('pointerover', () => {
-
-                glow.setAlpha(0.32);
-
-                background.setStrokeStyle(
-                    2,
-                    0xb5ffdf,
-                    1
-                );
-            });
-
-            background.on('pointerout', () => {
-
-                const isSelected =
-                    this.settingsCategory === category.id;
-
-                glow.setAlpha(isSelected ? 1 : 0.7);
-
-                background.setStrokeStyle(
-                    isSelected ? 2 : 1.2,
-                    isSelected ? 0x9affd3 : 0x4abf91,
-                    1
-                );
-            });
-
-            background.on('pointerdown', () => {
-                this.selectSettingsCategory(category.id);
-            });
-
-            this.settingsRail.add([
-                glow,
-                background,
-                icon
-            ]);
-
-            this.settingsRailItems.push({
-                category,
-                glow,
-                background,
-                icon
-            });
-
-            glow.setAlpha(0);
-            background.setAlpha(0);
-            icon.setAlpha(0);
-
-            this.tweens.add({
-                targets: [glow, background, icon],
-                alpha: 1,
-                x: { from: x + 12, to: x },
-                duration: 180,
-                delay: index * 45,
-                ease: 'Cubic.easeOut'
-            });
-        });
-    }
-
-    // =====================================
-    // 分類切換
-    // =====================================
-
-    selectSettingsCategory(category) {
-
-        if (!this.settingsExpanded) return;
-
-        if (this.settingsCategory === category) {
-
-            this.settingsCategory = null;
-
-            this.clearSettingsPage();
-            this.refreshSettingsRail();
-
-            return;
-        }
-
-        this.settingsCategory = category;
-
-        this.refreshSettingsRail();
-
-        this.buildSettingsPage();
-    }
-
-    // =====================================
-    // 清除面板內容
-    // =====================================
-
-    clearSettingsPage() {
-
-        if (!this.settingsPageContainer) return;
-
-        this.tweens.killTweensOf(
-            this.settingsPageContainer
-        );
-
-        this.settingsPageContainer.removeAll(true);
-        this.settingsPageContainer.destroy();
-
-        this.settingsPageContainer = null;
-    }
-
-    // =====================================
-    // 更新設定
-    // =====================================
-
-    refreshSettings() {
-
-        if (!this.settingsExpanded) return;
-
-        this.refreshSettingsRail();
-
-        if (this.settingsCategory) {
-            this.buildSettingsPage();
-        }
-    }
-
-    // =====================================
-    // 面板尺寸
-    // =====================================
-
-    getPanelSize(category) {
-
-        const width = this.scale.width;
-
-        const panelWidth = Math.min(
-            320,
-            Math.max(230, width - 76)
-        );
-
-        const heights = {
-            language: 205,
-            screen: 245,
-            sound: 345,
-            operation: 325,
-            system: 235
         };
 
-        return {
-            width: Math.min(panelWidth, width - 72),
-            height: heights[category] || 245
-        };
-    }
-
-    // =====================================
-    // 面板位置
-    // =====================================
-
-    getSettingsPosition() {
-
-        const size = this.getPanelSize(
-            this.settingsCategory
-        );
-
-        const railX = this.scale.width - 30;
-        const panelCenterX = railX - 27 - size.width / 2;
-
-        const minY = size.height / 2 + 12;
-        const maxY = this.scale.height - size.height / 2 - 12;
-
-        const centerY = minY <= maxY
-            ? Phaser.Math.Clamp(
-                this.scale.height * 0.5,
-                minY,
-                maxY
-            )
-            : this.scale.height / 2;
-
-        return {
-            x: panelCenterX,
-            y: centerY
-        };
-    }
-
-    // =====================================
-    // 建立翡翠全息設定面板
-    // =====================================
-
-    buildSettingsPage() {
-
-        if (
-            !this.settingsContainer ||
-            !this.settingsCategory
-        ) {
-            return;
-        }
-
-        this.clearSettingsPage();
-
-        this.settingsPageContainer = this.add.container(0, 0);
-        this.settingsContainer.add(this.settingsPageContainer);
-
-        const size = this.getPanelSize(this.settingsCategory);
-        const position = this.getSettingsPosition();
-
-        const centerX = position.x;
-        const centerY = position.y;
-
-        const panelLeft = centerX - size.width / 2;
-        const panelTop = centerY - size.height / 2;
-
-        const glow = this.add.graphics();
-
-        glow.fillStyle(0x13d995, 0.10);
-
-        glow.fillRoundedRect(
-            panelLeft - 5,
-            panelTop - 5,
-            size.width + 10,
-            size.height + 10,
-            17
-        );
-
-        this.settingsPageContainer.add(glow);
-
-        const panel = this.add.graphics();
-
-        panel.fillStyle(0x061d18, 1);
-
-        panel.fillRoundedRect(
-            panelLeft,
-            panelTop,
-            size.width,
-            size.height,
-            13
-        );
-
-        panel.lineStyle(2, 0x42dba5, 0.95);
-
-        panel.strokeRoundedRect(
-            panelLeft,
-            panelTop,
-            size.width,
-            size.height,
-            13
-        );
-
-        panel.lineStyle(1, 0x9affd3, 0.35);
-
-        panel.strokeRoundedRect(
-            panelLeft + 5,
-            panelTop + 5,
-            size.width - 10,
-            size.height - 10,
-            10
-        );
-
-        panel.lineStyle(2, 0x53dca8, 0.75);
-
-        panel.beginPath();
-        panel.moveTo(panelLeft + 18, panelTop + 35);
-        panel.lineTo(panelLeft + size.width - 18, panelTop + 35);
-        panel.strokePath();
-
-        panel.fillStyle(0xb1ffe0, 0.9);
-        panel.fillCircle(panelLeft + 13, panelTop + 13, 2);
-        panel.fillCircle(panelLeft + size.width - 13, panelTop + 13, 2);
-
-        this.settingsPageContainer.add(panel);
-
-        const titleMap = {
-            language: 'LANGUAGE / 語言',
-            screen: 'DISPLAY / 畫面',
-            sound: 'AUDIO / 音效',
-            operation: 'CONTROL / 操作',
-            system: 'SYSTEM / 系統'
-        };
-
-        const title = this.add.text(
-            centerX,
-            panelTop + 19,
-            titleMap[this.settingsCategory],
-            {
-                fontFamily: 'Arial, sans-serif',
-                fontSize: '13px',
-                fontStyle: 'bold',
-                color: '#baffdf',
-                stroke: '#09291f',
-                strokeThickness: 2,
-                align: 'center'
-            }
-        ).setOrigin(0.5);
-
-        this.settingsPageContainer.add(title);
-
-        const contentStartY =
-            centerY - size.height / 2 + 64;
-
-        switch (this.settingsCategory) {
-
-            case 'language':
-                this.buildLanguagePage(centerX, contentStartY);
-                break;
-
-            case 'screen':
-                this.buildScreenPage(centerX, contentStartY);
-                break;
-
-            case 'sound':
-                this.buildSoundPage(centerX, contentStartY);
-                break;
-
-            case 'operation':
-                this.buildOperationPage(centerX, contentStartY);
-                break;
-
-            case 'system':
-                this.buildSystemPage(centerX, contentStartY);
-                break;
-        }
-
-        this.settingsPageContainer.setAlpha(1);
-        this.settingsPageContainer.setScale(1);
-    }
-
-    // =====================================
-    // 設定文字
-    // =====================================
-
-    addPageText(
-        x,
-        y,
-        value,
-        size = 13,
-        color = '#f0ffef'
-    ) {
-
-        const text = this.add.text(x, y, value, {
-            fontSize: `${size}px`,
-            color,
-            fontFamily: 'Arial, sans-serif',
-            stroke: '#04130f',
-            strokeThickness: 3,
-            align: 'center',
-            wordWrap: {
-                width: Math.max(
-                    160,
-                    this.getPanelSize(this.settingsCategory).width - 30
-                )
-            }
-        }).setOrigin(0.5);
-
-        this.settingsPageContainer.add(text);
-
-        return text;
-    }
-
-    // =====================================
-    // 全息文字按鈕
-    // =====================================
-
-    addPageButton(x, y, label, callback, width = 90) {
-
-        const buttonContainer = this.add.container(x, y);
-
-        const background = this.add.graphics();
-
-        background.fillStyle(0x104936, 0.95);
-
-        background.fillRoundedRect(
-            -width / 2,
-            -13,
-            width,
-            26,
-            6
-        );
-
-        background.lineStyle(1, 0x55d9a5, 0.9);
-
-        background.strokeRoundedRect(
-            -width / 2,
-            -13,
-            width,
-            26,
-            6
-        );
-
-        const text = this.add.text(0, 0, label, {
-            fontSize: '12px',
-            color: '#e5fff2',
-            fontStyle: 'bold',
-            align: 'center'
-        }).setOrigin(0.5);
-
-        buttonContainer.add([
-            background,
-            text
-        ]);
-
-        const hitArea = this.add.rectangle(
-            0,
-            0,
-            width,
-            28,
-            0xffffff,
-            0.001
-        );
-
-        hitArea.setInteractive({
-            useHandCursor: true
-        });
-
-        buttonContainer.add(hitArea);
-
-        hitArea.on('pointerover', () => {
-
-            background.clear();
-
-            background.fillStyle(0x1c7252, 1);
-
-            background.fillRoundedRect(
-                -width / 2,
-                -13,
-                width,
-                26,
-                6
-            );
-
-            background.lineStyle(1.5, 0xa4ffda, 1);
-
-            background.strokeRoundedRect(
-                -width / 2,
-                -13,
-                width,
-                26,
-                6
-            );
-
-            buttonContainer.setScale(1.04);
-        });
-
-        hitArea.on('pointerout', () => {
-
-            background.clear();
-
-            background.fillStyle(0x104936, 0.95);
-
-            background.fillRoundedRect(
-                -width / 2,
-                -13,
-                width,
-                26,
-                6
-            );
-
-            background.lineStyle(1, 0x55d9a5, 0.9);
-
-            background.strokeRoundedRect(
-                -width / 2,
-                -13,
-                width,
-                26,
-                6
-            );
-
-            buttonContainer.setScale(1);
-        });
-
-        hitArea.on('pointerdown', callback);
-
-        this.settingsPageContainer.add(buttonContainer);
-
-        return buttonContainer;
-    }
-
-    // =====================================
-    // 十種語言
-    // =====================================
-
-    buildLanguagePage(centerX, startY) {
-
-        const languages = [
-
-            { code: 'zh-TW', flag: '🇹🇼', label: '繁體中文' },
-            { code: 'zh-CN', flag: '🇨🇳', label: '简体中文' },
-            { code: 'en', flag: '🇺🇸', label: 'English' },
-            { code: 'ja', flag: '🇯🇵', label: '日本語' },
-            { code: 'ko', flag: '🇰🇷', label: '한국어' },
-
-            { code: 'th', flag: '🇹🇭', label: 'ไทย' },
-            { code: 'fr', flag: '🇫🇷', label: 'Français' },
-            { code: 'de', flag: '🇩🇪', label: 'Deutsch' },
-            { code: 'es', flag: '🇪🇸', label: 'Español' },
-            { code: 'pt-BR', flag: '🇧🇷', label: 'Português' }
+        const events = [
+            'pointerdown',
+            'touchstart',
+            'click',
+            'keydown'
         ];
 
-        const currentCode = LanguageSystem.getLanguage();
+        events.forEach(event => {
 
-        const panelWidth =
-            this.getPanelSize('language').width;
-
-        const cellWidth = (panelWidth - 24) / 5;
-
-        const startX =
-            centerX - panelWidth / 2 + 12 + cellWidth / 2;
-
-        const rowGap = 62;
-
-        languages.forEach((language, index) => {
-
-            const column = index % 5;
-            const row = Math.floor(index / 5);
-
-            const x = startX + column * cellWidth;
-            const y = startY + 18 + row * rowGap;
-
-            const selected = currentCode === language.code;
-
-            const item = this.add.container(x, y);
-
-            if (selected) {
-
-                const selectedGlow = this.add.circle(
-                    0,
-                    -8,
-                    18,
-                    0x24d99b,
-                    0.17
-                );
-
-                selectedGlow.setStrokeStyle(
-                    1.5,
-                    0x9affd3,
-                    0.85
-                );
-
-                item.add(selectedGlow);
-            }
-
-            const flag = this.add.text(
-                0,
-                -8,
-                language.flag,
-                {
-                    fontSize: selected ? '27px' : '25px'
-                }
-            ).setOrigin(0.5);
-
-            const label = this.add.text(
-                0,
-                19,
-                language.label,
-                {
-                    fontFamily: 'Arial, sans-serif',
-                    fontSize: '8px',
-                    fontStyle: selected ? 'bold' : 'normal',
-                    color: selected ? '#aaffd8' : '#effff5',
-                    stroke: '#04130f',
-                    strokeThickness: 2,
-                    align: 'center',
-                    fixedWidth: cellWidth - 1,
-                    wordWrap: {
-                        width: cellWidth - 1
-                    }
-                }
-            ).setOrigin(0.5);
-
-            item.add([
-                flag,
-                label
-            ]);
-
-            const hitArea = this.add.rectangle(
-                0,
-                4,
-                cellWidth - 2,
-                55,
-                0xffffff,
-                0.001
+            document.addEventListener(
+                event,
+                this.gestureHandler,
+                { passive: true }
             );
 
-            hitArea.setInteractive({
-                useHandCursor: true
-            });
-
-            item.add(hitArea);
-
-            hitArea.on('pointerover', () => {
-                item.setScale(1.08);
-                label.setColor('#b5ffdc');
-            });
-
-            hitArea.on('pointerout', () => {
-
-                item.setScale(1);
-
-                label.setColor(
-                    selected ? '#aaffd8' : '#effff5'
-                );
-            });
-
-            hitArea.on('pointerdown', () => {
-
-                this.settingsCategory = 'language';
-
-                LanguageSystem.setLanguage(language.code);
-            });
-
-            this.settingsPageContainer.add(item);
-
-            item.setAlpha(0);
-            item.setScale(0.85);
-
-            this.tweens.add({
-                targets: item,
-                alpha: 1,
-                scale: selected ? 1.06 : 1,
-                duration: 160,
-                delay: index * 25,
-                ease: 'Cubic.easeOut'
-            });
         });
     }
 
-    // =====================================
-    // 數值設定工具
-    // =====================================
+    // ==========================================
+    // 移除首次操作監聽
+    // ==========================================
 
-    addSettingRow(centerX, y, label, key, options = {}) {
+    static removeFirstGesture() {
 
-        const currentValue = this.getSetting(key);
+        if (!this.gestureHandler) return;
 
-        const formatted = options.format
-            ? options.format(currentValue)
-            : currentValue;
+        const events = [
+            'pointerdown',
+            'touchstart',
+            'click',
+            'keydown'
+        ];
 
-        this.addPageText(
-            centerX,
-            y,
-            `${label}：${formatted}`,
-            12
-        );
+        events.forEach(event => {
 
-        this.addPageButton(
-            centerX - 48,
-            y + 28,
-            '－',
-            () => {
+            document.removeEventListener(
+                event,
+                this.gestureHandler
+            );
 
-                const next = Math.max(
-                    options.min,
-                    Number(this.getSetting(key)) - options.step
-                );
+        });
 
-                this.setSetting(
-                    key,
-                    Number(next.toFixed(2))
-                );
-            },
-            42
-        );
-
-        this.addPageButton(
-            centerX + 48,
-            y + 28,
-            '＋',
-            () => {
-
-                const next = Math.min(
-                    options.max,
-                    Number(this.getSetting(key)) + options.step
-                );
-
-                this.setSetting(
-                    key,
-                    Number(next.toFixed(2))
-                );
-            },
-            42
-        );
+        this.gestureHandler = null;
+        this.firstGestureRegistered = false;
     }
 
-    // =====================================
-    // 開關設定
-    // =====================================
+    // ==========================================
+    // 取得頻道設定
+    // ==========================================
 
-    addToggleRow(centerX, y, label, key) {
+    static getChannelSettings(channel) {
 
-        const enabled = !!this.getSetting(key);
+        const config = this.CHANNELS[channel];
 
-        this.addPageText(
-            centerX - 25,
-            y,
-            `${label}：${enabled ? '開啟' : '關閉'}`,
-            12
+        if (!config) {
+
+            console.warn(
+                '[AudioSystem] 未知音訊頻道：',
+                channel
+            );
+
+            return null;
+        }
+
+        const enabled = SettingsSystem.get(
+            config.enabled
         );
-
-        this.addPageButton(
-            centerX + 83,
-            y,
-            enabled ? '● 開啟' : '○ 關閉',
-            () => {
-                this.setSetting(
-                    key,
-                    !this.getSetting(key)
-                );
-            },
-            66
-        );
-    }
-
-    // =====================================
-    // AUDIO 五個音效頻道
-    // =====================================
-
-    addAudioChannelRow(
-        centerX,
-        y,
-        label,
-        enabledKey,
-        volumeKey
-    ) {
-
-        const enabled = !!this.getSetting(enabledKey);
 
         const volume = Number(
-            this.getSetting(volumeKey)
-        ) || 0;
+            SettingsSystem.get(config.volume) ?? 1
+        );
 
-        const controlAlpha = enabled ? 1 : 0.45;
-
-        const channelName = this.add.text(
-            centerX - 80,
-            y,
-            label,
-            {
-                fontFamily: 'Arial, sans-serif',
-                fontSize: '10px',
-                color: '#effff5',
-                stroke: '#04130f',
-                strokeThickness: 2,
-                align: 'right',
-                fixedWidth: 75
-            }
-        ).setOrigin(1, 0.5);
-
-        channelName.setAlpha(controlAlpha);
-
-        this.settingsPageContainer.add(channelName);
-
-        const createCompactButton = (
-            x,
-            symbol,
-            callback
-        ) => {
-
-            const button = this.add.container(x, y);
-
-            const background = this.add.graphics();
-
-            background.fillStyle(
-                0x104936,
-                enabled ? 0.95 : 0.35
-            );
-
-            background.fillRoundedRect(
-                -12,
-                -14,
-                24,
-                28,
-                5
-            );
-
-            background.lineStyle(
-                1,
-                0x55d9a5,
-                enabled ? 0.9 : 0.3
-            );
-
-            background.strokeRoundedRect(
-                -12,
-                -14,
-                24,
-                28,
-                5
-            );
-
-            const text = this.add.text(
+        return {
+            enabled: enabled !== false,
+            volume: Math.max(
                 0,
-                0,
-                symbol,
-                {
-                    fontSize: '15px',
-                    color: '#e5fff2',
-                    fontStyle: 'bold'
-                }
-            ).setOrigin(0.5);
-
-            const hitArea = this.add.rectangle(
-                0,
-                0,
-                32,
-                36,
-                0xffffff,
-                0.001
-            );
-
-            button.add([
-                background,
-                text,
-                hitArea
-            ]);
-
-            hitArea.setInteractive({
-                useHandCursor: true
-            });
-
-            if (!enabled) {
-
-                button.setAlpha(0.45);
-                hitArea.disableInteractive();
-
-            } else {
-
-                hitArea.on('pointerover', () => {
-
-                    background.clear();
-
-                    background.fillStyle(
-                        0x1c7252,
-                        1
-                    );
-
-                    background.fillRoundedRect(
-                        -12,
-                        -14,
-                        24,
-                        28,
-                        5
-                    );
-
-                    background.lineStyle(
-                        1.5,
-                        0xa4ffda,
-                        1
-                    );
-
-                    background.strokeRoundedRect(
-                        -12,
-                        -14,
-                        24,
-                        28,
-                        5
-                    );
-                });
-
-                hitArea.on('pointerout', () => {
-
-                    background.clear();
-
-                    background.fillStyle(
-                        0x104936,
-                        0.95
-                    );
-
-                    background.fillRoundedRect(
-                        -12,
-                        -14,
-                        24,
-                        28,
-                        5
-                    );
-
-                    background.lineStyle(
-                        1,
-                        0x55d9a5,
-                        0.9
-                    );
-
-                    background.strokeRoundedRect(
-                        -12,
-                        -14,
-                        24,
-                        28,
-                        5
-                    );
-                });
-
-                hitArea.on('pointerdown', callback);
-            }
-
-            this.settingsPageContainer.add(button);
-
-            return button;
+                Math.min(1, volume)
+            )
         };
+    }
 
-        createCompactButton(
-            centerX - 30,
-            '－',
-            () => {
+    // ==========================================
+    // 確認音訊素材是否存在
+    // ==========================================
 
-                const current = Number(
-                    this.getSetting(volumeKey)
-                ) || 0;
+    static hasAudio(key) {
 
-                const next = Math.max(
-                    0,
-                    current - 0.1
-                );
+        if (!this.game || !this.game.cache || !key) {
+            return false;
+        }
 
-                this.setSetting(
-                    volumeKey,
-                    Number(next.toFixed(2))
-                );
-            }
-        );
+        try {
 
-        const percentage = this.add.text(
-            centerX,
-            y,
-            `${Math.round(volume * 100)}%`,
-            {
-                fontFamily: 'Arial, sans-serif',
-                fontSize: '10px',
-                color: '#baffdf',
-                stroke: '#04130f',
-                strokeThickness: 2,
-                align: 'center'
-            }
-        ).setOrigin(0.5);
+            return this.game.cache.audio.exists(key);
 
-        percentage.setAlpha(controlAlpha);
+        } catch (error) {
 
-        this.settingsPageContainer.add(percentage);
+            return false;
 
-        createCompactButton(
-            centerX + 30,
-            '＋',
-            () => {
+        }
+    }
 
-                const current = Number(
-                    this.getSetting(volumeKey)
-                ) || 0;
+    // ==========================================
+    // 輸出素材不存在警告
+    // 同一素材只警告一次
+    // ==========================================
 
-                const next = Math.min(
-                    1,
-                    current + 0.1
-                );
+    static warnMissingAudio(key) {
 
-                this.setSetting(
-                    volumeKey,
-                    Number(next.toFixed(2))
-                );
-            }
-        );
+        if (this.missingAudioWarnings.has(key)) return;
 
-        this.addPageButton(
-            centerX + 75,
-            y,
-            enabled ? '● 開啟' : '○ 關閉',
-            () => {
+        this.missingAudioWarnings.add(key);
 
-                this.setSetting(
-                    enabledKey,
-                    !this.getSetting(enabledKey)
-                );
-            },
-            62
+        console.warn(
+            '[AudioSystem] 音訊素材尚未載入：',
+            key
         );
     }
 
-    // =====================================
-    // 畫面設定
-    // =====================================
+    // ==========================================
+    // 預載一般音訊
+    // ==========================================
 
-    buildScreenPage(centerX, startY) {
+    static preload(scene, assets = {}) {
 
-        this.addPageText(
-            centerX,
-            startY,
-            '畫面設定',
-            14,
-            '#baffdf'
-        );
+        if (!scene || !scene.load) return;
 
-        this.addSettingRow(
-            centerX,
-            startY + 48,
-            '介面比例',
-            'screenScale',
-            {
-                min: 0.8,
-                max: 1.2,
-                step: 0.1,
-                format: value =>
-                    `${Math.round(value * 100)}%`
-            }
-        );
+        Object.entries(assets).forEach(([key, path]) => {
 
-        this.addSettingRow(
-            centerX,
-            startY + 115,
-            '文字大小',
-            'textSize',
-            {
-                min: 0.8,
-                max: 1.4,
-                step: 0.1,
-                format: value =>
-                    `${Math.round(value * 100)}%`
-            }
-        );
-    }
+            if (!key || !path) return;
 
-    // =====================================
-    // 音效設定
-    // =====================================
+            if (scene.cache?.audio?.exists(key)) return;
 
-    buildSoundPage(centerX, startY) {
+            scene.load.audio(key, path);
 
-        this.addPageText(
-            centerX,
-            startY,
-            '音效設定',
-            14,
-            '#baffdf'
-        );
-
-        const channels = [
-
-            {
-                label: '背景音樂',
-                enabled: 'backgroundMusicEnabled',
-                volume: 'backgroundMusicVolume'
-            },
-
-            {
-                label: '環境音',
-                enabled: 'ambientSoundEnabled',
-                volume: 'ambientSoundVolume'
-            },
-
-            {
-                label: 'NPC 特殊音樂',
-                enabled: 'npcMusicEnabled',
-                volume: 'npcMusicVolume'
-            },
-
-            {
-                label: '爬蟲與兩棲聲音',
-                enabled: 'creatureSoundEnabled',
-                volume: 'creatureSoundVolume'
-            },
-
-            {
-                label: '遊戲音效',
-                enabled: 'soundEffectsEnabled',
-                volume: 'soundEffectsVolume'
-            }
-        ];
-
-        const rowSpacing = 48;
-
-        channels.forEach((channel, index) => {
-
-            const rowY =
-                startY + 38 + index * rowSpacing;
-
-            this.addAudioChannelRow(
-                centerX,
-                rowY,
-                channel.label,
-                channel.enabled,
-                channel.volume
-            );
         });
     }
 
-    // =====================================
-    // 操作設定
-    // =====================================
+    // ==========================================
+    // 預載場景專屬背景音樂
+    // ==========================================
 
-    buildOperationPage(centerX, startY) {
+    static preloadSceneBGM(scene) {
 
-        this.addPageText(
-            centerX,
-            startY,
-            '操作設定',
-            14,
-            '#baffdf'
-        );
+        if (!scene || !scene.load) return;
 
-        this.addToggleRow(
-            centerX,
-            startY + 48,
-            '操作提示',
-            'operationTipsEnabled'
-        );
+        const sceneKey = scene.scene.key;
 
-        this.addToggleRow(
-            centerX,
-            startY + 95,
-            '場景動畫',
-            'animationsEnabled'
-        );
+        const config = this.SCENE_MUSIC[sceneKey];
 
-        this.addToggleRow(
-            centerX,
-            startY + 142,
-            '夜間模式',
-            'nightModeEnabled'
-        );
+        if (!config) return;
 
-        this.addToggleRow(
-            centerX,
-            startY + 189,
-            '省電模式',
-            'powerSavingEnabled'
-        );
-    }
+        if (!config.enabled) {
 
-    // =====================================
-    // 系統設定
-    // =====================================
-
-    buildSystemPage(centerX, startY) {
-
-        this.addPageText(
-            centerX,
-            startY,
-            '系統設定',
-            14,
-            '#baffdf'
-        );
-
-        this.addPageText(
-            centerX,
-            startY + 48,
-            '遊戲版本：Alpha 2.0',
-            12
-        );
-
-        this.addPageText(
-            centerX,
-            startY + 78,
-            '《鱗片與種子》',
-            11
-        );
-
-        this.addPageButton(
-            centerX,
-            startY + 130,
-            '恢復預設設定',
-            () => {
-
-                SettingsSystem.reset();
-
-                this.refreshSettings();
-            },
-            130
-        );
-    }
-
-    // =====================================
-    // 關閉全部設定
-    // =====================================
-
-    closeSettings() {
-
-        if (this.settingsContainer) {
-
-            this.tweens.killTweensOf(
-                this.settingsContainer
+            console.log(
+                '[AudioSystem] 場景音樂尚未啟用：',
+                sceneKey
             );
 
-            this.settingsContainer.removeAll(true);
-            this.settingsContainer.destroy();
+            return;
         }
 
-        this.settingsContainer = null;
-        this.settingsPageContainer = null;
-        this.settingsRail = null;
+        if (scene.cache?.audio?.exists(config.key)) {
+            return;
+        }
 
-        this.settingsRailItems = [];
+        scene.load.audio(
+            config.key,
+            config.path
+        );
 
-        this.settingsCategory = null;
-        this.settingsExpanded = false;
+        console.log(
+            '[AudioSystem] 已加入背景音樂載入佇列：',
+            sceneKey,
+            config.path
+        );
     }
+
+    // ==========================================
+    // 一般音效播放
+    // ==========================================
+
+    static play(scene, channel, key, options = {}) {
+
+        if (!scene || !scene.sound || !key) {
+            return null;
+        }
+
+        if (channel === 'BGM') {
+
+            return this.transitionBGM(
+                scene,
+                key,
+                options
+            );
+
+        }
+
+        const channelConfig = this.getChannelSettings(
+            channel
+        );
+
+        if (!channelConfig || !channelConfig.enabled) {
+            return null;
+        }
+
+        if (!scene.cache?.audio?.exists(key)) {
+
+            this.warnMissingAudio(key);
+
+            return null;
+        }
+
+        // 避免重複播放相同循環音效
+        if (
+            options.loop &&
+            ['AMBIENT', 'NPC'].includes(channel)
+        ) {
+
+            const existing = [...this.activeSounds].find(item =>
+                item.scene === scene &&
+                item.channel === channel &&
+                item.key === key &&
+                item.sound.isPlaying
+            );
+
+            if (existing) return existing.sound;
+        }
+
+        // 同場景同頻道只保留一個音效
+        if (['AMBIENT', 'NPC'].includes(channel)) {
+
+            this.stopChannel(channel, scene);
+
+        }
+
+        const baseVolume = Math.max(
+            0,
+            Math.min(
+                1,
+                Number(options.volume ?? 1)
+            )
+        );
+
+        const sound = scene.sound.add(key, {
+
+            loop: options.loop ?? false,
+
+            volume: channelConfig.volume * baseVolume,
+
+            rate: options.rate ?? 1,
+
+            detune: options.detune ?? 0,
+
+            seek: options.seek ?? 0
+
+        });
+
+        const record = {
+
+            scene,
+            channel,
+            key,
+            sound,
+            baseVolume,
+            fadeLevel: 1,
+            fadeTimer: null
+
+        };
+
+        this.activeSounds.add(record);
+
+        sound.once('complete', () => {
+            this.removeSound(record);
+        });
+
+        sound.once('destroy', () => {
+            this.removeSound(record);
+        });
+
+        this.registerSceneShutdown(scene);
+
+        try {
+
+            sound.play();
+
+            return sound;
+
+        } catch (error) {
+
+            console.warn(
+                '[AudioSystem] 音效播放失敗：',
+                error
+            );
+
+            this.removeSound(record);
+
+            return null;
+        }
+    }
+
+    // ==========================================
+    // 記錄目前需要播放的背景音樂
+    // ==========================================
+
+    static transitionBGM(scene, key, options = {}) {
+
+        if (!scene || !key) return null;
+
+        this.desiredBGM = {
+
+            scene,
+            key,
+
+            options: {
+
+                fadeIn: options.fadeIn ?? 1200,
+
+                fadeOut: options.fadeOut ?? 1000,
+
+                volume: options.volume ?? 1,
+
+                rate: options.rate ?? 1
+
+            }
+
+        };
+
+        const channelConfig = this.getChannelSettings('BGM');
+
+        if (!channelConfig) return null;
+
+        // 背景音樂關閉時，只記錄播放目標
+        if (!channelConfig.enabled) {
+
+            this.fadeOutBGM(
+                options.fadeOut ?? 800
+            );
+
+            return null;
+        }
+
+        return this.startDesiredBGM();
+    }
+
+    // ==========================================
+    // 真正啟動目前指定的背景音樂
+    // ==========================================
+
+    static startDesiredBGM() {
+
+        if (!this.desiredBGM) return null;
+
+        if (!this.game || !this.game.sound) return null;
+
+        const channelConfig = this.getChannelSettings('BGM');
+
+        if (!channelConfig || !channelConfig.enabled) {
+            return null;
+        }
+
+        // iPhone Safari 尚未解鎖時先等待
+        const context = this.game.sound.context;
+
+        if (
+            context &&
+            context.state === 'suspended' &&
+            !this.audioUnlocked
+        ) {
+            return null;
+        }
+
+        const {
+            scene,
+            key,
+            options
+        } = this.desiredBGM;
+
+        // 尚未載入素材時不播放
+        if (!this.hasAudio(key)) {
+
+            this.warnMissingAudio(key);
+
+            return null;
+        }
+
+        // 同一首音樂已經播放，就不重複建立
+        if (
+            this.currentBGM &&
+            this.currentBGM.key === key &&
+            this.currentBGM.sound &&
+            this.currentBGM.sound.isPlaying
+        ) {
+
+            this.currentBGM.scene = scene;
+
+            return this.currentBGM.sound;
+        }
+
+        // 淡出上一首
+        if (this.currentBGM) {
+
+            this.fadeOutBGM(
+                options.fadeOut ?? 1000
+            );
+
+        }
+
+        const baseVolume = Math.max(
+            0,
+            Math.min(
+                1,
+                Number(options.volume ?? 1)
+            )
+        );
+
+        // 使用遊戲共用音訊管理器
+        // 場景切換時不會直接中斷背景音樂
+
+        let sound;
+
+        try {
+
+            sound = this.game.sound.add(key, {
+
+                loop: true,
+
+                volume: 0,
+
+                rate: options.rate ?? 1
+
+            });
+
+            const record = {
+
+                scene,
+
+                channel: 'BGM',
+
+                key,
+
+                sound,
+
+                baseVolume,
+
+                fadeLevel: 0,
+
+                fadeTimer: null
+
+            };
+
+            this.activeSounds.add(record);
+
+            this.currentBGM = record;
+
+            sound.once('destroy', () => {
+                this.removeSound(record);
+            });
+
+            sound.play();
+
+            this.fadeTo(
+                record,
+                1,
+                options.fadeIn ?? 1200
+            );
+
+            console.log(
+                '[AudioSystem] 正在播放背景音樂：',
+                key
+            );
+
+            return sound;
+
+        } catch (error) {
+
+            console.warn(
+                '[AudioSystem] 背景音樂播放失敗：',
+                error
+            );
+
+            return null;
+        }
+    }
+
+    // ==========================================
+    // 自動播放場景專屬音樂
+    // ==========================================
+
+    static playSceneBGM(scene, options = {}) {
+
+        if (!scene) return null;
+
+        const sceneKey = scene.scene.key;
+
+        const config = this.SCENE_MUSIC[sceneKey];
+
+        if (!config) {
+
+            console.warn(
+                '[AudioSystem] 此場景沒有背景音樂設定：',
+                sceneKey
+            );
+
+            return null;
+        }
+
+        // 音樂素材尚未正式啟用時，不記錄播放目標
+        if (!config.enabled) {
+            return null;
+        }
+
+        return this.transitionBGM(
+            scene,
+            config.key,
+            {
+
+                fadeIn: options.fadeIn ?? config.fadeIn,
+
+                fadeOut: options.fadeOut ?? config.fadeOut,
+
+                volume: options.volume ?? 1
+
+            }
+        );
+    }
+
+    // ==========================================
+    // 淡入淡出控制
+    // ==========================================
+
+    static fadeTo(
+        record,
+        target,
+        duration = 1000,
+        destroyOnComplete = false
+    ) {
+
+        if (!record || !record.sound) return;
+
+        if (record.fadeTimer) {
+
+            clearInterval(record.fadeTimer);
+
+            record.fadeTimer = null;
+        }
+
+        const start = record.fadeLevel;
+
+        const end = Math.max(
+            0,
+            Math.min(1, target)
+        );
+
+        if (duration <= 0) {
+
+            record.fadeLevel = end;
+
+            this.updateRecordVolume(record);
+
+            if (destroyOnComplete) {
+                this.destroyRecord(record);
+            }
+
+            return;
+        }
+
+        const startTime = Date.now();
+
+        record.fadeTimer = setInterval(() => {
+
+            if (!record.sound) {
+
+                clearInterval(record.fadeTimer);
+
+                record.fadeTimer = null;
+
+                return;
+            }
+
+            const elapsed = Date.now() - startTime;
+
+            const progress = Math.min(
+                1,
+                elapsed / duration
+            );
+
+            // Smoothstep 平滑曲線
+            const eased =
+                progress * progress * (3 - 2 * progress);
+
+            record.fadeLevel =
+                start + (end - start) * eased;
+
+            this.updateRecordVolume(record);
+
+            if (progress >= 1) {
+
+                clearInterval(record.fadeTimer);
+
+                record.fadeTimer = null;
+
+                record.fadeLevel = end;
+
+                this.updateRecordVolume(record);
+
+                if (destroyOnComplete) {
+                    this.destroyRecord(record);
+                }
+            }
+
+        }, 30);
+    }
+
+    // ==========================================
+    // 淡出目前背景音樂
+    // ==========================================
+
+    static fadeOutBGM(duration = 1000) {
+
+        const record = this.currentBGM;
+
+        if (!record) return;
+
+        this.currentBGM = null;
+
+        this.fadeTo(
+            record,
+            0,
+            duration,
+            true
+        );
+    }
+
+    // ==========================================
+    // 更新單一音效音量
+    // ==========================================
+
+    static updateRecordVolume(record) {
+
+        if (!record || !record.sound) return;
+
+        const config = this.getChannelSettings(
+            record.channel
+        );
+
+        if (!config) return;
+
+        try {
+
+            record.sound.setMute(!config.enabled);
+
+            record.sound.setVolume(
+                config.volume *
+                record.baseVolume *
+                record.fadeLevel
+            );
+
+        } catch (error) {
+
+            console.warn(
+                '[AudioSystem] 音量更新失敗',
+                error
+            );
+
+        }
+    }
+
+    // ==========================================
+    // 場景音樂快捷方法
+    // ==========================================
+
+    static playBGM(scene, key, options = {}) {
+
+        return this.transitionBGM(
+            scene,
+            key,
+            {
+
+                fadeIn: 1200,
+
+                fadeOut: 1000,
+
+                ...options
+
+            }
+        );
+    }
+
+    static playAmbient(scene, key, options = {}) {
+
+        return this.play(
+            scene,
+            'AMBIENT',
+            key,
+            {
+
+                loop: true,
+
+                ...options
+
+            }
+        );
+    }
+
+    static playNPCMusic(scene, key, options = {}) {
+
+        return this.play(
+            scene,
+            'NPC',
+            key,
+            {
+
+                loop: false,
+
+                ...options
+
+            }
+        );
+    }
+
+    static playCreatureSound(scene, key, options = {}) {
+
+        return this.play(
+            scene,
+            'CREATURE',
+            key,
+            {
+
+                loop: false,
+
+                ...options
+
+            }
+        );
+    }
+
+    static playSFX(scene, key, options = {}) {
+
+        return this.play(
+            scene,
+            'SFX',
+            key,
+            {
+
+                loop: false,
+
+                ...options
+
+            }
+        );
+    }
+
+    // ==========================================
+    // 場景關閉事件
+    // 背景音樂不會因場景關閉而停止
+    // ==========================================
+
+    static registerSceneShutdown(scene) {
+
+        if (
+            !scene ||
+            scene.__audioSystemShutdownRegistered
+        ) {
+            return;
+        }
+
+        scene.__audioSystemShutdownRegistered = true;
+
+        scene.events.once('shutdown', () => {
+
+            this.stopScene(scene);
+
+            scene.__audioSystemShutdownRegistered = false;
+
+        });
+    }
+
+    // ==========================================
+    // 移除音效紀錄
+    // ==========================================
+
+    static removeSound(record) {
+
+        if (!record) return;
+
+        if (record.fadeTimer) {
+
+            clearInterval(record.fadeTimer);
+
+            record.fadeTimer = null;
+        }
+
+        this.activeSounds.delete(record);
+
+        if (this.currentBGM === record) {
+            this.currentBGM = null;
+        }
+    }
+
+    // ==========================================
+    // 銷毀音效
+    // ==========================================
+
+    static destroyRecord(record) {
+
+        if (!record) return;
+
+        if (record.fadeTimer) {
+
+            clearInterval(record.fadeTimer);
+
+            record.fadeTimer = null;
+        }
+
+        try {
+
+            if (record.sound) {
+
+                record.sound.stop();
+
+                record.sound.destroy();
+
+            }
+
+        } catch (error) {
+
+            console.warn(
+                '[AudioSystem] 音效銷毀警告',
+                error
+            );
+
+        }
+
+        this.activeSounds.delete(record);
+
+        if (this.currentBGM === record) {
+            this.currentBGM = null;
+        }
+    }
+
+    // ==========================================
+    // 停止指定頻道
+    // ==========================================
+
+    static stopChannel(channel, scene = null) {
+
+        for (const record of [...this.activeSounds]) {
+
+            if (record.channel !== channel) continue;
+
+            if (scene && record.scene !== scene) continue;
+
+            this.destroyRecord(record);
+
+        }
+    }
+
+    // ==========================================
+    // 停止指定場景音效
+    // ==========================================
+
+    static stopScene(scene) {
+
+        for (const record of [...this.activeSounds]) {
+
+            if (record.scene !== scene) continue;
+
+            // 背景音樂由全域系統管理
+            if (record.channel === 'BGM') continue;
+
+            this.destroyRecord(record);
+
+        }
+    }
+
+    // ==========================================
+    // 停止全部音效
+    // ==========================================
+
+    static stopAll() {
+
+        for (const record of [...this.activeSounds]) {
+
+            this.destroyRecord(record);
+
+        }
+
+        this.activeSounds.clear();
+
+        this.currentBGM = null;
+
+        this.desiredBGM = null;
+    }
+
+    // ==========================================
+    // 套用音訊設定
+    // ==========================================
+
+    static applySettings() {
+
+        const bgmConfig = this.getChannelSettings('BGM');
+
+        if (!bgmConfig) return;
+
+        // 背景音樂關閉：淡出目前音樂
+        if (!bgmConfig.enabled) {
+
+            this.fadeOutBGM(500);
+
+        }
+
+        // 更新所有音訊音量
+        for (const record of [...this.activeSounds]) {
+
+            if (
+                record.channel === 'BGM' &&
+                !bgmConfig.enabled
+            ) {
+                continue;
+            }
+
+            this.updateRecordVolume(record);
+
+        }
+
+        // 背景音樂重新開啟：
+        // 自動恢復目前場景應播放的音樂
+        if (bgmConfig.enabled) {
+
+            this.startDesiredBGM();
+
+        }
+    }
+
+    // ==========================================
+    // 恢復音訊
+    // ==========================================
+
+    static async resume(scene = null) {
+
+        try {
+
+            const soundManager =
+                scene?.sound || this.game?.sound;
+
+            if (!soundManager) return false;
+
+            const context = soundManager.context;
+
+            if (
+                context &&
+                context.state === 'suspended'
+            ) {
+                await context.resume();
+            }
+
+            const success =
+                !context || context.state === 'running';
+
+            if (success) {
+
+                this.audioUnlocked = true;
+
+                this.startDesiredBGM();
+
+            }
+
+            return success;
+
+        } catch (error) {
+
+            console.warn(
+                '[AudioSystem] 音訊恢復失敗',
+                error
+            );
+
+            return false;
+
+        }
+    }
+
+    // ==========================================
+    // 銷毀系統
+    // ==========================================
+
+    static destroy() {
+
+        this.stopAll();
+
+        this.removeFirstGesture();
+
+        if (this.settingsListener) {
+
+            window.removeEventListener(
+                'settingsChanged',
+                this.settingsListener
+            );
+
+        }
+
+        this.settingsListener = null;
+
+        this.firstGestureRegistered = false;
+
+        this.audioUnlocked = false;
+
+        this.missingAudioWarnings.clear();
+
+        this.game = null;
+
+        this.initialized = false;
+
+        console.log(
+            '[AudioSystem] 音訊系統已銷毀'
+        );
+    }
+
 }
+
+// ==========================================
+// 全域存取
+// ==========================================
+
+window.AudioSystem = AudioSystem;
