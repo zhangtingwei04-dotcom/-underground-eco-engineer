@@ -1,9 +1,8 @@
 
 // 鱗片與種子：地下生態物語
 // LoginScene
-// Stable Settings Rail + 10 Languages
-// Mobile Optimized Audio Panel
-// Responsive Portrait / Landscape Layout
+// Stable Settings Rail + Language Refresh
+// Compact Audio Panel + Responsive Layout
 
 import { LanguageSystem } from '../systems/language-system.js';
 import { SettingsSystem } from '../systems/settings-system.js';
@@ -806,9 +805,7 @@ export class LoginScene extends Phaser.Scene {
         categories.forEach((category, index) => {
 
             const y = startY + index * spacing;
-
-            const selected =
-                this.settingsCategory === category.id;
+            const selected = this.settingsCategory === category.id;
 
             const glow = this.add.circle(
                 x,
@@ -967,8 +964,8 @@ export class LoginScene extends Phaser.Scene {
     getPanelSize(category) {
 
         const width = this.scale.width;
-        const height = this.scale.height;
 
+        // 所有設定頁共用相同寬度
         const panelWidth = Math.min(
             320,
             Math.max(230, width - 76)
@@ -977,25 +974,14 @@ export class LoginScene extends Phaser.Scene {
         const heights = {
             language: 205,
             screen: 245,
-            sound: 470,
+            sound: 345,
             operation: 325,
             system: 235
         };
 
-        let panelHeight = heights[category] || 245;
-
-        // 手機橫向或短螢幕時自動縮小面板
-        if (category === 'sound') {
-
-            panelHeight = Math.min(
-                470,
-                Math.max(350, height - 24)
-            );
-        }
-
         return {
             width: Math.min(panelWidth, width - 72),
-            height: panelHeight
+            height: heights[category] || 245
         };
     }
 
@@ -1056,6 +1042,7 @@ export class LoginScene extends Phaser.Scene {
         const panelLeft = centerX - size.width / 2;
         const panelTop = centerY - size.height / 2;
 
+        // 外圍柔和光暈
         const glow = this.add.graphics();
 
         glow.fillStyle(0x13d995, 0.10);
@@ -1070,6 +1057,7 @@ export class LoginScene extends Phaser.Scene {
 
         this.settingsPageContainer.add(glow);
 
+        // 深翡翠底板
         const panel = this.add.graphics();
 
         panel.fillStyle(0x061d18, 1);
@@ -1082,6 +1070,7 @@ export class LoginScene extends Phaser.Scene {
             13
         );
 
+        // 外框
         panel.lineStyle(2, 0x42dba5, 0.95);
 
         panel.strokeRoundedRect(
@@ -1092,6 +1081,7 @@ export class LoginScene extends Phaser.Scene {
             13
         );
 
+        // 內框
         panel.lineStyle(1, 0x9affd3, 0.35);
 
         panel.strokeRoundedRect(
@@ -1102,6 +1092,7 @@ export class LoginScene extends Phaser.Scene {
             10
         );
 
+        // 頂部裝飾線
         panel.lineStyle(2, 0x53dca8, 0.75);
 
         panel.beginPath();
@@ -1109,16 +1100,18 @@ export class LoginScene extends Phaser.Scene {
         panel.lineTo(panelLeft + size.width - 18, panelTop + 35);
         panel.strokePath();
 
+        // 光點
         panel.fillStyle(0xb1ffe0, 0.9);
         panel.fillCircle(panelLeft + 13, panelTop + 13, 2);
         panel.fillCircle(panelLeft + size.width - 13, panelTop + 13, 2);
 
         this.settingsPageContainer.add(panel);
 
+        // 標題
         const titleMap = {
             language: 'LANGUAGE / 語言',
             screen: 'DISPLAY / 畫面',
-            sound: 'AUDIO / 音效設定',
+            sound: 'AUDIO / 音效',
             operation: 'CONTROL / 操作',
             system: 'SYSTEM / 系統'
         };
@@ -1557,7 +1550,7 @@ export class LoginScene extends Phaser.Scene {
     }
 
     // ==============================
-    // 五大音效頻道
+    // 五大音效頻道：緊湊版
     // ==============================
 
     addAudioChannelRow(
@@ -1570,161 +1563,183 @@ export class LoginScene extends Phaser.Scene {
 
         const enabled = !!this.getSetting(enabledKey);
 
-        const volume = Phaser.Math.Clamp(
-            Number(this.getSetting(volumeKey)) || 0,
-            0,
-            1
-        );
+        const volume = Number(
+            this.getSetting(volumeKey)
+        ) || 0;
 
-        const panelWidth =
-            this.getPanelSize('sound').width;
+        const controlAlpha = enabled ? 1 : 0.45;
 
-        const leftEdge = centerX - panelWidth / 2;
-
-        // 三欄位置
-        const labelX = leftEdge + 12;
-        const volumeCenterX = centerX + 5;
-        const toggleX = centerX + panelWidth / 2 - 47;
-
-        const contentAlpha = enabled ? 1 : 0.45;
-
-        // ------------------------------
-        // 第一欄：音效名稱
-        // ------------------------------
-
-        const labelText = this.add.text(
-            labelX,
+        // 頻道名稱：向中央靠攏
+        const channelName = this.addPageText(
+            centerX - 35,
             y,
             label,
-            {
-                fontFamily: 'Arial, sans-serif',
-                fontSize: panelWidth < 280 ? '9px' : '10px',
-                color: '#effff5',
-                fontStyle: 'bold',
-                stroke: '#04130f',
-                strokeThickness: 2,
-                align: 'left',
-                fixedWidth: 78,
-                wordWrap: {
-                    width: 78
-                }
-            }
-        ).setOrigin(0, 0.5);
+            11,
+            '#effff5'
+        );
 
-        labelText.setAlpha(contentAlpha);
+        channelName.setAlpha(controlAlpha);
 
-        this.settingsPageContainer.add(labelText);
+        // 開關：由右側向中央收攏
+        this.addPageButton(
+            centerX + 50,
+            y + 5,
+            enabled ? '● 開啟' : '○ 關閉',
+            () => {
 
-        // ------------------------------
-        // 第二欄：音量控制
-        // ------------------------------
+                this.setSetting(
+                    enabledKey,
+                    !this.getSetting(enabledKey)
+                );
+            },
+            65
+        );
 
-        const volumePercent = this.add.text(
-            volumeCenterX,
-            y,
+        // 百分比
+        const percentage = this.addPageText(
+            centerX,
+            y + 25,
             `${Math.round(volume * 100)}%`,
-            {
-                fontFamily: 'Arial, sans-serif',
-                fontSize: '10px',
-                color: '#baffdf',
-                fontStyle: 'bold',
-                stroke: '#04130f',
-                strokeThickness: 2,
-                align: 'center',
-                fixedWidth: 26
-            }
-        ).setOrigin(0.5);
+            11,
+            '#baffdf'
+        );
 
-        volumePercent.setAlpha(contentAlpha);
+        percentage.setAlpha(controlAlpha);
 
-        this.settingsPageContainer.add(volumePercent);
-
-        // 建立真正 36 × 36 的音量按鈕
+        // 建立 36 × 36 音量按鈕
         const createVolumeButton = (
             x,
-            symbol,
+            buttonLabel,
             callback
         ) => {
 
-            const button = this.add.container(x, y);
-
-            const background = this.add.rectangle(
-                0,
-                0,
-                36,
-                36,
-                enabled ? 0x12513d : 0x102d24,
-                enabled ? 0.98 : 0.45
+            const button = this.add.container(
+                x,
+                y + 25
             );
 
-            background.setStrokeStyle(
-                1.5,
-                0x70d9ae,
-                enabled ? 0.95 : 0.4
+            const background = this.add.graphics();
+
+            background.fillStyle(
+                0x104936,
+                enabled ? 0.95 : 0.35
+            );
+
+            background.fillRoundedRect(
+                -18,
+                -18,
+                36,
+                36,
+                7
+            );
+
+            background.lineStyle(
+                1,
+                0x55d9a5,
+                enabled ? 0.9 : 0.3
+            );
+
+            background.strokeRoundedRect(
+                -18,
+                -18,
+                36,
+                36,
+                7
             );
 
             const text = this.add.text(
                 0,
                 0,
-                symbol,
+                buttonLabel,
                 {
-                    fontFamily: 'Arial, sans-serif',
-                    fontSize: '21px',
+                    fontSize: '15px',
+                    color: '#e5fff2',
                     fontStyle: 'bold',
-                    color: '#e4fff2'
+                    align: 'center'
                 }
             ).setOrigin(0.5);
 
-            text.setAlpha(contentAlpha);
+            const hitArea = this.add.rectangle(
+                0,
+                0,
+                36,
+                36,
+                0xffffff,
+                0.001
+            );
 
             button.add([
                 background,
-                text
+                text,
+                hitArea
             ]);
 
-            // 關閉頻道時不允許調整音量
-            if (enabled) {
+            hitArea.setInteractive({
+                useHandCursor: true
+            });
 
-                const hitArea = this.add.rectangle(
-                    0,
-                    0,
-                    36,
-                    36,
-                    0xffffff,
-                    0.001
-                );
+            if (!enabled) {
 
-                hitArea.setInteractive({
-                    useHandCursor: true
-                });
+                button.setAlpha(0.45);
+                hitArea.disableInteractive();
 
-                button.add(hitArea);
+            } else {
 
                 hitArea.on('pointerover', () => {
 
-                    background.setFillStyle(
-                        0x1c7655,
+                    background.clear();
+
+                    background.fillStyle(0x1c7252, 1);
+
+                    background.fillRoundedRect(
+                        -18,
+                        -18,
+                        36,
+                        36,
+                        7
+                    );
+
+                    background.lineStyle(
+                        1.5,
+                        0xa4ffda,
                         1
                     );
 
-                    background.setStrokeStyle(
-                        2,
-                        0xaaffd8,
-                        1
+                    background.strokeRoundedRect(
+                        -18,
+                        -18,
+                        36,
+                        36,
+                        7
                     );
                 });
 
                 hitArea.on('pointerout', () => {
 
-                    background.setFillStyle(
-                        0x12513d,
-                        0.98
+                    background.clear();
+
+                    background.fillStyle(0x104936, 0.95);
+
+                    background.fillRoundedRect(
+                        -18,
+                        -18,
+                        36,
+                        36,
+                        7
                     );
 
-                    background.setStrokeStyle(
-                        1.5,
-                        0x70d9ae,
-                        0.95
+                    background.lineStyle(
+                        1,
+                        0x55d9a5,
+                        0.9
+                    );
+
+                    background.strokeRoundedRect(
+                        -18,
+                        -18,
+                        36,
+                        36,
+                        7
                     );
                 });
 
@@ -1736,14 +1751,15 @@ export class LoginScene extends Phaser.Scene {
             return button;
         };
 
-        // 減少音量
+        // 降低音量
         createVolumeButton(
-            volumeCenterX - 42,
-            '−',
+            centerX - 24,
+            '－',
             () => {
 
-                const current =
-                    Number(this.getSetting(volumeKey)) || 0;
+                const current = Number(
+                    this.getSetting(volumeKey)
+                ) || 0;
 
                 const next = Math.max(
                     0,
@@ -1759,12 +1775,13 @@ export class LoginScene extends Phaser.Scene {
 
         // 增加音量
         createVolumeButton(
-            volumeCenterX + 42,
-            '+',
+            centerX + 24,
+            '＋',
             () => {
 
-                const current =
-                    Number(this.getSetting(volumeKey)) || 0;
+                const current = Number(
+                    this.getSetting(volumeKey)
+                ) || 0;
 
                 const next = Math.min(
                     1,
@@ -1776,24 +1793,6 @@ export class LoginScene extends Phaser.Scene {
                     Number(next.toFixed(2))
                 );
             }
-        );
-
-        // ------------------------------
-        // 第三欄：音效開關
-        // ------------------------------
-
-        this.addPageButton(
-            toggleX,
-            y,
-            enabled ? '● 開啟' : '○ 關閉',
-            () => {
-
-                this.setSetting(
-                    enabledKey,
-                    !this.getSetting(enabledKey)
-                );
-            },
-            68
         );
     }
 
@@ -1841,7 +1840,7 @@ export class LoginScene extends Phaser.Scene {
     }
 
     // ==============================
-    // 音效設定
+    // 音效設定：精緻緊湊版
     // ==============================
 
     buildSoundPage(centerX, startY) {
@@ -1850,7 +1849,7 @@ export class LoginScene extends Phaser.Scene {
             centerX,
             startY,
             '音效設定',
-            13,
+            14,
             '#baffdf'
         );
 
@@ -1887,24 +1886,16 @@ export class LoginScene extends Phaser.Scene {
             }
         ];
 
-        const panelHeight =
-            this.getPanelSize('sound').height;
-
-        // 正常手機直式：72px
-        // 短螢幕：依面板高度自動調整
-        const rowSpacing = Math.min(
-            72,
-            Math.max(
-                48,
-                (panelHeight - 182) / 4
-            )
-        );
+        const rowSpacing = 48;
 
         channels.forEach((channel, index) => {
 
+            const rowY =
+                startY + 38 + index * rowSpacing;
+
             this.addAudioChannelRow(
                 centerX,
-                startY + 40 + index * rowSpacing,
+                rowY,
                 channel.label,
                 channel.enabled,
                 channel.volume
