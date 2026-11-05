@@ -1,4 +1,9 @@
 
+// 鱗片與種子：地下生態物語
+// LoginScene
+// Settings Rail Stable Version
+// Language Refresh + Audio Controls + Responsive Layout
+
 import { LanguageSystem } from '../systems/language-system.js';
 import { SettingsSystem } from '../systems/settings-system.js';
 
@@ -12,16 +17,26 @@ export class LoginScene extends Phaser.Scene {
         this.settingsButtonContainer = null;
         this.settingsRail = null;
 
+        this.settingsRailItems = [];
+
         this.settingsCategory = null;
         this.settingsExpanded = false;
 
         this.particles = [];
+
+        this.languageListener = null;
+        this.languageReadyListener = null;
     }
+
+    // ==============================
+    // 初始化
+    // ==============================
 
     create() {
         this.settingsContainer = null;
         this.settingsPageContainer = null;
         this.settingsRail = null;
+        this.settingsRailItems = [];
 
         this.settingsCategory = null;
         this.settingsExpanded = false;
@@ -42,14 +57,25 @@ export class LoginScene extends Phaser.Scene {
         // 語言切換監聽
         this.languageListener = () => {
 
-            // 設定面板開啟時，只更新設定內容
+            // 更新登入畫面文字
+            this.drawLayout();
+
+            // 設定面板開啟時，保留目前分類
             if (this.settingsExpanded) {
                 this.refreshSettings();
-                return;
             }
+        };
 
-            // 設定面板關閉時，更新登入畫面文字
+        // 語言字典載入完成監聽
+        this.languageReadyListener = () => {
+
+            if (!this.scene.isActive()) return;
+
             this.drawLayout();
+
+            if (this.settingsExpanded) {
+                this.refreshSettings();
+            }
         };
 
         window.addEventListener(
@@ -57,18 +83,58 @@ export class LoginScene extends Phaser.Scene {
             this.languageListener
         );
 
+        window.addEventListener(
+            'languageDictionariesReady',
+            this.languageReadyListener
+        );
+
+        // 初始化語言字典
+        LanguageSystem.initialize()
+            .then(() => {
+
+                if (!this.scene.isActive()) return;
+
+                this.drawLayout();
+
+                if (this.settingsExpanded) {
+                    this.refreshSettings();
+                }
+
+            })
+            .catch(error => {
+                console.error(
+                    '[LoginScene] 語言初始化失敗',
+                    error
+                );
+            });
+
+        // 場景結束時清理事件
         this.events.once('shutdown', () => {
+
             window.removeEventListener(
                 'languageChanged',
                 this.languageListener
             );
 
-            this.scale.off('resize', this.handleResize, this);
+            window.removeEventListener(
+                'languageDictionariesReady',
+                this.languageReadyListener
+            );
+
+            this.scale.off(
+                'resize',
+                this.handleResize,
+                this
+            );
 
             this.closeSettings();
         });
 
-        this.scale.on('resize', this.handleResize, this);
+        this.scale.on(
+            'resize',
+            this.handleResize,
+            this
+        );
     }
 
     // ==============================
@@ -80,9 +146,13 @@ export class LoginScene extends Phaser.Scene {
     }
 
     setSetting(key, value) {
+
         SettingsSystem.set(key, value);
 
-        if (key === 'screenScale' || key === 'textSize') {
+        if (
+            key === 'screenScale' ||
+            key === 'textSize'
+        ) {
             this.drawLayout();
         }
 
@@ -108,6 +178,7 @@ export class LoginScene extends Phaser.Scene {
     // ==============================
 
     clearBackground() {
+
         this.particles.forEach(particle => {
             this.tweens.killTweensOf(particle);
             particle.destroy();
@@ -121,6 +192,7 @@ export class LoginScene extends Phaser.Scene {
     }
 
     drawBackground() {
+
         this.clearBackground();
 
         const width = this.scale.width;
@@ -194,6 +266,7 @@ export class LoginScene extends Phaser.Scene {
         );
 
         for (let i = 0; i < particleCount; i++) {
+
             const x = Phaser.Math.Between(
                 10,
                 Math.max(11, width - 10)
@@ -227,6 +300,7 @@ export class LoginScene extends Phaser.Scene {
     }
 
     drawPlant(x, y, color) {
+
         const graphics = this.add.graphics();
 
         const plantScale = Math.min(
@@ -270,6 +344,7 @@ export class LoginScene extends Phaser.Scene {
     // ==============================
 
     handleResize() {
+
         if (!this.scene.isActive()) return;
 
         const wasOpen = this.settingsExpanded;
@@ -283,11 +358,11 @@ export class LoginScene extends Phaser.Scene {
         this.drawLayout();
 
         if (wasOpen) {
+
             this.openSettings();
 
             if (previousCategory) {
-                this.settingsCategory = previousCategory;
-                this.refreshSettings();
+                this.selectSettingsCategory(previousCategory);
             }
         }
     }
@@ -297,6 +372,7 @@ export class LoginScene extends Phaser.Scene {
     }
 
     drawLayout() {
+
         this.clearLayout();
         this.settingsButtonContainer.removeAll(true);
 
@@ -327,6 +403,7 @@ export class LoginScene extends Phaser.Scene {
     // ==============================
 
     drawPortraitLayout(centerX, width, height) {
+
         const shortScreen = height < 650;
         const textScale = this.getTextScale();
 
@@ -410,11 +487,16 @@ export class LoginScene extends Phaser.Scene {
     // ==============================
 
     drawLandscapeLayout(centerX, width, height) {
+
         const margin = Math.max(18, width * 0.04);
         const contentWidth = Math.min(width - margin * 2, 650);
         const textScale = this.getTextScale();
 
-        const scale = Math.min(1, height / 390, width / 650);
+        const scale = Math.min(
+            1,
+            height / 390,
+            width / 650
+        );
 
         const titleSize = Math.max(18, 30 * scale);
         const welcomeSize = Math.max(13, 17 * scale);
@@ -505,6 +587,7 @@ export class LoginScene extends Phaser.Scene {
     }
 
     addLayoutText(x, y, content, style) {
+
         const text = this.add.text(x, y, content, style)
             .setOrigin(0.5);
 
@@ -522,6 +605,7 @@ export class LoginScene extends Phaser.Scene {
         eventName,
         fontSize = 18
     ) {
+
         const container = this.add.container(x, y);
 
         const background = this.add.rectangle(
@@ -549,6 +633,7 @@ export class LoginScene extends Phaser.Scene {
         background.setInteractive({ useHandCursor: true });
 
         background.on('pointerover', () => {
+
             background.setFillStyle(0x58745a);
 
             this.tweens.add({
@@ -559,6 +644,7 @@ export class LoginScene extends Phaser.Scene {
         });
 
         background.on('pointerout', () => {
+
             background.setFillStyle(0x344e3d);
 
             this.tweens.add({
@@ -578,10 +664,11 @@ export class LoginScene extends Phaser.Scene {
     }
 
     // ==============================
-    // 單一設定圖示
+    // 設定主按鈕
     // ==============================
 
     drawSettingsButton(width, height) {
+
         const button = this.add.container(width - 30, 32);
 
         const glow = this.add.circle(
@@ -619,6 +706,7 @@ export class LoginScene extends Phaser.Scene {
         });
 
         background.on('pointerdown', () => {
+
             if (this.settingsExpanded) {
                 this.closeSettings();
             } else {
@@ -627,15 +715,16 @@ export class LoginScene extends Phaser.Scene {
         });
 
         button.add([glow, background, icon]);
+
         this.settingsButtonContainer.add(button);
     }
 
     // ==============================
-    // 分類資料
-    // 語言放在倒數第二個
+    // 五個設定分類
     // ==============================
 
     getSettingsCategories() {
+
         return [
             { id: 'screen', icon: '🖥️', label: '畫面' },
             { id: 'sound', icon: '🔊', label: '音效' },
@@ -650,6 +739,7 @@ export class LoginScene extends Phaser.Scene {
     // ==============================
 
     openSettings() {
+
         if (this.settingsExpanded) return;
 
         this.settingsExpanded = true;
@@ -661,24 +751,64 @@ export class LoginScene extends Phaser.Scene {
         this.settingsRail = this.add.container(0, 0);
         this.settingsContainer.add(this.settingsRail);
 
+        this.settingsRailItems = [];
+
+        // 五個圖標只建立一次
         this.refreshSettingsRail();
     }
 
     // ==============================
-    // 五個分類垂直展開
+    // 建立或更新五個分類圖標
+    // 核心修正：切換分類不再刪除重建
     // ==============================
 
     refreshSettingsRail() {
+
         if (!this.settingsRail) return;
 
-        this.tweens.killTweensOf(this.settingsRail);
-        this.settingsRail.removeAll(true);
+        const categories = this.getSettingsCategories();
 
         const x = this.scale.width - 30;
         const startY = 91;
         const spacing = 49;
 
-        this.getSettingsCategories().forEach((category, index) => {
+        // 已建立圖標：只更新外觀，不重新建立、不播放進場動畫
+        if (this.settingsRailItems.length > 0) {
+
+            this.settingsRailItems.forEach(item => {
+
+                const selected =
+                    this.settingsCategory === item.category.id;
+
+                item.glow.setFillStyle(
+                    0x20d69a,
+                    selected ? 0.22 : 0.07
+                );
+
+                item.glow.setAlpha(
+                    selected ? 1 : 0.7
+                );
+
+                item.background.setFillStyle(
+                    selected ? 0x12513d : 0x09271f,
+                    0.94
+                );
+
+                item.background.setStrokeStyle(
+                    selected ? 2 : 1.2,
+                    selected ? 0x9affd3 : 0x4abf91,
+                    1
+                );
+
+                item.icon.setAlpha(1);
+            });
+
+            return;
+        }
+
+        // 首次建立圖標
+        categories.forEach((category, index) => {
+
             const y = startY + index * spacing;
             const selected = this.settingsCategory === category.id;
 
@@ -704,23 +834,40 @@ export class LoginScene extends Phaser.Scene {
                 1
             );
 
-            const icon = this.add.text(x, y, category.icon, {
-                fontSize: '20px'
-            }).setOrigin(0.5);
+            const icon = this.add.text(
+                x,
+                y,
+                category.icon,
+                {
+                    fontSize: '20px'
+                }
+            ).setOrigin(0.5);
 
-            background.setInteractive({ useHandCursor: true });
+            background.setInteractive({
+                useHandCursor: true
+            });
 
             background.on('pointerover', () => {
+
                 glow.setAlpha(0.32);
-                background.setStrokeStyle(2, 0xb5ffdf, 1);
+
+                background.setStrokeStyle(
+                    2,
+                    0xb5ffdf,
+                    1
+                );
             });
 
             background.on('pointerout', () => {
-                glow.setAlpha(selected ? 0.22 : 0.07);
+
+                const isSelected =
+                    this.settingsCategory === category.id;
+
+                glow.setAlpha(isSelected ? 1 : 0.7);
 
                 background.setStrokeStyle(
-                    selected ? 2 : 1.2,
-                    selected ? 0x9affd3 : 0x4abf91,
+                    isSelected ? 2 : 1.2,
+                    isSelected ? 0x9affd3 : 0x4abf91,
                     1
                 );
             });
@@ -729,8 +876,20 @@ export class LoginScene extends Phaser.Scene {
                 this.selectSettingsCategory(category.id);
             });
 
-            this.settingsRail.add([glow, background, icon]);
+            this.settingsRail.add([
+                glow,
+                background,
+                icon
+            ]);
 
+            this.settingsRailItems.push({
+                category,
+                glow,
+                background,
+                icon
+            });
+
+            // 只有第一次展開設定時播放進場動畫
             glow.setAlpha(0);
             background.setAlpha(0);
             icon.setAlpha(0);
@@ -747,31 +906,43 @@ export class LoginScene extends Phaser.Scene {
     }
 
     // ==============================
-    // 分類開關
+    // 分類切換
     // ==============================
 
     selectSettingsCategory(category) {
+
+        if (!this.settingsExpanded) return;
+
         if (this.settingsCategory === category) {
+
             this.settingsCategory = null;
+
             this.clearSettingsPage();
             this.refreshSettingsRail();
+
             return;
         }
 
         this.settingsCategory = category;
 
+        // 只更新圖標外觀
         this.refreshSettingsRail();
+
+        // 更新面板內容
         this.buildSettingsPage();
     }
 
     // ==============================
-    // 清除選單內容
+    // 清除面板內容
     // ==============================
 
     clearSettingsPage() {
+
         if (!this.settingsPageContainer) return;
 
-        this.tweens.killTweensOf(this.settingsPageContainer);
+        this.tweens.killTweensOf(
+            this.settingsPageContainer
+        );
 
         this.settingsPageContainer.removeAll(true);
         this.settingsPageContainer.destroy();
@@ -779,9 +950,15 @@ export class LoginScene extends Phaser.Scene {
         this.settingsPageContainer = null;
     }
 
+    // ==============================
+    // 更新設定
+    // ==============================
+
     refreshSettings() {
+
         if (!this.settingsExpanded) return;
 
+        // 不重新建立五個圖標
         this.refreshSettingsRail();
 
         if (this.settingsCategory) {
@@ -790,10 +967,11 @@ export class LoginScene extends Phaser.Scene {
     }
 
     // ==============================
-    // 全息面板尺寸
+    // 面板尺寸
     // ==============================
 
     getPanelSize(category) {
+
         const width = this.scale.width;
 
         const panelWidth = Math.min(
@@ -816,11 +994,14 @@ export class LoginScene extends Phaser.Scene {
     }
 
     // ==============================
-    // 固定面板位置
+    // 面板位置
     // ==============================
 
     getSettingsPosition() {
-        const size = this.getPanelSize(this.settingsCategory);
+
+        const size = this.getPanelSize(
+            this.settingsCategory
+        );
 
         const railX = this.scale.width - 30;
         const panelCenterX = railX - 27 - size.width / 2;
@@ -847,7 +1028,11 @@ export class LoginScene extends Phaser.Scene {
     // ==============================
 
     buildSettingsPage() {
-        if (!this.settingsContainer || !this.settingsCategory) {
+
+        if (
+            !this.settingsContainer ||
+            !this.settingsCategory
+        ) {
             return;
         }
 
@@ -869,6 +1054,7 @@ export class LoginScene extends Phaser.Scene {
         const glow = this.add.graphics();
 
         glow.fillStyle(0x13d995, 0.10);
+
         glow.fillRoundedRect(
             panelLeft - 5,
             panelTop - 5,
@@ -879,10 +1065,11 @@ export class LoginScene extends Phaser.Scene {
 
         this.settingsPageContainer.add(glow);
 
-        // 深翡翠不透明底板
+        // 深翡翠底板
         const panel = this.add.graphics();
 
         panel.fillStyle(0x061d18, 1);
+
         panel.fillRoundedRect(
             panelLeft,
             panelTop,
@@ -893,6 +1080,7 @@ export class LoginScene extends Phaser.Scene {
 
         // 外框
         panel.lineStyle(2, 0x42dba5, 0.95);
+
         panel.strokeRoundedRect(
             panelLeft,
             panelTop,
@@ -903,6 +1091,7 @@ export class LoginScene extends Phaser.Scene {
 
         // 內框
         panel.lineStyle(1, 0x9affd3, 0.35);
+
         panel.strokeRoundedRect(
             panelLeft + 5,
             panelTop + 5,
@@ -913,12 +1102,13 @@ export class LoginScene extends Phaser.Scene {
 
         // 頂部裝飾線
         panel.lineStyle(2, 0x53dca8, 0.75);
+
         panel.beginPath();
         panel.moveTo(panelLeft + 18, panelTop + 35);
         panel.lineTo(panelLeft + size.width - 18, panelTop + 35);
         panel.strokePath();
 
-        // 左上角與右上角光點
+        // 光點
         panel.fillStyle(0xb1ffe0, 0.9);
         panel.fillCircle(panelLeft + 13, panelTop + 13, 2);
         panel.fillCircle(panelLeft + size.width - 13, panelTop + 13, 2);
@@ -951,9 +1141,11 @@ export class LoginScene extends Phaser.Scene {
 
         this.settingsPageContainer.add(title);
 
-        const contentStartY = centerY - size.height / 2 + 64;
+        const contentStartY =
+            centerY - size.height / 2 + 64;
 
         switch (this.settingsCategory) {
+
             case 'language':
                 this.buildLanguagePage(centerX, contentStartY);
                 break;
@@ -975,21 +1167,14 @@ export class LoginScene extends Phaser.Scene {
                 break;
         }
 
-        // 面板淡入
-        this.settingsPageContainer.setAlpha(0);
-        this.settingsPageContainer.setScale(0.97);
-
-        this.tweens.add({
-            targets: this.settingsPageContainer,
-            alpha: 1,
-            scale: 1,
-            duration: 180,
-            ease: 'Cubic.easeOut'
-        });
+        // 移除分類切換時的縮放動畫
+        // 避免面板每次切換都出現跳動
+        this.settingsPageContainer.setAlpha(1);
+        this.settingsPageContainer.setScale(1);
     }
 
     // ==============================
-    // 清晰文字
+    // 設定文字
     // ==============================
 
     addPageText(
@@ -997,8 +1182,9 @@ export class LoginScene extends Phaser.Scene {
         y,
         value,
         size = 13,
-        color = '#f0ffeF'
+        color = '#f0ffef'
     ) {
+
         const text = this.add.text(x, y, value, {
             fontSize: `${size}px`,
             color,
@@ -1024,11 +1210,13 @@ export class LoginScene extends Phaser.Scene {
     // ==============================
 
     addPageButton(x, y, label, callback, width = 90) {
+
         const buttonContainer = this.add.container(x, y);
 
         const background = this.add.graphics();
 
         background.fillStyle(0x104936, 0.95);
+
         background.fillRoundedRect(
             -width / 2,
             -13,
@@ -1038,6 +1226,7 @@ export class LoginScene extends Phaser.Scene {
         );
 
         background.lineStyle(1, 0x55d9a5, 0.9);
+
         background.strokeRoundedRect(
             -width / 2,
             -13,
@@ -1053,7 +1242,10 @@ export class LoginScene extends Phaser.Scene {
             align: 'center'
         }).setOrigin(0.5);
 
-        buttonContainer.add([background, text]);
+        buttonContainer.add([
+            background,
+            text
+        ]);
 
         const hitArea = this.add.rectangle(
             0,
@@ -1064,13 +1256,18 @@ export class LoginScene extends Phaser.Scene {
             0.001
         );
 
-        hitArea.setInteractive({ useHandCursor: true });
+        hitArea.setInteractive({
+            useHandCursor: true
+        });
+
         buttonContainer.add(hitArea);
 
         hitArea.on('pointerover', () => {
+
             background.clear();
 
             background.fillStyle(0x1c7252, 1);
+
             background.fillRoundedRect(
                 -width / 2,
                 -13,
@@ -1080,6 +1277,7 @@ export class LoginScene extends Phaser.Scene {
             );
 
             background.lineStyle(1.5, 0xa4ffda, 1);
+
             background.strokeRoundedRect(
                 -width / 2,
                 -13,
@@ -1092,9 +1290,11 @@ export class LoginScene extends Phaser.Scene {
         });
 
         hitArea.on('pointerout', () => {
+
             background.clear();
 
             background.fillStyle(0x104936, 0.95);
+
             background.fillRoundedRect(
                 -width / 2,
                 -13,
@@ -1104,6 +1304,7 @@ export class LoginScene extends Phaser.Scene {
             );
 
             background.lineStyle(1, 0x55d9a5, 0.9);
+
             background.strokeRoundedRect(
                 -width / 2,
                 -13,
@@ -1123,16 +1324,19 @@ export class LoginScene extends Phaser.Scene {
     }
 
     // ==============================
-    // 語言：兩排五面國旗＋語言名稱
+    // 十種語言
     // ==============================
 
     buildLanguagePage(centerX, startY) {
+
         const languages = [
+
             { code: 'zh-TW', flag: '🇹🇼', label: '繁體中文' },
             { code: 'zh-CN', flag: '🇨🇳', label: '简体中文' },
             { code: 'en', flag: '🇺🇸', label: 'English' },
             { code: 'ja', flag: '🇯🇵', label: '日本語' },
             { code: 'ko', flag: '🇰🇷', label: '한국어' },
+
             { code: 'th', flag: '🇹🇭', label: 'ไทย' },
             { code: 'fr', flag: '🇫🇷', label: 'Français' },
             { code: 'de', flag: '🇩🇪', label: 'Deutsch' },
@@ -1142,13 +1346,18 @@ export class LoginScene extends Phaser.Scene {
 
         const currentCode = LanguageSystem.getLanguage();
 
-        const panelWidth = this.getPanelSize('language').width;
+        const panelWidth =
+            this.getPanelSize('language').width;
+
         const cellWidth = (panelWidth - 24) / 5;
 
-        const startX = centerX - panelWidth / 2 + 12 + cellWidth / 2;
+        const startX =
+            centerX - panelWidth / 2 + 12 + cellWidth / 2;
+
         const rowGap = 62;
 
         languages.forEach((language, index) => {
+
             const column = index % 5;
             const row = Math.floor(index / 5);
 
@@ -1160,6 +1369,7 @@ export class LoginScene extends Phaser.Scene {
             const item = this.add.container(x, y);
 
             if (selected) {
+
                 const selectedGlow = this.add.circle(
                     0,
                     -8,
@@ -1205,7 +1415,10 @@ export class LoginScene extends Phaser.Scene {
                 }
             ).setOrigin(0.5);
 
-            item.add([flag, label]);
+            item.add([
+                flag,
+                label
+            ]);
 
             const hitArea = this.add.rectangle(
                 0,
@@ -1216,15 +1429,19 @@ export class LoginScene extends Phaser.Scene {
                 0.001
             );
 
-            hitArea.setInteractive({ useHandCursor: true });
+            hitArea.setInteractive({
+                useHandCursor: true
+            });
+
             item.add(hitArea);
 
             hitArea.on('pointerover', () => {
-                item.setScale(1.12);
+                item.setScale(1.08);
                 label.setColor('#b5ffdc');
             });
 
             hitArea.on('pointerout', () => {
+
                 item.setScale(1);
 
                 label.setColor(
@@ -1233,22 +1450,26 @@ export class LoginScene extends Phaser.Scene {
             });
 
             hitArea.on('pointerdown', () => {
+
+                // 保持語言分類開啟
                 this.settingsCategory = 'language';
+
                 LanguageSystem.setLanguage(language.code);
             });
 
             this.settingsPageContainer.add(item);
 
+            // 國旗首次顯示動畫
             item.setAlpha(0);
-            item.setScale(0.75);
+            item.setScale(0.85);
 
             this.tweens.add({
                 targets: item,
                 alpha: 1,
                 scale: selected ? 1.06 : 1,
-                duration: 200,
-                delay: index * 45,
-                ease: 'Back.easeOut'
+                duration: 160,
+                delay: index * 25,
+                ease: 'Cubic.easeOut'
             });
         });
     }
@@ -1258,6 +1479,7 @@ export class LoginScene extends Phaser.Scene {
     // ==============================
 
     addSettingRow(centerX, y, label, key, options = {}) {
+
         const currentValue = this.getSetting(key);
 
         const formatted = options.format
@@ -1276,6 +1498,7 @@ export class LoginScene extends Phaser.Scene {
             y + 28,
             '－',
             () => {
+
                 const next = Math.max(
                     options.min,
                     Number(this.getSetting(key)) - options.step
@@ -1294,6 +1517,7 @@ export class LoginScene extends Phaser.Scene {
             y + 28,
             '＋',
             () => {
+
                 const next = Math.min(
                     options.max,
                     Number(this.getSetting(key)) + options.step
@@ -1308,7 +1532,12 @@ export class LoginScene extends Phaser.Scene {
         );
     }
 
+    // ==============================
+    // 開關設定
+    // ==============================
+
     addToggleRow(centerX, y, label, key) {
+
         const enabled = !!this.getSetting(key);
 
         this.addPageText(
@@ -1323,21 +1552,30 @@ export class LoginScene extends Phaser.Scene {
             y,
             enabled ? '● 開啟' : '○ 關閉',
             () => {
-                this.setSetting(key, !this.getSetting(key));
+                this.setSetting(
+                    key,
+                    !this.getSetting(key)
+                );
             },
             66
         );
     }
 
     // ==============================
-    // 五大音效頻道控制
+    // 五大音效頻道
     // ==============================
 
-    addAudioChannelRow(centerX, y, label, enabledKey, volumeKey) {
+    addAudioChannelRow(
+        centerX,
+        y,
+        label,
+        enabledKey,
+        volumeKey
+    ) {
+
         const enabled = !!this.getSetting(enabledKey);
         const volume = Number(this.getSetting(volumeKey)) || 0;
 
-        // 頻道名稱
         this.addPageText(
             centerX - 48,
             y,
@@ -1346,12 +1584,13 @@ export class LoginScene extends Phaser.Scene {
             '#effff5'
         );
 
-        // 開關
+        // 音效開關：右移 7px、下移 5px
         this.addPageButton(
-            centerX + 75,
-            y,
+            centerX + 82,
+            y + 5,
             enabled ? '● 開啟' : '○ 關閉',
             () => {
+
                 this.setSetting(
                     enabledKey,
                     !this.getSetting(enabledKey)
@@ -1375,7 +1614,10 @@ export class LoginScene extends Phaser.Scene {
             y + 23,
             '－',
             () => {
-                const current = Number(this.getSetting(volumeKey)) || 0;
+
+                const current =
+                    Number(this.getSetting(volumeKey)) || 0;
+
                 const next = Math.max(0, current - 0.1);
 
                 this.setSetting(
@@ -1392,7 +1634,10 @@ export class LoginScene extends Phaser.Scene {
             y + 23,
             '＋',
             () => {
-                const current = Number(this.getSetting(volumeKey)) || 0;
+
+                const current =
+                    Number(this.getSetting(volumeKey)) || 0;
+
                 const next = Math.min(1, current + 0.1);
 
                 this.setSetting(
@@ -1409,6 +1654,7 @@ export class LoginScene extends Phaser.Scene {
     // ==============================
 
     buildScreenPage(centerX, startY) {
+
         this.addPageText(
             centerX,
             startY,
@@ -1447,10 +1693,11 @@ export class LoginScene extends Phaser.Scene {
     }
 
     // ==============================
-    // 五大音效頻道設定
+    // 音效設定
     // ==============================
 
     buildSoundPage(centerX, startY) {
+
         this.addPageText(
             centerX,
             startY,
@@ -1460,26 +1707,31 @@ export class LoginScene extends Phaser.Scene {
         );
 
         const channels = [
+
             {
                 label: '背景音樂',
                 enabled: 'backgroundMusicEnabled',
                 volume: 'backgroundMusicVolume'
             },
+
             {
                 label: '環境音',
                 enabled: 'ambientSoundEnabled',
                 volume: 'ambientSoundVolume'
             },
+
             {
                 label: 'NPC 特殊音樂',
                 enabled: 'npcMusicEnabled',
                 volume: 'npcMusicVolume'
             },
+
             {
                 label: '爬蟲與兩棲聲音',
                 enabled: 'creatureSoundEnabled',
                 volume: 'creatureSoundVolume'
             },
+
             {
                 label: '遊戲音效',
                 enabled: 'soundEffectsEnabled',
@@ -1488,6 +1740,7 @@ export class LoginScene extends Phaser.Scene {
         ];
 
         channels.forEach((channel, index) => {
+
             this.addAudioChannelRow(
                 centerX,
                 startY + 38 + index * 48,
@@ -1499,10 +1752,11 @@ export class LoginScene extends Phaser.Scene {
     }
 
     // ==============================
-    // 操作與體驗
+    // 操作設定
     // ==============================
 
     buildOperationPage(centerX, startY) {
+
         this.addPageText(
             centerX,
             startY,
@@ -1545,6 +1799,7 @@ export class LoginScene extends Phaser.Scene {
     // ==============================
 
     buildSystemPage(centerX, startY) {
+
         this.addPageText(
             centerX,
             startY,
@@ -1572,7 +1827,9 @@ export class LoginScene extends Phaser.Scene {
             startY + 130,
             '恢復預設設定',
             () => {
+
                 SettingsSystem.reset();
+
                 this.refreshSettings();
             },
             130
@@ -1584,8 +1841,12 @@ export class LoginScene extends Phaser.Scene {
     // ==============================
 
     closeSettings() {
+
         if (this.settingsContainer) {
-            this.tweens.killTweensOf(this.settingsContainer);
+
+            this.tweens.killTweensOf(
+                this.settingsContainer
+            );
 
             this.settingsContainer.removeAll(true);
             this.settingsContainer.destroy();
@@ -1594,6 +1855,8 @@ export class LoginScene extends Phaser.Scene {
         this.settingsContainer = null;
         this.settingsPageContainer = null;
         this.settingsRail = null;
+
+        this.settingsRailItems = [];
 
         this.settingsCategory = null;
         this.settingsExpanded = false;
