@@ -9,26 +9,14 @@ import { SettingsSystem } from './settings-system.js';
 export class AudioSystem {
 
     static game = null;
-
     static activeSounds = new Set();
-
     static currentBGM = null;
-
-    // 記錄目前應該播放的背景音樂
     static desiredBGM = null;
-
     static initialized = false;
-
     static settingsListener = null;
-
     static firstGestureRegistered = false;
-
     static gestureHandler = null;
-
-    // 是否已經透過使用者操作解鎖音訊
     static audioUnlocked = false;
-
-    // 避免重複輸出素材不存在的警告
     static missingAudioWarnings = new Set();
 
     // ==========================================
@@ -36,45 +24,34 @@ export class AudioSystem {
     // ==========================================
 
     static CHANNELS = {
-
         BGM: {
             enabled: 'backgroundMusicEnabled',
             volume: 'backgroundMusicVolume'
         },
-
         AMBIENT: {
             enabled: 'ambientSoundEnabled',
             volume: 'ambientSoundVolume'
         },
-
         NPC: {
             enabled: 'npcMusicEnabled',
             volume: 'npcMusicVolume'
         },
-
         CREATURE: {
             enabled: 'creatureSoundEnabled',
             volume: 'creatureSoundVolume'
         },
-
         SFX: {
             enabled: 'soundEffectsEnabled',
             volume: 'soundEffectsVolume'
         }
-
     };
 
     // ==========================================
     // 場景背景音樂設定
-    //
-    // enabled: false
-    // 代表目前尚未加入音樂素材
-    //
-    // 等音樂檔放入專案後再改為 true
+    // enabled: false 代表尚未加入音樂素材
     // ==========================================
 
     static SCENE_MUSIC = {
-
         LoginScene: {
             enabled: false,
             key: 'bgm_login',
@@ -82,7 +59,6 @@ export class AudioSystem {
             fadeIn: 1200,
             fadeOut: 1000
         },
-
         TerrariumSelectScene: {
             enabled: false,
             key: 'bgm_terrarium',
@@ -90,7 +66,6 @@ export class AudioSystem {
             fadeIn: 1200,
             fadeOut: 1000
         },
-
         UndergroundScene: {
             enabled: false,
             key: 'bgm_underground',
@@ -98,7 +73,6 @@ export class AudioSystem {
             fadeIn: 1500,
             fadeOut: 1200
         },
-
         EncyclopediaScene: {
             enabled: false,
             key: 'bgm_encyclopedia',
@@ -106,7 +80,6 @@ export class AudioSystem {
             fadeIn: 1200,
             fadeOut: 1000
         }
-
     };
 
     // ==========================================
@@ -114,23 +87,16 @@ export class AudioSystem {
     // ==========================================
 
     static initialize(game) {
-
         this.game = game;
 
         if (this.initialized) {
-
             this.applySettings();
-
             this.registerFirstGesture();
-
             return;
-
         }
 
         this.settingsListener = () => {
-
             this.applySettings();
-
         };
 
         window.addEventListener(
@@ -139,15 +105,12 @@ export class AudioSystem {
         );
 
         this.initialized = true;
-
         this.registerFirstGesture();
-
         this.applySettings();
 
         console.log(
             '[AudioSystem] 五頻道音訊系統 V2.1 初始化完成'
         );
-
     }
 
     // ==========================================
@@ -156,35 +119,28 @@ export class AudioSystem {
     // ==========================================
 
     static registerFirstGesture() {
-
         if (this.firstGestureRegistered) return;
 
         this.firstGestureRegistered = true;
 
         this.gestureHandler = async () => {
-
             if (!this.game || !this.game.sound) return;
 
             try {
-
                 const context = this.game.sound.context;
 
                 if (
                     context &&
                     context.state === 'suspended'
                 ) {
-
                     await context.resume();
-
                 }
 
                 if (
                     context &&
                     context.state !== 'running'
                 ) {
-
                     return;
-
                 }
 
                 this.audioUnlocked = true;
@@ -194,19 +150,14 @@ export class AudioSystem {
                 );
 
                 this.removeFirstGesture();
-
-                // 首次觸控後，嘗試播放等待中的背景音樂
                 this.startDesiredBGM();
 
             } catch (error) {
-
                 console.warn(
                     '[AudioSystem] 音訊啟動受限',
                     error
                 );
-
             }
-
         };
 
         const events = [
@@ -217,17 +168,12 @@ export class AudioSystem {
         ];
 
         events.forEach(event => {
-
             document.addEventListener(
                 event,
                 this.gestureHandler,
-                {
-                    passive: true
-                }
+                { passive: true }
             );
-
         });
-
     }
 
     // ==========================================
@@ -235,7 +181,6 @@ export class AudioSystem {
     // ==========================================
 
     static removeFirstGesture() {
-
         if (!this.gestureHandler) return;
 
         const events = [
@@ -246,18 +191,14 @@ export class AudioSystem {
         ];
 
         events.forEach(event => {
-
             document.removeEventListener(
                 event,
                 this.gestureHandler
             );
-
         });
 
         this.gestureHandler = null;
-
         this.firstGestureRegistered = false;
-
     }
 
     // ==========================================
@@ -265,18 +206,14 @@ export class AudioSystem {
     // ==========================================
 
     static getChannelSettings(channel) {
-
         const config = this.CHANNELS[channel];
 
         if (!config) {
-
             console.warn(
                 '[AudioSystem] 未知音訊頻道：',
                 channel
             );
-
             return null;
-
         }
 
         const enabled = SettingsSystem.get(
@@ -288,16 +225,9 @@ export class AudioSystem {
         );
 
         return {
-
             enabled: enabled !== false,
-
-            volume: Math.max(
-                0,
-                Math.min(1, volume)
-            )
-
+            volume: Math.max(0, Math.min(1, volume))
         };
-
     }
 
     // ==========================================
@@ -305,21 +235,15 @@ export class AudioSystem {
     // ==========================================
 
     static hasAudio(key) {
-
         if (!this.game || !this.game.cache || !key) {
             return false;
         }
 
         try {
-
             return this.game.cache.audio.exists(key);
-
         } catch (error) {
-
             return false;
-
         }
-
     }
 
     // ==========================================
@@ -328,7 +252,6 @@ export class AudioSystem {
     // ==========================================
 
     static warnMissingAudio(key) {
-
         if (this.missingAudioWarnings.has(key)) return;
 
         this.missingAudioWarnings.add(key);
@@ -337,7 +260,6 @@ export class AudioSystem {
             '[AudioSystem] 音訊素材尚未載入：',
             key
         );
-
     }
 
     // ==========================================
@@ -345,47 +267,35 @@ export class AudioSystem {
     // ==========================================
 
     static preload(scene, assets = {}) {
-
         if (!scene || !scene.load) return;
 
         Object.entries(assets).forEach(([key, path]) => {
-
             if (!key || !path) return;
-
             if (scene.cache?.audio?.exists(key)) return;
 
             scene.load.audio(key, path);
-
         });
-
     }
 
     // ==========================================
     // 預載場景專屬背景音樂
-    //
     // 只有 enabled: true 才會載入
-    // 避免目前沒有音樂檔時造成載入錯誤
     // ==========================================
 
     static preloadSceneBGM(scene) {
-
         if (!scene || !scene.load) return;
 
         const sceneKey = scene.scene.key;
-
         const config = this.SCENE_MUSIC[sceneKey];
 
         if (!config) return;
 
         if (!config.enabled) {
-
             console.log(
                 '[AudioSystem] 場景音樂尚未啟用：',
                 sceneKey
             );
-
             return;
-
         }
 
         if (scene.cache?.audio?.exists(config.key)) {
@@ -401,7 +311,6 @@ export class AudioSystem {
             '[AudioSystem] 已加入背景音樂載入佇列：',
             sceneKey
         );
-
     }
 
     // ==========================================
@@ -409,19 +318,16 @@ export class AudioSystem {
     // ==========================================
 
     static play(scene, channel, key, options = {}) {
-
         if (!scene || !scene.sound || !key) {
             return null;
         }
 
         if (channel === 'BGM') {
-
             return this.transitionBGM(
                 scene,
                 key,
                 options
             );
-
         }
 
         const channelConfig = this.getChannelSettings(
@@ -433,11 +339,8 @@ export class AudioSystem {
         }
 
         if (!scene.cache?.audio?.exists(key)) {
-
             this.warnMissingAudio(key);
-
             return null;
-
         }
 
         // 避免重複播放相同循環音效
@@ -445,90 +348,69 @@ export class AudioSystem {
             options.loop &&
             ['AMBIENT', 'NPC'].includes(channel)
         ) {
-
             const existing = [...this.activeSounds].find(item =>
-
                 item.scene === scene &&
                 item.channel === channel &&
                 item.key === key &&
                 item.sound.isPlaying
-
             );
 
             if (existing) return existing.sound;
-
         }
 
         // 同場景同頻道只保留一個音效
         if (['AMBIENT', 'NPC'].includes(channel)) {
-
             this.stopChannel(channel, scene);
-
         }
 
         const baseVolume = Math.max(
             0,
-            Math.min(
-                1,
-                Number(options.volume ?? 1)
-            )
+            Math.min(1, Number(options.volume ?? 1))
         );
 
         const sound = scene.sound.add(key, {
-
             loop: options.loop ?? false,
-
             volume: channelConfig.volume * baseVolume,
-
             rate: options.rate ?? 1,
-
             detune: options.detune ?? 0,
-
             seek: options.seek ?? 0
-
         });
 
         const record = {
-
             scene,
-
             channel,
-
             key,
-
             sound,
-
             baseVolume,
-
             fadeLevel: 1,
-
             fadeTimer: null
-
         };
 
         this.activeSounds.add(record);
 
         sound.once('complete', () => {
-
             this.removeSound(record);
-
         });
 
         sound.once('destroy', () => {
-
             this.removeSound(record);
-
         });
 
         this.registerSceneShutdown(scene);
 
-        sound.play();
-
-        return sound;
-
+        try {
+            sound.play();
+            return sound;
+        } catch (error) {
+            console.warn(
+                '[AudioSystem] 音效播放失敗：',
+                error
+            );
+            this.removeSound(record);
+            return null;
+        }
     }
-
-    // ==========================================
+        // ==========================================
     // 記錄目前需要播放的背景音樂
     // ==========================================
 
@@ -537,23 +419,14 @@ export class AudioSystem {
         if (!scene || !key) return null;
 
         this.desiredBGM = {
-
             scene,
-
             key,
-
             options: {
-
                 fadeIn: options.fadeIn ?? 1200,
-
                 fadeOut: options.fadeOut ?? 1000,
-
                 volume: options.volume ?? 1,
-
                 rate: options.rate ?? 1
-
             }
-
         };
 
         const channelConfig = this.getChannelSettings('BGM');
@@ -568,11 +441,9 @@ export class AudioSystem {
             );
 
             return null;
-
         }
 
         return this.startDesiredBGM();
-
     }
 
     // ==========================================
@@ -582,7 +453,6 @@ export class AudioSystem {
     static startDesiredBGM() {
 
         if (!this.desiredBGM) return null;
-
         if (!this.game || !this.game.sound) return null;
 
         const channelConfig = this.getChannelSettings('BGM');
@@ -599,9 +469,7 @@ export class AudioSystem {
             context.state === 'suspended' &&
             !this.audioUnlocked
         ) {
-
             return null;
-
         }
 
         const {
@@ -612,11 +480,8 @@ export class AudioSystem {
 
         // 尚未載入素材時不播放
         if (!this.hasAudio(key)) {
-
             this.warnMissingAudio(key);
-
             return null;
-
         }
 
         // 同一首音樂已經播放，就不重複建立
@@ -626,20 +491,15 @@ export class AudioSystem {
             this.currentBGM.sound &&
             this.currentBGM.sound.isPlaying
         ) {
-
             this.currentBGM.scene = scene;
-
             return this.currentBGM.sound;
-
         }
 
         // 淡出上一首
         if (this.currentBGM) {
-
             this.fadeOutBGM(
                 options.fadeOut ?? 1000
             );
-
         }
 
         const baseVolume = Math.max(
@@ -658,41 +518,26 @@ export class AudioSystem {
         try {
 
             sound = this.game.sound.add(key, {
-
                 loop: true,
-
                 volume: 0,
-
                 rate: options.rate ?? 1
-
             });
 
             const record = {
-
                 scene,
-
                 channel: 'BGM',
-
                 key,
-
                 sound,
-
                 baseVolume,
-
                 fadeLevel: 0,
-
                 fadeTimer: null
-
             };
 
             this.activeSounds.add(record);
-
             this.currentBGM = record;
 
             sound.once('destroy', () => {
-
                 this.removeSound(record);
-
             });
 
             sound.play();
@@ -718,9 +563,7 @@ export class AudioSystem {
             );
 
             return null;
-
         }
-
     }
 
     // ==========================================
@@ -732,34 +575,31 @@ export class AudioSystem {
         if (!scene) return null;
 
         const sceneKey = scene.scene.key;
-
         const config = this.SCENE_MUSIC[sceneKey];
 
         if (!config) {
-
             console.warn(
                 '[AudioSystem] 此場景沒有背景音樂設定：',
                 sceneKey
             );
-
             return null;
+        }
 
+        // 音樂素材尚未正式啟用時，不記錄播放目標
+        // 避免嘗試播放不存在的音樂檔
+        if (!config.enabled) {
+            return null;
         }
 
         return this.transitionBGM(
             scene,
             config.key,
             {
-
                 fadeIn: options.fadeIn ?? config.fadeIn,
-
                 fadeOut: options.fadeOut ?? config.fadeOut,
-
                 volume: options.volume ?? 1
-
             }
         );
-
     }
 
     // ==========================================
@@ -776,11 +616,8 @@ export class AudioSystem {
         if (!record || !record.sound) return;
 
         if (record.fadeTimer) {
-
             clearInterval(record.fadeTimer);
-
             record.fadeTimer = null;
-
         }
 
         const start = record.fadeLevel;
@@ -793,17 +630,13 @@ export class AudioSystem {
         if (duration <= 0) {
 
             record.fadeLevel = end;
-
             this.updateRecordVolume(record);
 
             if (destroyOnComplete) {
-
                 this.destroyRecord(record);
-
             }
 
             return;
-
         }
 
         const startTime = Date.now();
@@ -811,21 +644,13 @@ export class AudioSystem {
         record.fadeTimer = setInterval(() => {
 
             if (!record.sound) {
-
                 clearInterval(record.fadeTimer);
-
                 record.fadeTimer = null;
-
                 return;
-
             }
 
             const elapsed = Date.now() - startTime;
-
-            const progress = Math.min(
-                1,
-                elapsed / duration
-            );
+            const progress = Math.min(1, elapsed / duration);
 
             // Smoothstep 平滑曲線
             const eased =
@@ -839,26 +664,19 @@ export class AudioSystem {
             if (progress >= 1) {
 
                 clearInterval(record.fadeTimer);
-
                 record.fadeTimer = null;
 
                 record.fadeLevel = end;
-
                 this.updateRecordVolume(record);
 
                 if (destroyOnComplete) {
-
                     this.destroyRecord(record);
-
                 }
-
             }
 
         }, 30);
-
     }
-
-    // ==========================================
+        // ==========================================
     // 淡出目前背景音樂
     // ==========================================
 
@@ -876,7 +694,6 @@ export class AudioSystem {
             duration,
             true
         );
-
     }
 
     // ==========================================
@@ -898,11 +715,9 @@ export class AudioSystem {
             record.sound.setMute(!config.enabled);
 
             record.sound.setVolume(
-
                 config.volume *
                 record.baseVolume *
                 record.fadeLevel
-
             );
 
         } catch (error) {
@@ -913,7 +728,6 @@ export class AudioSystem {
             );
 
         }
-
     }
 
     // ==========================================
@@ -926,16 +740,11 @@ export class AudioSystem {
             scene,
             key,
             {
-
                 fadeIn: 1200,
-
                 fadeOut: 1000,
-
                 ...options
-
             }
         );
-
     }
 
     static playAmbient(scene, key, options = {}) {
@@ -945,14 +754,10 @@ export class AudioSystem {
             'AMBIENT',
             key,
             {
-
                 loop: true,
-
                 ...options
-
             }
         );
-
     }
 
     static playNPCMusic(scene, key, options = {}) {
@@ -962,14 +767,10 @@ export class AudioSystem {
             'NPC',
             key,
             {
-
                 loop: false,
-
                 ...options
-
             }
         );
-
     }
 
     static playCreatureSound(scene, key, options = {}) {
@@ -979,14 +780,10 @@ export class AudioSystem {
             'CREATURE',
             key,
             {
-
                 loop: false,
-
                 ...options
-
             }
         );
-
     }
 
     static playSFX(scene, key, options = {}) {
@@ -996,14 +793,10 @@ export class AudioSystem {
             'SFX',
             key,
             {
-
                 loop: false,
-
                 ...options
-
             }
         );
-
     }
 
     // ==========================================
@@ -1017,9 +810,7 @@ export class AudioSystem {
             !scene ||
             scene.__audioSystemShutdownRegistered
         ) {
-
             return;
-
         }
 
         scene.__audioSystemShutdownRegistered = true;
@@ -1031,7 +822,6 @@ export class AudioSystem {
             scene.__audioSystemShutdownRegistered = false;
 
         });
-
     }
 
     // ==========================================
@@ -1043,21 +833,15 @@ export class AudioSystem {
         if (!record) return;
 
         if (record.fadeTimer) {
-
             clearInterval(record.fadeTimer);
-
             record.fadeTimer = null;
-
         }
 
         this.activeSounds.delete(record);
 
         if (this.currentBGM === record) {
-
             this.currentBGM = null;
-
         }
-
     }
 
     // ==========================================
@@ -1069,21 +853,15 @@ export class AudioSystem {
         if (!record) return;
 
         if (record.fadeTimer) {
-
             clearInterval(record.fadeTimer);
-
             record.fadeTimer = null;
-
         }
 
         try {
 
             if (record.sound) {
-
                 record.sound.stop();
-
                 record.sound.destroy();
-
             }
 
         } catch (error) {
@@ -1098,11 +876,8 @@ export class AudioSystem {
         this.activeSounds.delete(record);
 
         if (this.currentBGM === record) {
-
             this.currentBGM = null;
-
         }
-
     }
 
     // ==========================================
@@ -1120,7 +895,6 @@ export class AudioSystem {
             this.destroyRecord(record);
 
         }
-
     }
 
     // ==========================================
@@ -1139,7 +913,6 @@ export class AudioSystem {
             this.destroyRecord(record);
 
         }
-
     }
 
     // ==========================================
@@ -1149,17 +922,13 @@ export class AudioSystem {
     static stopAll() {
 
         for (const record of [...this.activeSounds]) {
-
             this.destroyRecord(record);
-
         }
 
         this.activeSounds.clear();
 
         this.currentBGM = null;
-
         this.desiredBGM = null;
-
     }
 
     // ==========================================
@@ -1172,9 +941,7 @@ export class AudioSystem {
 
         // 背景音樂關閉：淡出目前音樂
         if (bgmConfig && !bgmConfig.enabled) {
-
             this.fadeOutBGM(500);
-
         }
 
         // 更新所有音訊音量
@@ -1184,9 +951,7 @@ export class AudioSystem {
                 record.channel === 'BGM' &&
                 !bgmConfig.enabled
             ) {
-
                 continue;
-
             }
 
             this.updateRecordVolume(record);
@@ -1196,11 +961,8 @@ export class AudioSystem {
         // 背景音樂重新開啟：
         // 自動恢復目前場景應播放的音樂
         if (bgmConfig && bgmConfig.enabled) {
-
             this.startDesiredBGM();
-
         }
-
     }
 
     // ==========================================
@@ -1222,9 +984,7 @@ export class AudioSystem {
                 context &&
                 context.state === 'suspended'
             ) {
-
                 await context.resume();
-
             }
 
             const success =
@@ -1250,7 +1010,6 @@ export class AudioSystem {
             return false;
 
         }
-
     }
 
     // ==========================================
@@ -1275,19 +1034,16 @@ export class AudioSystem {
         this.settingsListener = null;
 
         this.firstGestureRegistered = false;
-
         this.audioUnlocked = false;
 
         this.missingAudioWarnings.clear();
 
         this.game = null;
-
         this.initialized = false;
 
         console.log(
             '[AudioSystem] 音訊系統已銷毀'
         );
-
     }
 
 }
