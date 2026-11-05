@@ -1,9 +1,10 @@
 
 // 鱗片與種子：地下生態物語
-// Audio System V2.3
+// Audio System V2.4
 // Centralized Audio Manager
 // 五頻道音訊管理 + 場景背景音樂 + 淡入淡出
-// iPhone Safari 音訊解鎖優化與首次啟動雜音改善
+// Phaser 原生音訊解鎖 + BGM 單一播放管理
+// iPhone Safari 首次播放優化
 
 import { SettingsSystem } from './settings-system.js';
 
@@ -11,14 +12,19 @@ export class AudioSystem {
 
     static game = null;
     static activeSounds = new Set();
+
     static currentBGM = null;
     static desiredBGM = null;
+
     static initialized = false;
     static settingsListener = null;
+
     static firstGestureRegistered = false;
     static gestureHandler = null;
+
     static audioUnlocked = false;
-    static unlockInProgress = false;
+    static bgmSwitchInProgress = false;
+
     static missingAudioWarnings = new Set();
 
     // ==========================================
@@ -54,7 +60,6 @@ export class AudioSystem {
 
     static SCENE_MUSIC = {
 
-        // 主畫面背景音樂
         LoginScene: {
             enabled: true,
             key: 'bgm_login',
@@ -63,7 +68,6 @@ export class AudioSystem {
             fadeOut: 1000
         },
 
-        // 生態箱選擇場景
         TerrariumSelectScene: {
             enabled: false,
             key: 'bgm_terrarium',
@@ -72,7 +76,6 @@ export class AudioSystem {
             fadeOut: 1000
         },
 
-        // 地下生態場景
         UndergroundScene: {
             enabled: false,
             key: 'bgm_underground',
@@ -81,7 +84,6 @@ export class AudioSystem {
             fadeOut: 1200
         },
 
-        // 生物圖鑑場景
         EncyclopediaScene: {
             enabled: false,
             key: 'bgm_encyclopedia',
@@ -97,11 +99,18 @@ export class AudioSystem {
 
     static initialize(game) {
 
+        if (!game) {
+            console.warn('[AudioSystem] 初始化失敗：找不到 Phaser Game');
+            return;
+        }
+
         this.game = game;
 
         if (this.initialized) {
-            this.applySettings();
+
             this.registerFirstGesture();
+            this.applySettings();
+
             return;
         }
 
@@ -120,177 +129,115 @@ export class AudioSystem {
         this.applySettings();
 
         console.log(
-            '[AudioSystem] 五頻道音訊系統 V2.3 初始化完成'
+            '[AudioSystem] 五頻道音訊系統 V2.4 初始化完成'
         );
     }
 
     // ==========================================
-    // 首次使用者操作
-    // iPhone Safari 音訊解鎖與靜音啟動
+    // Phaser 原生音訊解鎖
+    // 不再自行建立靜音 AudioBuffer
     // ==========================================
 
     static registerFirstGesture() {
 
-        if (this.firstGestureRegistered) return;
+        const soundManager = this.game?.sound;
+
+        if (!soundManager) {
+            return;
+        }
+
+        // Phaser 已經解鎖
+        if (soundManager.locked === false) {
+
+            this.audioUnlocked = true;
+            this.firstGestureRegistered = false;
+
+            return;
+        }
+
+        if (this.firstGestureRegistered) {
+            return;
+        }
 
         this.firstGestureRegistered = true;
 
-        this.unlockInProgress = false;
+        this.gestureHandler = () => {
 
-        this.gestureHandler = async () => {
+            this.audioUnlocked = true;
 
-            if (!this.game || !this.game.sound) return;
+            console.log(
+                '[AudioSystem] Phaser 音訊解鎖成功'
+            );
 
-            // 避免重複解鎖或重複觸發
-            if (
-                this.audioUnlocked ||
-                this.unlockInProgress
-            ) {
-                return;
-            }
+            this.removeFirstGesture();
 
-            this.unlockInProgress = true;
-
-            const context = this.game.sound.context;
-
-            try {
-
-                if (!context) {
-                    return;
-                }
-
-                // 建立極短的完全靜音音訊
-                // 協助 iOS Safari 啟動音訊環境
-
-                try {
-
-                    const buffer = context.createBuffer(
-                        1,
-                        Math.max(
-                            1,
-                            Math.floor(context.sampleRate * 0.05)
-                        ),
-                        context.sampleRate
-                    );
-
-                    const source = context.createBufferSource();
-
-                    const gain = context.createGain();
-
-                    gain.gain.value = 0;
-
-                    source.buffer = buffer;
-
-                    source.connect(gain);
-
-                    gain.connect(context.destination);
-
-                    source.onended = () => {
-
-                        try {
-                            source.disconnect();
-                            gain.disconnect();
-                        } catch (error) {
-                            // 忽略已解除連接的節點
-                        }
-
-                    };
-
-                    source.start(0);
-
-                } catch (silentError) {
-
-                    console.warn(
-                        '[AudioSystem] 靜音解鎖音訊建立失敗',
-                        silentError
-                    );
-
-                }
-
-                // 恢復 AudioContext
-                const resumePromise =
-                    context.state === 'suspended'
-                        ? context.resume()
-                        : Promise.resolve();
-
-                await resumePromise;
-
-                if (context.state !== 'running') {
-                    return;
-                }
-
-                // 確認音訊環境正常
-                this.audioUnlocked = true;
-
-                console.log(
-                    '[AudioSystem] iPhone Safari 音訊解鎖成功'
-                );
-
-                // 移除首次操作監聽
-                this.removeFirstGesture();
-
-                // 啟動背景音樂
-                this.startDesiredBGM();
-
-            } catch (error) {
-
-                console.warn(
-                    '[AudioSystem] 音訊啟動受限',
-                    error
-                );
-
-            } finally {
-
-                this.unlockInProgress = false;
-
-            }
+            // 等待中的背景音樂只在解鎖後啟動
+            this.startDesiredBGM();
 
         };
 
-        const events = [
-            'pointerdown',
-            'touchstart',
-            'click',
-            'keydown'
-        ];
+        // 使用 Phaser 自己的解鎖事件
+        soundManager.once(
+            'unlocked',
+            this.gestureHandler
+        );
 
-        events.forEach(event => {
-
-            document.addEventListener(
-                event,
-                this.gestureHandler,
-                { passive: true }
-            );
-
-        });
+        console.log(
+            '[AudioSystem] 等待 Phaser 音訊解鎖'
+        );
     }
 
     // ==========================================
-    // 移除首次操作監聽
+    // 移除解鎖監聽
     // ==========================================
 
     static removeFirstGesture() {
 
-        if (!this.gestureHandler) return;
+        const soundManager = this.game?.sound;
 
-        const events = [
-            'pointerdown',
-            'touchstart',
-            'click',
-            'keydown'
-        ];
+        if (
+            soundManager &&
+            this.gestureHandler
+        ) {
 
-        events.forEach(event => {
-
-            document.removeEventListener(
-                event,
+            soundManager.off(
+                'unlocked',
                 this.gestureHandler
             );
-
-        });
+        }
 
         this.gestureHandler = null;
         this.firstGestureRegistered = false;
+    }
+
+    // ==========================================
+    // 確認音訊是否可以播放
+    // ==========================================
+
+    static isAudioReady() {
+
+        const soundManager = this.game?.sound;
+
+        if (!soundManager) {
+            return false;
+        }
+
+        if (soundManager.locked === true) {
+            return false;
+        }
+
+        const context = soundManager.context;
+
+        if (
+            context &&
+            context.state !== 'running'
+        ) {
+            return false;
+        }
+
+        this.audioUnlocked = true;
+
+        return true;
     }
 
     // ==========================================
@@ -345,18 +292,18 @@ export class AudioSystem {
         } catch (error) {
 
             return false;
-
         }
     }
 
     // ==========================================
     // 輸出素材不存在警告
-    // 同一素材只警告一次
     // ==========================================
 
     static warnMissingAudio(key) {
 
-        if (this.missingAudioWarnings.has(key)) return;
+        if (this.missingAudioWarnings.has(key)) {
+            return;
+        }
 
         this.missingAudioWarnings.add(key);
 
@@ -372,13 +319,19 @@ export class AudioSystem {
 
     static preload(scene, assets = {}) {
 
-        if (!scene || !scene.load) return;
+        if (!scene || !scene.load) {
+            return;
+        }
 
         Object.entries(assets).forEach(([key, path]) => {
 
-            if (!key || !path) return;
+            if (!key || !path) {
+                return;
+            }
 
-            if (scene.cache?.audio?.exists(key)) return;
+            if (scene.cache?.audio?.exists(key)) {
+                return;
+            }
 
             scene.load.audio(key, path);
 
@@ -391,13 +344,16 @@ export class AudioSystem {
 
     static preloadSceneBGM(scene) {
 
-        if (!scene || !scene.load) return;
+        if (!scene || !scene.load) {
+            return;
+        }
 
         const sceneKey = scene.scene.key;
-
         const config = this.SCENE_MUSIC[sceneKey];
 
-        if (!config) return;
+        if (!config) {
+            return;
+        }
 
         if (!config.enabled) {
 
@@ -442,7 +398,6 @@ export class AudioSystem {
                 key,
                 options
             );
-
         }
 
         const channelConfig = this.getChannelSettings(
@@ -470,10 +425,12 @@ export class AudioSystem {
                 item.scene === scene &&
                 item.channel === channel &&
                 item.key === key &&
-                item.sound.isPlaying
+                item.sound?.isPlaying
             );
 
-            if (existing) return existing.sound;
+            if (existing) {
+                return existing.sound;
+            }
         }
 
         // 同場景同頻道只保留一個音效
@@ -554,7 +511,9 @@ export class AudioSystem {
 
     static transitionBGM(scene, key, options = {}) {
 
-        if (!scene || !key) return null;
+        if (!scene || !key) {
+            return null;
+        }
 
         this.desiredBGM = {
 
@@ -577,9 +536,10 @@ export class AudioSystem {
 
         const channelConfig = this.getChannelSettings('BGM');
 
-        if (!channelConfig) return null;
+        if (!channelConfig) {
+            return null;
+        }
 
-        // 背景音樂關閉時，只記錄播放目標
         if (!channelConfig.enabled) {
 
             this.fadeOutBGM(
@@ -593,14 +553,18 @@ export class AudioSystem {
     }
 
     // ==========================================
-    // 真正啟動目前指定的背景音樂
+    // 啟動目前指定的背景音樂
     // ==========================================
 
     static startDesiredBGM() {
 
-        if (!this.desiredBGM) return null;
+        if (!this.desiredBGM) {
+            return null;
+        }
 
-        if (!this.game || !this.game.sound) return null;
+        if (!this.game || !this.game.sound) {
+            return null;
+        }
 
         const channelConfig = this.getChannelSettings('BGM');
 
@@ -608,14 +572,8 @@ export class AudioSystem {
             return null;
         }
 
-        // iPhone Safari 尚未解鎖時先等待
-        const context = this.game.sound.context;
-
-        if (
-            context &&
-            context.state !== 'running' &&
-            !this.audioUnlocked
-        ) {
+        // 音訊尚未解鎖時，只保留播放目標
+        if (!this.isAudioReady()) {
             return null;
         }
 
@@ -625,7 +583,6 @@ export class AudioSystem {
             options
         } = this.desiredBGM;
 
-        // 尚未載入素材時不播放
         if (!this.hasAudio(key)) {
 
             this.warnMissingAudio(key);
@@ -633,26 +590,75 @@ export class AudioSystem {
             return null;
         }
 
-        // 同一首音樂已經播放，就不重複建立
+        // 已有相同 BGM：不建立第二個播放器
         if (
             this.currentBGM &&
             this.currentBGM.key === key &&
-            this.currentBGM.sound &&
-            this.currentBGM.sound.isPlaying
+            this.currentBGM.sound
         ) {
 
-            this.currentBGM.scene = scene;
+            const existing = this.currentBGM;
 
-            return this.currentBGM.sound;
+            existing.scene = scene;
+
+            // 如果上一個淡出流程尚未完成，
+            // 改為恢復原本音量，不重新建立播放器
+            this.bgmSwitchInProgress = false;
+
+            if (existing.fadeTimer) {
+
+                clearInterval(existing.fadeTimer);
+
+                existing.fadeTimer = null;
+            }
+
+            if (existing.sound.isPlaying) {
+
+                if (existing.fadeLevel < 1) {
+
+                    this.fadeTo(
+                        existing,
+                        1,
+                        options.fadeIn ?? 1200
+                    );
+
+                }
+
+                return existing.sound;
+            }
+
+            this.destroyRecord(existing);
         }
 
-        // 淡出上一首
+        // 正在等待上一首音樂淡出
+        if (this.bgmSwitchInProgress) {
+            return null;
+        }
+
+        // 先淡出上一首，再啟動最新指定的音樂
         if (this.currentBGM) {
 
-            this.fadeOutBGM(
-                options.fadeOut ?? 1000
+            const oldRecord = this.currentBGM;
+
+            this.bgmSwitchInProgress = true;
+
+            this.fadeTo(
+                oldRecord,
+                0,
+                options.fadeOut ?? 1000,
+                true,
+                () => {
+
+                    this.bgmSwitchInProgress = false;
+
+                    // 使用最新的 desiredBGM，
+                    // 避免播放過期的場景音樂
+                    this.startDesiredBGM();
+
+                }
             );
 
+            return null;
         }
 
         const baseVolume = Math.max(
@@ -663,10 +669,7 @@ export class AudioSystem {
             )
         );
 
-        // 使用遊戲共用音訊管理器
-        // 場景切換時不會直接中斷背景音樂
-
-        let sound;
+        let sound = null;
 
         try {
 
@@ -683,17 +686,11 @@ export class AudioSystem {
             const record = {
 
                 scene,
-
                 channel: 'BGM',
-
                 key,
-
                 sound,
-
                 baseVolume,
-
                 fadeLevel: 0,
-
                 fadeTimer: null
 
             };
@@ -706,7 +703,19 @@ export class AudioSystem {
                 this.removeSound(record);
             });
 
-            sound.play();
+            const played = sound.play();
+
+            if (played === false) {
+
+                this.destroyRecord(record);
+
+                console.warn(
+                    '[AudioSystem] Phaser 未能啟動背景音樂：',
+                    key
+                );
+
+                return null;
+            }
 
             this.fadeTo(
                 record,
@@ -715,13 +724,24 @@ export class AudioSystem {
             );
 
             console.log(
-                '[AudioSystem] 正在播放背景音樂：',
-                key
+                '[AudioSystem] 背景音樂已啟動：',
+                key,
+                '播放位置：',
+                sound.seek ?? 0
             );
 
             return sound;
 
         } catch (error) {
+
+            if (sound) {
+
+                try {
+                    sound.destroy();
+                } catch (destroyError) {
+                    // 忽略清理錯誤
+                }
+            }
 
             console.warn(
                 '[AudioSystem] 背景音樂播放失敗：',
@@ -738,10 +758,11 @@ export class AudioSystem {
 
     static playSceneBGM(scene, options = {}) {
 
-        if (!scene) return null;
+        if (!scene) {
+            return null;
+        }
 
         const sceneKey = scene.scene.key;
-
         const config = this.SCENE_MUSIC[sceneKey];
 
         if (!config) {
@@ -754,7 +775,6 @@ export class AudioSystem {
             return null;
         }
 
-        // 音樂素材尚未正式啟用時，不記錄播放目標
         if (!config.enabled) {
             return null;
         }
@@ -768,7 +788,9 @@ export class AudioSystem {
 
                 fadeOut: options.fadeOut ?? config.fadeOut,
 
-                volume: options.volume ?? 1
+                volume: options.volume ?? 1,
+
+                rate: options.rate ?? 1
 
             }
         );
@@ -782,10 +804,13 @@ export class AudioSystem {
         record,
         target,
         duration = 1000,
-        destroyOnComplete = false
+        destroyOnComplete = false,
+        onComplete = null
     ) {
 
-        if (!record || !record.sound) return;
+        if (!record || !record.sound) {
+            return;
+        }
 
         if (record.fadeTimer) {
 
@@ -811,6 +836,10 @@ export class AudioSystem {
                 this.destroyRecord(record);
             }
 
+            if (typeof onComplete === 'function') {
+                onComplete();
+            }
+
             return;
         }
 
@@ -834,7 +863,6 @@ export class AudioSystem {
                 elapsed / duration
             );
 
-            // Smoothstep 平滑曲線
             const eased =
                 progress * progress * (3 - 2 * progress);
 
@@ -856,6 +884,10 @@ export class AudioSystem {
                 if (destroyOnComplete) {
                     this.destroyRecord(record);
                 }
+
+                if (typeof onComplete === 'function') {
+                    onComplete();
+                }
             }
 
         }, 30);
@@ -869,9 +901,11 @@ export class AudioSystem {
 
         const record = this.currentBGM;
 
-        if (!record) return;
+        if (!record) {
+            return;
+        }
 
-        this.currentBGM = null;
+        this.bgmSwitchInProgress = false;
 
         this.fadeTo(
             record,
@@ -887,13 +921,17 @@ export class AudioSystem {
 
     static updateRecordVolume(record) {
 
-        if (!record || !record.sound) return;
+        if (!record || !record.sound) {
+            return;
+        }
 
         const config = this.getChannelSettings(
             record.channel
         );
 
-        if (!config) return;
+        if (!config) {
+            return;
+        }
 
         try {
 
@@ -908,10 +946,9 @@ export class AudioSystem {
         } catch (error) {
 
             console.warn(
-                '[AudioSystem] 音量更新失敗',
+                '[AudioSystem] 音量更新失敗：',
                 error
             );
-
         }
     }
 
@@ -1002,7 +1039,7 @@ export class AudioSystem {
 
     // ==========================================
     // 場景關閉事件
-    // 背景音樂不會因場景關閉而停止
+    // BGM 由全域系統管理
     // ==========================================
 
     static registerSceneShutdown(scene) {
@@ -1031,7 +1068,9 @@ export class AudioSystem {
 
     static removeSound(record) {
 
-        if (!record) return;
+        if (!record) {
+            return;
+        }
 
         if (record.fadeTimer) {
 
@@ -1053,7 +1092,9 @@ export class AudioSystem {
 
     static destroyRecord(record) {
 
-        if (!record) return;
+        if (!record) {
+            return;
+        }
 
         if (record.fadeTimer) {
 
@@ -1096,9 +1137,13 @@ export class AudioSystem {
 
         for (const record of [...this.activeSounds]) {
 
-            if (record.channel !== channel) continue;
+            if (record.channel !== channel) {
+                continue;
+            }
 
-            if (scene && record.scene !== scene) continue;
+            if (scene && record.scene !== scene) {
+                continue;
+            }
 
             this.destroyRecord(record);
 
@@ -1113,10 +1158,13 @@ export class AudioSystem {
 
         for (const record of [...this.activeSounds]) {
 
-            if (record.scene !== scene) continue;
+            if (record.scene !== scene) {
+                continue;
+            }
 
-            // 背景音樂由全域系統管理
-            if (record.channel === 'BGM') continue;
+            if (record.channel === 'BGM') {
+                continue;
+            }
 
             this.destroyRecord(record);
 
@@ -1138,8 +1186,9 @@ export class AudioSystem {
         this.activeSounds.clear();
 
         this.currentBGM = null;
-
         this.desiredBGM = null;
+
+        this.bgmSwitchInProgress = false;
     }
 
     // ==========================================
@@ -1150,16 +1199,16 @@ export class AudioSystem {
 
         const bgmConfig = this.getChannelSettings('BGM');
 
-        if (!bgmConfig) return;
+        if (!bgmConfig) {
+            return;
+        }
 
-        // 背景音樂關閉：淡出目前音樂
         if (!bgmConfig.enabled) {
 
             this.fadeOutBGM(500);
 
         }
 
-        // 更新所有音訊音量
         for (const record of [...this.activeSounds]) {
 
             if (
@@ -1173,8 +1222,6 @@ export class AudioSystem {
 
         }
 
-        // 背景音樂重新開啟：
-        // 自動恢復目前場景應播放的音樂
         if (bgmConfig.enabled) {
 
             this.startDesiredBGM();
@@ -1193,7 +1240,9 @@ export class AudioSystem {
             const soundManager =
                 scene?.sound || this.game?.sound;
 
-            if (!soundManager) return false;
+            if (!soundManager) {
+                return false;
+            }
 
             const context = soundManager.context;
 
@@ -1201,7 +1250,13 @@ export class AudioSystem {
                 context &&
                 context.state === 'suspended'
             ) {
+
                 await context.resume();
+
+            }
+
+            if (soundManager.locked === true) {
+                return false;
             }
 
             const success =
@@ -1210,6 +1265,8 @@ export class AudioSystem {
             if (success) {
 
                 this.audioUnlocked = true;
+
+                this.removeFirstGesture();
 
                 this.startDesiredBGM();
 
@@ -1220,7 +1277,7 @@ export class AudioSystem {
         } catch (error) {
 
             console.warn(
-                '[AudioSystem] 音訊恢復失敗',
+                '[AudioSystem] 音訊恢復失敗：',
                 error
             );
 
@@ -1239,7 +1296,10 @@ export class AudioSystem {
 
         this.removeFirstGesture();
 
-        if (this.settingsListener) {
+        if (
+            typeof window !== 'undefined' &&
+            this.settingsListener
+        ) {
 
             window.removeEventListener(
                 'settingsChanged',
@@ -1251,10 +1311,8 @@ export class AudioSystem {
         this.settingsListener = null;
 
         this.firstGestureRegistered = false;
-
         this.audioUnlocked = false;
-
-        this.unlockInProgress = false;
+        this.bgmSwitchInProgress = false;
 
         this.missingAudioWarnings.clear();
 
@@ -1263,7 +1321,7 @@ export class AudioSystem {
         this.initialized = false;
 
         console.log(
-            '[AudioSystem] 音訊系統已銷毀'
+            '[AudioSystem] V2.4 音訊系統已銷毀'
         );
     }
 
