@@ -139,11 +139,13 @@ window.addEventListener('DOMContentLoaded', async () => {
 
     } catch (error) {
 
-        console.error('【系統錯誤】遊戲啟動失敗：', error);
+    console.error('【系統錯誤】遊戲啟動失敗：', error);
 
-        alert(
-            '遊戲啟動失敗，請重新整理頁面或檢查程式碼。'
-        );
-    }
+    const errorMessage = error?.message || String(error);
 
-});
+    alert(
+        '遊戲啟動失敗！\n\n' +
+        '錯誤原因：' + errorMessage +
+        '\n\n請截圖或複製錯誤內容，提供給開發者。'
+    );
+}
