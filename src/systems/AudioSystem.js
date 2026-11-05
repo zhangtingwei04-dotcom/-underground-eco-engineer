@@ -1,8 +1,9 @@
+
 // 鱗片與種子：地下生態物語
-// Audio System V2.2
+// Audio System V2.3
 // Centralized Audio Manager
 // 五頻道音訊管理 + 場景背景音樂 + 淡入淡出
-// 支援 iPhone Safari、設定即時更新、音樂自動恢復
+// iPhone Safari 音訊解鎖優化與首次啟動雜音改善
 
 import { SettingsSystem } from './settings-system.js';
 
@@ -17,6 +18,7 @@ export class AudioSystem {
     static firstGestureRegistered = false;
     static gestureHandler = null;
     static audioUnlocked = false;
+    static unlockInProgress = false;
     static missingAudioWarnings = new Set();
 
     // ==========================================
@@ -118,13 +120,13 @@ export class AudioSystem {
         this.applySettings();
 
         console.log(
-            '[AudioSystem] 五頻道音訊系統 V2.2 初始化完成'
+            '[AudioSystem] 五頻道音訊系統 V2.3 初始化完成'
         );
     }
 
     // ==========================================
     // 首次使用者操作
-    // 適用 iPhone Safari 音訊限制
+    // iPhone Safari 音訊解鎖與靜音啟動
     // ==========================================
 
     static registerFirstGesture() {
@@ -133,36 +135,101 @@ export class AudioSystem {
 
         this.firstGestureRegistered = true;
 
+        this.unlockInProgress = false;
+
         this.gestureHandler = async () => {
 
             if (!this.game || !this.game.sound) return;
 
+            // 避免重複解鎖或重複觸發
+            if (
+                this.audioUnlocked ||
+                this.unlockInProgress
+            ) {
+                return;
+            }
+
+            this.unlockInProgress = true;
+
+            const context = this.game.sound.context;
+
             try {
 
-                const context = this.game.sound.context;
-
-                if (
-                    context &&
-                    context.state === 'suspended'
-                ) {
-                    await context.resume();
-                }
-
-                if (
-                    context &&
-                    context.state !== 'running'
-                ) {
+                if (!context) {
                     return;
                 }
 
+                // 建立極短的完全靜音音訊
+                // 協助 iOS Safari 啟動音訊環境
+
+                try {
+
+                    const buffer = context.createBuffer(
+                        1,
+                        Math.max(
+                            1,
+                            Math.floor(context.sampleRate * 0.05)
+                        ),
+                        context.sampleRate
+                    );
+
+                    const source = context.createBufferSource();
+
+                    const gain = context.createGain();
+
+                    gain.gain.value = 0;
+
+                    source.buffer = buffer;
+
+                    source.connect(gain);
+
+                    gain.connect(context.destination);
+
+                    source.onended = () => {
+
+                        try {
+                            source.disconnect();
+                            gain.disconnect();
+                        } catch (error) {
+                            // 忽略已解除連接的節點
+                        }
+
+                    };
+
+                    source.start(0);
+
+                } catch (silentError) {
+
+                    console.warn(
+                        '[AudioSystem] 靜音解鎖音訊建立失敗',
+                        silentError
+                    );
+
+                }
+
+                // 恢復 AudioContext
+                const resumePromise =
+                    context.state === 'suspended'
+                        ? context.resume()
+                        : Promise.resolve();
+
+                await resumePromise;
+
+                if (context.state !== 'running') {
+                    return;
+                }
+
+                // 確認音訊環境正常
                 this.audioUnlocked = true;
 
                 console.log(
-                    '[AudioSystem] 使用者已啟動音訊'
+                    '[AudioSystem] iPhone Safari 音訊解鎖成功'
                 );
 
+                // 移除首次操作監聽
                 this.removeFirstGesture();
 
+                // 啟動背景音樂
                 this.startDesiredBGM();
 
             } catch (error) {
@@ -172,7 +239,12 @@ export class AudioSystem {
                     error
                 );
 
+            } finally {
+
+                this.unlockInProgress = false;
+
             }
+
         };
 
         const events = [
@@ -541,7 +613,7 @@ export class AudioSystem {
 
         if (
             context &&
-            context.state === 'suspended' &&
+            context.state !== 'running' &&
             !this.audioUnlocked
         ) {
             return null;
@@ -1181,6 +1253,8 @@ export class AudioSystem {
         this.firstGestureRegistered = false;
 
         this.audioUnlocked = false;
+
+        this.unlockInProgress = false;
 
         this.missingAudioWarnings.clear();
 
