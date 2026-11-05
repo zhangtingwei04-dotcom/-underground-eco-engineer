@@ -1,8 +1,9 @@
 
 // 鱗片與種子：地下生態物語
 // LoginScene
-// Settings Rail Stable Version
-// Language Refresh + Audio Controls + Responsive Layout
+// Stable Settings Rail + 10 Languages
+// Mobile Optimized Audio Panel
+// Responsive Portrait / Landscape Layout
 
 import { LanguageSystem } from '../systems/language-system.js';
 import { SettingsSystem } from '../systems/settings-system.js';
@@ -33,6 +34,7 @@ export class LoginScene extends Phaser.Scene {
     // ==============================
 
     create() {
+
         this.settingsContainer = null;
         this.settingsPageContainer = null;
         this.settingsRail = null;
@@ -54,19 +56,17 @@ export class LoginScene extends Phaser.Scene {
         this.drawBackground();
         this.drawLayout();
 
-        // 語言切換監聽
         this.languageListener = () => {
 
-            // 更新登入畫面文字
+            if (!this.scene.isActive()) return;
+
             this.drawLayout();
 
-            // 設定面板開啟時，保留目前分類
             if (this.settingsExpanded) {
                 this.refreshSettings();
             }
         };
 
-        // 語言字典載入完成監聽
         this.languageReadyListener = () => {
 
             if (!this.scene.isActive()) return;
@@ -88,7 +88,6 @@ export class LoginScene extends Phaser.Scene {
             this.languageReadyListener
         );
 
-        // 初始化語言字典
         LanguageSystem.initialize()
             .then(() => {
 
@@ -102,13 +101,14 @@ export class LoginScene extends Phaser.Scene {
 
             })
             .catch(error => {
+
                 console.error(
                     '[LoginScene] 語言初始化失敗',
                     error
                 );
+
             });
 
-        // 場景結束時清理事件
         this.events.once('shutdown', () => {
 
             window.removeEventListener(
@@ -753,13 +753,11 @@ export class LoginScene extends Phaser.Scene {
 
         this.settingsRailItems = [];
 
-        // 五個圖標只建立一次
         this.refreshSettingsRail();
     }
 
     // ==============================
     // 建立或更新五個分類圖標
-    // 核心修正：切換分類不再刪除重建
     // ==============================
 
     refreshSettingsRail() {
@@ -772,7 +770,6 @@ export class LoginScene extends Phaser.Scene {
         const startY = 91;
         const spacing = 49;
 
-        // 已建立圖標：只更新外觀，不重新建立、不播放進場動畫
         if (this.settingsRailItems.length > 0) {
 
             this.settingsRailItems.forEach(item => {
@@ -806,11 +803,12 @@ export class LoginScene extends Phaser.Scene {
             return;
         }
 
-        // 首次建立圖標
         categories.forEach((category, index) => {
 
             const y = startY + index * spacing;
-            const selected = this.settingsCategory === category.id;
+
+            const selected =
+                this.settingsCategory === category.id;
 
             const glow = this.add.circle(
                 x,
@@ -889,7 +887,6 @@ export class LoginScene extends Phaser.Scene {
                 icon
             });
 
-            // 只有第一次展開設定時播放進場動畫
             glow.setAlpha(0);
             background.setAlpha(0);
             icon.setAlpha(0);
@@ -925,10 +922,8 @@ export class LoginScene extends Phaser.Scene {
 
         this.settingsCategory = category;
 
-        // 只更新圖標外觀
         this.refreshSettingsRail();
 
-        // 更新面板內容
         this.buildSettingsPage();
     }
 
@@ -958,7 +953,6 @@ export class LoginScene extends Phaser.Scene {
 
         if (!this.settingsExpanded) return;
 
-        // 不重新建立五個圖標
         this.refreshSettingsRail();
 
         if (this.settingsCategory) {
@@ -973,6 +967,7 @@ export class LoginScene extends Phaser.Scene {
     getPanelSize(category) {
 
         const width = this.scale.width;
+        const height = this.scale.height;
 
         const panelWidth = Math.min(
             320,
@@ -982,14 +977,25 @@ export class LoginScene extends Phaser.Scene {
         const heights = {
             language: 205,
             screen: 245,
-            sound: 345,
+            sound: 470,
             operation: 325,
             system: 235
         };
 
+        let panelHeight = heights[category] || 245;
+
+        // 手機橫向或短螢幕時自動縮小面板
+        if (category === 'sound') {
+
+            panelHeight = Math.min(
+                470,
+                Math.max(350, height - 24)
+            );
+        }
+
         return {
             width: Math.min(panelWidth, width - 72),
-            height: heights[category] || 245
+            height: panelHeight
         };
     }
 
@@ -1050,7 +1056,6 @@ export class LoginScene extends Phaser.Scene {
         const panelLeft = centerX - size.width / 2;
         const panelTop = centerY - size.height / 2;
 
-        // 外圍柔和光暈
         const glow = this.add.graphics();
 
         glow.fillStyle(0x13d995, 0.10);
@@ -1065,7 +1070,6 @@ export class LoginScene extends Phaser.Scene {
 
         this.settingsPageContainer.add(glow);
 
-        // 深翡翠底板
         const panel = this.add.graphics();
 
         panel.fillStyle(0x061d18, 1);
@@ -1078,7 +1082,6 @@ export class LoginScene extends Phaser.Scene {
             13
         );
 
-        // 外框
         panel.lineStyle(2, 0x42dba5, 0.95);
 
         panel.strokeRoundedRect(
@@ -1089,7 +1092,6 @@ export class LoginScene extends Phaser.Scene {
             13
         );
 
-        // 內框
         panel.lineStyle(1, 0x9affd3, 0.35);
 
         panel.strokeRoundedRect(
@@ -1100,7 +1102,6 @@ export class LoginScene extends Phaser.Scene {
             10
         );
 
-        // 頂部裝飾線
         panel.lineStyle(2, 0x53dca8, 0.75);
 
         panel.beginPath();
@@ -1108,18 +1109,16 @@ export class LoginScene extends Phaser.Scene {
         panel.lineTo(panelLeft + size.width - 18, panelTop + 35);
         panel.strokePath();
 
-        // 光點
         panel.fillStyle(0xb1ffe0, 0.9);
         panel.fillCircle(panelLeft + 13, panelTop + 13, 2);
         panel.fillCircle(panelLeft + size.width - 13, panelTop + 13, 2);
 
         this.settingsPageContainer.add(panel);
 
-        // 標題
         const titleMap = {
             language: 'LANGUAGE / 語言',
             screen: 'DISPLAY / 畫面',
-            sound: 'AUDIO / 音效',
+            sound: 'AUDIO / 音效設定',
             operation: 'CONTROL / 操作',
             system: 'SYSTEM / 系統'
         };
@@ -1167,8 +1166,6 @@ export class LoginScene extends Phaser.Scene {
                 break;
         }
 
-        // 移除分類切換時的縮放動畫
-        // 避免面板每次切換都出現跳動
         this.settingsPageContainer.setAlpha(1);
         this.settingsPageContainer.setScale(1);
     }
@@ -1451,7 +1448,6 @@ export class LoginScene extends Phaser.Scene {
 
             hitArea.on('pointerdown', () => {
 
-                // 保持語言分類開啟
                 this.settingsCategory = 'language';
 
                 LanguageSystem.setLanguage(language.code);
@@ -1459,7 +1455,6 @@ export class LoginScene extends Phaser.Scene {
 
             this.settingsPageContainer.add(item);
 
-            // 國旗首次顯示動畫
             item.setAlpha(0);
             item.setScale(0.85);
 
@@ -1574,20 +1569,222 @@ export class LoginScene extends Phaser.Scene {
     ) {
 
         const enabled = !!this.getSetting(enabledKey);
-        const volume = Number(this.getSetting(volumeKey)) || 0;
 
-        this.addPageText(
-            centerX - 48,
-            y,
-            label,
-            11,
-            '#effff5'
+        const volume = Phaser.Math.Clamp(
+            Number(this.getSetting(volumeKey)) || 0,
+            0,
+            1
         );
 
-        // 音效開關：右移 7px、下移 5px
+        const panelWidth =
+            this.getPanelSize('sound').width;
+
+        const leftEdge = centerX - panelWidth / 2;
+
+        // 三欄位置
+        const labelX = leftEdge + 12;
+        const volumeCenterX = centerX + 5;
+        const toggleX = centerX + panelWidth / 2 - 47;
+
+        const contentAlpha = enabled ? 1 : 0.45;
+
+        // ------------------------------
+        // 第一欄：音效名稱
+        // ------------------------------
+
+        const labelText = this.add.text(
+            labelX,
+            y,
+            label,
+            {
+                fontFamily: 'Arial, sans-serif',
+                fontSize: panelWidth < 280 ? '9px' : '10px',
+                color: '#effff5',
+                fontStyle: 'bold',
+                stroke: '#04130f',
+                strokeThickness: 2,
+                align: 'left',
+                fixedWidth: 78,
+                wordWrap: {
+                    width: 78
+                }
+            }
+        ).setOrigin(0, 0.5);
+
+        labelText.setAlpha(contentAlpha);
+
+        this.settingsPageContainer.add(labelText);
+
+        // ------------------------------
+        // 第二欄：音量控制
+        // ------------------------------
+
+        const volumePercent = this.add.text(
+            volumeCenterX,
+            y,
+            `${Math.round(volume * 100)}%`,
+            {
+                fontFamily: 'Arial, sans-serif',
+                fontSize: '10px',
+                color: '#baffdf',
+                fontStyle: 'bold',
+                stroke: '#04130f',
+                strokeThickness: 2,
+                align: 'center',
+                fixedWidth: 26
+            }
+        ).setOrigin(0.5);
+
+        volumePercent.setAlpha(contentAlpha);
+
+        this.settingsPageContainer.add(volumePercent);
+
+        // 建立真正 36 × 36 的音量按鈕
+        const createVolumeButton = (
+            x,
+            symbol,
+            callback
+        ) => {
+
+            const button = this.add.container(x, y);
+
+            const background = this.add.rectangle(
+                0,
+                0,
+                36,
+                36,
+                enabled ? 0x12513d : 0x102d24,
+                enabled ? 0.98 : 0.45
+            );
+
+            background.setStrokeStyle(
+                1.5,
+                0x70d9ae,
+                enabled ? 0.95 : 0.4
+            );
+
+            const text = this.add.text(
+                0,
+                0,
+                symbol,
+                {
+                    fontFamily: 'Arial, sans-serif',
+                    fontSize: '21px',
+                    fontStyle: 'bold',
+                    color: '#e4fff2'
+                }
+            ).setOrigin(0.5);
+
+            text.setAlpha(contentAlpha);
+
+            button.add([
+                background,
+                text
+            ]);
+
+            // 關閉頻道時不允許調整音量
+            if (enabled) {
+
+                const hitArea = this.add.rectangle(
+                    0,
+                    0,
+                    36,
+                    36,
+                    0xffffff,
+                    0.001
+                );
+
+                hitArea.setInteractive({
+                    useHandCursor: true
+                });
+
+                button.add(hitArea);
+
+                hitArea.on('pointerover', () => {
+
+                    background.setFillStyle(
+                        0x1c7655,
+                        1
+                    );
+
+                    background.setStrokeStyle(
+                        2,
+                        0xaaffd8,
+                        1
+                    );
+                });
+
+                hitArea.on('pointerout', () => {
+
+                    background.setFillStyle(
+                        0x12513d,
+                        0.98
+                    );
+
+                    background.setStrokeStyle(
+                        1.5,
+                        0x70d9ae,
+                        0.95
+                    );
+                });
+
+                hitArea.on('pointerdown', callback);
+            }
+
+            this.settingsPageContainer.add(button);
+
+            return button;
+        };
+
+        // 減少音量
+        createVolumeButton(
+            volumeCenterX - 42,
+            '−',
+            () => {
+
+                const current =
+                    Number(this.getSetting(volumeKey)) || 0;
+
+                const next = Math.max(
+                    0,
+                    current - 0.1
+                );
+
+                this.setSetting(
+                    volumeKey,
+                    Number(next.toFixed(2))
+                );
+            }
+        );
+
+        // 增加音量
+        createVolumeButton(
+            volumeCenterX + 42,
+            '+',
+            () => {
+
+                const current =
+                    Number(this.getSetting(volumeKey)) || 0;
+
+                const next = Math.min(
+                    1,
+                    current + 0.1
+                );
+
+                this.setSetting(
+                    volumeKey,
+                    Number(next.toFixed(2))
+                );
+            }
+        );
+
+        // ------------------------------
+        // 第三欄：音效開關
+        // ------------------------------
+
         this.addPageButton(
-            centerX + 82,
-            y + 5,
+            toggleX,
+            y,
             enabled ? '● 開啟' : '○ 關閉',
             () => {
 
@@ -1596,56 +1793,7 @@ export class LoginScene extends Phaser.Scene {
                     !this.getSetting(enabledKey)
                 );
             },
-            65
-        );
-
-        // 音量百分比
-        this.addPageText(
-            centerX + 5,
-            y + 23,
-            `${Math.round(volume * 100)}%`,
-            11,
-            '#baffdf'
-        );
-
-        // 降低音量
-        this.addPageButton(
-            centerX - 35,
-            y + 23,
-            '－',
-            () => {
-
-                const current =
-                    Number(this.getSetting(volumeKey)) || 0;
-
-                const next = Math.max(0, current - 0.1);
-
-                this.setSetting(
-                    volumeKey,
-                    Number(next.toFixed(2))
-                );
-            },
-            30
-        );
-
-        // 增加音量
-        this.addPageButton(
-            centerX + 45,
-            y + 23,
-            '＋',
-            () => {
-
-                const current =
-                    Number(this.getSetting(volumeKey)) || 0;
-
-                const next = Math.min(1, current + 0.1);
-
-                this.setSetting(
-                    volumeKey,
-                    Number(next.toFixed(2))
-                );
-            },
-            30
+            68
         );
     }
 
@@ -1702,7 +1850,7 @@ export class LoginScene extends Phaser.Scene {
             centerX,
             startY,
             '音效設定',
-            14,
+            13,
             '#baffdf'
         );
 
@@ -1739,11 +1887,24 @@ export class LoginScene extends Phaser.Scene {
             }
         ];
 
+        const panelHeight =
+            this.getPanelSize('sound').height;
+
+        // 正常手機直式：72px
+        // 短螢幕：依面板高度自動調整
+        const rowSpacing = Math.min(
+            72,
+            Math.max(
+                48,
+                (panelHeight - 182) / 4
+            )
+        );
+
         channels.forEach((channel, index) => {
 
             this.addAudioChannelRow(
                 centerX,
-                startY + 38 + index * 48,
+                startY + 40 + index * rowSpacing,
                 channel.label,
                 channel.enabled,
                 channel.volume
