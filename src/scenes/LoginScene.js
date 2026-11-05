@@ -1,4 +1,7 @@
+// 鱗片與種子：地下生態物語
+// Login Scene - AudioSystem Integration
 
+import { AudioSystem } from '../systems/AudioSystem.js';
 import { LanguageSystem } from '../systems/language-system.js';
 import { SettingsSystem } from '../systems/settings-system.js';
 
@@ -23,6 +26,16 @@ export class LoginScene extends Phaser.Scene {
     }
 
     // =====================================
+    // 背景音樂預載
+    // =====================================
+
+    preload() {
+
+        AudioSystem.preloadSceneBGM(this);
+
+    }
+
+    // =====================================
     // 初始化
     // =====================================
 
@@ -37,6 +50,10 @@ export class LoginScene extends Phaser.Scene {
         this.settingsExpanded = false;
 
         SettingsSystem.load();
+
+        // 啟動主畫面背景音樂
+        // 實際播放仍由 AudioSystem 的設定與音訊解鎖機制控制
+        AudioSystem.playSceneBGM(this);
 
         this.backgroundContainer = this.add.container(0, 0);
         this.layoutContainer = this.add.container(0, 0);
@@ -1556,13 +1573,6 @@ export class LoginScene extends Phaser.Scene {
 
         const controlAlpha = enabled ? 1 : 0.45;
 
-        // ---------------------------------
-        // 項目名稱
-        // X = centerX - 80
-        // Y = y
-        // 右側對齊
-        // ---------------------------------
-
         const channelName = this.add.text(
             centerX - 80,
             y,
@@ -1581,10 +1591,6 @@ export class LoginScene extends Phaser.Scene {
         channelName.setAlpha(controlAlpha);
 
         this.settingsPageContainer.add(channelName);
-
-        // ---------------------------------
-        // 緊湊型加減按鈕
-        // ---------------------------------
 
         const createCompactButton = (
             x,
@@ -1732,12 +1738,6 @@ export class LoginScene extends Phaser.Scene {
             return button;
         };
 
-        // ---------------------------------
-        // 減號
-        // X = centerX - 30
-        // Y = y
-        // ---------------------------------
-
         createCompactButton(
             centerX - 30,
             '－',
@@ -1759,12 +1759,6 @@ export class LoginScene extends Phaser.Scene {
             }
         );
 
-        // ---------------------------------
-        // 音量百分比
-        // X = centerX
-        // Y = y
-        // ---------------------------------
-
         const percentage = this.add.text(
             centerX,
             y,
@@ -1782,12 +1776,6 @@ export class LoginScene extends Phaser.Scene {
         percentage.setAlpha(controlAlpha);
 
         this.settingsPageContainer.add(percentage);
-
-        // ---------------------------------
-        // 加號
-        // X = centerX + 30
-        // Y = y
-        // ---------------------------------
 
         createCompactButton(
             centerX + 30,
@@ -1809,12 +1797,6 @@ export class LoginScene extends Phaser.Scene {
                 );
             }
         );
-
-        // ---------------------------------
-        // 開啟 / 關閉
-        // X = centerX + 75
-        // Y = y
-        // ---------------------------------
 
         this.addPageButton(
             centerX + 75,
