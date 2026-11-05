@@ -1,30 +1,55 @@
-
 // 鱗片與種子：地下生態物語
 // Underground Scene - Settings & Language Selection
+// AudioSystem V2.1 Integration
 
 import { LanguageSystem } from '../systems/language-system.js';
+import { AudioSystem } from '../systems/AudioSystem.js';
 
 export class UndergroundScene extends Phaser.Scene {
 
     constructor() {
+
         super({ key: 'UndergroundScene' });
 
         this.gameState = null;
+
         this.settingsContainer = null;
         this.settingsOpen = false;
+
+        this.autoSaveEvent = null;
     }
+
+    // =====================================
+    // 背景音樂預載
+    // =====================================
 
     preload() {
-        console.log('[UndergroundScene] Preloading assets...');
+
+        console.log(
+            '[UndergroundScene] Preloading assets...'
+        );
+
+        AudioSystem.preloadSceneBGM(this);
     }
 
-    async create() {
+    // =====================================
+    // 場景初始化
+    // =====================================
 
-        console.log('[UndergroundScene] Initializing scene...');
+    async create(data = {}) {
 
+        console.log(
+            '[UndergroundScene] Initializing scene...'
+        );
+
+        // 啟動地下研究所背景音樂
+        AudioSystem.playSceneBGM(this);
+
+        // 載入遊戲資料
         if (window.gameSaveManager) {
 
-            this.gameState = await window.gameSaveManager.loadGame();
+            this.gameState =
+                await window.gameSaveManager.loadGame();
 
             console.log(
                 '[UndergroundScene] Game state loaded:',
@@ -38,9 +63,39 @@ export class UndergroundScene extends Phaser.Scene {
             );
         }
 
+        // 防止場景載入期間已經離開
+        if (!this.scene.isActive()) {
+            return;
+        }
+
         this.renderUI();
+
         this.setupAutoSave();
+
+        // 場景結束時清理自動存檔事件
+        this.events.once('shutdown', () => {
+
+            if (this.autoSaveEvent) {
+
+                this.autoSaveEvent.remove();
+
+                this.autoSaveEvent = null;
+            }
+
+            if (this.settingsContainer) {
+
+                this.settingsContainer.destroy();
+
+                this.settingsContainer = null;
+            }
+
+            this.settingsOpen = false;
+        });
     }
+
+    // =====================================
+    // 主畫面
+    // =====================================
 
     renderUI() {
 
@@ -66,8 +121,10 @@ export class UndergroundScene extends Phaser.Scene {
 
         // 玩家資訊
         const player = this.gameState?.player || {
+
             actionPoints: 100,
             money: 1500
+
         };
 
         this.apText = this.add.text(
@@ -90,12 +147,24 @@ export class UndergroundScene extends Phaser.Scene {
             }
         );
 
-        // 目前啟用的生態箱
-        const activeTerrarium = this.gameState?.terrariums?.[0];
+        // 當前生態箱
+        const activeTerrarium =
+            this.gameState?.terrariums?.find(
+                terrarium =>
+                    terrarium.id ===
+                    window.globalTerrariumSystem?.activeTerrariumId
+            ) ||
+            this.gameState?.terrariums?.[0];
 
         if (activeTerrarium) {
 
-            const env = activeTerrarium.environment;
+            const env = activeTerrarium.environment || {
+
+                temperature: 24,
+                humidity: 50,
+                cleanliness: 100
+
+            };
 
             this.add.text(
                 width / 2,
@@ -114,7 +183,7 @@ export class UndergroundScene extends Phaser.Scene {
             this.add.text(
                 width / 2,
                 180,
-                `溫度: ${env.temperature}°C | 濕度: ${env.humidity}% | 潔淨度: ${env.cleanliness}%`,
+                `溫度: ${env.temperature}°C | 濕度: ${env.humidity}% | 潔淨度: ${env.cleanliness ?? 100}%`,
                 {
                     fontSize: '16px',
                     color: '#b0d0a0',
@@ -133,7 +202,9 @@ export class UndergroundScene extends Phaser.Scene {
             '📖 生態學家筆記',
             '#4a3b32',
             () => {
+
                 this.scene.start('EncyclopediaScene');
+
             }
         );
 
@@ -144,23 +215,36 @@ export class UndergroundScene extends Phaser.Scene {
             '🦎 生態箱管理',
             '#324a42',
             () => {
-                this.scene.start('TerrariumSelectScene');
+
+                this.scene.start(
+                    'TerrariumSelectScene',
+                    {
+                        terrariumSystem: window.globalTerrariumSystem,
+                        saveSystem: window.globalTerrariumSaveSystem
+                    }
+                );
+
             }
         );
 
-        // 新增設定按鈕
+        // 設定
         this.createButton(
             width - 170,
             130,
             '⚙️ 設定',
             '#66513b',
             () => {
+
                 this.openSettings();
+
             }
         );
     }
 
-    // 建立一般按鈕
+    // =====================================
+    // 一般按鈕
+    // =====================================
+
     createButton(x, y, label, color, callback) {
 
         const button = this.add.text(
@@ -185,7 +269,10 @@ export class UndergroundScene extends Phaser.Scene {
         return button;
     }
 
+    // =====================================
     // 開啟設定
+    // =====================================
+
     openSettings() {
 
         if (this.settingsOpen) return;
@@ -208,9 +295,18 @@ export class UndergroundScene extends Phaser.Scene {
             0.75
         );
 
+        overlay.setInteractive();
+
         // 設定面板
-        const panelWidth = Math.min(width - 30, 520);
-        const panelHeight = Math.min(height - 30, 430);
+        const panelWidth = Math.min(
+            width - 30,
+            520
+        );
+
+        const panelHeight = Math.min(
+            height - 30,
+            430
+        );
 
         const panel = this.add.rectangle(
             width / 2,
@@ -287,16 +383,22 @@ export class UndergroundScene extends Phaser.Scene {
         });
 
         closeButton.on('pointerdown', () => {
+
             this.closeSettings();
+
         });
 
         this.settingsContainer.add(closeButton);
     }
 
-    // 建立語言選項
+    // =====================================
+    // 語言選項
+    // =====================================
+
     createLanguageOptions(centerX, centerY, panelWidth) {
 
         const languages = [
+
             { code: 'zh-TW', name: '繁體中文' },
             { code: 'zh-CN', name: '简体中文' },
             { code: 'en', name: 'English' },
@@ -307,12 +409,19 @@ export class UndergroundScene extends Phaser.Scene {
             { code: 'de', name: 'Deutsch' },
             { code: 'es', name: 'Español' },
             { code: 'pt-BR', name: 'Português' }
+
         ];
 
-        const currentLanguage = LanguageSystem.getLanguage();
+        const currentLanguage =
+            LanguageSystem.getLanguage();
 
         const columns = 2;
-        const gapX = Math.min(180, panelWidth * 0.40);
+
+        const gapX = Math.min(
+            180,
+            panelWidth * 0.40
+        );
+
         const gapY = 43;
 
         languages.forEach((language, index) => {
@@ -342,7 +451,10 @@ export class UndergroundScene extends Phaser.Scene {
                         x: 12,
                         y: 8
                     },
-                    fixedWidth: Math.min(155, panelWidth * 0.42),
+                    fixedWidth: Math.min(
+                        155,
+                        panelWidth * 0.42
+                    ),
                     align: 'center'
                 }
             ).setOrigin(0.5);
@@ -353,18 +465,22 @@ export class UndergroundScene extends Phaser.Scene {
 
             button.on('pointerdown', () => {
 
-                if (LanguageSystem.getLanguage() === language.code) {
+                if (
+                    LanguageSystem.getLanguage() ===
+                    language.code
+                ) {
                     return;
                 }
 
-                LanguageSystem.setLanguage(language.code);
+                LanguageSystem.setLanguage(
+                    language.code
+                );
 
                 console.log(
                     '[LanguageSystem] Language changed:',
                     language.code
                 );
 
-                // 重新載入目前場景
                 this.scene.restart();
             });
 
@@ -372,7 +488,10 @@ export class UndergroundScene extends Phaser.Scene {
         });
     }
 
+    // =====================================
     // 關閉設定
+    // =====================================
+
     closeSettings() {
 
         if (this.settingsContainer) {
@@ -385,10 +504,21 @@ export class UndergroundScene extends Phaser.Scene {
         this.settingsOpen = false;
     }
 
+    // =====================================
     // 自動存檔
+    // =====================================
+
     setupAutoSave() {
 
-        this.time.addEvent({
+        // 避免重複建立自動存檔計時器
+        if (this.autoSaveEvent) {
+
+            this.autoSaveEvent.remove();
+
+            this.autoSaveEvent = null;
+        }
+
+        this.autoSaveEvent = this.time.addEvent({
 
             delay: 60000,
 
@@ -403,9 +533,19 @@ export class UndergroundScene extends Phaser.Scene {
                         '[UndergroundScene] Performing periodic auto-save...'
                     );
 
-                    await window.gameSaveManager.saveGame(
-                        this.gameState
-                    );
+                    try {
+
+                        await window.gameSaveManager.saveGame(
+                            this.gameState
+                        );
+
+                    } catch (error) {
+
+                        console.error(
+                            '[UndergroundScene] Auto-save failed:',
+                            error
+                        );
+                    }
                 }
             },
 
@@ -414,5 +554,8 @@ export class UndergroundScene extends Phaser.Scene {
     }
 }
 
-// 掛載至全域 window
+// =====================================
+// 全域掛載
+// =====================================
+
 window.UndergroundScene = UndergroundScene;
