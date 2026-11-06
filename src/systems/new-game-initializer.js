@@ -6,7 +6,7 @@
  * 不負責存檔，也不直接管理物種資料。
  */
 
-import { STARTING_CREATURE_CONFIG } from '../config/starting-creature-config.js';
+import { STARTING_CREATURE_CONFIG } from './starting-creature-config.js';
 import { CreatureFactory } from './creature-factory.js';
 
 export class NewGameInitializer {
