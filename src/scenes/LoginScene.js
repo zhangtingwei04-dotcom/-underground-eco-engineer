@@ -6,7 +6,7 @@
 
 import { AudioSystem } from '../systems/AudioSystem.js';
 import { LanguageSystem } from '../systems/language-system.js';
-import { SettingsSystem } from '../systems/SettingsSystem.js';
+import { SettingsSystem } from '../systems/settings-system.js';
 
 export class LoginScene extends Phaser.Scene {
 
@@ -55,7 +55,7 @@ export class LoginScene extends Phaser.Scene {
 
         this.load.image(
             'btn_start_frame',
-            'assets/images/ui/btn-start-frame.png'
+            'assets/images/ui/btn-start-frame.PNG'
         );
 
         this.load.on('loaderror', file => {
@@ -63,7 +63,7 @@ export class LoginScene extends Phaser.Scene {
             if (file.key === 'btn_start_frame') {
 
                 console.error(
-                    '[LoginScene] 木板按鈕圖片載入失敗，將使用備用木牌。請確認路徑及大小寫：assets/images/ui/btn-start-frame.png'
+                    '[LoginScene] 木板按鈕圖片載入失敗，將使用備用木牌。請確認路徑及大小寫：assets/images/ui/btn-start-frame.PNG'
                 );
             }
         });
@@ -349,10 +349,6 @@ export class LoginScene extends Phaser.Scene {
             this.drawFallbackBackground(width, height);
         }
 
-        // =================================
-        // 背景魔法微光粒子
-        // 從底部緩慢向上飄浮
-        // =================================
         // =================================
         // 背景魔法微光粒子
         // 從底部緩慢向上飄浮
@@ -1052,7 +1048,8 @@ export class LoginScene extends Phaser.Scene {
                 },
 
                 duration: 1500 + i * 170,
-                                yoyo: true,
+
+                yoyo: true,
 
                 repeat: -1,
 
@@ -1401,7 +1398,7 @@ export class LoginScene extends Phaser.Scene {
         background.setStrokeStyle(
             2,
             0xc5b78e,
-                        0.9
+            0.9
         );
 
         const text = this.add.text(
@@ -1751,7 +1748,7 @@ export class LoginScene extends Phaser.Scene {
         );
 
         this.settingsPageContainer.removeAll(true);
-                this.settingsPageContainer.destroy();
+        this.settingsPageContainer.destroy();
 
         this.settingsPageContainer = null;
     }
@@ -2100,7 +2097,8 @@ export class LoginScene extends Phaser.Scene {
             );
 
             background.lineStyle(1, 0x55d9a5, 0.9);
-                        background.strokeRoundedRect(
+
+            background.strokeRoundedRect(
                 -width / 2,
                 -13,
                 width,
@@ -2449,7 +2447,8 @@ export class LoginScene extends Phaser.Scene {
                 0xffffff,
                 0.001
             );
-                        button.add([
+
+            button.add([
                 background,
                 text,
                 hitArea
