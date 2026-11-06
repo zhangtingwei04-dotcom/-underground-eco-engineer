@@ -703,7 +703,7 @@ export class LoginScene extends Phaser.Scene {
                 fontSize: `${(width < 360 ? 22 : 28) * textScale}px`,
                 color: '#f3e8cb',
                 fontStyle: 'bold',
-                stroke: '#243b2e',
+                stroke: '#392619',
                 strokeThickness: 4,
                 align: 'center',
                 wordWrap: { width: width - 32 }
@@ -812,7 +812,7 @@ export class LoginScene extends Phaser.Scene {
                 fontSize: `${titleSize * textScale}px`,
                 color: '#f3e8cb',
                 fontStyle: 'bold',
-                stroke: '#243b2e',
+                stroke: '#392619',
                 strokeThickness: 3,
                 align: 'center',
                 wordWrap: {
@@ -1098,7 +1098,7 @@ export class LoginScene extends Phaser.Scene {
     createFallbackWoodenButton(width, height) {
 
         // 備用木牌尺寸同步縮小至 65%
-        const buttonScale = 0.65;
+        const buttonScale = 0.58;
 
         width *= buttonScale;
         height *= buttonScale;
@@ -1243,14 +1243,14 @@ export class LoginScene extends Phaser.Scene {
 
         if (useImage) {
 
-            // 光暈與裝飾粒子同步採用 65% 尺寸
+            // 光暈與裝飾粒子同步採用 58% 尺寸
             this.createStartButtonGlow(
                 container,
                 width,
                 height
             );
 
-            const buttonScale = 0.65;
+            const buttonScale = 0.58;
 
             const visualWidth = width * buttonScale;
             const visualHeight = height * buttonScale;
@@ -1383,7 +1383,7 @@ export class LoginScene extends Phaser.Scene {
             0,
             width,
             height,
-            0x344e3d,
+            0x65452b,
             0.96
         );
 
@@ -1420,7 +1420,7 @@ export class LoginScene extends Phaser.Scene {
 
         background.on('pointerover', () => {
 
-            background.setFillStyle(0x58745a);
+            background.setFillStyle(0x89623b);
 
             this.addLayoutTween({
 
@@ -1434,7 +1434,7 @@ export class LoginScene extends Phaser.Scene {
 
         background.on('pointerout', () => {
 
-            background.setFillStyle(0x344e3d);
+            background.setFillStyle(0x65452b);
 
             this.addLayoutTween({
 
@@ -1461,66 +1461,55 @@ export class LoginScene extends Phaser.Scene {
 
     drawSettingsButton(width, height) {
 
-        const button = this.add.container(width - 30, 32);
+        const button = this.add.container(width - 31, 32);
+        const wood = this.add.graphics();
 
-        const glow = this.add.circle(
-            0,
-            0,
-            25,
-            0x20b982,
-            0.10
-        );
+        // 深色木牌底座、木紋與黃銅包邊
+        wood.fillStyle(0x21150e, 0.95);
+        wood.fillRoundedRect(-24, -24, 48, 48, 9);
+        wood.fillStyle(0x684326, 1);
+        wood.fillRoundedRect(-21, -21, 42, 42, 7);
+        wood.fillStyle(0x8b6038, 1);
+        wood.fillRoundedRect(-17, -17, 34, 34, 5);
+        wood.lineStyle(1.5, 0xe0bd7d, 1);
+        wood.strokeRoundedRect(-19, -19, 38, 38, 6);
+        wood.lineStyle(1, 0x4a2d19, 0.8);
+        wood.beginPath();
+        wood.moveTo(-12, -8);
+        wood.lineTo(11, -8);
+        wood.moveTo(-13, 8);
+        wood.lineTo(12, 8);
+        wood.strokePath();
 
-        const background = this.add.circle(
-            0,
-            0,
-            22,
-            0x09271f,
-            0.88
-        );
-
-        background.setStrokeStyle(
-            1.5,
-            0x55d6a4,
-            0.95
-        );
-
-        const icon = this.add.text(0, 0, '⚙️', {
-            fontSize: '24px'
+        const icon = this.add.text(0, 0, '⚙', {
+            fontFamily: 'Arial, sans-serif',
+            fontSize: '23px',
+            color: '#f6dfb0',
+            stroke: '#4a2d19',
+            strokeThickness: 2
         }).setOrigin(0.5);
 
-        background.setInteractive({
-            useHandCursor: true
+        const hitArea = this.add.rectangle(0, 0, 48, 48, 0xffffff, 0.001);
+        hitArea.setInteractive({ useHandCursor: true });
+
+        hitArea.on('pointerover', () => {
+            button.setScale(1.07);
+            icon.setColor('#fff0c9');
+        });
+        hitArea.on('pointerout', () => {
+            button.setScale(1);
+            icon.setColor('#f6dfb0');
+        });
+        hitArea.on('pointerdown', () => {
+            if (this.settingsExpanded) this.closeSettings();
+            else this.openSettings();
         });
 
-        background.on('pointerover', () => {
-            glow.setAlpha(0.3);
-            background.setStrokeStyle(2, 0x9affd3, 1);
-        });
-
-        background.on('pointerout', () => {
-            glow.setAlpha(0.1);
-            background.setStrokeStyle(1.5, 0x55d6a4, 0.95);
-        });
-
-        background.on('pointerdown', () => {
-
-            if (this.settingsExpanded) {
-                this.closeSettings();
-            } else {
-                this.openSettings();
-            }
-        });
-
-        button.add([
-            glow,
-            background,
-            icon
-        ]);
-
+        button.add([wood, icon, hitArea]);
         this.settingsButtonContainer.add(button);
     }
-        // =====================================
+
+    // =====================================
     // 五個設定分類
     // =====================================
 
@@ -1579,8 +1568,8 @@ export class LoginScene extends Phaser.Scene {
                     this.settingsCategory === item.category.id;
 
                 item.glow.setFillStyle(
-                    0x20d69a,
-                    selected ? 0.22 : 0.07
+                    0xe0bd7d,
+                    selected ? 0.28 : 0.12
                 );
 
                 item.glow.setAlpha(
@@ -1588,13 +1577,13 @@ export class LoginScene extends Phaser.Scene {
                 );
 
                 item.background.setFillStyle(
-                    selected ? 0x12513d : 0x09271f,
+                    selected ? 0x8b6038 : 0x684326,
                     0.94
                 );
 
                 item.background.setStrokeStyle(
                     selected ? 2 : 1.2,
-                    selected ? 0x9affd3 : 0x4abf91,
+                    selected ? 0xffe2a6 : 0xd0a064,
                     1
                 );
 
@@ -1613,7 +1602,7 @@ export class LoginScene extends Phaser.Scene {
                 x,
                 y,
                 24,
-                0x20d69a,
+                0xc58b4d,
                 selected ? 0.22 : 0.07
             );
 
@@ -1621,13 +1610,13 @@ export class LoginScene extends Phaser.Scene {
                 x,
                 y,
                 19,
-                selected ? 0x12513d : 0x09271f,
+                selected ? 0x8b6038 : 0x684326,
                 0.94
             );
 
             background.setStrokeStyle(
                 selected ? 2 : 1.2,
-                selected ? 0x9affd3 : 0x4abf91,
+                selected ? 0xffe2a6 : 0xd0a064,
                 1
             );
 
@@ -1664,7 +1653,7 @@ export class LoginScene extends Phaser.Scene {
 
                 background.setStrokeStyle(
                     isSelected ? 2 : 1.2,
-                    isSelected ? 0x9affd3 : 0x4abf91,
+                    isSelected ? 0xffdfa8 : 0xb9854c,
                     1
                 );
             });
@@ -1817,89 +1806,56 @@ export class LoginScene extends Phaser.Scene {
     }
 
     // =====================================
-    // 建立翡翠全息設定面板
+    // 建立溫暖木質設定面板
     // =====================================
 
     buildSettingsPage() {
 
-        if (
-            !this.settingsContainer ||
-            !this.settingsCategory
-        ) {
-            return;
-        }
+        if (!this.settingsContainer || !this.settingsCategory) return;
 
         this.clearSettingsPage();
-
         this.settingsPageContainer = this.add.container(0, 0);
         this.settingsContainer.add(this.settingsPageContainer);
 
         const size = this.getPanelSize(this.settingsCategory);
         const position = this.getSettingsPosition();
-
         const centerX = position.x;
         const centerY = position.y;
-
         const panelLeft = centerX - size.width / 2;
         const panelTop = centerY - size.height / 2;
 
-        const glow = this.add.graphics();
-
-        glow.fillStyle(0x13d995, 0.10);
-
-        glow.fillRoundedRect(
-            panelLeft - 5,
-            panelTop - 5,
-            size.width + 10,
-            size.height + 10,
-            17
-        );
-
-        this.settingsPageContainer.add(glow);
-
         const panel = this.add.graphics();
 
-        panel.fillStyle(0x061d18, 1);
+        // 木牌厚度與陰影
+        panel.fillStyle(0x1b110b, 0.78);
+        panel.fillRoundedRect(panelLeft + 4, panelTop + 6, size.width, size.height, 13);
+        panel.fillStyle(0x3b2618, 1);
+        panel.fillRoundedRect(panelLeft, panelTop, size.width, size.height, 13);
+        panel.fillStyle(0x70492b, 1);
+        panel.fillRoundedRect(panelLeft + 4, panelTop + 4, size.width - 8, size.height - 8, 10);
+        panel.fillStyle(0x805735, 1);
+        panel.fillRoundedRect(panelLeft + 8, panelTop + 8, size.width - 16, size.height - 16, 8);
 
-        panel.fillRoundedRect(
-            panelLeft,
-            panelTop,
-            size.width,
-            size.height,
-            13
-        );
+        // 木紋刻線
+        panel.lineStyle(1, 0x4b2e1b, 0.75);
+        for (let i = 0; i < 5; i++) {
+            const y = panelTop + 49 + i * Math.max(34, (size.height - 70) / 5);
+            panel.beginPath();
+            panel.moveTo(panelLeft + 13, y);
+            panel.lineTo(panelLeft + size.width - 13, y);
+            panel.strokePath();
+        }
 
-        panel.lineStyle(2, 0x42dba5, 0.95);
-
-        panel.strokeRoundedRect(
-            panelLeft,
-            panelTop,
-            size.width,
-            size.height,
-            13
-        );
-
-        panel.lineStyle(1, 0x9affd3, 0.35);
-
-        panel.strokeRoundedRect(
-            panelLeft + 5,
-            panelTop + 5,
-            size.width - 10,
-            size.height - 10,
-            10
-        );
-
-        panel.lineStyle(2, 0x53dca8, 0.75);
-
-        panel.beginPath();
-        panel.moveTo(panelLeft + 18, panelTop + 35);
-        panel.lineTo(panelLeft + size.width - 18, panelTop + 35);
-        panel.strokePath();
-
-        panel.fillStyle(0xb1ffe0, 0.9);
+        // 黃銅雙層邊框與角落鉚釘
+        panel.lineStyle(2, 0xe0bd7d, 0.98);
+        panel.strokeRoundedRect(panelLeft + 3, panelTop + 3, size.width - 6, size.height - 6, 11);
+        panel.lineStyle(1, 0x3d2516, 0.9);
+        panel.strokeRoundedRect(panelLeft + 8, panelTop + 8, size.width - 16, size.height - 16, 8);
+        panel.fillStyle(0xf0d49b, 0.95);
         panel.fillCircle(panelLeft + 13, panelTop + 13, 2);
         panel.fillCircle(panelLeft + size.width - 13, panelTop + 13, 2);
-
+        panel.fillCircle(panelLeft + 13, panelTop + size.height - 13, 2);
+        panel.fillCircle(panelLeft + size.width - 13, panelTop + size.height - 13, 2);
         this.settingsPageContainer.add(panel);
 
         const titleMap = {
@@ -1910,47 +1866,24 @@ export class LoginScene extends Phaser.Scene {
             system: 'SYSTEM / 系統'
         };
 
-        const title = this.add.text(
-            centerX,
-            panelTop + 19,
-            titleMap[this.settingsCategory],
-            {
-                fontFamily: 'Arial, sans-serif',
-                fontSize: '13px',
-                fontStyle: 'bold',
-                color: '#baffdf',
-                stroke: '#09291f',
-                strokeThickness: 2,
-                align: 'center'
-            }
-        ).setOrigin(0.5);
-
+        const title = this.add.text(centerX, panelTop + 20, titleMap[this.settingsCategory], {
+            fontFamily: 'Georgia, serif',
+            fontSize: '13px',
+            fontStyle: 'bold',
+            color: '#f7dfad',
+            stroke: '#392316',
+            strokeThickness: 3,
+            align: 'center'
+        }).setOrigin(0.5);
         this.settingsPageContainer.add(title);
 
-        const contentStartY =
-            centerY - size.height / 2 + 64;
-
+        const contentStartY = centerY - size.height / 2 + 64;
         switch (this.settingsCategory) {
-
-            case 'language':
-                this.buildLanguagePage(centerX, contentStartY);
-                break;
-
-            case 'screen':
-                this.buildScreenPage(centerX, contentStartY);
-                break;
-
-            case 'sound':
-                this.buildSoundPage(centerX, contentStartY);
-                break;
-
-            case 'operation':
-                this.buildOperationPage(centerX, contentStartY);
-                break;
-
-            case 'system':
-                this.buildSystemPage(centerX, contentStartY);
-                break;
+            case 'language': this.buildLanguagePage(centerX, contentStartY); break;
+            case 'screen': this.buildScreenPage(centerX, contentStartY); break;
+            case 'sound': this.buildSoundPage(centerX, contentStartY); break;
+            case 'operation': this.buildOperationPage(centerX, contentStartY); break;
+            case 'system': this.buildSystemPage(centerX, contentStartY); break;
         }
 
         this.settingsPageContainer.setAlpha(1);
@@ -1966,14 +1899,14 @@ export class LoginScene extends Phaser.Scene {
         y,
         value,
         size = 13,
-        color = '#f0ffef'
+        color = '#f1e2c5'
     ) {
 
         const text = this.add.text(x, y, value, {
             fontSize: `${size}px`,
             color,
             fontFamily: 'Arial, sans-serif',
-            stroke: '#04130f',
+            stroke: '#392316',
             strokeThickness: 3,
             align: 'center',
             wordWrap: {
@@ -1996,114 +1929,51 @@ export class LoginScene extends Phaser.Scene {
     addPageButton(x, y, label, callback, width = 90) {
 
         const buttonContainer = this.add.container(x, y);
-
         const background = this.add.graphics();
 
-        background.fillStyle(0x104936, 0.95);
-
-        background.fillRoundedRect(
-            -width / 2,
-            -13,
-            width,
-            26,
-            6
-        );
-
-        background.lineStyle(1, 0x55d9a5, 0.9);
-
-        background.strokeRoundedRect(
-            -width / 2,
-            -13,
-            width,
-            26,
-            6
-        );
+        const drawWood = (hover = false) => {
+            background.clear();
+            background.fillStyle(0x2a1a10, 0.95);
+            background.fillRoundedRect(-width / 2 + 1, -12, width, 27, 5);
+            background.fillStyle(hover ? 0x9a6b3e : 0x79502f, 1);
+            background.fillRoundedRect(-width / 2, -14, width, 27, 5);
+            background.fillStyle(hover ? 0xb18451 : 0x8b6038, 1);
+            background.fillRoundedRect(-width / 2 + 3, -11, width - 6, 21, 3);
+            background.lineStyle(1.2, 0xe0bd7d, 0.98);
+            background.strokeRoundedRect(-width / 2 + 2, -12, width - 4, 23, 4);
+            background.lineStyle(1, 0x57371f, 0.8);
+            background.beginPath();
+            background.moveTo(-width / 2 + 8, -4);
+            background.lineTo(width / 2 - 8, -4);
+            background.strokePath();
+        };
+        drawWood();
 
         const text = this.add.text(0, 0, label, {
+            fontFamily: 'Georgia, serif',
             fontSize: '12px',
-            color: '#e5fff2',
+            color: '#f8e7c4',
             fontStyle: 'bold',
+            stroke: '#392316',
+            strokeThickness: 2,
             align: 'center'
         }).setOrigin(0.5);
 
-        buttonContainer.add([
-            background,
-            text
-        ]);
-
-        const hitArea = this.add.rectangle(
-            0,
-            0,
-            width,
-            28,
-            0xffffff,
-            0.001
-        );
-
-        hitArea.setInteractive({
-            useHandCursor: true
-        });
-
-        buttonContainer.add(hitArea);
+        const hitArea = this.add.rectangle(0, 0, width, 30, 0xffffff, 0.001);
+        hitArea.setInteractive({ useHandCursor: true });
+        buttonContainer.add([background, text, hitArea]);
 
         hitArea.on('pointerover', () => {
-
-            background.clear();
-
-            background.fillStyle(0x1c7252, 1);
-
-            background.fillRoundedRect(
-                -width / 2,
-                -13,
-                width,
-                26,
-                6
-            );
-
-            background.lineStyle(1.5, 0xa4ffda, 1);
-
-            background.strokeRoundedRect(
-                -width / 2,
-                -13,
-                width,
-                26,
-                6
-            );
-
-            buttonContainer.setScale(1.04);
+            drawWood(true);
+            buttonContainer.setScale(1.035);
         });
-
         hitArea.on('pointerout', () => {
-
-            background.clear();
-
-            background.fillStyle(0x104936, 0.95);
-
-            background.fillRoundedRect(
-                -width / 2,
-                -13,
-                width,
-                26,
-                6
-            );
-
-            background.lineStyle(1, 0x55d9a5, 0.9);
-
-            background.strokeRoundedRect(
-                -width / 2,
-                -13,
-                width,
-                26,
-                6
-            );
-
+            drawWood(false);
             buttonContainer.setScale(1);
         });
-
         hitArea.on('pointerdown', callback);
 
         this.settingsPageContainer.add(buttonContainer);
-
         return buttonContainer;
     }
 
@@ -2158,14 +2028,14 @@ export class LoginScene extends Phaser.Scene {
                     0,
                     -8,
                     18,
-                    0x24d99b,
-                    0.17
+                    0x9a6b3e,
+                    0.30
                 );
 
                 selectedGlow.setStrokeStyle(
                     1.5,
-                    0x9affd3,
-                    0.85
+                    0xe0bd7d,
+                    0.95
                 );
 
                 item.add(selectedGlow);
@@ -2188,8 +2058,8 @@ export class LoginScene extends Phaser.Scene {
                     fontFamily: 'Arial, sans-serif',
                     fontSize: '8px',
                     fontStyle: selected ? 'bold' : 'normal',
-                    color: selected ? '#aaffd8' : '#effff5',
-                    stroke: '#04130f',
+                    color: selected ? '#f3d49b' : '#f4e5c7',
+                    stroke: '#392316',
                     strokeThickness: 2,
                     align: 'center',
                     fixedWidth: cellWidth - 1,
@@ -2221,7 +2091,7 @@ export class LoginScene extends Phaser.Scene {
 
             hitArea.on('pointerover', () => {
                 item.setScale(1.08);
-                label.setColor('#b5ffdc');
+                label.setColor('#ffe2a8');
             });
 
             hitArea.on('pointerout', () => {
@@ -2229,7 +2099,7 @@ export class LoginScene extends Phaser.Scene {
                 item.setScale(1);
 
                 label.setColor(
-                    selected ? '#aaffd8' : '#effff5'
+                    selected ? '#f3d49b' : '#f4e5c7'
                 );
             });
 
@@ -2370,8 +2240,8 @@ export class LoginScene extends Phaser.Scene {
             {
                 fontFamily: 'Arial, sans-serif',
                 fontSize: '10px',
-                color: '#effff5',
-                stroke: '#04130f',
+                color: '#f4e5c7',
+                stroke: '#392316',
                 strokeThickness: 2,
                 align: 'right',
                 fixedWidth: 75
@@ -2393,8 +2263,8 @@ export class LoginScene extends Phaser.Scene {
             const background = this.add.graphics();
 
             background.fillStyle(
-                0x104936,
-                enabled ? 0.95 : 0.35
+                0x79502f,
+                enabled ? 1 : 0.5
             );
 
             background.fillRoundedRect(
@@ -2407,8 +2277,8 @@ export class LoginScene extends Phaser.Scene {
 
             background.lineStyle(
                 1,
-                0x55d9a5,
-                enabled ? 0.9 : 0.3
+                0xe0bd7d,
+                enabled ? 1 : 0.45
             );
 
             background.strokeRoundedRect(
@@ -2425,7 +2295,7 @@ export class LoginScene extends Phaser.Scene {
                 symbol,
                 {
                     fontSize: '15px',
-                    color: '#e5fff2',
+                    color: '#f8e7c4',
                     fontStyle: 'bold'
                 }
             ).setOrigin(0.5);
@@ -2461,7 +2331,7 @@ export class LoginScene extends Phaser.Scene {
                     background.clear();
 
                     background.fillStyle(
-                        0x1c7252,
+                        0x9a6b3e,
                         1
                     );
 
@@ -2475,7 +2345,7 @@ export class LoginScene extends Phaser.Scene {
 
                     background.lineStyle(
                         1.5,
-                        0xa4ffda,
+                        0xffe2a6,
                         1
                     );
 
@@ -2493,7 +2363,7 @@ export class LoginScene extends Phaser.Scene {
                     background.clear();
 
                     background.fillStyle(
-                        0x104936,
+                        0x694326,
                         0.95
                     );
 
@@ -2507,7 +2377,7 @@ export class LoginScene extends Phaser.Scene {
 
                     background.lineStyle(
                         1,
-                        0x55d9a5,
+                        0xd1a05e,
                         0.9
                     );
 
@@ -2556,8 +2426,8 @@ export class LoginScene extends Phaser.Scene {
             {
                 fontFamily: 'Arial, sans-serif',
                 fontSize: '10px',
-                color: '#baffdf',
-                stroke: '#04130f',
+                color: '#f1d19a',
+                stroke: '#392316',
                 strokeThickness: 2,
                 align: 'center'
             }
@@ -2614,7 +2484,7 @@ export class LoginScene extends Phaser.Scene {
             startY,
             '畫面設定',
             14,
-            '#baffdf'
+            '#f1d19a'
         );
 
         this.addSettingRow(
@@ -2657,7 +2527,7 @@ export class LoginScene extends Phaser.Scene {
             startY,
             '音效設定',
             14,
-            '#baffdf'
+            '#f1d19a'
         );
 
         const channels = [
@@ -2721,7 +2591,7 @@ export class LoginScene extends Phaser.Scene {
             startY,
             '操作設定',
             14,
-            '#baffdf'
+            '#f1d19a'
         );
 
         this.addToggleRow(
@@ -2764,7 +2634,7 @@ export class LoginScene extends Phaser.Scene {
             startY,
             '系統設定',
             14,
-            '#baffdf'
+            '#f1d19a'
         );
 
         this.addPageText(
