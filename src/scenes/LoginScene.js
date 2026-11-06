@@ -355,8 +355,8 @@ export class LoginScene extends Phaser.Scene {
         // =================================
 
         const particleCount = Math.min(
-            45,
-            Math.max(15, Math.floor(width * height / 24000))
+            100,
+            Math.max(35, Math.floor(width * height / 12000))
         );
 
         const particleColors = [
