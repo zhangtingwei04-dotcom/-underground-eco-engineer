@@ -1516,11 +1516,11 @@ export class LoginScene extends Phaser.Scene {
     getSettingsCategories() {
 
         return [
-            { id: 'screen', icon: '🖥️', label: '畫面' },
-            { id: 'sound', icon: '🔊', label: '音效' },
-            { id: 'operation', icon: '🎮', label: '操作' },
-            { id: 'language', icon: '🌐', label: '語言' },
-            { id: 'system', icon: '⚙️', label: '系統' }
+            { id: 'screen', icon: '▤', label: '畫面' },
+            { id: 'sound', icon: '♫', label: '音效' },
+            { id: 'operation', icon: '✥', label: '操作' },
+            { id: 'language', icon: '文', label: '語言' },
+            { id: 'system', icon: '⚙', label: '系統' }
         ];
     }
 
@@ -1625,7 +1625,12 @@ export class LoginScene extends Phaser.Scene {
                 y,
                 category.icon,
                 {
-                    fontSize: '20px'
+                    fontFamily: 'Georgia, serif',
+                    fontSize: '20px',
+                    fontStyle: 'bold',
+                    color: '#f2d39a',
+                    stroke: '#392316',
+                    strokeThickness: 2
                 }
             ).setOrigin(0.5);
 
