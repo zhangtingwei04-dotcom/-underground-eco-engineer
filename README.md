@@ -20,6 +20,12 @@ Players take on the role of an underground eco-engineer, building a sustainable 
 
 ---
 
+## 📖 共同開發與設計歷程 | Development Journal
+
+重要設計討論、方案比較、玩家決策理由與開發過程，持續記錄於 [共同開發歷程紀錄](./docs/DEVELOPMENT_JOURNAL.md)。正式系統規則則整理於 `docs/` 下各系統規格文件。
+
+---
+
 ## 🚀 專案現階段進度 | Project Progress
 
 ### 🔹 核心資料與初步邏輯
