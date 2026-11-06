@@ -1268,6 +1268,8 @@ export class LoginScene extends Phaser.Scene {
                     visualWidth,
                     visualHeight
                 );
+                // 暖化原木牌素材，讓木色更柔和自然
+                woodenImage.setTint(0xffe5c6);
 
                 container.add(woodenImage);
 
@@ -1294,7 +1296,7 @@ export class LoginScene extends Phaser.Scene {
                 label,
                 {
                     fontFamily: 'Georgia, serif',
-                    fontSize: `${fontSize * 0.9 * buttonScale}px`,
+                    fontSize: `${fontSize * 0.82}px`,
                     color: '#fff1cf',
                     fontStyle: 'bold',
                     stroke: '#50351f',
@@ -1319,8 +1321,8 @@ export class LoginScene extends Phaser.Scene {
             const hitArea = this.add.rectangle(
                 0,
                 0,
-                visualWidth,
-                visualHeight,
+                visualWidth * 1.12,
+                visualHeight * 1.18,
                 0xffffff,
                 0.001
             );
