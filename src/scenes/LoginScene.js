@@ -1,6 +1,6 @@
 // 鱗片與種子：地下生態物語
-// Login Scene V3.1
-// Dual Background + Rising Magical Particles + Wooden Start Button
+// Login Scene V3.2
+// Dual Background + Rising Magical Particles + Smaller Wooden Start Button
 // Phaser 3.80.1
 // 保留原有語言、設定、音訊及響應式功能
 
@@ -262,7 +262,6 @@ export class LoginScene extends Phaser.Scene {
 
     clearBackground() {
 
-        // 停止所有背景粒子動畫
         this.backgroundTweens.forEach(tween => {
 
             if (tween) {
@@ -273,7 +272,6 @@ export class LoginScene extends Phaser.Scene {
 
         this.backgroundTweens = [];
 
-        // 清除粒子本身的動畫及物件
         this.particles.forEach(particle => {
 
             if (!particle) return;
@@ -349,10 +347,7 @@ export class LoginScene extends Phaser.Scene {
             this.drawFallbackBackground(width, height);
         }
 
-        // =================================
-        // 背景魔法微光粒子
-        // 從底部緩慢向上飄浮
-        // =================================
+        // 背景魔法微光粒子：從底部向上飄浮
 
         const particleCount = Math.min(
             100,
@@ -372,7 +367,6 @@ export class LoginScene extends Phaser.Scene {
                 Math.max(11, width - 10)
             );
 
-            // 粒子從畫面底部開始
             const startY = height + Phaser.Math.Between(10, 100);
 
             const radius = Phaser.Math.FloatBetween(1, 2.5);
@@ -386,7 +380,6 @@ export class LoginScene extends Phaser.Scene {
                 startY
             );
 
-            // 外層柔和光暈
             const glow = this.add.circle(
                 0,
                 0,
@@ -399,7 +392,6 @@ export class LoginScene extends Phaser.Scene {
                 Phaser.BlendModes.ADD
             );
 
-            // 中間光點
             const core = this.add.circle(
                 0,
                 0,
@@ -420,7 +412,6 @@ export class LoginScene extends Phaser.Scene {
             this.backgroundContainer.add(particle);
             this.particles.push(particle);
 
-            // 每顆粒子有不同速度及漂浮方向
             const duration = Phaser.Math.Between(
                 9000,
                 16000
@@ -437,7 +428,6 @@ export class LoginScene extends Phaser.Scene {
                 width - 5
             );
 
-            // 由底部升至頂部，完成後自動重新循環
             const riseTween = this.tweens.add({
 
                 targets: particle,
@@ -464,7 +454,6 @@ export class LoginScene extends Phaser.Scene {
 
             this.backgroundTweens.push(riseTween);
 
-            // 外層光暈呼吸效果
             const glowTween = this.tweens.add({
 
                 targets: glow,
@@ -490,7 +479,6 @@ export class LoginScene extends Phaser.Scene {
 
             this.backgroundTweens.push(glowTween);
 
-            // 中心光點閃爍
             const coreTween = this.tweens.add({
 
                 targets: core,
@@ -928,24 +916,29 @@ export class LoginScene extends Phaser.Scene {
 
         return text;
     }
-
-    // =====================================
+        // =====================================
     // 木製按鈕微光
     // =====================================
 
     createStartButtonGlow(container, width, height) {
 
+        // 光暈同步縮小 20%
+        const glowScale = 0.8;
+
+        const visualWidth = width * glowScale;
+        const visualHeight = height * glowScale;
+
         const layers = [
             {
-                padding: 17,
+                padding: 17 * glowScale,
                 alpha: 0.045
             },
             {
-                padding: 11,
+                padding: 11 * glowScale,
                 alpha: 0.075
             },
             {
-                padding: 6,
+                padding: 6 * glowScale,
                 alpha: 0.12
             }
         ];
@@ -960,11 +953,11 @@ export class LoginScene extends Phaser.Scene {
             );
 
             glow.fillRoundedRect(
-                -width / 2 - layer.padding,
-                -height / 2 - layer.padding,
-                width + layer.padding * 2,
-                height + layer.padding * 2,
-                15
+                -visualWidth / 2 - layer.padding,
+                -visualHeight / 2 - layer.padding,
+                visualWidth + layer.padding * 2,
+                visualHeight + layer.padding * 2,
+                15 * glowScale
             );
 
             container.add(glow);
@@ -1000,6 +993,7 @@ export class LoginScene extends Phaser.Scene {
             });
         });
 
+        // 周圍裝飾粒子同步縮小
         const particleCount = 8;
 
         for (let i = 0; i < particleCount; i++) {
@@ -1007,8 +1001,8 @@ export class LoginScene extends Phaser.Scene {
             const angle =
                 (Math.PI * 2 / particleCount) * i;
 
-            const radiusX = width / 2 + 13;
-            const radiusY = height / 2 + 12;
+            const radiusX = visualWidth / 2 + 13 * glowScale;
+            const radiusY = visualHeight / 2 + 12 * glowScale;
 
             const x = Math.cos(angle) * radiusX;
             const y = Math.sin(angle) * radiusY;
@@ -1016,7 +1010,7 @@ export class LoginScene extends Phaser.Scene {
             const particle = this.add.circle(
                 x,
                 y,
-                1.4 + (i % 3) * 0.5,
+                (1.4 + (i % 3) * 0.5) * glowScale,
                 0xffe8a8,
                 0.8
             );
@@ -1033,9 +1027,9 @@ export class LoginScene extends Phaser.Scene {
 
                 targets: particle,
 
-                x: x + (i % 2 === 0 ? 5 : -5),
+                x: x + (i % 2 === 0 ? 5 : -5) * glowScale,
 
-                y: y - 6 - (i % 3) * 3,
+                y: y - (6 + (i % 3) * 3) * glowScale,
 
                 alpha: {
                     from: 0.12,
@@ -1103,12 +1097,17 @@ export class LoginScene extends Phaser.Scene {
 
     createFallbackWoodenButton(width, height) {
 
+        // 備用木牌尺寸同步縮小 20%
+        const buttonScale = 0.8;
+
+        width *= buttonScale;
+        height *= buttonScale;
+
         const wood = this.add.graphics();
 
         const left = -width / 2;
         const top = -height / 2;
 
-        // 深色木牌外框
         wood.fillStyle(0x24160d, 1);
 
         wood.fillRoundedRect(
@@ -1119,7 +1118,6 @@ export class LoginScene extends Phaser.Scene {
             10
         );
 
-        // 金棕色外層
         wood.fillStyle(0x98602f, 1);
 
         wood.fillRoundedRect(
@@ -1130,7 +1128,6 @@ export class LoginScene extends Phaser.Scene {
             9
         );
 
-        // 木牌內層
         wood.fillStyle(0x694020, 1);
 
         wood.fillRoundedRect(
@@ -1141,7 +1138,6 @@ export class LoginScene extends Phaser.Scene {
             7
         );
 
-        // 木紋底色
         wood.fillStyle(0x85512b, 1);
 
         wood.fillRoundedRect(
@@ -1152,7 +1148,6 @@ export class LoginScene extends Phaser.Scene {
             5
         );
 
-        // 內框金色細線
         wood.lineStyle(
             1.5,
             0xd6aa69,
@@ -1167,7 +1162,6 @@ export class LoginScene extends Phaser.Scene {
             6
         );
 
-        // 木紋線條
         wood.lineStyle(
             1,
             0x4d2c18,
@@ -1184,7 +1178,6 @@ export class LoginScene extends Phaser.Scene {
         wood.lineTo(left + width - 18, top + height * 0.72);
         wood.strokePath();
 
-        // 左右木節裝飾
         wood.fillStyle(0x4b2a17, 0.55);
 
         wood.fillEllipse(
@@ -1201,7 +1194,6 @@ export class LoginScene extends Phaser.Scene {
             3
         );
 
-        // 小型金色裝飾點
         wood.fillStyle(0xf1d29a, 0.9);
 
         wood.fillCircle(
@@ -1249,18 +1241,19 @@ export class LoginScene extends Phaser.Scene {
 
         const container = this.add.container(x, y);
 
-        // =================================
-        // 木製開始遊戲按鈕
-        // =================================
-
         if (useImage) {
 
-            // 先建立三層金色光效
+            // 光暈與裝飾粒子使用縮小後尺寸
             this.createStartButtonGlow(
                 container,
                 width,
                 height
             );
+
+            const buttonScale = 0.8;
+
+            const visualWidth = width * buttonScale;
+            const visualHeight = height * buttonScale;
 
             // 優先使用正式木牌圖片
             if (this.textures.exists('btn_start_frame')) {
@@ -1272,15 +1265,14 @@ export class LoginScene extends Phaser.Scene {
                 );
 
                 woodenImage.setDisplaySize(
-                    width,
-                    height
+                    visualWidth,
+                    visualHeight
                 );
 
                 container.add(woodenImage);
 
             } else {
 
-                // 圖片不存在時使用木牌繪圖
                 const fallbackWood = this.createFallbackWoodenButton(
                     width,
                     height
@@ -1302,7 +1294,7 @@ export class LoginScene extends Phaser.Scene {
                 label,
                 {
                     fontFamily: 'Georgia, serif',
-                    fontSize: `${fontSize}px`,
+                    fontSize: `${fontSize * 0.9}px`,
                     color: '#fff1cf',
                     fontStyle: 'bold',
                     stroke: '#50351f',
@@ -1316,14 +1308,14 @@ export class LoginScene extends Phaser.Scene {
                     },
                     align: 'center',
                     wordWrap: {
-                        width: width - 24
+                        width: visualWidth - 24
                     }
                 }
             ).setOrigin(0.5);
 
             container.add(text);
 
-            // 透明點擊區域
+            // 點擊區域保留原本尺寸
             const hitArea = this.add.rectangle(
                 0,
                 0,
@@ -1382,7 +1374,7 @@ export class LoginScene extends Phaser.Scene {
         }
 
         // =================================
-        // 原本一般按鈕
+        // 一般按鈕
         // 登入、建立帳號繼續使用
         // =================================
 
@@ -1528,8 +1520,7 @@ export class LoginScene extends Phaser.Scene {
 
         this.settingsButtonContainer.add(button);
     }
-
-    // =====================================
+        // =====================================
     // 五個設定分類
     // =====================================
 
