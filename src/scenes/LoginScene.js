@@ -922,8 +922,8 @@ export class LoginScene extends Phaser.Scene {
 
     createStartButtonGlow(container, width, height) {
 
-        // 光暈同步縮小 20%
-        const glowScale = 0.8;
+        // 光暈與木牌同步縮小至 65%
+        const glowScale = 0.65;
 
         const visualWidth = width * glowScale;
         const visualHeight = height * glowScale;
@@ -1097,8 +1097,8 @@ export class LoginScene extends Phaser.Scene {
 
     createFallbackWoodenButton(width, height) {
 
-        // 備用木牌尺寸同步縮小 20%
-        const buttonScale = 0.8;
+        // 備用木牌尺寸同步縮小至 65%
+        const buttonScale = 0.65;
 
         width *= buttonScale;
         height *= buttonScale;
@@ -1243,14 +1243,14 @@ export class LoginScene extends Phaser.Scene {
 
         if (useImage) {
 
-            // 光暈與裝飾粒子使用縮小後尺寸
+            // 光暈與裝飾粒子同步採用 65% 尺寸
             this.createStartButtonGlow(
                 container,
                 width,
                 height
             );
 
-            const buttonScale = 0.8;
+            const buttonScale = 0.65;
 
             const visualWidth = width * buttonScale;
             const visualHeight = height * buttonScale;
@@ -1294,7 +1294,7 @@ export class LoginScene extends Phaser.Scene {
                 label,
                 {
                     fontFamily: 'Georgia, serif',
-                    fontSize: `${fontSize * 0.9}px`,
+                    fontSize: `${fontSize * 0.9 * buttonScale}px`,
                     color: '#fff1cf',
                     fontStyle: 'bold',
                     stroke: '#50351f',
@@ -1315,12 +1315,12 @@ export class LoginScene extends Phaser.Scene {
 
             container.add(text);
 
-            // 點擊區域保留原本尺寸
+            // 點擊區域與木牌視覺尺寸同步縮小，避免透明區域過大
             const hitArea = this.add.rectangle(
                 0,
                 0,
-                width,
-                height,
+                visualWidth,
+                visualHeight,
                 0xffffff,
                 0.001
             );
