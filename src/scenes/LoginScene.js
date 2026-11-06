@@ -1,5 +1,7 @@
+
 // 鱗片與種子：地下生態物語
-// Login Scene - AudioSystem Integration
+// Login Scene - Dual Background Integration
+// 橫式與直式獨立背景、自動切換、保留原有設定與音訊功能
 
 import { AudioSystem } from '../systems/AudioSystem.js';
 import { LanguageSystem } from '../systems/language-system.js';
@@ -23,16 +25,27 @@ export class LoginScene extends Phaser.Scene {
 
         this.languageListener = null;
         this.languageReadyListener = null;
+
+        this.backgroundKey = null;
     }
 
     // =====================================
-    // 背景音樂預載
+    // 背景圖片與背景音樂預載
     // =====================================
 
     preload() {
 
-        AudioSystem.preloadSceneBGM(this);
+        this.load.image(
+            'login_background_landscape',
+            'assets/images/login-background-landscape.jpg'
+        );
 
+        this.load.image(
+            'login_background_portrait',
+            'assets/images/login-background-portrait.jpg'
+        );
+
+        AudioSystem.preloadSceneBGM(this);
     }
 
     // =====================================
@@ -52,11 +65,13 @@ export class LoginScene extends Phaser.Scene {
         SettingsSystem.load();
 
         // 啟動主畫面背景音樂
-        // 實際播放仍由 AudioSystem 的設定與音訊解鎖機制控制
         AudioSystem.playSceneBGM(this);
 
         this.backgroundContainer = this.add.container(0, 0);
+        this.backgroundContainer.setDepth(-100);
+
         this.layoutContainer = this.add.container(0, 0);
+        this.layoutContainer.setDepth(100);
 
         this.settingsButtonContainer = this.add.container(0, 0);
         this.settingsButtonContainer.setDepth(1100);
@@ -138,6 +153,8 @@ export class LoginScene extends Phaser.Scene {
             );
 
             this.closeSettings();
+
+            this.clearBackground();
         });
 
         this.scale.on(
@@ -184,7 +201,7 @@ export class LoginScene extends Phaser.Scene {
     }
 
     // =====================================
-    // 背景
+    // 背景清理
     // =====================================
 
     clearBackground() {
@@ -199,7 +216,13 @@ export class LoginScene extends Phaser.Scene {
         if (this.backgroundContainer) {
             this.backgroundContainer.removeAll(true);
         }
+
+        this.backgroundKey = null;
     }
+
+    // =====================================
+    // 背景繪製
+    // =====================================
 
     drawBackground() {
 
@@ -207,6 +230,94 @@ export class LoginScene extends Phaser.Scene {
 
         const width = this.scale.width;
         const height = this.scale.height;
+
+        const portrait = this.isPortrait();
+
+        const imageKey = portrait
+            ? 'login_background_portrait'
+            : 'login_background_landscape';
+
+        // 確認圖片已載入
+        if (this.textures.exists(imageKey)) {
+
+            const background = this.add.image(
+                width / 2,
+                height / 2,
+                imageKey
+            );
+
+            background.setOrigin(0.5);
+
+            const sourceWidth = background.width;
+            const sourceHeight = background.height;
+
+            // 等比例填滿畫面，不拉伸圖片
+            const scale = Math.max(
+                width / sourceWidth,
+                height / sourceHeight
+            );
+
+            background.setScale(scale);
+
+            this.backgroundContainer.add(background);
+
+            this.backgroundKey = imageKey;
+
+        } else {
+
+            console.warn(
+                `[LoginScene] 背景圖片尚未載入：${imageKey}`
+            );
+
+            this.drawFallbackBackground(width, height);
+        }
+
+        // 背景粒子效果
+        const particleCount = Math.min(
+            45,
+            Math.max(15, Math.floor(width * height / 24000))
+        );
+
+        for (let i = 0; i < particleCount; i++) {
+
+            const x = Phaser.Math.Between(
+                10,
+                Math.max(11, width - 10)
+            );
+
+            const y = Phaser.Math.Between(
+                20,
+                Math.max(21, height - 20)
+            );
+
+            const particle = this.add.circle(
+                x,
+                y,
+                Phaser.Math.FloatBetween(1, 2.5),
+                0xe8f6c7,
+                0.42
+            );
+
+            this.backgroundContainer.add(particle);
+            this.particles.push(particle);
+
+            this.tweens.add({
+                targets: particle,
+                alpha: 0.08,
+                y: y - Phaser.Math.Between(12, 30),
+                duration: Phaser.Math.Between(2200, 4200),
+                yoyo: true,
+                repeat: -1
+            });
+        }
+    }
+
+    // =====================================
+    // 備用背景
+    // 圖片載入失敗時使用
+    // =====================================
+
+    drawFallbackBackground(width, height) {
 
         const graphics = this.add.graphics();
 
@@ -269,44 +380,6 @@ export class LoginScene extends Phaser.Scene {
         this.drawPlant(width * 0.89, height * 0.87, 0x9bcf9a);
         this.drawPlant(width * 0.19, height * 0.96, 0xb5d8a2);
         this.drawPlant(width * 0.81, height * 0.96, 0xb5d8a2);
-
-        const particleCount = Math.min(
-            55,
-            Math.max(20, Math.floor(width * height / 18000))
-        );
-
-        for (let i = 0; i < particleCount; i++) {
-
-            const x = Phaser.Math.Between(
-                10,
-                Math.max(11, width - 10)
-            );
-
-            const y = Phaser.Math.Between(
-                20,
-                Math.max(21, height - 20)
-            );
-
-            const particle = this.add.circle(
-                x,
-                y,
-                Phaser.Math.FloatBetween(1, 3),
-                0xe8d9a5,
-                0.55
-            );
-
-            this.backgroundContainer.add(particle);
-            this.particles.push(particle);
-
-            this.tweens.add({
-                targets: particle,
-                alpha: 0.12,
-                y: y - Phaser.Math.Between(12, 35),
-                duration: Phaser.Math.Between(1800, 3500),
-                yoyo: true,
-                repeat: -1
-            });
-        }
     }
 
     drawPlant(x, y, color) {
@@ -364,6 +437,7 @@ export class LoginScene extends Phaser.Scene {
             this.closeSettings();
         }
 
+        // 重新判斷直式或橫式背景
         this.drawBackground();
         this.drawLayout();
 
@@ -1554,7 +1628,6 @@ export class LoginScene extends Phaser.Scene {
 
     // =====================================
     // AUDIO 五個音效頻道
-    // 水平對齊精緻版
     // =====================================
 
     addAudioChannelRow(
