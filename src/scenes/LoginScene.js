@@ -1,7 +1,6 @@
-
 // 鱗片與種子：地下生態物語
-// Login Scene V3.0
-// Dual Background + Wooden Start Button + Magical Glow
+// Login Scene V3.1
+// Dual Background + Rising Magical Particles + Wooden Start Button
 // Phaser 3.80.1
 // 保留原有語言、設定、音訊及響應式功能
 
@@ -24,18 +23,17 @@ export class LoginScene extends Phaser.Scene {
         this.settingsExpanded = false;
 
         this.particles = [];
+        this.backgroundTweens = [];
 
         this.languageListener = null;
         this.languageReadyListener = null;
 
         this.backgroundKey = null;
 
-        // 木製開始按鈕
         this.startButton = null;
         this.startButtonGlow = [];
         this.startButtonParticles = [];
 
-        // 管理介面動畫，避免重新繪製時殘留
         this.layoutTweens = [];
     }
 
@@ -55,11 +53,20 @@ export class LoginScene extends Phaser.Scene {
             'assets/images/login-background-portrait.jpg'
         );
 
-        // 木製開始遊戲按鈕
         this.load.image(
             'btn_start_frame',
             'assets/images/ui/btn-start-frame.PNG'
         );
+
+        this.load.on('loaderror', file => {
+
+            if (file.key === 'btn_start_frame') {
+
+                console.error(
+                    '[LoginScene] 木板按鈕圖片載入失敗，將使用備用木牌。請確認路徑及大小寫：assets/images/ui/btn-start-frame.PNG'
+                );
+            }
+        });
 
         AudioSystem.preloadSceneBGM(this);
     }
@@ -81,11 +88,12 @@ export class LoginScene extends Phaser.Scene {
         this.startButton = null;
         this.startButtonGlow = [];
         this.startButtonParticles = [];
+
         this.layoutTweens = [];
+        this.backgroundTweens = [];
 
         SettingsSystem.load();
 
-        // 啟動主畫面背景音樂
         AudioSystem.playSceneBGM(this);
 
         this.backgroundContainer = this.add.container(0, 0);
@@ -254,8 +262,31 @@ export class LoginScene extends Phaser.Scene {
 
     clearBackground() {
 
+        // 停止所有背景粒子動畫
+        this.backgroundTweens.forEach(tween => {
+
+            if (tween) {
+                tween.stop();
+            }
+
+        });
+
+        this.backgroundTweens = [];
+
+        // 清除粒子本身的動畫及物件
         this.particles.forEach(particle => {
+
+            if (!particle) return;
+
             this.tweens.killTweensOf(particle);
+
+            if (particle.list) {
+
+                particle.list.forEach(child => {
+                    this.tweens.killTweensOf(child);
+                });
+            }
+
             particle.destroy();
         });
 
@@ -318,11 +349,21 @@ export class LoginScene extends Phaser.Scene {
             this.drawFallbackBackground(width, height);
         }
 
-        // 背景粒子效果
+        // =================================
+        // 背景魔法微光粒子
+        // 從底部緩慢向上飄浮
+        // =================================
+
         const particleCount = Math.min(
             45,
             Math.max(15, Math.floor(width * height / 24000))
         );
+
+        const particleColors = [
+            0xe8f6c7,
+            0xffdf9b,
+            0xa9e8c5
+        ];
 
         for (let i = 0; i < particleCount; i++) {
 
@@ -331,30 +372,149 @@ export class LoginScene extends Phaser.Scene {
                 Math.max(11, width - 10)
             );
 
-            const y = Phaser.Math.Between(
-                20,
-                Math.max(21, height - 20)
+            // 粒子從畫面底部開始
+            const startY = height + Phaser.Math.Between(10, 100);
+
+            const radius = Phaser.Math.FloatBetween(1, 2.5);
+
+            const color = particleColors[
+                Phaser.Math.Between(0, particleColors.length - 1)
+            ];
+
+            const particle = this.add.container(
+                x,
+                startY
             );
 
-            const particle = this.add.circle(
-                x,
-                y,
-                Phaser.Math.FloatBetween(1, 2.5),
-                0xe8f6c7,
-                0.42
+            // 外層柔和光暈
+            const glow = this.add.circle(
+                0,
+                0,
+                radius * 3.5,
+                color,
+                0.12
             );
+
+            glow.setBlendMode(
+                Phaser.BlendModes.ADD
+            );
+
+            // 中間光點
+            const core = this.add.circle(
+                0,
+                0,
+                radius,
+                color,
+                0.75
+            );
+
+            core.setBlendMode(
+                Phaser.BlendModes.ADD
+            );
+
+            particle.add([
+                glow,
+                core
+            ]);
 
             this.backgroundContainer.add(particle);
             this.particles.push(particle);
 
-            this.tweens.add({
+            // 每顆粒子有不同速度及漂浮方向
+            const duration = Phaser.Math.Between(
+                9000,
+                16000
+            );
+
+            const drift = Phaser.Math.Between(
+                -35,
+                35
+            );
+
+            const targetX = Phaser.Math.Clamp(
+                x + drift,
+                5,
+                width - 5
+            );
+
+            // 由底部升至頂部，完成後自動重新循環
+            const riseTween = this.tweens.add({
+
                 targets: particle,
-                alpha: 0.08,
-                y: y - Phaser.Math.Between(12, 30),
-                duration: Phaser.Math.Between(2200, 4200),
-                yoyo: true,
-                repeat: -1
+
+                y: -30,
+
+                x: targetX,
+
+                alpha: {
+                    from: 0.08,
+                    to: Phaser.Math.FloatBetween(0.45, 0.85)
+                },
+
+                duration,
+
+                delay: Phaser.Math.Between(0, 7000),
+
+                repeat: -1,
+
+                yoyo: false,
+
+                ease: 'Sine.easeInOut'
             });
+
+            this.backgroundTweens.push(riseTween);
+
+            // 外層光暈呼吸效果
+            const glowTween = this.tweens.add({
+
+                targets: glow,
+
+                alpha: {
+                    from: 0.08,
+                    to: 0.32
+                },
+
+                scale: {
+                    from: 0.75,
+                    to: 1.4
+                },
+
+                duration: Phaser.Math.Between(1300, 2600),
+
+                yoyo: true,
+
+                repeat: -1,
+
+                ease: 'Sine.easeInOut'
+            });
+
+            this.backgroundTweens.push(glowTween);
+
+            // 中心光點閃爍
+            const coreTween = this.tweens.add({
+
+                targets: core,
+
+                alpha: {
+                    from: 0.25,
+                    to: 0.95
+                },
+
+                scale: {
+                    from: 0.75,
+                    to: 1.2
+                },
+
+                duration: Phaser.Math.Between(1000, 2200),
+
+                yoyo: true,
+
+                repeat: -1,
+
+                ease: 'Sine.easeInOut'
+            });
+
+            this.backgroundTweens.push(coreTween);
         }
     }
 
@@ -593,7 +753,6 @@ export class LoginScene extends Phaser.Scene {
         const buttonGap = shortScreen ? 58 : 66;
         const buttonStartY = height * 0.43;
 
-        // 開始遊戲：木製圖片按鈕
         this.createResponsiveButton(
             centerX,
             buttonStartY,
@@ -605,7 +764,6 @@ export class LoginScene extends Phaser.Scene {
             true
         );
 
-        // 登入：保留原本按鈕
         this.createResponsiveButton(
             centerX,
             buttonStartY + buttonGap,
@@ -615,7 +773,6 @@ export class LoginScene extends Phaser.Scene {
             'loginSelected'
         );
 
-        // 建立帳號：保留原本按鈕
         this.createResponsiveButton(
             centerX,
             buttonStartY + buttonGap * 2,
@@ -628,7 +785,6 @@ export class LoginScene extends Phaser.Scene {
 
     // =====================================
     // 橫式登入畫面
-    // 按鈕全部移至左側
     // =====================================
 
     drawLandscapeLayout(centerX, width, height) {
@@ -637,7 +793,6 @@ export class LoginScene extends Phaser.Scene {
 
         const margin = Math.max(16, width * 0.025);
 
-        // 左側按鈕與文字區域
         const leftAreaWidth = Math.min(
             width * 0.44,
             420
@@ -660,7 +815,6 @@ export class LoginScene extends Phaser.Scene {
 
         const top = Math.max(18, height * 0.055);
 
-        // 遊戲標題
         this.addLayoutText(
             leftCenterX,
             top,
@@ -679,7 +833,6 @@ export class LoginScene extends Phaser.Scene {
             }
         );
 
-        // 歡迎文字
         this.addLayoutText(
             leftCenterX,
             top + height * 0.17,
@@ -695,7 +848,6 @@ export class LoginScene extends Phaser.Scene {
             }
         );
 
-        // 說明文字
         this.addLayoutText(
             leftCenterX,
             top + height * 0.25,
@@ -711,7 +863,6 @@ export class LoginScene extends Phaser.Scene {
             }
         );
 
-        // 按鈕尺寸
         const buttonWidth = Math.min(
             leftAreaWidth - 30,
             260
@@ -732,7 +883,6 @@ export class LoginScene extends Phaser.Scene {
             15 * scale * textScale
         );
 
-        // 開始遊戲：木製圖片按鈕
         this.createResponsiveButton(
             leftCenterX,
             buttonStartY,
@@ -744,7 +894,6 @@ export class LoginScene extends Phaser.Scene {
             true
         );
 
-        // 登入
         this.createResponsiveButton(
             leftCenterX,
             buttonStartY + buttonGap,
@@ -755,7 +904,6 @@ export class LoginScene extends Phaser.Scene {
             buttonFontSize
         );
 
-        // 建立帳號
         this.createResponsiveButton(
             leftCenterX,
             buttonStartY + buttonGap * 2,
@@ -852,7 +1000,6 @@ export class LoginScene extends Phaser.Scene {
             });
         });
 
-        // 漂浮微光
         const particleCount = 8;
 
         for (let i = 0; i < particleCount; i++) {
@@ -950,6 +1097,141 @@ export class LoginScene extends Phaser.Scene {
     }
 
     // =====================================
+    // 備用木製按鈕
+    // 圖片載入失敗時使用
+    // =====================================
+
+    createFallbackWoodenButton(width, height) {
+
+        const wood = this.add.graphics();
+
+        const left = -width / 2;
+        const top = -height / 2;
+
+        // 深色木牌外框
+        wood.fillStyle(0x24160d, 1);
+
+        wood.fillRoundedRect(
+            left - 2,
+            top - 2,
+            width + 4,
+            height + 4,
+            10
+        );
+
+        // 金棕色外層
+        wood.fillStyle(0x98602f, 1);
+
+        wood.fillRoundedRect(
+            left,
+            top,
+            width,
+            height,
+            9
+        );
+
+        // 木牌內層
+        wood.fillStyle(0x694020, 1);
+
+        wood.fillRoundedRect(
+            left + 4,
+            top + 4,
+            width - 8,
+            height - 8,
+            7
+        );
+
+        // 木紋底色
+        wood.fillStyle(0x85512b, 1);
+
+        wood.fillRoundedRect(
+            left + 7,
+            top + 7,
+            width - 14,
+            height - 14,
+            5
+        );
+
+        // 內框金色細線
+        wood.lineStyle(
+            1.5,
+            0xd6aa69,
+            0.95
+        );
+
+        wood.strokeRoundedRect(
+            left + 5,
+            top + 5,
+            width - 10,
+            height - 10,
+            6
+        );
+
+        // 木紋線條
+        wood.lineStyle(
+            1,
+            0x4d2c18,
+            0.42
+        );
+
+        wood.beginPath();
+        wood.moveTo(left + 16, top + height * 0.30);
+        wood.lineTo(left + width - 16, top + height * 0.30);
+        wood.strokePath();
+
+        wood.beginPath();
+        wood.moveTo(left + 18, top + height * 0.72);
+        wood.lineTo(left + width - 18, top + height * 0.72);
+        wood.strokePath();
+
+        // 左右木節裝飾
+        wood.fillStyle(0x4b2a17, 0.55);
+
+        wood.fillEllipse(
+            left + 14,
+            0,
+            5,
+            3
+        );
+
+        wood.fillEllipse(
+            left + width - 14,
+            0,
+            5,
+            3
+        );
+
+        // 小型金色裝飾點
+        wood.fillStyle(0xf1d29a, 0.9);
+
+        wood.fillCircle(
+            left + 9,
+            top + 9,
+            1.5
+        );
+
+        wood.fillCircle(
+            left + width - 9,
+            top + 9,
+            1.5
+        );
+
+        wood.fillCircle(
+            left + 9,
+            top + height - 9,
+            1.5
+        );
+
+        wood.fillCircle(
+            left + width - 9,
+            top + height - 9,
+            1.5
+        );
+
+        return wood;
+    }
+
+    // =====================================
     // 響應式按鈕
     // useImage = true 時使用木製按鈕
     // =====================================
@@ -971,30 +1253,45 @@ export class LoginScene extends Phaser.Scene {
         // 木製開始遊戲按鈕
         // =================================
 
-        if (
-            useImage &&
-            this.textures.exists('btn_start_frame')
-        ) {
+        if (useImage) {
 
-            // 先建立光效，再放置木牌
+            // 先建立三層金色光效
             this.createStartButtonGlow(
                 container,
                 width,
                 height
             );
 
-            const woodenImage = this.add.image(
-                0,
-                0,
-                'btn_start_frame'
-            );
+            // 優先使用正式木牌圖片
+            if (this.textures.exists('btn_start_frame')) {
 
-            woodenImage.setDisplaySize(
-                width,
-                height
-            );
+                const woodenImage = this.add.image(
+                    0,
+                    0,
+                    'btn_start_frame'
+                );
 
-            container.add(woodenImage);
+                woodenImage.setDisplaySize(
+                    width,
+                    height
+                );
+
+                container.add(woodenImage);
+
+            } else {
+
+                // 圖片不存在時使用木牌繪圖
+                const fallbackWood = this.createFallbackWoodenButton(
+                    width,
+                    height
+                );
+
+                container.add(fallbackWood);
+
+                console.warn(
+                    '[LoginScene] 找不到 btn_start_frame，已使用備用木製按鈕。'
+                );
+            }
 
             this.startButton = container;
 
