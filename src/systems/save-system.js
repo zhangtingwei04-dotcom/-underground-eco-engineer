@@ -1,4 +1,3 @@
-```javascript
 // 鱗片與種子：地下生態物語 | 統一存檔管理器
 // Scales & Seeds: Underground Ecosystem Tales - Unified Save System
 
@@ -408,4 +407,3 @@ export class SaveSystem {
 }
 
 window.GameSaveSystem = SaveSystem;
-```
