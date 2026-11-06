@@ -1,7 +1,9 @@
 
 // 鱗片與種子：地下生態物語
-// Login Scene - Dual Background Integration
-// 橫式與直式獨立背景、自動切換、保留原有設定與音訊功能
+// Login Scene V3.0
+// Dual Background + Wooden Start Button + Magical Glow
+// Phaser 3.80.1
+// 保留原有語言、設定、音訊及響應式功能
 
 import { AudioSystem } from '../systems/AudioSystem.js';
 import { LanguageSystem } from '../systems/language-system.js';
@@ -27,10 +29,18 @@ export class LoginScene extends Phaser.Scene {
         this.languageReadyListener = null;
 
         this.backgroundKey = null;
+
+        // 木製開始按鈕
+        this.startButton = null;
+        this.startButtonGlow = [];
+        this.startButtonParticles = [];
+
+        // 管理介面動畫，避免重新繪製時殘留
+        this.layoutTweens = [];
     }
 
     // =====================================
-    // 背景圖片與背景音樂預載
+    // 背景圖片、木製按鈕與背景音樂預載
     // =====================================
 
     preload() {
@@ -43,6 +53,12 @@ export class LoginScene extends Phaser.Scene {
         this.load.image(
             'login_background_portrait',
             'assets/images/login-background-portrait.jpg'
+        );
+
+        // 木製開始遊戲按鈕
+        this.load.image(
+            'btn_start_frame',
+            'assets/images/ui/btn-start-frame.PNG'
         );
 
         AudioSystem.preloadSceneBGM(this);
@@ -61,6 +77,11 @@ export class LoginScene extends Phaser.Scene {
 
         this.settingsCategory = null;
         this.settingsExpanded = false;
+
+        this.startButton = null;
+        this.startButtonGlow = [];
+        this.startButtonParticles = [];
+        this.layoutTweens = [];
 
         SettingsSystem.load();
 
@@ -154,6 +175,7 @@ export class LoginScene extends Phaser.Scene {
 
             this.closeSettings();
 
+            this.clearLayout();
             this.clearBackground();
         });
 
@@ -162,6 +184,32 @@ export class LoginScene extends Phaser.Scene {
             this.handleResize,
             this
         );
+    }
+
+    // =====================================
+    // 介面動畫管理
+    // =====================================
+
+    addLayoutTween(config) {
+
+        const tween = this.tweens.add(config);
+
+        this.layoutTweens.push(tween);
+
+        return tween;
+    }
+
+    clearLayoutTweens() {
+
+        this.layoutTweens.forEach(tween => {
+
+            if (tween) {
+                tween.stop();
+            }
+
+        });
+
+        this.layoutTweens = [];
     }
 
     // =====================================
@@ -237,7 +285,6 @@ export class LoginScene extends Phaser.Scene {
             ? 'login_background_portrait'
             : 'login_background_landscape';
 
-        // 確認圖片已載入
         if (this.textures.exists(imageKey)) {
 
             const background = this.add.image(
@@ -251,7 +298,6 @@ export class LoginScene extends Phaser.Scene {
             const sourceWidth = background.width;
             const sourceHeight = background.height;
 
-            // 等比例填滿畫面，不拉伸圖片
             const scale = Math.max(
                 width / sourceWidth,
                 height / sourceHeight
@@ -314,7 +360,6 @@ export class LoginScene extends Phaser.Scene {
 
     // =====================================
     // 備用背景
-    // 圖片載入失敗時使用
     // =====================================
 
     drawFallbackBackground(width, height) {
@@ -437,7 +482,6 @@ export class LoginScene extends Phaser.Scene {
             this.closeSettings();
         }
 
-        // 重新判斷直式或橫式背景
         this.drawBackground();
         this.drawLayout();
 
@@ -452,8 +496,19 @@ export class LoginScene extends Phaser.Scene {
     }
 
     clearLayout() {
+
+        this.clearLayoutTweens();
+
+        this.startButton = null;
+        this.startButtonGlow = [];
+        this.startButtonParticles = [];
+
         this.layoutContainer.removeAll(true);
     }
+
+    // =====================================
+    // 版面配置
+    // =====================================
 
     drawLayout() {
 
@@ -538,15 +593,19 @@ export class LoginScene extends Phaser.Scene {
         const buttonGap = shortScreen ? 58 : 66;
         const buttonStartY = height * 0.43;
 
+        // 開始遊戲：木製圖片按鈕
         this.createResponsiveButton(
             centerX,
             buttonStartY,
             buttonWidth,
             buttonHeight,
             LanguageSystem.t('login.start_exploring'),
-            'guestSelected'
+            'guestSelected',
+            18,
+            true
         );
 
+        // 登入：保留原本按鈕
         this.createResponsiveButton(
             centerX,
             buttonStartY + buttonGap,
@@ -556,6 +615,7 @@ export class LoginScene extends Phaser.Scene {
             'loginSelected'
         );
 
+        // 建立帳號：保留原本按鈕
         this.createResponsiveButton(
             centerX,
             buttonStartY + buttonGap * 2,
@@ -568,13 +628,25 @@ export class LoginScene extends Phaser.Scene {
 
     // =====================================
     // 橫式登入畫面
+    // 按鈕全部移至左側
     // =====================================
 
     drawLandscapeLayout(centerX, width, height) {
 
-        const margin = Math.max(18, width * 0.04);
-        const contentWidth = Math.min(width - margin * 2, 650);
         const textScale = this.getTextScale();
+
+        const margin = Math.max(16, width * 0.025);
+
+        // 左側按鈕與文字區域
+        const leftAreaWidth = Math.min(
+            width * 0.44,
+            420
+        );
+
+        const leftCenterX = Math.max(
+            leftAreaWidth / 2 + margin,
+            width * 0.23
+        );
 
         const scale = Math.min(
             1,
@@ -585,10 +657,12 @@ export class LoginScene extends Phaser.Scene {
         const titleSize = Math.max(18, 30 * scale);
         const welcomeSize = Math.max(13, 17 * scale);
         const messageSize = Math.max(10, 11 * scale);
-        const top = Math.max(22, height * 0.09);
 
+        const top = Math.max(18, height * 0.055);
+
+        // 遊戲標題
         this.addLayoutText(
-            centerX,
+            leftCenterX,
             top,
             LanguageSystem.t('game.title'),
             {
@@ -599,76 +673,103 @@ export class LoginScene extends Phaser.Scene {
                 stroke: '#243b2e',
                 strokeThickness: 3,
                 align: 'center',
-                wordWrap: { width: contentWidth }
+                wordWrap: {
+                    width: leftAreaWidth
+                }
             }
         );
 
+        // 歡迎文字
         this.addLayoutText(
-            centerX,
-            top + height * 0.16,
+            leftCenterX,
+            top + height * 0.17,
             LanguageSystem.t('login.welcome'),
             {
                 fontFamily: 'Georgia, serif',
                 fontSize: `${welcomeSize * textScale}px`,
                 color: '#f0e6ce',
                 align: 'center',
-                wordWrap: { width: contentWidth }
+                wordWrap: {
+                    width: leftAreaWidth
+                }
             }
         );
 
+        // 說明文字
         this.addLayoutText(
-            centerX,
-            top + height * 0.24,
+            leftCenterX,
+            top + height * 0.25,
             LanguageSystem.t('login.welcome_message'),
             {
                 fontFamily: 'Arial, sans-serif',
                 fontSize: `${messageSize * textScale}px`,
                 color: '#d2d8c1',
                 align: 'center',
-                wordWrap: { width: contentWidth }
+                wordWrap: {
+                    width: leftAreaWidth - 20
+                }
             }
         );
 
-        const buttonWidth = Math.min(260, width * 0.42);
+        // 按鈕尺寸
+        const buttonWidth = Math.min(
+            leftAreaWidth - 30,
+            260
+        );
 
         const buttonHeight = Math.max(
             34,
-            Math.min(42, height * 0.12)
+            Math.min(44, height * 0.13)
         );
 
-        const buttonGap = buttonHeight + Math.max(8, height * 0.025);
-        const buttonStartY = height * 0.48;
+        const buttonGap =
+            buttonHeight + Math.max(7, height * 0.025);
 
+        const buttonStartY = height * 0.49;
+
+        const buttonFontSize = Math.max(
+            12,
+            15 * scale * textScale
+        );
+
+        // 開始遊戲：木製圖片按鈕
         this.createResponsiveButton(
-            centerX,
+            leftCenterX,
             buttonStartY,
             buttonWidth,
             buttonHeight,
             LanguageSystem.t('login.start_exploring'),
             'guestSelected',
-            Math.max(12, 15 * scale * textScale)
+            buttonFontSize,
+            true
         );
 
+        // 登入
         this.createResponsiveButton(
-            centerX,
+            leftCenterX,
             buttonStartY + buttonGap,
             buttonWidth,
             buttonHeight,
             LanguageSystem.t('login.login'),
             'loginSelected',
-            Math.max(12, 15 * scale * textScale)
+            buttonFontSize
         );
 
+        // 建立帳號
         this.createResponsiveButton(
-            centerX,
+            leftCenterX,
             buttonStartY + buttonGap * 2,
             buttonWidth,
             buttonHeight,
             LanguageSystem.t('login.create_account'),
             'registerSelected',
-            Math.max(12, 15 * scale * textScale)
+            buttonFontSize
         );
     }
+
+    // =====================================
+    // 一般文字
+    // =====================================
 
     addLayoutText(x, y, content, style) {
 
@@ -680,6 +781,179 @@ export class LoginScene extends Phaser.Scene {
         return text;
     }
 
+    // =====================================
+    // 木製按鈕微光
+    // =====================================
+
+    createStartButtonGlow(container, width, height) {
+
+        const layers = [
+            {
+                padding: 17,
+                alpha: 0.045
+            },
+            {
+                padding: 11,
+                alpha: 0.075
+            },
+            {
+                padding: 6,
+                alpha: 0.12
+            }
+        ];
+
+        layers.forEach((layer, index) => {
+
+            const glow = this.add.graphics();
+
+            glow.fillStyle(
+                0xffd879,
+                layer.alpha
+            );
+
+            glow.fillRoundedRect(
+                -width / 2 - layer.padding,
+                -height / 2 - layer.padding,
+                width + layer.padding * 2,
+                height + layer.padding * 2,
+                15
+            );
+
+            container.add(glow);
+
+            this.startButtonGlow.push(glow);
+
+            this.addLayoutTween({
+
+                targets: glow,
+
+                alpha: {
+                    from: 0.55,
+                    to: 1
+                },
+
+                scaleX: {
+                    from: 0.985,
+                    to: 1.025
+                },
+
+                scaleY: {
+                    from: 0.985,
+                    to: 1.025
+                },
+
+                duration: 1700 + index * 300,
+
+                yoyo: true,
+
+                repeat: -1,
+
+                ease: 'Sine.easeInOut'
+            });
+        });
+
+        // 漂浮微光
+        const particleCount = 8;
+
+        for (let i = 0; i < particleCount; i++) {
+
+            const angle =
+                (Math.PI * 2 / particleCount) * i;
+
+            const radiusX = width / 2 + 13;
+            const radiusY = height / 2 + 12;
+
+            const x = Math.cos(angle) * radiusX;
+            const y = Math.sin(angle) * radiusY;
+
+            const particle = this.add.circle(
+                x,
+                y,
+                1.4 + (i % 3) * 0.5,
+                0xffe8a8,
+                0.8
+            );
+
+            particle.setBlendMode(
+                Phaser.BlendModes.ADD
+            );
+
+            container.add(particle);
+
+            this.startButtonParticles.push(particle);
+
+            this.addLayoutTween({
+
+                targets: particle,
+
+                x: x + (i % 2 === 0 ? 5 : -5),
+
+                y: y - 6 - (i % 3) * 3,
+
+                alpha: {
+                    from: 0.12,
+                    to: 0.95
+                },
+
+                scale: {
+                    from: 0.7,
+                    to: 1.35
+                },
+
+                duration: 1500 + i * 170,
+
+                yoyo: true,
+
+                repeat: -1,
+
+                ease: 'Sine.easeInOut'
+            });
+        }
+    }
+
+    // =====================================
+    // 開始按鈕點擊光效
+    // =====================================
+
+    pulseStartButton() {
+
+        if (!this.startButton) return;
+
+        this.addLayoutTween({
+
+            targets: this.startButton,
+
+            scale: 1.045,
+
+            duration: 130,
+
+            yoyo: true,
+
+            ease: 'Sine.easeOut'
+        });
+
+        this.startButtonGlow.forEach(glow => {
+
+            this.addLayoutTween({
+
+                targets: glow,
+
+                alpha: 1,
+
+                duration: 180,
+
+                yoyo: true,
+
+                ease: 'Sine.easeOut'
+            });
+        });
+    }
+
+    // =====================================
+    // 響應式按鈕
+    // useImage = true 時使用木製按鈕
+    // =====================================
+
     createResponsiveButton(
         x,
         y,
@@ -687,10 +961,133 @@ export class LoginScene extends Phaser.Scene {
         height,
         label,
         eventName,
-        fontSize = 18
+        fontSize = 18,
+        useImage = false
     ) {
 
         const container = this.add.container(x, y);
+
+        // =================================
+        // 木製開始遊戲按鈕
+        // =================================
+
+        if (
+            useImage &&
+            this.textures.exists('btn_start_frame')
+        ) {
+
+            // 先建立光效，再放置木牌
+            this.createStartButtonGlow(
+                container,
+                width,
+                height
+            );
+
+            const woodenImage = this.add.image(
+                0,
+                0,
+                'btn_start_frame'
+            );
+
+            woodenImage.setDisplaySize(
+                width,
+                height
+            );
+
+            container.add(woodenImage);
+
+            this.startButton = container;
+
+            // 木牌上的動態文字
+            const text = this.add.text(
+                0,
+                0,
+                label,
+                {
+                    fontFamily: 'Georgia, serif',
+                    fontSize: `${fontSize}px`,
+                    color: '#fff1cf',
+                    fontStyle: 'bold',
+                    stroke: '#50351f',
+                    strokeThickness: 3,
+                    shadow: {
+                        offsetX: 1,
+                        offsetY: 2,
+                        color: '#21140c',
+                        blur: 3,
+                        fill: true
+                    },
+                    align: 'center',
+                    wordWrap: {
+                        width: width - 24
+                    }
+                }
+            ).setOrigin(0.5);
+
+            container.add(text);
+
+            // 透明點擊區域
+            const hitArea = this.add.rectangle(
+                0,
+                0,
+                width,
+                height,
+                0xffffff,
+                0.001
+            );
+
+            hitArea.setInteractive({
+                useHandCursor: true
+            });
+
+            container.add(hitArea);
+
+            hitArea.on('pointerover', () => {
+
+                this.addLayoutTween({
+
+                    targets: container,
+
+                    scale: 1.025,
+
+                    duration: 150,
+
+                    ease: 'Sine.easeOut'
+                });
+
+            });
+
+            hitArea.on('pointerout', () => {
+
+                this.addLayoutTween({
+
+                    targets: container,
+
+                    scale: 1,
+
+                    duration: 150,
+
+                    ease: 'Sine.easeOut'
+                });
+
+            });
+
+            hitArea.on('pointerdown', () => {
+
+                this.pulseStartButton();
+
+                this.events.emit(eventName);
+            });
+
+            this.layoutContainer.add(container);
+
+            return container;
+        }
+
+        // =================================
+        // 原本一般按鈕
+        // 登入、建立帳號繼續使用
+        // =================================
 
         const background = this.add.rectangle(
             0,
@@ -701,28 +1098,47 @@ export class LoginScene extends Phaser.Scene {
             0.96
         );
 
-        background.setStrokeStyle(2, 0xc5b78e, 0.9);
+        background.setStrokeStyle(
+            2,
+            0xc5b78e,
+            0.9
+        );
 
-        const text = this.add.text(0, 0, label, {
-            fontFamily: 'Arial, sans-serif',
-            fontSize: `${fontSize}px`,
-            color: '#f5ecd9',
-            fontStyle: 'bold',
-            align: 'center',
-            wordWrap: { width: width - 20 }
-        }).setOrigin(0.5);
+        const text = this.add.text(
+            0,
+            0,
+            label,
+            {
+                fontFamily: 'Arial, sans-serif',
+                fontSize: `${fontSize}px`,
+                color: '#f5ecd9',
+                fontStyle: 'bold',
+                align: 'center',
+                wordWrap: {
+                    width: width - 20
+                }
+            }
+        ).setOrigin(0.5);
 
-        container.add([background, text]);
+        container.add([
+            background,
+            text
+        ]);
 
-        background.setInteractive({ useHandCursor: true });
+        background.setInteractive({
+            useHandCursor: true
+        });
 
         background.on('pointerover', () => {
 
             background.setFillStyle(0x58745a);
 
-            this.tweens.add({
+            this.addLayoutTween({
+
                 targets: container,
+
                 scale: 1.02,
+
                 duration: 150
             });
         });
@@ -731,9 +1147,12 @@ export class LoginScene extends Phaser.Scene {
 
             background.setFillStyle(0x344e3d);
 
-            this.tweens.add({
+            this.addLayoutTween({
+
                 targets: container,
+
                 scale: 1,
+
                 duration: 150
             });
         });
@@ -771,13 +1190,19 @@ export class LoginScene extends Phaser.Scene {
             0.88
         );
 
-        background.setStrokeStyle(1.5, 0x55d6a4, 0.95);
+        background.setStrokeStyle(
+            1.5,
+            0x55d6a4,
+            0.95
+        );
 
         const icon = this.add.text(0, 0, '⚙️', {
             fontSize: '24px'
         }).setOrigin(0.5);
 
-        background.setInteractive({ useHandCursor: true });
+        background.setInteractive({
+            useHandCursor: true
+        });
 
         background.on('pointerover', () => {
             glow.setAlpha(0.3);
@@ -798,7 +1223,11 @@ export class LoginScene extends Phaser.Scene {
             }
         });
 
-        button.add([glow, background, icon]);
+        button.add([
+            glow,
+            background,
+            icon
+        ]);
 
         this.settingsButtonContainer.add(button);
     }
