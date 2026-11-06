@@ -55,7 +55,7 @@ export class LoginScene extends Phaser.Scene {
 
         this.load.image(
             'btn_start_frame',
-            'assets/images/ui/btn-start-frame.PNG'
+            'assets/images/ui/btn-start-frame.png'
         );
 
         this.load.on('loaderror', file => {
@@ -63,7 +63,7 @@ export class LoginScene extends Phaser.Scene {
             if (file.key === 'btn_start_frame') {
 
                 console.error(
-                    '[LoginScene] 木板按鈕圖片載入失敗，將使用備用木牌。請確認路徑及大小寫：assets/images/ui/btn-start-frame.PNG'
+                    '[LoginScene] 木板按鈕圖片載入失敗，將使用備用木牌。請確認路徑及大小寫：assets/images/ui/btn-start-frame.png'
                 );
             }
         });
