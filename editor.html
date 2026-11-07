@@ -28,8 +28,8 @@ output{color:#ebbd80}small{display:block;color:#bdad97;line-height:1.6;margin-to
 <div class="layout">
 <section class="preview" aria-label="直式遊戲預覽"><div class="phone" id="phone" style="width:402px;height:874px"><iframe id="game" src="./index.html?preview=menu" title="遊戲直式主畫面" loading="eager"></iframe></div></section>
 <section class="controls">
-<label for="title">標題中心高度 <output id="titleValue">15.0%</output></label>
-<input id="title" type="range" min="10" max="35" step="0.5" value="15">
+<label for="title">標題中心高度 <output id="titleValue">14.0%</output></label>
+<input id="title" type="range" min="10" max="35" step="0.5" value="14">
 <label for="buttons">第一個按鈕中心高度 <output id="buttonValue">37.5%</output></label>
 <input id="buttons" type="range" min="30" max="65" step="0.5" value="37.5">
 <label for="device">預覽尺寸</label>
@@ -46,7 +46,7 @@ output{color:#ebbd80}small{display:block;color:#bdad97;line-height:1.6;margin-to
 <script>
 (()=>{
  const title=document.getElementById('title'),buttons=document.getElementById('buttons'),frame=document.getElementById('game'),phone=document.getElementById('phone'),status=document.getElementById('status');
- const key='scales-seeds-menu-preview-v3';
+ const key='scales-seeds-menu-preview-v4';
  try{const saved=JSON.parse(localStorage.getItem(key)||'null');if(saved){if(Number.isFinite(saved.titleY))title.value=saved.titleY;if(Number.isFinite(saved.buttonsY))buttons.value=saved.buttonsY;}}catch(_){}
  function render(){
   const titleY=Number(title.value),buttonsY=Number(buttons.value);
@@ -56,7 +56,7 @@ output{color:#ebbd80}small{display:block;color:#bdad97;line-height:1.6;margin-to
   if(frame.contentWindow)frame.contentWindow.postMessage({type:'scales-seeds-menu-preview',titleY:titleY/100,buttonsY:buttonsY/100},location.origin);
  }
  title.addEventListener('input',render);buttons.addEventListener('input',render);frame.addEventListener('load',()=>{render();setTimeout(render,700);});
- document.getElementById('reset').addEventListener('click',()=>{title.value=15;buttons.value=37.5;render();status.textContent='已恢復預設位置';});
+ document.getElementById('reset').addEventListener('click',()=>{title.value=14;buttons.value=37.5;render();status.textContent='已恢復預設位置';});
  document.getElementById('reload').addEventListener('click',()=>{frame.src='./index.html?preview=menu&v='+Date.now();status.textContent='正在重新載入遊戲預覽';});
  document.getElementById('device').addEventListener('change',e=>{const [w,h]=e.target.value.split(',').map(Number);phone.style.width=w+'px';phone.style.height=h+'px';render();});
  document.getElementById('copy').addEventListener('click',async()=>{
