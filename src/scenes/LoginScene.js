@@ -701,6 +701,15 @@ export class LoginScene extends Phaser.Scene {
     // 直式登入畫面
     // =====================================
 
+    // 主選單標題與副標題分開排版，語言仍由 LanguageSystem 提供。
+    // 相容舊字典將「主標題：副標題」寫在 game.title 的格式。
+    getMainMenuTitle() {
+        const title = LanguageSystem.t('game.title');
+        const subtitle = LanguageSystem.t('game.subtitle');
+        const suffix = new RegExp('\\s*[：:]\\s*' + subtitle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$');
+        return title.replace(suffix, '');
+    }
+
     drawPortraitLayout(centerX, width, height) {
 
         const shortScreen = height < 650;
@@ -709,7 +718,7 @@ export class LoginScene extends Phaser.Scene {
         this.addLayoutText(
             centerX,
             height * 0.12,
-            LanguageSystem.t('game.title'),
+            this.getMainMenuTitle(),
             {
                 fontFamily: 'Georgia, serif',
                 fontSize: `${(width < 360 ? 22 : 28) * textScale}px`,
@@ -724,8 +733,8 @@ export class LoginScene extends Phaser.Scene {
 
         this.addLayoutText(
             centerX,
-            height * 0.23,
-            LanguageSystem.t('login.welcome'),
+            height * 0.205,
+            LanguageSystem.t('game.subtitle'),
             {
                 fontFamily: 'Georgia, serif',
                 fontSize: `${18 * textScale}px`,
@@ -735,18 +744,6 @@ export class LoginScene extends Phaser.Scene {
             }
         );
 
-        this.addLayoutText(
-            centerX,
-            height * 0.30,
-            LanguageSystem.t('login.welcome_message'),
-            {
-                fontFamily: 'Arial, sans-serif',
-                fontSize: `${13 * textScale}px`,
-                color: '#d2d8c1',
-                align: 'center',
-                wordWrap: { width: width - 40 }
-            }
-        );
 
         const buttonWidth = Math.min(width - 48, 330);
         const buttonHeight = shortScreen ? 46 : 52;
@@ -814,7 +811,7 @@ export class LoginScene extends Phaser.Scene {
         this.addLayoutText(
             leftCenterX,
             height * 0.12,
-            LanguageSystem.t('game.title'),
+            this.getMainMenuTitle(),
             {
                 fontFamily: 'Georgia, serif',
                 fontSize: `${titleSize * textScale}px`,
@@ -836,8 +833,8 @@ export class LoginScene extends Phaser.Scene {
 
         this.addLayoutText(
             leftCenterX,
-            height * 0.235,
-            LanguageSystem.t('login.welcome'),
+            height * 0.225,
+            LanguageSystem.t('game.subtitle'),
             {
                 fontFamily: 'Georgia, serif',
                 fontSize: `${welcomeSize * textScale}px`,
@@ -850,21 +847,6 @@ export class LoginScene extends Phaser.Scene {
             }
         );
 
-        this.addLayoutText(
-            leftCenterX,
-            height * 0.305,
-            LanguageSystem.t('login.welcome_message'),
-            {
-                fontFamily: 'Arial, sans-serif',
-                fontSize: `${messageSize * textScale}px`,
-                color: '#f3ead8',
-                stroke: '#1b211b',
-                strokeThickness: 4,
-                shadow: { offsetX: 1, offsetY: 2, color: '#160f0a', blur: 4, fill: true },
-                align: 'center',
-                wordWrap: { width: titleWrapWidth }
-            }
-        );
 
         const buttonWidth = Math.min(leftAreaWidth - 18, 290);
         const buttonHeight = Math.max(38, Math.min(49, height * 0.125));
