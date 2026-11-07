@@ -17,7 +17,27 @@ p{color:#ccbda3;line-height:1.6}.layout{display:flex;gap:26px;justify-content:ce
 .phone-shell{width:289px;height:629px;flex-shrink:0;position:relative}
 .phone{width:390px;height:720px;flex-shrink:0;transform-origin:top left;transform:scale(.72);background:#000;border:7px solid #795e3b;border-radius:25px;overflow:hidden;box-shadow:0 14px 44px #0008}
 iframe{display:block;border:0;width:100%;height:100%;background:#18130d}
-.controls{background:#2a2117;border:1px solid #6b4d2e;border-radius:14px;padding:20px;flex:1 1 280px;max-width:400px}
+.controls{background:#2a2117;border:1px solid #6b4d2e;border-radius:14px;padding:16px;flex:1 1 280px;max-width:400px}
+.editor-quick-controls{background:#352919;padding:12px;border:1px solid #765536;border-radius:12px;margin-bottom:14px}
+.editor-sections-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:12px 0 9px}
+.editor-sections-heading strong{font-size:16px;color:#f3d7a6}
+.accordion-list{display:flex;flex-direction:column;gap:9px}
+.accordion{border:1px solid #775838;border-radius:11px;background:#35291d;overflow:hidden}
+.accordion summary{display:flex;align-items:center;gap:10px;min-height:48px;padding:11px 13px;cursor:pointer;list-style:none;font-weight:600;touch-action:manipulation;user-select:none}
+.accordion summary::-webkit-details-marker{display:none}
+.accordion summary:focus-visible{outline:3px solid #f5d28c;outline-offset:-3px}
+.accordion[open] summary{background:#45311e;color:#ffe7b7;border-bottom:1px solid #765536}
+.section-icon{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:7px;background:#65472a;color:#ffddb0;flex-shrink:0}
+.accordion-chevron{margin-left:auto;font-size:20px;transition:transform .15s ease}
+.accordion[open] .accordion-chevron{transform:rotate(180deg)}
+.accordion-body{padding:0 13px 15px}
+.accordion-body label{font-size:14px}
+input[type=range]{min-height:30px;touch-action:pan-y}
+select{width:100%;min-height:44px}
+button{min-height:44px}
+.utility-button{min-height:38px;font-size:13px;padding:7px 10px;white-space:nowrap}
+@media(max-width:680px){.controls{padding:12px}.accordion summary{min-height:52px}.accordion-body{padding:0 12px 12px}.editor-quick-controls{padding:10px}}
+
 label{display:flex;justify-content:space-between;gap:10px;margin:16px 0 8px;font-weight:600}
 input[type=range]{width:100%;accent-color:#d8a66c}
 button,select{background:#6e4928;color:white;border:1px solid #b88b58;border-radius:9px;padding:10px 12px;font:inherit;cursor:pointer}
@@ -30,42 +50,69 @@ output{color:#ebbd80}small{display:block;color:#bdad97;line-height:1.6;margin-to
 <body><main>
 <p><a href="./workbench.html" style="color:#e7c38a;text-decoration:underline">← 返回開發者工作台</a></p>
 <h1>鱗片與種子｜主畫面視覺編輯器 V5</h1>
-<p>直接預覽真正的遊戲畫面。切換直式或橫式，即時調整標題、按鈕的大小和位置。橫式採單一預覽，切換不同手機尺寸時即時跟著調整；上下滑動設定選項時，直式與橫式預覽都會保持可見；直式畫面較高時可在預覽區內捲動查看完整畫面。預覽不影響正式遊戲。</p>
+<p>直接預覽真正的遊戲畫面。切換直式或橫式，即時調整標題、按鈕的大小和位置。橫式採單一預覽，切換不同手機尺寸時即時跟著調整；在手機上可以展開需要的調整分類，減少捲動距離；直式與橫式預覽都會跟隨捲動。預覽不影響正式遊戲。</p>
 <div class="layout">
 <section class="preview" aria-label="遊戲直式或橫式預覽">
 <div id="portraitPreview"><div class="phone-shell" id="phoneShell"><div class="phone" id="phone" style="width:402px;height:874px"><iframe id="game" src="./index.html?preview=menu" title="遊戲直式主畫面" loading="eager"></iframe></div></div></div>
 <div class="landscape-single" id="landscapeSingle" aria-label="可跟隨捲動的單一橫式預覽"><span class="landscape-caption" id="landscapeCaption">iPhone 18 Pro 橫式（874 × 402）</span><div class="phone-shell" id="landscapeShell"><div class="phone" id="landscapePhone"><iframe id="landscapeGame" title="遊戲橫式主畫面" loading="eager"></iframe></div></div></div>
 </section>
-<section class="controls">
+<section class="controls" aria-label="主畫面排版調整">
+<div class="editor-quick-controls">
 <label for="orientation">畫面方向</label>
 <select id="orientation"><option value="portrait">直式</option><option value="landscape">橫式</option></select>
+<label for="device">預覽尺寸</label>
+<select id="device"><option value="402,874">iPhone 18 Pro 直式（402 × 874）</option><option value="390,720">一般手機直式（390 × 720）</option><option value="375,667">小尺寸手機直式（375 × 667）</option><option value="430,820">大尺寸手機直式（430 × 820）</option></select>
+<label for="zoom">預覽縮放 <output id="zoomValue">85%</output></label>
+<input id="zoom" type="range" min="30" max="110" step="1" value="85">
+</div>
+<div class="editor-sections-heading"><strong>介面調整</strong><button type="button" id="toggleAll" class="utility-button" aria-label="展開所有調整分類">全部展開</button></div>
+<div class="accordion-list"><details class="accordion" data-editor-section="title" open>
+<summary><span class="section-icon" aria-hidden="true">✦</span><span>標題位置與大小</span><span class="accordion-chevron" aria-hidden="true">⌄</span></summary>
+<div class="accordion-body">
 <label for="title">標題中心高度 <output id="titleValue">14.0%</output></label>
 <input id="title" type="range" min="10" max="35" step="0.5" value="14">
-<label for="buttons">第一個按鈕中心高度 <output id="buttonValue">37.5%</output></label>
-<input id="buttons" type="range" min="30" max="65" step="0.5" value="37.5">
 <label for="titleX">標題左右偏移 <output id="titleXValue">0.0%</output></label>
 <input id="titleX" type="range" min="-25" max="25" step="0.5" value="0">
 <label for="titleScale">標題大小 <output id="titleScaleValue">100%</output></label>
 <input id="titleScale" type="range" min="50" max="150" step="5" value="100">
+</div>
+</details>
+<details class="accordion" data-editor-section="buttons" open>
+<summary><span class="section-icon" aria-hidden="true">▤</span><span>主要按鈕</span><span class="accordion-chevron" aria-hidden="true">⌄</span></summary>
+<div class="accordion-body">
+<label for="buttons">第一個按鈕中心高度 <output id="buttonValue">37.5%</output></label>
+<input id="buttons" type="range" min="30" max="65" step="0.5" value="37.5">
 <label for="buttonX">按鈕左右偏移 <output id="buttonXValue">0.0%</output></label>
 <input id="buttonX" type="range" min="-25" max="25" step="0.5" value="0">
 <label for="buttonScale">按鈕大小 <output id="buttonScaleValue">100%</output></label>
 <input id="buttonScale" type="range" min="60" max="140" step="5" value="100">
-<div class="control-group"><h2>語言圖示</h2>
+</div>
+</details>
+<details class="accordion" data-editor-section="language">
+<summary><span class="section-icon" aria-hidden="true">◎</span><span>語言圖示</span><span class="accordion-chevron" aria-hidden="true">⌄</span></summary>
+<div class="accordion-body">
 <label for="languageX">左右偏移 <output id="languageXValue">0.0%</output></label>
 <input id="languageX" type="range" min="-50" max="50" step="0.5" value="0">
 <label for="languageY">上下偏移 <output id="languageYValue">0.0%</output></label>
 <input id="languageY" type="range" min="-50" max="50" step="0.5" value="0">
 <label for="languageScale">大小 <output id="languageScaleValue">100%</output></label>
-<input id="languageScale" type="range" min="60" max="140" step="5" value="100"></div>
-<div class="control-group"><h2>設定圖示</h2>
+<input id="languageScale" type="range" min="60" max="140" step="5" value="100">
+</div>
+</details>
+<details class="accordion" data-editor-section="settings">
+<summary><span class="section-icon" aria-hidden="true">⚙</span><span>設定圖示</span><span class="accordion-chevron" aria-hidden="true">⌄</span></summary>
+<div class="accordion-body">
 <label for="settingsX">左右偏移 <output id="settingsXValue">0.0%</output></label>
 <input id="settingsX" type="range" min="-50" max="50" step="0.5" value="0">
 <label for="settingsY">上下偏移 <output id="settingsYValue">0.0%</output></label>
 <input id="settingsY" type="range" min="-50" max="50" step="0.5" value="0">
 <label for="settingsScale">大小 <output id="settingsScaleValue">100%</output></label>
-<input id="settingsScale" type="range" min="60" max="140" step="5" value="100"></div>
-<div class="control-group"><h2>木質設定面板</h2>
+<input id="settingsScale" type="range" min="60" max="140" step="5" value="100">
+</div>
+</details>
+<details class="accordion" data-editor-section="panel">
+<summary><span class="section-icon" aria-hidden="true">▣</span><span>木質設定面板</span><span class="accordion-chevron" aria-hidden="true">⌄</span></summary>
+<div class="accordion-body">
 <label for="previewCategory">預覽設定分類</label>
 <select id="previewCategory">
 <option value="none">不開啟面板</option>
@@ -83,12 +130,9 @@ output{color:#ebbd80}small{display:block;color:#bdad97;line-height:1.6;margin-to
 <input id="panelScale" type="range" min="70" max="125" step="5" value="100">
 <label for="railSpacing">設定分類間距 <output id="railSpacingValue">100%</output></label>
 <input id="railSpacing" type="range" min="70" max="130" step="5" value="100">
-<p class="hint">面板會連同內容一起縮放，分類間距只影響右側設定分類。選擇一種分類才能看到面板。</p>
+<p class="hint">面板整體縮放會同步影響內容；分類間距只作用於右側分類按鈕。</p>
 </div>
-<label for="zoom">預覽縮放 <output id="zoomValue">85%</output></label>
-<input id="zoom" type="range" min="30" max="110" step="1" value="85">
-<label for="device">預覽尺寸</label>
-<select id="device"><option value="402,874">iPhone 18 Pro 直式（402 × 874）</option><option value="390,720">一般手機直式（390 × 720）</option><option value="375,667">小尺寸手機直式（375 × 667）</option><option value="430,820">大尺寸手機直式（430 × 820）</option></select>
+</details></div>
 <div class="actions">
 <button id="reset" type="button">恢復預設</button>
 <button id="copy" type="button">複製調整數值</button>
@@ -123,6 +167,20 @@ const { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } =
   panelX:$('panelXValue'),panelY:$('panelYValue'),panelScale:$('panelScaleValue'),railSpacing:$('railSpacingValue')
  };
  const zoom=$('zoom'),zoomValue=$('zoomValue'),previewCategory=$('previewCategory');
+ const accordionSections=Array.from(document.querySelectorAll('.accordion'));
+ const toggleAll=$('toggleAll');
+ function updateToggleAll(){
+  const allOpen=accordionSections.every(section=>section.open);
+  toggleAll.textContent=allOpen?'全部收合':'全部展開';
+  toggleAll.setAttribute('aria-label',allOpen?'收合所有調整分類':'展開所有調整分類');
+ }
+ toggleAll.addEventListener('click',()=>{
+  const shouldOpen=!accordionSections.every(section=>section.open);
+  accordionSections.forEach(section=>{section.open=shouldOpen;});
+  updateToggleAll();
+ });
+ accordionSections.forEach(section=>section.addEventListener('toggle',updateToggleAll));
+ updateToggleAll();
  const fromConfig=cfg=>({
   titleY:cfg.titleY*100,firstButtonY:cfg.firstButtonY*100,
   titleX:cfg.titleX*100,buttonX:cfg.buttonX*100,
