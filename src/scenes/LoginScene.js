@@ -630,6 +630,7 @@ export class LoginScene extends Phaser.Scene {
         if (!this.scene.isActive()) return;
 
         const wasOpen = this.settingsExpanded;
+        const wasLanguageOnly = this.languageOnly;
         const previousCategory = this.settingsCategory;
 
         if (wasOpen) {
@@ -641,10 +642,14 @@ export class LoginScene extends Phaser.Scene {
 
         if (wasOpen) {
 
-            this.openSettings();
+            if (wasLanguageOnly) {
+                this.openLanguageSelector();
+            } else {
+                this.openSettings();
 
-            if (previousCategory) {
-                this.selectSettingsCategory(previousCategory);
+                if (previousCategory) {
+                    this.selectSettingsCategory(previousCategory);
+                }
             }
         }
     }
