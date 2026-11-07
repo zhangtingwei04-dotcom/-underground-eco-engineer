@@ -291,7 +291,7 @@ const { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } =
    x0:drafts[direction][item.x],y0:drafts[direction][item.y],
    width:Number(device.value.split(',')[0])*Number(zoom.value)/100,
    height:Number(device.value.split(',')[1])*Number(zoom.value)/100};
-  handle.setPointerCapture(event.pointerId);
+  try{handle.setPointerCapture(event.pointerId);}catch(_){dragging=null;}
  }
  function moveDrag(event){
   const d=dragging;
