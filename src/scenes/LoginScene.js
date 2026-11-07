@@ -812,8 +812,8 @@ export class LoginScene extends Phaser.Scene {
         const buttonWidth = Math.min(width - 110, 185);
         const buttonHeight = shortScreen ? 44 : 50;
         // 四個按鈕等距排列：保留巨蜥頭部附近的垂直留白。
-        const buttonStartY = height * (shortScreen ? 0.285 : 0.29);
-        const buttonGap = height * (shortScreen ? 0.078 : 0.083);
+        const buttonStartY = height * (shortScreen ? 0.41 : 0.43);
+        const buttonGap = height * (shortScreen ? 0.086 : 0.091);
         const buttonCenterX = centerX;
 
         this.createResponsiveButton(
