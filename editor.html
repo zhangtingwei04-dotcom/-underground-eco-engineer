@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>鱗片與種子｜直式與橫式主畫面編輯器</title>
+<title>鱗片與種子｜主畫面視覺編輯器 V3</title>
 <style>
 :root{color-scheme:dark;font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif}
 *{box-sizing:border-box}body{margin:0;background:#19150f;color:#f5ebd5;padding:20px}
@@ -25,8 +25,8 @@ output{color:#ebbd80}small{display:block;color:#bdad97;line-height:1.6;margin-to
 </head>
 <body><main>
 <p><a href="./workbench.html" style="color:#e7c38a;text-decoration:underline">← 返回開發者工作台</a></p>
-<h1>鱗片與種子｜主畫面視覺編輯器</h1>
-<p>直接預覽真正的遊戲畫面。切換直式或橫式，即時調整該方向的標題及按鈕位置。預覽不影響正式遊戲。</p>
+<h1>鱗片與種子｜主畫面視覺編輯器 V3</h1>
+<p>直接預覽真正的遊戲畫面。切換直式或橫式，即時調整標題、按鈕的大小和位置，或縮放預覽畫面。預覽不影響正式遊戲。</p>
 <div class="layout">
 <section class="preview" aria-label="遊戲直式或橫式預覽"><div class="phone-shell" id="phoneShell"><div class="phone" id="phone" style="width:402px;height:874px"><iframe id="game" src="./index.html?preview=menu" title="遊戲直式主畫面" loading="eager"></iframe></div></div></section>
 <section class="controls">
@@ -36,6 +36,16 @@ output{color:#ebbd80}small{display:block;color:#bdad97;line-height:1.6;margin-to
 <input id="title" type="range" min="10" max="35" step="0.5" value="14">
 <label for="buttons">第一個按鈕中心高度 <output id="buttonValue">37.5%</output></label>
 <input id="buttons" type="range" min="30" max="65" step="0.5" value="37.5">
+<label for="titleX">標題左右偏移 <output id="titleXValue">0.0%</output></label>
+<input id="titleX" type="range" min="-25" max="25" step="0.5" value="0">
+<label for="titleScale">標題大小 <output id="titleScaleValue">100%</output></label>
+<input id="titleScale" type="range" min="50" max="150" step="5" value="100">
+<label for="buttonX">按鈕左右偏移 <output id="buttonXValue">0.0%</output></label>
+<input id="buttonX" type="range" min="-25" max="25" step="0.5" value="0">
+<label for="buttonScale">按鈕大小 <output id="buttonScaleValue">100%</output></label>
+<input id="buttonScale" type="range" min="60" max="140" step="5" value="100">
+<label for="zoom">預覽縮放 <output id="zoomValue">72%</output></label>
+<input id="zoom" type="range" min="30" max="110" step="5" value="72">
 <label for="device">預覽尺寸</label>
 <select id="device"><option value="402,874">iPhone 18 Pro 直式（402 × 874）</option><option value="390,720">一般手機直式（390 × 720）</option><option value="375,667">小尺寸手機直式（375 × 667）</option><option value="430,820">大尺寸手機直式（430 × 820）</option></select>
 <div class="actions">
@@ -44,91 +54,124 @@ output{color:#ebbd80}small{display:block;color:#bdad97;line-height:1.6;margin-to
 <button id="reload" type="button">重載預覽</button>
 </div>
 <p id="status" role="status"></p>
-<small>直式與橫式各有獨立設定。每次重新開啟編輯器會讀取 GitHub 正式數值；調整滑桿僅影響本次預覽，複製給 ChatGPT 後才會更新正式版。本頁沒有 GitHub 寫入權限，也沒有帳號管理功能。</small>
+<small>直式與橫式數值互不影響。左右偏移以螢幕寬度百分比計算，0% 為原始位置；尺寸 100% 為原始大小。預覽縮放不改變遊戲解析度。重新開啟會從 GitHub 讀取正式設定，複製給 ChatGPT 確認後才更新正式版。本頁沒有 GitHub 寫入權限，也沒有帳號管理功能。</small>
 </section></div>
 </main>
 <script type="module">
 const { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } =
   await import('./src/config/menu-layout.js?v=' + Date.now());
-
 (()=>{
- const title=document.getElementById('title'), buttons=document.getElementById('buttons'),
-       orientation=document.getElementById('orientation'), device=document.getElementById('device'),
-       frame=document.getElementById('game'), phone=document.getElementById('phone'),
-       phoneShell=document.getElementById('phoneShell'),
-       status=document.getElementById('status');
- const official={
-  portrait:{titleY:PORTRAIT_MENU_LAYOUT.titleY*100,buttonsY:PORTRAIT_MENU_LAYOUT.firstButtonY*100},
-  landscape:{titleY:LANDSCAPE_MENU_LAYOUT.titleY*100,buttonsY:LANDSCAPE_MENU_LAYOUT.firstButtonY*100}
+ const $=id=>document.getElementById(id);
+ const frame=$('game'),phone=$('phone'),phoneShell=$('phoneShell');
+ const orientation=$('orientation'),device=$('device'),status=$('status');
+ const controls={
+  titleY:$('title'),firstButtonY:$('buttons'),titleX:$('titleX'),
+  buttonX:$('buttonX'),titleScale:$('titleScale'),buttonScale:$('buttonScale')
  };
- // 每個方向獨立暫存，重新開啟頁面時讀取正式版共用設定。
+ const labels={
+  titleY:$('titleValue'),firstButtonY:$('buttonValue'),titleX:$('titleXValue'),
+  buttonX:$('buttonXValue'),titleScale:$('titleScaleValue'),buttonScale:$('buttonScaleValue')
+ };
+ const zoom=$('zoom'),zoomValue=$('zoomValue');
+ const fromConfig=cfg=>({
+  titleY:cfg.titleY*100,firstButtonY:cfg.firstButtonY*100,
+  titleX:cfg.titleX*100,buttonX:cfg.buttonX*100,
+  titleScale:cfg.titleScale*100,buttonScale:cfg.buttonScale*100
+ });
+ const official={
+  portrait:fromConfig(PORTRAIT_MENU_LAYOUT),
+  landscape:fromConfig(LANDSCAPE_MENU_LAYOUT)
+ };
  const drafts={
   portrait:{...official.portrait},landscape:{...official.landscape}
  };
+ const zoomDraft={portrait:72,landscape:100};
  const devices={
   portrait:[['402,874','iPhone 18 Pro 直式（402 × 874）'],['390,720','一般手機直式（390 × 720）'],['375,667','小尺寸手機直式（375 × 667）'],['430,820','大尺寸手機直式（430 × 820）']],
   landscape:[['874,402','iPhone 18 Pro 橫式（874 × 402）'],['720,390','一般手機橫式（720 × 390）'],['667,375','小尺寸手機橫式（667 × 375）'],['820,430','大尺寸手機橫式（820 × 430）']]
  };
- function render(){
-  const mode=orientation.value;
-  drafts[mode]={titleY:Number(title.value),buttonsY:Number(buttons.value)};
-  document.getElementById('titleValue').textContent=drafts[mode].titleY.toFixed(1)+'%';
-  document.getElementById('buttonValue').textContent=drafts[mode].buttonsY.toFixed(1)+'%';
-  if(frame.contentWindow)frame.contentWindow.postMessage({
-   type:'scales-seeds-menu-preview',orientation:mode,
-   titleY:drafts[mode].titleY/100,buttonsY:drafts[mode].buttonsY/100
+ const mode=()=>orientation.value;
+ function fillControls(){
+  for(const [key,el] of Object.entries(controls))el.value=drafts[mode()][key];
+  zoom.value=zoomDraft[mode()];
+  updateLabels();
+ }
+ function updateLabels(){
+  const p=drafts[mode()];
+  for(const [key,el] of Object.entries(labels))
+   el.textContent=p[key].toFixed(key.includes('Scale')?0:1)+'%';
+  zoomValue.textContent=zoom.value+'%';
+ }
+ function sendPreview(){
+  const p=drafts[mode()];
+  frame.contentWindow?.postMessage({
+   type:'scales-seeds-menu-preview',orientation:mode(),
+   titleY:p.titleY/100,buttonsY:p.firstButtonY/100,
+   titleX:p.titleX/100,buttonX:p.buttonX/100,
+   titleScale:p.titleScale/100,buttonScale:p.buttonScale/100
   },location.origin);
  }
- function switchOrientation(){
-  const mode=orientation.value;
-  device.replaceChildren();
-  for(const [value,label] of devices[mode]){
-   const item=document.createElement('option');item.value=value;item.textContent=label;device.appendChild(item);
-  }
-  title.min=mode==='portrait'?'10':'8';
-  title.max=mode==='portrait'?'35':'34';
-  buttons.min=mode==='portrait'?'30':'28';
-  buttons.max=mode==='portrait'?'65':'62';
-  title.value=drafts[mode].titleY;buttons.value=drafts[mode].buttonsY;
-  resizeDevice();
-  status.textContent=(mode==='portrait'?'直式':'橫式')+'：已載入對應的排版數值';
+ function updateControls(){
+  const p=drafts[mode()];
+  for(const [key,el] of Object.entries(controls))p[key]=Number(el.value);
+  updateLabels();
+  sendPreview();
  }
- function resizeDevice(){
+ function resizePreview(reload=false){
   const [w,h]=device.value.split(',').map(Number);
-  phone.style.width=w+'px';phone.style.height=h+'px';
-  // 只縮放外觀，不改變 iframe 內部邏輯解析度。
-  const previewScale=orientation.value==='portrait'?0.72:1;
-  phone.style.transform='scale('+previewScale+')';
-  phoneShell.style.width=(w*previewScale)+'px';
-  phoneShell.style.height=(h*previewScale)+'px';
-  // 橫式維持原本比例，窄螢幕可左右捲動。
-  render();
-  frame.src='./index.html?preview=menu&v='+Date.now();
+  const scale=Number(zoom.value)/100;
+  phone.style.width=w+'px';
+  phone.style.height=h+'px';
+  phone.style.transform='scale('+scale+')';
+  phoneShell.style.width=(w*scale)+'px';
+  phoneShell.style.height=(h*scale)+'px';
+  zoomValue.textContent=zoom.value+'%';
+  if(reload)frame.src='./index.html?preview=menu&v='+Date.now();
  }
- title.addEventListener('input',render);
- buttons.addEventListener('input',render);
- orientation.addEventListener('change',switchOrientation);
- device.addEventListener('change',resizeDevice);
- frame.addEventListener('load',()=>{render();setTimeout(render,700);});
- document.getElementById('reset').addEventListener('click',()=>{
-  const mode=orientation.value;
-  drafts[mode]={...official[mode]};
-  title.value=drafts[mode].titleY;buttons.value=drafts[mode].buttonsY;
-  render();status.textContent='已恢復'+(mode==='portrait'?'直式':'橫式')+' GitHub 正式版設定';
+ function changeMode(){
+  device.replaceChildren();
+  for(const [value,label] of devices[mode()]){
+   const option=document.createElement('option');option.value=value;option.textContent=label;device.appendChild(option);
+  }
+  controls.titleY.min=mode()==='portrait'?10:8;
+  controls.titleY.max=mode()==='portrait'?35:34;
+  controls.firstButtonY.min=mode()==='portrait'?30:28;
+  controls.firstButtonY.max=mode()==='portrait'?65:62;
+  fillControls();
+  resizePreview(true);
+  status.textContent=(mode()==='portrait'?'直式':'橫式')+'：已載入此方向的設定';
+ }
+ for(const el of Object.values(controls))el.addEventListener('input',updateControls);
+ zoom.addEventListener('input',()=>{
+  zoomDraft[mode()]=Number(zoom.value);
+  resizePreview(false);
  });
- document.getElementById('reload').addEventListener('click',()=>{
-  frame.src='./index.html?preview=menu&v='+Date.now();
+ orientation.addEventListener('change',changeMode);
+ device.addEventListener('change',()=>resizePreview(true));
+ frame.addEventListener('load',()=>{
+  sendPreview();
+  setTimeout(sendPreview,700);
+  setTimeout(sendPreview,1600);
+ });
+ $('reset').addEventListener('click',()=>{
+  drafts[mode()]={...official[mode()]};
+  zoomDraft[mode()]=mode()==='portrait'?72:100;
+  fillControls();resizePreview(false);sendPreview();
+  status.textContent='已恢復本方向的 GitHub 正式版設定';
+ });
+ $('reload').addEventListener('click',()=>{
+  resizePreview(true);
   status.textContent='正在重新載入遊戲預覽';
  });
- document.getElementById('copy').addEventListener('click',async()=>{
-  const mode=orientation.value,values=drafts[mode];
-  const name=mode==='portrait'?'直式':'橫式';
-  const message='請更新《鱗片與種子》'+name+'主畫面排版：標題中心高度 '+values.titleY.toFixed(1)+'%，第一個按鈕中心高度 '+values.buttonsY.toFixed(1)+'%；其餘按鈕間距不變，另一方向不變。請更新 GitHub main 的 src/config/menu-layout.js。';
-  try{await navigator.clipboard.writeText(message);status.textContent='已複製'+name+'設定，請貼到 ChatGPT';}
+ $('copy').addEventListener('click',async()=>{
+  const p=drafts[mode()],dir=mode()==='portrait'?'直式':'橫式';
+  const message='請更新《鱗片與種子》'+dir+'主畫面排版：標題中心高度 '+p.titleY.toFixed(1)+'%，第一個按鈕中心高度 '+p.firstButtonY.toFixed(1)+'%，標題左右偏移 '+p.titleX.toFixed(1)+'%，標題大小 '+p.titleScale.toFixed(0)+'%，按鈕左右偏移 '+p.buttonX.toFixed(1)+'%，按鈕大小 '+p.buttonScale.toFixed(0)+'%。維持其他按鈕間距，另一方向不變。請更新 GitHub main 的 src/config/menu-layout.js。預覽縮放只屬編輯器，不修改正式遊戲。';
+  try{await navigator.clipboard.writeText(message);status.textContent='已複製'+dir+'設定，請貼給 ChatGPT';}
   catch(_){status.textContent=message;}
  });
- title.value=official.portrait.titleY;buttons.value=official.portrait.buttonsY;
- resizeDevice();
+ fillControls();
+ resizePreview(false);
+ sendPreview();
 })();
 </script>
 </body></html>
