@@ -682,6 +682,7 @@ export class LoginScene extends Phaser.Scene {
             (height / 2) * (1 - scale)
         );
 
+        this.drawLanguageButton(width, height);
         this.drawSettingsButton(width, height);
     }
 
@@ -786,17 +787,18 @@ export class LoginScene extends Phaser.Scene {
 
         // 橫式不再放置大型底板，讓背景與巨蜥完整露出。
         // 文字及木製按鈕直接疊在背景上，以描邊和陰影維持辨識度。
-        const leftAreaWidth = Math.min(width * 0.32, 330);
+        // 將所有主畫面文字與按鈕限制在左側窄欄，保留巨蜥所在的背景主視覺。
+        const leftAreaWidth = Math.min(width * 0.26, 255);
         const leftCenterX = Math.max(
-            leftAreaWidth / 2 + margin,
-            width * 0.17
+            leftAreaWidth / 2 + 12,
+            width * 0.135
         );
 
-        const scale = Math.min(1, height / 390, width / 720);
-        const titleSize = Math.max(20, 31 * scale);
-        const welcomeSize = Math.max(13, 16 * scale);
-        const messageSize = Math.max(10, 11 * scale);
-        const top = Math.max(25, height * 0.085);
+        const scale = Math.min(0.88, height / 430, width / 820);
+        const titleSize = Math.max(17, 25 * scale);
+        const welcomeSize = Math.max(12, 14 * scale);
+        const messageSize = Math.max(9, 10 * scale);
+        const top = Math.max(22, height * 0.075);
 
         this.addLayoutText(
             leftCenterX,
@@ -853,10 +855,10 @@ export class LoginScene extends Phaser.Scene {
             }
         );
 
-        const buttonWidth = Math.min(leftAreaWidth - 18, 290);
+        const buttonWidth = Math.min(leftAreaWidth - 14, 225);
         const buttonHeight = Math.max(38, Math.min(49, height * 0.125));
         const buttonGap = buttonHeight + Math.max(6, height * 0.018);
-        const buttonStartY = height * 0.515;
+        const buttonStartY = height * 0.505;
         const buttonFontSize = Math.max(13, 16 * scale * textScale);
 
         this.createResponsiveButton(
@@ -1449,6 +1451,52 @@ export class LoginScene extends Phaser.Scene {
         this.layoutContainer.add(container);
 
         return container;
+    }
+
+    // =====================================
+    // 主畫面語言地球按鈕
+    // =====================================
+
+    drawLanguageButton(width, height) {
+
+        const button = this.add.container(width - 87, 32);
+        const wood = this.add.graphics();
+
+        wood.fillStyle(0x21150e, 0.95);
+        wood.fillRoundedRect(-24, -24, 48, 48, 9);
+        wood.fillStyle(0x684326, 1);
+        wood.fillRoundedRect(-21, -21, 42, 42, 7);
+        wood.fillStyle(0x8b6038, 1);
+        wood.fillRoundedRect(-17, -17, 34, 34, 5);
+        wood.lineStyle(1.5, 0xe0bd7d, 1);
+        wood.strokeRoundedRect(-19, -19, 38, 38, 6);
+
+        // 使用 Phaser Graphics 原生線條繪製地球，不依賴 Emoji 字型。
+        const globe = this.add.graphics();
+        globe.lineStyle(1.8, 0xf6dfb0, 1);
+        globe.strokeCircle(0, 0, 10);
+        globe.strokeEllipse(0, 0, 10, 18);
+        globe.beginPath();
+        globe.moveTo(-9, 0);
+        globe.lineTo(9, 0);
+        globe.moveTo(-7, -5);
+        globe.lineTo(7, -5);
+        globe.moveTo(-7, 5);
+        globe.lineTo(7, 5);
+        globe.strokePath();
+
+        const hitArea = this.add.rectangle(0, 0, 48, 48, 0xffffff, 0.001);
+        hitArea.setInteractive({ useHandCursor: true });
+
+        hitArea.on('pointerover', () => button.setScale(1.07));
+        hitArea.on('pointerout', () => button.setScale(1));
+        hitArea.on('pointerdown', () => {
+            if (!this.settingsExpanded) this.openSettings();
+            this.selectSettingsCategory('language');
+        });
+
+        button.add([wood, globe, hitArea]);
+        this.settingsButtonContainer.add(button);
     }
 
     // =====================================
