@@ -26,7 +26,7 @@ output{color:#ebbd80}small{display:block;color:#bdad97;line-height:1.6;margin-to
 <body><main>
 <p><a href="./workbench.html" style="color:#e7c38a;text-decoration:underline">← 返回開發者工作台</a></p>
 <h1>鱗片與種子｜主畫面視覺編輯器 V5</h1>
-<p>直接預覽真正的遊戲畫面。切換直式或橫式，即時調整標題、按鈕的大小和位置。橫式提供五個不同尺寸的畫面，從上到下垂直排列並同步調整。預覽不影響正式遊戲。</p>
+<p>直接預覽真正的遊戲畫面。切換直式或橫式，即時調整標題、按鈕的大小和位置。橫式提供五個不同尺寸的畫面，從上到下垂直排列並同步調整；畫面移到可見範圍才載入，以降低手機負擔。預覽不影響正式遊戲。</p>
 <div class="layout">
 <section class="preview" aria-label="遊戲直式或橫式預覽">
 <div id="portraitPreview"><div class="phone-shell" id="phoneShell"><div class="phone" id="phone" style="width:402px;height:874px"><iframe id="game" src="./index.html?preview=menu" title="遊戲直式主畫面" loading="eager"></iframe></div></div></div>
@@ -91,7 +91,7 @@ output{color:#ebbd80}small{display:block;color:#bdad97;line-height:1.6;margin-to
 <button id="reload" type="button">重載預覽</button>
 </div>
 <p id="status" role="status"></p>
-<small>直式與橫式數值互不影響；橫式的五個預覽同時共用同一組調整數值。左右偏移以螢幕寬度百分比計算，0% 為原始位置；尺寸 100% 為原始大小。預覽縮放不改變遊戲解析度。重新開啟會從 GitHub 讀取正式設定，複製給 ChatGPT 確認後才更新正式版。本頁沒有 GitHub 寫入權限，也沒有帳號管理功能。</small>
+<small>直式與橫式數值互不影響；橫式五個預覽共用同一組調整數值，離開可見範圍會暫停並釋放畫面資源。左右偏移以螢幕寬度百分比計算，0% 為原始位置；尺寸 100% 為原始大小。預覽縮放不改變遊戲解析度。重新開啟會從 GitHub 讀取正式設定，複製給 ChatGPT 確認後才更新正式版。本頁沒有 GitHub 寫入權限，也沒有帳號管理功能。</small>
 </section></div>
 </main>
 <script type="module">
@@ -102,6 +102,9 @@ const { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } =
  const frame=$('game'),phone=$('phone'),phoneShell=$('phoneShell');
  const portraitPreview=$('portraitPreview'),landscapeStack=$('landscapeStack');
  const landscapeFrames=[];
+ let landscapeObserver=null;
+ let previewQueued=false;
+ let landscapeModeStarted=false;
  const orientation=$('orientation'),device=$('device'),status=$('status');
  const controls={
   titleY:$('title'),firstButtonY:$('buttons'),titleX:$('titleX'),
@@ -152,7 +155,7 @@ const { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } =
    el.textContent=p[key].toFixed(key.includes('Scale')?0:1)+'%';
   zoomValue.textContent=zoom.value+'%';
  }
- function sendPreview(){
+ function sendPreview(targetsOverride=null){
   const p=drafts[mode()];
   const packet={
    type:'scales-seeds-menu-preview',orientation:mode(),
@@ -164,14 +167,38 @@ const { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } =
    panelX:p.panelX/100,panelY:p.panelY/100,panelScale:p.panelScale/100,
    railSpacing:p.railSpacing/100,previewCategory:categoryDraft[mode()]
   };
-  const targets=mode()==='portrait'?[frame]:landscapeFrames;
-  for(const target of targets)target.contentWindow?.postMessage(packet,location.origin);
+  const targets=targetsOverride ?? (mode()==='portrait'?[frame]:landscapeFrames);
+  for(const target of targets){
+   if(target!==frame && target.dataset.live!=='true')continue;
+   target.contentWindow?.postMessage(packet,location.origin);
+  }
+ }
+ function queuePreview(){
+  if(previewQueued)return;
+  previewQueued=true;
+  requestAnimationFrame(()=>{
+   previewQueued=false;
+   sendPreview();
+  });
+ }
+ function activateLandscape(iframe,reload=false){
+  if(mode()!=='landscape')return;
+  if(iframe.dataset.live==='true'&&!reload)return;
+  iframe.dataset.live='true';
+  iframe.src='./index.html?preview=menu&v='+Date.now();
+ }
+ function releaseLandscape(iframe){
+  if(iframe.dataset.live!=='true')return;
+  iframe.dataset.live='false';
+  iframe.src='about:blank';
+ }
+ function releaseAllLandscapes(){
+  for(const iframe of landscapeFrames)releaseLandscape(iframe);
  }
  function refreshLandscapeFrames(reload=false){
   const scale=Number(zoom.value)/100;
   if(!landscapeFrames.length){
    for(const [size,label] of devices.landscape){
-    const [w,h]=size.split(',').map(Number);
     const unit=document.createElement('div');
     unit.className='landscape-unit';
     const caption=document.createElement('figcaption');
@@ -183,13 +210,16 @@ const { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } =
     const iframe=document.createElement('iframe');
     iframe.title=label+' 遊戲預覽';
     iframe.loading='lazy';
+    iframe.dataset.live='false';
     iframe.addEventListener('load',()=>{
-     if(mode()==='landscape'){
-      sendPreview();setTimeout(sendPreview,700);setTimeout(sendPreview,1600);
+     if(iframe.dataset.live==='true' && mode()==='landscape'){
+      sendPreview([iframe]);
      }
     });
-    mock.appendChild(iframe);shell.appendChild(mock);
-    unit.append(caption,shell);landscapeStack.appendChild(unit);
+    mock.appendChild(iframe);
+    shell.appendChild(mock);
+    unit.append(caption,shell);
+    landscapeStack.appendChild(unit);
     landscapeFrames.push(iframe);
    }
   }
@@ -199,14 +229,34 @@ const { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } =
    mock.style.width=w+'px';mock.style.height=h+'px';
    mock.style.transform='scale('+scale+')';
    shell.style.width=(w*scale)+'px';shell.style.height=(h*scale)+'px';
-   if(reload||!iframe.getAttribute('src'))iframe.src='./index.html?preview=menu&v='+Date.now()+'-'+i;
   });
+  if(!landscapeObserver && 'IntersectionObserver' in window){
+   landscapeObserver=new IntersectionObserver(entries=>{
+    if(mode()!=='landscape')return;
+    for(const entry of entries){
+     const iframe=entry.target.querySelector('iframe');
+     if(!iframe)continue;
+     if(entry.isIntersecting)activateLandscape(iframe);
+     else releaseLandscape(iframe);
+    }
+   },{root:null,rootMargin:'160px 0px',threshold:0});
+   for(const unit of landscapeStack.children)landscapeObserver.observe(unit);
+  }
+  // 沒有 IntersectionObserver 的瀏覽器，仍可使用全部五個畫面。
+  if(!landscapeObserver){
+   for(const iframe of landscapeFrames)activateLandscape(iframe,reload);
+  }else if(reload){
+   // 只重載正在顯示的畫面；其他畫面進入可見區域時再載入。
+   for(const iframe of landscapeFrames){
+    if(iframe.dataset.live==='true')activateLandscape(iframe,true);
+   }
+  }
  }
  function updateControls(){
   const p=drafts[mode()];
   for(const [key,el] of Object.entries(controls))p[key]=Number(el.value);
   updateLabels();
-  sendPreview();
+  queuePreview();
  }
  function resizePreview(reload=false){
   const scale=Number(zoom.value)/100;
@@ -215,10 +265,11 @@ const { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } =
    portraitPreview.style.display='none';
    landscapeStack.style.display='flex';
    refreshLandscapeFrames(reload);
-   sendPreview();
+   queuePreview();
    return;
   }
   landscapeStack.style.display='none';
+  releaseAllLandscapes();
   portraitPreview.style.display='block';
   const [w,h]=device.value.split(',').map(Number);
   phone.style.width=w+'px';phone.style.height=h+'px';
@@ -237,7 +288,7 @@ const { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } =
   controls.firstButtonY.min=mode()==='portrait'?30:28;
   controls.firstButtonY.max=mode()==='portrait'?65:62;
   fillControls();
-  resizePreview(true);
+  resizePreview(mode()==='portrait');
   status.textContent=(mode()==='portrait'?'直式':'橫式')+'：已載入此方向的設定';
  }
  for(const el of Object.values(controls))el.addEventListener('input',updateControls);
@@ -245,24 +296,27 @@ const { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } =
   zoomDraft[mode()]=Number(zoom.value);
   resizePreview(false);
  });
- previewCategory.addEventListener('change',()=>{categoryDraft[mode()]=previewCategory.value;sendPreview();});
+ previewCategory.addEventListener('change',()=>{categoryDraft[mode()]=previewCategory.value;queuePreview();});
  orientation.addEventListener('change',changeMode);
  device.addEventListener('change',()=>{if(mode()==='portrait')resizePreview(true);else status.textContent='橫式已同時顯示全部五種尺寸';});
- frame.addEventListener('load',()=>{
-  sendPreview();
-  setTimeout(sendPreview,700);
-  setTimeout(sendPreview,1600);
+ frame.addEventListener('load',()=>{if(mode()==='portrait')sendPreview([frame]);});
+ // Phaser 會主動回報場景已建立；只同步正在運作的 iframe。
+ window.addEventListener('message',event=>{
+  if(event.origin!==location.origin || event.data?.type!=='scales-seeds-menu-ready')return;
+  const target=[frame,...landscapeFrames].find(item=>item.contentWindow===event.source);
+  if(target && (target===frame ? mode()==='portrait' : mode()==='landscape' && target.dataset.live==='true'))
+   sendPreview([target]);
  });
  $('reset').addEventListener('click',()=>{
   drafts[mode()]={...official[mode()]};
   zoomDraft[mode()]=mode()==='portrait'?85:40;
   categoryDraft[mode()]='none';
-  fillControls();resizePreview(false);sendPreview();
+  fillControls();resizePreview(false);queuePreview();
   status.textContent='已恢復本方向的 GitHub 正式版設定';
  });
  $('reload').addEventListener('click',()=>{
   resizePreview(true);
-  status.textContent='正在重新載入遊戲預覽';
+  status.textContent='正在重新載入可見的遊戲預覽';
  });
  $('copy').addEventListener('click',async()=>{
   const p=drafts[mode()],dir=mode()==='portrait'?'直式':'橫式';
@@ -272,7 +326,7 @@ const { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } =
  });
  fillControls();
  resizePreview(false);
- sendPreview();
+ queuePreview();
 })();
 </script>
 </body></html>
