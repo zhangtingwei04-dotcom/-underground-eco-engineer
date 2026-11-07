@@ -76,3 +76,12 @@
 - `LoginScene.js` 中 `zh-TW` 的 Logo 圖片網址由舊的 `title-frame.png` 改成 `title-zh-TW.png?v=approved-zh-TW-20261107-1`；`de` 德文圖檔映射不變，其他語言維持本地文字後備。既有 `title-frame.png` **保留作為舊版備份**，沒有刪除。
 - 入口 JS 快取版本同步更新，避免 iPhone 瀏覽器只顯示舊版；沒有變更橫式／直式標題尺寸、背景與按鈕位置。
 - GitHub 提交已完成；**網站 GitHub Pages 的實際視覺效果尚待手機驗收**。
+
+## 八、2026-11-07｜簡體中文正式標題完成與上傳（已提交）
+
+- 使用者確認簡體中文完整 Logo 圖可作為正式版本。主標題「鳞片与种子」，副標題「地下生态物语」，金橙色立體字、深咖啡色木框、右上修長蜥蜴、青綠色窗景、中央破殼幼蛇與完整眼睛、藤蔓、白花、藍色水晶等與繁體中文版保持同系列風格。
+- 以已確認的 1774 × 887 RGBA 透明背景 PNG 製作網站最佳化版，輸出為 1774 × 887、256 色透明 PNG（約 565 KB），**只做圖片大小最佳化，不裁切完整木框或幼蛇眼睛**。
+- 正式 GitHub 路徑：`assets/images/ui/main-menu/title-zh-CN.png`。Git blob SHA：`6e3a2af66be27262be8876c2c58db79eadef3013`；首次加入圖片提交：`2296d8d4f7fca60becb0e7e5be12259d098bff91`；本版 PNG 的 SHA-256：`abc84778cc5d7f61300c292b5eed997065d10130a513874c975b8185f412b0cf`。
+- `src/scenes/LoginScene.js` 的 `MAIN_MENU_TITLE_ASSETS` 已加入 `zh-CN → main_menu_title_zh_CN → title-zh-CN.png` 的整張圖片映射。切換語言後現有 `languageChanged` 事件會重繪標題；其餘尚未製作完整 Logo 的語系使用其語言的文字後備。
+- 已更新 `src/main.js` 與 `index.html` 的版本查詢字串，避免手機繼續載入舊版 Scene。**繁體中文與德文的圖片映射均保留不變，主畫面按鈕／背景／橫直式尺寸不動。**
+- GitHub 程式與圖片提交已完成；GitHub Pages iOS 實機效果仍待使用者查看。
