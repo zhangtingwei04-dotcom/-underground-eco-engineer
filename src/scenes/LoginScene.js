@@ -758,7 +758,9 @@ export class LoginScene extends Phaser.Scene {
             buttonWidth,
             buttonHeight,
             LanguageSystem.t('login.login'),
-            'loginSelected'
+            'loginSelected',
+            18,
+            true
         );
 
         this.createResponsiveButton(
@@ -767,7 +769,9 @@ export class LoginScene extends Phaser.Scene {
             buttonWidth,
             buttonHeight,
             LanguageSystem.t('login.create_account'),
-            'registerSelected'
+            'registerSelected',
+            18,
+            true
         );
     }
 
@@ -778,30 +782,69 @@ export class LoginScene extends Phaser.Scene {
     drawLandscapeLayout(centerX, width, height) {
 
         const textScale = this.getTextScale();
-
         const margin = Math.max(16, width * 0.025);
 
-        const leftAreaWidth = Math.min(
-            width * 0.44,
-            420
-        );
-
+        // 左側集中放置操作介面，右側保留背景生物與場景主視覺。
+        const leftAreaWidth = Math.min(width * 0.44, 420);
         const leftCenterX = Math.max(
             leftAreaWidth / 2 + margin,
             width * 0.23
         );
 
-        const scale = Math.min(
-            1,
-            height / 390,
-            width / 650
+        const compact = height < 430 || width < 760;
+        const scale = Math.min(1, height / 390, width / 720);
+
+        const panelWidth = Math.min(
+            width * 0.48,
+            leftAreaWidth + 34
+        );
+        const panelHeight = Math.min(
+            height * 0.88,
+            compact ? 350 : 390
         );
 
-        const titleSize = Math.max(18, 30 * scale);
-        const welcomeSize = Math.max(13, 17 * scale);
-        const messageSize = Math.max(10, 11 * scale);
+        const panel = this.add.graphics();
+        panel.fillStyle(0x101b16, 0.48);
+        panel.fillRoundedRect(
+            leftCenterX - panelWidth / 2 + 4,
+            height / 2 - panelHeight / 2 + 6,
+            panelWidth,
+            panelHeight,
+            18
+        );
+        panel.fillStyle(0x17251d, 0.56);
+        panel.fillRoundedRect(
+            leftCenterX - panelWidth / 2,
+            height / 2 - panelHeight / 2,
+            panelWidth,
+            panelHeight,
+            18
+        );
+        panel.lineStyle(1.5, 0xd6b77d, 0.62);
+        panel.strokeRoundedRect(
+            leftCenterX - panelWidth / 2 + 2,
+            height / 2 - panelHeight / 2 + 2,
+            panelWidth - 4,
+            panelHeight - 4,
+            16
+        );
+        panel.lineStyle(1, 0xead5a5, 0.18);
+        panel.beginPath();
+        panel.moveTo(
+            leftCenterX - panelWidth * 0.32,
+            height / 2 - panelHeight / 2 + 12
+        );
+        panel.lineTo(
+            leftCenterX + panelWidth * 0.32,
+            height / 2 - panelHeight / 2 + 12
+        );
+        panel.strokePath();
+        this.layoutContainer.add(panel);
 
-        const top = Math.max(18, height * 0.055);
+        const titleSize = Math.max(20, 31 * scale);
+        const welcomeSize = Math.max(13, 17 * scale);
+        const messageSize = Math.max(10, 12 * scale);
+        const top = Math.max(25, height * 0.085);
 
         this.addLayoutText(
             leftCenterX,
@@ -810,66 +853,57 @@ export class LoginScene extends Phaser.Scene {
             {
                 fontFamily: 'Georgia, serif',
                 fontSize: `${titleSize * textScale}px`,
-                color: '#f3e8cb',
+                color: '#f6e9ca',
                 fontStyle: 'bold',
-                stroke: '#392619',
-                strokeThickness: 3,
+                stroke: '#302014',
+                strokeThickness: 4,
+                shadow: {
+                    offsetX: 1,
+                    offsetY: 2,
+                    color: '#160f0a',
+                    blur: 5,
+                    fill: true
+                },
                 align: 'center',
-                wordWrap: {
-                    width: leftAreaWidth
-                }
+                wordWrap: { width: leftAreaWidth - 12 }
             }
         );
 
         this.addLayoutText(
             leftCenterX,
-            top + height * 0.17,
+            height * 0.255,
             LanguageSystem.t('login.welcome'),
             {
                 fontFamily: 'Georgia, serif',
                 fontSize: `${welcomeSize * textScale}px`,
-                color: '#f0e6ce',
+                color: '#f1e6ce',
+                stroke: '#253329',
+                strokeThickness: 2,
                 align: 'center',
-                wordWrap: {
-                    width: leftAreaWidth
-                }
+                wordWrap: { width: leftAreaWidth - 16 }
             }
         );
 
         this.addLayoutText(
             leftCenterX,
-            top + height * 0.25,
+            height * 0.335,
             LanguageSystem.t('login.welcome_message'),
             {
                 fontFamily: 'Arial, sans-serif',
                 fontSize: `${messageSize * textScale}px`,
-                color: '#d2d8c1',
+                color: '#dce5d1',
+                stroke: '#1b2a20',
+                strokeThickness: 2,
                 align: 'center',
-                wordWrap: {
-                    width: leftAreaWidth - 20
-                }
+                wordWrap: { width: leftAreaWidth - 28 }
             }
         );
 
-        const buttonWidth = Math.min(
-            leftAreaWidth - 30,
-            260
-        );
-
-        const buttonHeight = Math.max(
-            34,
-            Math.min(44, height * 0.13)
-        );
-
-        const buttonGap =
-            buttonHeight + Math.max(7, height * 0.025);
-
-        const buttonStartY = height * 0.49;
-
-        const buttonFontSize = Math.max(
-            12,
-            15 * scale * textScale
-        );
+        const buttonWidth = Math.min(leftAreaWidth - 28, 310);
+        const buttonHeight = Math.max(40, Math.min(52, height * 0.135));
+        const buttonGap = buttonHeight + Math.max(7, height * 0.022);
+        const buttonStartY = height * 0.515;
+        const buttonFontSize = Math.max(13, 17 * scale * textScale);
 
         this.createResponsiveButton(
             leftCenterX,
@@ -889,7 +923,8 @@ export class LoginScene extends Phaser.Scene {
             buttonHeight,
             LanguageSystem.t('login.login'),
             'loginSelected',
-            buttonFontSize
+            buttonFontSize,
+            true
         );
 
         this.createResponsiveButton(
@@ -899,7 +934,8 @@ export class LoginScene extends Phaser.Scene {
             buttonHeight,
             LanguageSystem.t('login.create_account'),
             'registerSelected',
-            buttonFontSize
+            buttonFontSize,
+            true
         );
     }
 
@@ -1098,7 +1134,7 @@ export class LoginScene extends Phaser.Scene {
     createFallbackWoodenButton(width, height) {
 
         // 備用木牌尺寸同步縮小至 65%
-        const buttonScale = 0.58;
+        const buttonScale = 0.82;
 
         width *= buttonScale;
         height *= buttonScale;
@@ -1250,7 +1286,7 @@ export class LoginScene extends Phaser.Scene {
                 height
             );
 
-            const buttonScale = 0.58;
+            const buttonScale = 0.82;
 
             const visualWidth = width * buttonScale;
             const visualHeight = height * buttonScale;
@@ -1521,7 +1557,7 @@ export class LoginScene extends Phaser.Scene {
             { id: 'screen', icon: '▤', label: '畫面' },
             { id: 'sound', icon: '♫', label: '音效' },
             { id: 'operation', icon: '✥', label: '操作' },
-            { id: 'language', icon: '文', label: '語言' },
+            { id: 'language', icon: '🌐', label: '語言' },
             { id: 'system', icon: '⚙', label: '系統' }
         ];
     }
@@ -1622,19 +1658,40 @@ export class LoginScene extends Phaser.Scene {
                 1
             );
 
-            const icon = this.add.text(
-                x,
-                y,
-                category.icon,
-                {
-                    fontFamily: 'Georgia, serif',
-                    fontSize: '20px',
-                    fontStyle: 'bold',
-                    color: '#f2d39a',
-                    stroke: '#392316',
-                    strokeThickness: 2
-                }
-            ).setOrigin(0.5);
+            let icon;
+
+            if (category.id === 'language') {
+
+                // 語言功能使用地球圖示，不再顯示「文」字。
+                icon = this.add.graphics();
+                icon.lineStyle(1.8, 0xf2d39a, 1);
+                icon.strokeCircle(x, y, 9);
+                icon.strokeEllipse(x, y, 9, 17);
+                icon.beginPath();
+                icon.moveTo(x - 8, y);
+                icon.lineTo(x + 8, y);
+                icon.moveTo(x - 6, y - 5);
+                icon.lineTo(x + 6, y - 5);
+                icon.moveTo(x - 6, y + 5);
+                icon.lineTo(x + 6, y + 5);
+                icon.strokePath();
+
+            } else {
+
+                icon = this.add.text(
+                    x,
+                    y,
+                    category.icon,
+                    {
+                        fontFamily: 'Georgia, serif',
+                        fontSize: '20px',
+                        fontStyle: 'bold',
+                        color: '#f2d39a',
+                        stroke: '#392316',
+                        strokeThickness: 2
+                    }
+                ).setOrigin(0.5);
+            }
 
             background.setInteractive({
                 useHandCursor: true
