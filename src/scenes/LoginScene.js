@@ -188,7 +188,13 @@ export class LoginScene extends Phaser.Scene {
                 titleX: read('titleX', -0.25, 0.25),
                 buttonX: read('buttonX', -0.25, 0.25),
                 titleScale: read('titleScale', 0.5, 1.5),
-                buttonScale: read('buttonScale', 0.6, 1.4)
+                buttonScale: read('buttonScale', 0.6, 1.4),
+                languageX: read('languageX', -0.5, 0.5),
+                languageY: read('languageY', -0.5, 0.5),
+                languageScale: read('languageScale', 0.6, 1.4),
+                settingsX: read('settingsX', -0.5, 0.5),
+                settingsY: read('settingsY', -0.5, 0.5),
+                settingsScale: read('settingsScale', 0.6, 1.4)
             };
             if (orientation === 'landscape') this.previewLandscapeLayout = preview;
             else this.previewPortraitLayout = preview;
@@ -1637,7 +1643,14 @@ export class LoginScene extends Phaser.Scene {
 
     drawLanguageButton(width, height) {
 
-        const button = this.add.container(this.isPortrait() ? 31 : width - 87, 32);
+        const layout = this.isPortrait()
+            ? (this.previewPortraitLayout ?? PORTRAIT_MENU_LAYOUT)
+            : (this.previewLandscapeLayout ?? LANDSCAPE_MENU_LAYOUT);
+        const button = this.add.container(
+            (this.isPortrait() ? 31 : width - 87) + width * layout.languageX,
+            32 + height * layout.languageY
+        );
+        button.setScale(layout.languageScale);
         const wood = this.add.graphics();
 
         wood.fillStyle(0x21150e, 0.95);
@@ -1666,8 +1679,8 @@ export class LoginScene extends Phaser.Scene {
         const hitArea = this.add.rectangle(0, 0, 48, 48, 0xffffff, 0.001);
         hitArea.setInteractive({ useHandCursor: true });
 
-        hitArea.on('pointerover', () => button.setScale(1.07));
-        hitArea.on('pointerout', () => button.setScale(1));
+        hitArea.on('pointerover', () => button.setScale(layout.languageScale * 1.07));
+        hitArea.on('pointerout', () => button.setScale(layout.languageScale));
         hitArea.on('pointerdown', () => {
             if (this.settingsExpanded) {
                 this.closeSettings();
@@ -1686,7 +1699,14 @@ export class LoginScene extends Phaser.Scene {
 
     drawSettingsButton(width, height) {
 
-        const button = this.add.container(width - 31, 32);
+        const layout = this.isPortrait()
+            ? (this.previewPortraitLayout ?? PORTRAIT_MENU_LAYOUT)
+            : (this.previewLandscapeLayout ?? LANDSCAPE_MENU_LAYOUT);
+        const button = this.add.container(
+            width - 31 + width * layout.settingsX,
+            32 + height * layout.settingsY
+        );
+        button.setScale(layout.settingsScale);
         const wood = this.add.graphics();
 
         // 深色木牌底座、木紋與黃銅包邊
@@ -1718,11 +1738,11 @@ export class LoginScene extends Phaser.Scene {
         hitArea.setInteractive({ useHandCursor: true });
 
         hitArea.on('pointerover', () => {
-            button.setScale(1.07);
+            button.setScale(layout.settingsScale * 1.07);
             icon.setColor('#fff0c9');
         });
         hitArea.on('pointerout', () => {
-            button.setScale(1);
+            button.setScale(layout.settingsScale);
             icon.setColor('#f6dfb0');
         });
         hitArea.on('pointerdown', () => {
