@@ -2317,3 +2317,11 @@ NPC 可自主結婚及邀請玩家參加婚禮；婚姻是否維持、修復、�
 - `LoginScene.js` 增加 `ja` → `main_menu_title_ja` 的圖片資產映射，`src/locales/ja.json` 將標題、副標題文字與圖面統一。原有繁中、簡中、英文、德文映射與其他語言文字後備保留。
 - `src/main.js` 和 `index.html` 快取版本同步更新以降低手機讀取舊 JS 的問題。**背景、按鈕、橫直式排版不變**。
 - GitHub `main` 上傳和程式已提交；網站在 iPhone 上的實際顯示仍需使用者查看驗收。詳見 `docs/ART_TITLE_LOCALIZATION_MASTER.md`。
+
+## 2026-11-07｜韓文主標題圖片正式上傳並接入切換
+
+- 使用者確認韓文 Logo 美術稿，並要求直接上傳到遊戲。圖像使用韓文主標題「비늘과 씨앗」及副標題「지하 생태계 이야기」。
+- 已上傳 1774×887 透明背景完整版 `assets/images/ui/main-menu/title-ko.png`，Git blob `1adb77859b8a73609128bb3db52b4f933ff9e04f`，圖片提交 `40bb909988f6568095ba5417b1b7fb97834c07e7`。
+- `src/scenes/LoginScene.js` 新增韓文完整 Logo 映射；`src/locales/ko.json` 的 title/subtitle 已與圖片一致；`src/main.js`、`index.html` 更新載入版本。
+- 保留繁中、簡中、英文、日文及德文圖片與動態文字後備。背景、木質按鈕、橫直式主畫面版型保持不變。
+- 已完成 GitHub `main` 提交，但尚未於使用者 iPhone 上視覺驗收；詳見 `docs/ART_TITLE_LOCALIZATION_MASTER.md`。
