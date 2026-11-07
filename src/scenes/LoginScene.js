@@ -839,7 +839,7 @@ export class LoginScene extends Phaser.Scene {
 
         const shortScreen = height < 650;
         const textScale = this.getTextScale();
-        const titleY = this.previewTitleY ?? 0.15;
+        const titleY = this.previewTitleY ?? 0.14;
         const buttonsY = this.previewButtonsY ?? 0.375;
 
         const imageTitle = this.drawMainMenuTitle(centerX, height * titleY, Math.min(width - 20, 400), Math.min(190, height * 0.30));
@@ -1613,29 +1613,9 @@ export class LoginScene extends Phaser.Scene {
     // 主畫面語言地球按鈕
     // =====================================
 
-    // 直式：語言與設定並排在標題下方；橫式仍採右上角原有位置。
-    getPortraitHeaderControls(width, height) {
-        const shortScreen = height < 650;
-        const titleY = this.previewTitleY ?? 0.15;
-        const firstButtonY = this.previewButtonsY ?? 0.375;
-        const titleBottom = height * titleY + Math.min(190, height * 0.30) / 2;
-        const firstButtonTop = height * firstButtonY - (shortScreen ? 44 : 50) / 2;
-        const gap = Math.max(28, firstButtonTop - titleBottom);
-        const size = Phaser.Math.Clamp(gap - 8, 30, 48);
-        return {
-            leftX: width * 0.36,
-            rightX: width * 0.64,
-            y: titleBottom + gap / 2,
-            scale: size / 48
-        };
-    }
-
     drawLanguageButton(width, height) {
 
-        const portrait = this.isPortrait();
-        const controls = portrait ? this.getPortraitHeaderControls(width, height) : null;
-        const button = this.add.container(portrait ? controls.leftX : width - 87, portrait ? controls.y : 32);
-        if (portrait) button.setScale(controls.scale);
+        const button = this.add.container(this.isPortrait() ? 31 : width - 87, 32);
         const wood = this.add.graphics();
 
         wood.fillStyle(0x21150e, 0.95);
@@ -1664,8 +1644,8 @@ export class LoginScene extends Phaser.Scene {
         const hitArea = this.add.rectangle(0, 0, 48, 48, 0xffffff, 0.001);
         hitArea.setInteractive({ useHandCursor: true });
 
-        hitArea.on('pointerover', () => button.setScale(portrait ? controls.scale * 1.07 : 1.07));
-        hitArea.on('pointerout', () => button.setScale(portrait ? controls.scale : 1));
+        hitArea.on('pointerover', () => button.setScale(1.07));
+        hitArea.on('pointerout', () => button.setScale(1));
         hitArea.on('pointerdown', () => {
             if (this.settingsExpanded) {
                 this.closeSettings();
@@ -1684,10 +1664,7 @@ export class LoginScene extends Phaser.Scene {
 
     drawSettingsButton(width, height) {
 
-        const portrait = this.isPortrait();
-        const controls = portrait ? this.getPortraitHeaderControls(width, height) : null;
-        const button = this.add.container(portrait ? controls.rightX : width - 31, portrait ? controls.y : 32);
-        if (portrait) button.setScale(controls.scale);
+        const button = this.add.container(width - 31, 32);
         const wood = this.add.graphics();
 
         // 深色木牌底座、木紋與黃銅包邊
@@ -1719,11 +1696,11 @@ export class LoginScene extends Phaser.Scene {
         hitArea.setInteractive({ useHandCursor: true });
 
         hitArea.on('pointerover', () => {
-            button.setScale(portrait ? controls.scale * 1.07 : 1.07);
+            button.setScale(1.07);
             icon.setColor('#fff0c9');
         });
         hitArea.on('pointerout', () => {
-            button.setScale(portrait ? controls.scale : 1);
+            button.setScale(1);
             icon.setColor('#f6dfb0');
         });
         hitArea.on('pointerdown', () => {
