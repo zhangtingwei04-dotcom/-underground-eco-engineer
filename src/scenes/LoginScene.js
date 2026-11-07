@@ -883,7 +883,7 @@ export class LoginScene extends Phaser.Scene {
         const titleWrapWidth = Math.min(width * 0.43, leftAreaWidth * 1.55);
 
         // 主標題放在左上方，與下方歡迎文字形成標題區。
-        const imageTitle = this.drawMainMenuTitle(leftCenterX, height * 0.17, Math.min(leftAreaWidth + 12, 425), Math.min(height * 0.32, 160));
+        const imageTitle = this.drawMainMenuTitle(leftCenterX, height * 0.19, Math.min(width * 0.52, 650), Math.min(height * 0.40, 205));
 
         if (!imageTitle) this.addLayoutText(
             leftCenterX,
