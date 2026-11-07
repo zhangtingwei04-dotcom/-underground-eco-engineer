@@ -811,10 +811,9 @@ export class LoginScene extends Phaser.Scene {
 
         const buttonWidth = Math.min(width - 110, 185);
         const buttonHeight = shortScreen ? 44 : 50;
-        const buttonGap = shortScreen ? 39 : 43;
-        // 將按鈕分成上下兩組，保留中央巨蜥頭部的展示空間。
-        const buttonStartY = height * (shortScreen ? 0.31 : 0.33);
-        const lowerButtonStartY = height * (shortScreen ? 0.59 : 0.62);
+        // 四個按鈕等距排列：保留巨蜥頭部附近的垂直留白。
+        const buttonStartY = height * (shortScreen ? 0.285 : 0.29);
+        const buttonGap = height * (shortScreen ? 0.125 : 0.135);
         const buttonCenterX = centerX;
 
         this.createResponsiveButton(
@@ -841,7 +840,7 @@ export class LoginScene extends Phaser.Scene {
 
         this.createResponsiveButton(
             buttonCenterX,
-            lowerButtonStartY,
+            buttonStartY + buttonGap * 2,
             buttonWidth,
             buttonHeight,
             LanguageSystem.t('login.login'),
@@ -852,7 +851,7 @@ export class LoginScene extends Phaser.Scene {
 
         this.createResponsiveButton(
             buttonCenterX,
-            lowerButtonStartY + buttonGap,
+            buttonStartY + buttonGap * 3,
             buttonWidth,
             buttonHeight,
             LanguageSystem.t('login.create_account'),
