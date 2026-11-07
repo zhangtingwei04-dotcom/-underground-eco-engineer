@@ -1279,12 +1279,14 @@ export class LoginScene extends Phaser.Scene {
 
         if (useImage) {
 
-            // 光暈與裝飾粒子同步採用 58% 尺寸
-            this.createStartButtonGlow(
-                container,
-                width,
-                height
-            );
+            // 僅「開始探索」保留呼吸光暈，避免三個按鈕同時閃爍。
+            if (eventName === 'guestSelected') {
+                this.createStartButtonGlow(
+                    container,
+                    width,
+                    height
+                );
+            }
 
             const buttonScale = 0.82;
 
@@ -1323,7 +1325,9 @@ export class LoginScene extends Phaser.Scene {
                 );
             }
 
-            this.startButton = container;
+            if (eventName === 'guestSelected') {
+                this.startButton = container;
+            }
 
             // 木牌上的動態文字
             const text = this.add.text(
