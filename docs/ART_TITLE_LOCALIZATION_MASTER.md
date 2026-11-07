@@ -85,3 +85,12 @@
 - `src/scenes/LoginScene.js` 的 `MAIN_MENU_TITLE_ASSETS` 已加入 `zh-CN → main_menu_title_zh_CN → title-zh-CN.png` 的整張圖片映射。切換語言後現有 `languageChanged` 事件會重繪標題；其餘尚未製作完整 Logo 的語系使用其語言的文字後備。
 - 已更新 `src/main.js` 與 `index.html` 的版本查詢字串，避免手機繼續載入舊版 Scene。**繁體中文與德文的圖片映射均保留不變，主畫面按鈕／背景／橫直式尺寸不動。**
 - GitHub 程式與圖片提交已完成；GitHub Pages iOS 實機效果仍待使用者查看。
+
+## 九、2026-11-07｜英文正式標題選定並加入遊戲
+
+- 使用者在兩張英文設計稿中明確選擇**第一張美術**，確認主標題 `Scales & Seeds`、副標題 `An Underground Ecology Tale`，並要求「幫我加到英文版」。
+- 正式圖檔：`assets/images/ui/main-menu/title-en.png`，1774 × 887、透明背景 PNG，256 色最佳化約 559 KB（沒有裁切咖啡色木框、孵化幼蛇的眼睛和裝飾）；SHA-256 `eb5ca21a25f203bca3cc32053291ec8ed9845bb060d89af406ff9fc1ce376e29`；Git blob `a387bfc752d17f676d39a379517a21f99a2ea866`。
+- 圖片首次加入 GitHub `main` 提交：`77c994fa5a0d9bd1997a4379fe4853b7264c1ea8`。
+- `LoginScene.js` 的 `MAIN_MENU_TITLE_ASSETS` 已加入 `en → main_menu_title_en → title-en.png`，玩家切換英文直接顯示這張完整美術圖；原本 `zh-TW`、`zh-CN`、`de` 圖片設定維持不變。
+- 使英文資料一致，`src/locales/en.json` 的主標題及副標題分別設為 `Scales & Seeds: An Underground Ecology Tale`、`An Underground Ecology Tale`；也更新了入口 JS 版本降低手機快取舊程式的機率。
+- 沒有改變原本的背景、四個木質按鈕或橫直式布局。**GitHub 已提交，尚未完成 iPhone 真機畫面驗收。**
