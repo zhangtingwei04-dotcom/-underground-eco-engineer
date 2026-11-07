@@ -66,3 +66,13 @@
 - 部署 PNG：`assets/images/ui/main-menu/title-de.png`，保留 **1774 × 887** 原始尺寸，完整圖像無切邊；為網站傳輸僅作色盤優化（256 色 PNG 約 509 KB），不對褐色木框做色彩刪除或區域裁切。原高解析度 RGBA 原圖仍應保留作備份。
 - 新圖 GitHub commit：`7d9ae88e8fb38c4d6c3e8d6e5940a9650d2b48da`，Git blob SHA `1290b44e2de246813e9c28f199f0c7e1248e9fbe`；已更新素材 URL、LoginScene 模組、index 頁面的版本參數，避免 iOS 繼續使用舊圖快取。
 - 檢查時須確保蛇蛋內的頭與眼睛清晰、木框內暗咖啡色保留；此要求優先於試圖將深色區塊判斷成背景。GitHub 提交與來源圖已核對；手機實機顯示待使用者驗收。
+
+
+## 七、2026-11-07｜繁體中文正式標題第二版替換（已提交）
+
+- 使用者確認新生成之繁體中文版完整 Logo 可替換目前網站使用的繁體標題。
+- 已新增並啟用 `assets/images/ui/main-menu/title-zh-TW.png`（1774 × 887，透明 PNG，256 色最佳化約 539 KiB）。圖像保留內部深咖啡色木框、孵化幼蛇眼睛、蛇蛋、蜥蜴、藤蔓、白花、水晶、金色立體「鱗片與種子」及「地下生態物語」文字。
+- 新 PNG SHA-256：`30bf35de3f3f4481a38b67b8a396d98cf4ad97eba215de400743998ae10571e5`；Git blob：`1fae0ad0a128e16aa6deb2c5f998dce49dae6461`；上傳提交：`09b2f78b1aacdce0fc3d8f82b93bdee87edc446d`。
+- `LoginScene.js` 中 `zh-TW` 的 Logo 圖片網址由舊的 `title-frame.png` 改成 `title-zh-TW.png?v=approved-zh-TW-20261107-1`；`de` 德文圖檔映射不變，其他語言維持本地文字後備。既有 `title-frame.png` **保留作為舊版備份**，沒有刪除。
+- 入口 JS 快取版本同步更新，避免 iPhone 瀏覽器只顯示舊版；沒有變更橫式／直式標題尺寸、背景與按鈕位置。
+- GitHub 提交已完成；**網站 GitHub Pages 的實際視覺效果尚待手機驗收**。
