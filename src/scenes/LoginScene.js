@@ -14,35 +14,43 @@ import { SettingsSystem } from '../systems/settings-system.js';
 const MAIN_MENU_TITLE_ASSETS = Object.freeze({
     'zh-TW': {
         key: 'main_menu_title_frame',
-        url: 'assets/images/ui/main-menu/title-zh-TW.png?v=approved-zh-TW-20261107-1'
+        url: 'assets/images/ui/main-menu/title-zh-TW.png?v=ten-language-refresh-20261107-10'
     },
     'zh-CN': {
         key: 'main_menu_title_zh_CN',
-        url: 'assets/images/ui/main-menu/title-zh-CN.png?v=approved-zh-CN-20261107-1'
+        url: 'assets/images/ui/main-menu/title-zh-CN.png?v=ten-language-refresh-20261107-10'
     },
     'en': {
         key: 'main_menu_title_en',
-        url: 'assets/images/ui/main-menu/title-en.png?v=approved-en-20261107-1'
-    },
-    'ja': {
-        key: 'main_menu_title_ja',
-        url: 'assets/images/ui/main-menu/title-ja.png?v=approved-ja-20261107-1'
-    },
-    'ko': {
-        key: 'main_menu_title_ko',
-        url: 'assets/images/ui/main-menu/title-ko.png?v=approved-ko-20261107-1'
-    },
-    'es': {
-        key: 'main_menu_title_es',
-        url: 'assets/images/ui/main-menu/title-es.png?v=approved-es-20261107-1'
-    },
-    'th': {
-        key: 'main_menu_title_th',
-        url: 'assets/images/ui/main-menu/title-th.png?v=approved-th-20261107-1'
+        url: 'assets/images/ui/main-menu/title-en.png?v=ten-language-refresh-20261107-10'
     },
     'de': {
         key: 'main_menu_title_de',
-        url: 'assets/images/ui/main-menu/title-de.png?v=approved-full-20261107-3'
+        url: 'assets/images/ui/main-menu/title-de.png?v=ten-language-refresh-20261107-10'
+    },
+    'ja': {
+        key: 'main_menu_title_ja',
+        url: 'assets/images/ui/main-menu/title-ja.png?v=ten-language-refresh-20261107-10'
+    },
+    'ko': {
+        key: 'main_menu_title_ko',
+        url: 'assets/images/ui/main-menu/title-ko.png?v=ten-language-refresh-20261107-10'
+    },
+    'es': {
+        key: 'main_menu_title_es',
+        url: 'assets/images/ui/main-menu/title-es.png?v=ten-language-refresh-20261107-10'
+    },
+    'th': {
+        key: 'main_menu_title_th',
+        url: 'assets/images/ui/main-menu/title-th.png?v=ten-language-refresh-20261107-10'
+    },
+    'fr': {
+        key: 'main_menu_title_fr',
+        url: 'assets/images/ui/main-menu/title-fr.png?v=ten-language-refresh-20261107-10'
+    },
+    'pt-BR': {
+        key: 'main_menu_title_pt_BR',
+        url: 'assets/images/ui/main-menu/title-pt-BR.png?v=ten-language-refresh-20261107-10'
     }
 });
 
