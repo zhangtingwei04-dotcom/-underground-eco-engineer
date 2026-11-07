@@ -54,7 +54,7 @@ export class LoginScene extends Phaser.Scene {
             'assets/images/login-background-portrait.jpg'
         );
 
-        this.load.image('main_menu_title_frame', 'assets/images/ui/main-menu/title-frame.png?v=20261107-3');
+        this.load.image('main_menu_title_frame', 'assets/images/ui/main-menu/title-frame.png?v=20261107-4');
 
         this.load.image(
             'btn_start_frame',
@@ -743,22 +743,23 @@ export class LoginScene extends Phaser.Scene {
     // PNG 內已有繁體中文標題，其他語言保留原本的動態文字木牌。
     // 主標題圖片與既有背景分離；中文採用正式圖像，其他語言採用動態文字。
     drawMainMenuTitle(x, y, width, height) {
-        const locale = LanguageSystem.getLanguage();
+        const locale = String(LanguageSystem.getLanguage() || '').replace('_', '-').toLowerCase();
         const key = 'main_menu_title_frame';
         const texture = this.textures.exists(key) ? this.textures.get(key) : null;
-        const source = texture && texture.source && texture.source[0];
-        const sourceWidth = source && source.width;
-        const sourceHeight = source && source.height;
+        const frame = texture && texture.get('__BASE');
+        const sourceWidth = frame && frame.width;
+        const sourceHeight = frame && frame.height;
         const valid = Number.isFinite(sourceWidth) && Number.isFinite(sourceHeight) && sourceWidth > 1 && sourceHeight > 1;
-        if (locale === 'zh-TW' && valid) {
+        const traditionalChinese = locale === 'zh-tw' || locale === 'zh-hk' || locale === 'zh-mo';
+        if (traditionalChinese && valid) {
             const title = this.add.image(x, y, key);
             const fit = Math.min(width / sourceWidth, height / sourceHeight);
-            title.setDisplaySize(sourceWidth * fit, sourceHeight * fit);
+            title.setScale(fit);
             this.layoutContainer.add(title);
             return true;
         }
-        if (locale === 'zh-TW' && !valid) {
-            console.error('[LoginScene] 主標題 PNG 無法使用。請直接開啟圖片網址確認是否回傳有效 PNG：assets/images/ui/main-menu/title-frame.png');
+        if (traditionalChinese && !valid) {
+            console.error('[LoginScene] 主標題圖片載入失敗', { key, locale, sourceWidth, sourceHeight });
             const warning = this.add.text(x, y, '主標題圖片載入失敗', {
                 fontFamily: 'sans-serif', fontSize: '15px', color: '#fff1d3',
                 backgroundColor: '#7c2424', padding: { x: 9, y: 6 }
