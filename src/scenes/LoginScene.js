@@ -1373,7 +1373,11 @@ export class LoginScene extends Phaser.Scene {
 
             hitArea.on('pointerdown', () => {
 
-                this.pulseStartButton();
+                // 只有開始探索按鈕觸發專屬光效，避免點擊登入或建立帳號時
+                // 讓其他按鈕也出現彈跳動畫。
+                if (eventName === 'guestSelected') {
+                    this.pulseStartButton();
+                }
 
                 this.events.emit(eventName);
             });
