@@ -32,6 +32,14 @@ const MAIN_MENU_TITLE_ASSETS = Object.freeze({
         key: 'main_menu_title_ko',
         url: 'assets/images/ui/main-menu/title-ko.png?v=approved-ko-20261107-1'
     },
+    'es': {
+        key: 'main_menu_title_es',
+        url: 'assets/images/ui/main-menu/title-es.png?v=approved-es-20261107-1'
+    },
+    'th': {
+        key: 'main_menu_title_th',
+        url: 'assets/images/ui/main-menu/title-th.png?v=approved-th-20261107-1'
+    },
     'de': {
         key: 'main_menu_title_de',
         url: 'assets/images/ui/main-menu/title-de.png?v=approved-full-20261107-3'
