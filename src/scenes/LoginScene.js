@@ -174,17 +174,24 @@ export class LoginScene extends Phaser.Scene {
                 window.location.search.indexOf('preview=menu') === -1 ||
                 event.data?.type !== 'scales-seeds-menu-preview') return;
 
+            // 每個方向各自管理預覽值；無資料的欄位使用正式設定。
             const orientation = event.data.orientation === 'landscape' ? 'landscape' : 'portrait';
-            const title = Number(event.data.titleY);
-            const buttons = Number(event.data.buttonsY);
-            if (!Number.isFinite(title) || !Number.isFinite(buttons)) return;
-            if (orientation === 'landscape') {
-                this.previewLandscapeTitleY = Phaser.Math.Clamp(title, 0.08, 0.34);
-                this.previewLandscapeButtonsY = Phaser.Math.Clamp(buttons, 0.28, 0.62);
-            } else {
-                this.previewTitleY = Phaser.Math.Clamp(title, 0.10, 0.35);
-                this.previewButtonsY = Phaser.Math.Clamp(buttons, 0.30, 0.65);
-            }
+            const base = orientation === 'landscape' ? LANDSCAPE_MENU_LAYOUT : PORTRAIT_MENU_LAYOUT;
+            const read = (key, min, max) => {
+                const input = event.data[key];
+                return typeof input === 'number' && Number.isFinite(input)
+                    ? Phaser.Math.Clamp(input, min, max) : base[key];
+            };
+            const preview = {
+                titleY: read('titleY', orientation === 'landscape' ? 0.08 : 0.10, 0.35),
+                firstButtonY: read('buttonsY', 0.28, 0.65),
+                titleX: read('titleX', -0.25, 0.25),
+                buttonX: read('buttonX', -0.25, 0.25),
+                titleScale: read('titleScale', 0.5, 1.5),
+                buttonScale: read('buttonScale', 0.6, 1.4)
+            };
+            if (orientation === 'landscape') this.previewLandscapeLayout = preview;
+            else this.previewPortraitLayout = preview;
             if (this.scene.isActive()) this.drawLayout();
         };
         window.addEventListener('message', this.previewLayoutListener);
@@ -846,18 +853,21 @@ export class LoginScene extends Phaser.Scene {
 
         const shortScreen = height < 650;
         const textScale = this.getTextScale();
-        const titleY = this.previewTitleY ?? PORTRAIT_MENU_LAYOUT.titleY;
-        const buttonsY = this.previewButtonsY ?? PORTRAIT_MENU_LAYOUT.firstButtonY;
+        const layout = this.previewPortraitLayout ?? PORTRAIT_MENU_LAYOUT;
+        const titleY = layout.titleY;
+        const buttonsY = layout.firstButtonY;
+        const titleX = centerX + width * layout.titleX;
+        const buttonX = centerX + width * layout.buttonX;
 
-        const imageTitle = this.drawMainMenuTitle(centerX, height * titleY, Math.min(width - 20, 400), Math.min(190, height * 0.30));
+        const imageTitle = this.drawMainMenuTitle(titleX, height * titleY, Math.min(width - 20, 400) * layout.titleScale, Math.min(190, height * 0.30) * layout.titleScale);
 
         if (!imageTitle) this.addLayoutText(
-            centerX,
+            titleX,
             height * (titleY - 0.045),
             this.getMainMenuTitle(),
             {
                 fontFamily: 'Georgia, serif',
-                fontSize: `${(width < 360 ? 22 : 28) * textScale}px`,
+                fontSize: `${(width < 360 ? 22 : 28) * textScale * layout.titleScale}px`,
                 color: '#f3e8cb',
                 fontStyle: 'bold',
                 stroke: '#392619',
@@ -868,12 +878,12 @@ export class LoginScene extends Phaser.Scene {
         );
 
         if (!imageTitle) this.addLayoutText(
-            centerX,
+            titleX,
             height * (titleY + 0.04),
             LanguageSystem.t('game.subtitle'),
             {
                 fontFamily: 'Georgia, serif',
-                fontSize: `${18 * textScale}px`,
+                fontSize: `${18 * textScale * layout.titleScale}px`,
                 color: '#f0e6ce',
                 align: 'center',
                 wordWrap: { width: width - 32 }
@@ -881,12 +891,12 @@ export class LoginScene extends Phaser.Scene {
         );
 
 
-        const buttonWidth = Math.min(width - 110, 185);
-        const buttonHeight = shortScreen ? 44 : 50;
+        const buttonWidth = Math.min(width - 110, 185) * layout.buttonScale;
+        const buttonHeight = (shortScreen ? 44 : 50) * layout.buttonScale;
         // 四個按鈕等距排列：保留巨蜥頭部附近的垂直留白。
         const buttonStartY = height * buttonsY;
         const buttonGap = height * (shortScreen ? 0.086 : 0.091);
-        const buttonCenterX = centerX;
+        const buttonCenterX = buttonX;
 
         this.createResponsiveButton(
             buttonCenterX,
@@ -940,8 +950,9 @@ export class LoginScene extends Phaser.Scene {
     drawLandscapeLayout(centerX, width, height) {
 
         const textScale = this.getTextScale();
-        const titleY = this.previewLandscapeTitleY ?? LANDSCAPE_MENU_LAYOUT.titleY;
-        const buttonsY = this.previewLandscapeButtonsY ?? LANDSCAPE_MENU_LAYOUT.firstButtonY;
+        const layout = this.previewLandscapeLayout ?? LANDSCAPE_MENU_LAYOUT;
+        const titleY = layout.titleY;
+        const buttonsY = layout.firstButtonY;
         const margin = Math.max(16, width * 0.02);
 
         // 橫式採用左上標題、左側操作、中央與右側生態展示的構圖。
@@ -952,6 +963,8 @@ export class LoginScene extends Phaser.Scene {
             width * 0.17
         );
 
+        const titleX = leftCenterX + width * layout.titleX;
+        const buttonX = leftCenterX + width * layout.buttonX;
         const scale = Math.min(1, height / 390, width / 720);
         const titleSize = Math.max(20, 31 * scale);
         const welcomeSize = Math.max(13, 16 * scale);
@@ -959,15 +972,15 @@ export class LoginScene extends Phaser.Scene {
         const titleWrapWidth = Math.min(width * 0.43, leftAreaWidth * 1.55);
 
         // 主標題放在左上方，與下方歡迎文字形成標題區。
-        const imageTitle = this.drawMainMenuTitle(leftCenterX, height * titleY, Math.min(width * 0.52, 650), Math.min(height * 0.40, 205));
+        const imageTitle = this.drawMainMenuTitle(titleX, height * titleY, Math.min(width * 0.52, 650) * layout.titleScale, Math.min(height * 0.40, 205) * layout.titleScale);
 
         if (!imageTitle) this.addLayoutText(
-            leftCenterX,
+            titleX,
             height * (titleY - 0.07),
             this.getMainMenuTitle(),
             {
                 fontFamily: 'Georgia, serif',
-                fontSize: `${titleSize * textScale}px`,
+                fontSize: `${titleSize * textScale * layout.titleScale}px`,
                 color: '#f6e9ca',
                 fontStyle: 'bold',
                 stroke: '#302014',
@@ -985,12 +998,12 @@ export class LoginScene extends Phaser.Scene {
         );
 
         if (!imageTitle) this.addLayoutText(
-            leftCenterX,
+            titleX,
             height * (titleY + 0.035),
             LanguageSystem.t('game.subtitle'),
             {
                 fontFamily: 'Georgia, serif',
-                fontSize: `${welcomeSize * textScale}px`,
+                fontSize: `${welcomeSize * textScale * layout.titleScale}px`,
                 color: '#fff0d2',
                 stroke: '#253329',
                 strokeThickness: 4,
@@ -1001,14 +1014,14 @@ export class LoginScene extends Phaser.Scene {
         );
 
 
-        const buttonWidth = Math.min(leftAreaWidth - 62, 185);
-        const buttonHeight = Math.max(34, Math.min(48, height * 0.12));
-        const buttonGap = buttonHeight + Math.max(5, height * 0.014);
+        const buttonWidth = Math.min(leftAreaWidth - 62, 185) * layout.buttonScale;
+        const buttonHeight = Math.max(34, Math.min(48, height * 0.12)) * layout.buttonScale;
+        const buttonGap = Math.max(34, Math.min(48, height * 0.12)) + Math.max(5, height * 0.014);
         const buttonStartY = height * buttonsY;
         const buttonFontSize = Math.max(13, 16 * scale * textScale);
 
         this.createResponsiveButton(
-            leftCenterX,
+            buttonX,
             buttonStartY,
             buttonWidth,
             buttonHeight,
@@ -1019,7 +1032,7 @@ export class LoginScene extends Phaser.Scene {
         );
 
         this.createResponsiveButton(
-            leftCenterX,
+            buttonX,
             buttonStartY + buttonGap,
             buttonWidth,
             buttonHeight,
@@ -1030,7 +1043,7 @@ export class LoginScene extends Phaser.Scene {
         );
 
         this.createResponsiveButton(
-            leftCenterX,
+            buttonX,
             buttonStartY + buttonGap * 2,
             buttonWidth,
             buttonHeight,
@@ -1041,7 +1054,7 @@ export class LoginScene extends Phaser.Scene {
         );
 
         this.createResponsiveButton(
-            leftCenterX,
+            buttonX,
             buttonStartY + buttonGap * 3,
             buttonWidth,
             buttonHeight,
