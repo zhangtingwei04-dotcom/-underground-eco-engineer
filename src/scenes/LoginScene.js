@@ -787,21 +787,22 @@ export class LoginScene extends Phaser.Scene {
 
         // 橫式不再放置大型底板，讓背景與巨蜥完整露出。
         // 文字及木製按鈕直接疊在背景上，以描邊和陰影維持辨識度。
-        // 將所有主畫面文字與按鈕限制在左側窄欄，保留巨蜥所在的背景主視覺。
-        const leftAreaWidth = Math.min(width * 0.26, 255);
+        // 恢復原本左側操作區尺寸；僅將遊戲標題獨立置中，避免被操作內容擠壓。
+        const leftAreaWidth = Math.min(width * 0.32, 330);
         const leftCenterX = Math.max(
-            leftAreaWidth / 2 + 12,
-            width * 0.135
+            leftAreaWidth / 2 + margin,
+            width * 0.17
         );
 
-        const scale = Math.min(0.88, height / 430, width / 820);
-        const titleSize = Math.max(17, 25 * scale);
-        const welcomeSize = Math.max(12, 14 * scale);
-        const messageSize = Math.max(9, 10 * scale);
-        const top = Math.max(22, height * 0.075);
+        const scale = Math.min(1, height / 390, width / 720);
+        const titleSize = Math.max(20, 31 * scale);
+        const welcomeSize = Math.max(13, 16 * scale);
+        const messageSize = Math.max(10, 11 * scale);
+        const top = Math.max(25, height * 0.085);
 
+        // 遊戲標題獨立置於畫面上方中央，不與左側操作區重疊。
         this.addLayoutText(
-            leftCenterX,
+            centerX,
             top,
             LanguageSystem.t('game.title'),
             {
@@ -819,7 +820,7 @@ export class LoginScene extends Phaser.Scene {
                     fill: true
                 },
                 align: 'center',
-                wordWrap: { width: leftAreaWidth - 12 }
+                wordWrap: { width: width * 0.58 }
             }
         );
 
@@ -855,10 +856,10 @@ export class LoginScene extends Phaser.Scene {
             }
         );
 
-        const buttonWidth = Math.min(leftAreaWidth - 14, 225);
+        const buttonWidth = Math.min(leftAreaWidth - 18, 290);
         const buttonHeight = Math.max(38, Math.min(49, height * 0.125));
         const buttonGap = buttonHeight + Math.max(6, height * 0.018);
-        const buttonStartY = height * 0.505;
+        const buttonStartY = height * 0.515;
         const buttonFontSize = Math.max(13, 16 * scale * textScale);
 
         this.createResponsiveButton(
