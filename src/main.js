@@ -6,7 +6,7 @@ import { AudioSystem } from './systems/AudioSystem.js';
 import { LanguageSystem } from './systems/language-system.js';
 import { SettingsSystem } from './systems/settings-system.js';
 
-import { LoginScene } from './scenes/LoginScene.js?v=de-logo-full-20261107-3';
+import { LoginScene } from './scenes/LoginScene.js?v=zh-logo-approved-20261107-4';
 import { TerrariumSelectScene } from './scenes/TerrariumSelectScene.js';
 import { UndergroundScene } from './scenes/UndergroundScene.js';
 import { EncyclopediaScene } from './scenes/EncyclopediaScene.js';
