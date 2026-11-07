@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>鱗片與種子｜主畫面視覺編輯器 V6</title>
+<title>鱗片與種子｜主畫面視覺編輯器 V7</title>
 <style>
 :root{color-scheme:dark;font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif}
 *{box-sizing:border-box}body{margin:0;background:#19150f;color:#f5ebd5;padding:20px}
@@ -15,8 +15,16 @@ p{color:#ccbda3;line-height:1.6}.layout{display:flex;gap:26px;justify-content:ce
 .layout{align-items:flex-start}
 @media(max-width:680px){.layout{flex-direction:column;gap:12px}.preview{width:100%;flex:none;max-height:46dvh;overflow:auto}.controls{width:100%;max-width:none;flex:none}}
 .phone-shell{width:289px;height:629px;flex-shrink:0;position:relative}
-.phone{width:390px;height:720px;flex-shrink:0;transform-origin:top left;transform:scale(.72);background:#000;border:7px solid #795e3b;border-radius:25px;overflow:hidden;box-shadow:0 14px 44px #0008}
+.phone{position:relative;width:390px;height:720px;flex-shrink:0;transform-origin:top left;transform:scale(.72);background:#000;border:7px solid #795e3b;border-radius:25px;overflow:hidden;box-shadow:0 14px 44px #0008}
 iframe{display:block;border:0;width:100%;height:100%;background:#18130d}
+.drag-overlay{display:none;position:absolute;inset:0;pointer-events:none;z-index:8}
+.drag-active .drag-overlay{display:block}
+.drag-handle{position:absolute;display:flex;align-items:center;justify-content:center;width:44px;height:44px;border:2px solid #ffe9ac;border-radius:50%;background:#604025e8;color:#fff5d6;box-shadow:0 2px 12px #000b;font-size:15px;font-weight:700;cursor:grab;touch-action:none;user-select:none;pointer-events:auto;transform:translate(-50%,-50%) scale(var(--handle-inverse,1));transform-origin:center}
+.drag-handle:active{cursor:grabbing;background:#95653b}
+.drag-handle:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.drag-tools{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:8px 0 12px}
+.drag-tools button[aria-pressed=true]{background:#997044;color:#fff4d8;border-color:#ffe3ac}
+.drag-tools p{margin:0;font-size:12px;color:#d6c5a4}
 .controls{background:#2a2117;border:1px solid #6b4d2e;border-radius:14px;padding:16px;flex:1 1 280px;max-width:400px}
 .editor-quick-controls{background:#352919;padding:12px;border:1px solid #765536;border-radius:12px;margin-bottom:14px}
 .editor-sections-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:12px 0 9px}
@@ -49,12 +57,12 @@ output{color:#ebbd80}small{display:block;color:#bdad97;line-height:1.6;margin-to
 </head>
 <body><main>
 <p><a href="./workbench.html" style="color:#e7c38a;text-decoration:underline">← 返回開發者工作台</a></p>
-<h1>鱗片與種子｜主畫面視覺編輯器 V6</h1>
-<p>直接預覽真正的遊戲畫面。切換直式或橫式，即時調整標題、按鈕的大小和位置。橫式採單一預覽，切換不同手機尺寸時即時跟著調整；在手機上可收合調整分類，並使用復原、重做及本機草稿保存；直式與橫式預覽都會跟隨捲動。預覽不影響正式遊戲。</p>
+<h1>鱗片與種子｜主畫面視覺編輯器 V7</h1>
+<p>直接預覽真正的遊戲畫面。切換直式或橫式，即時調整標題、按鈕的大小和位置。橫式採單一預覽，切換不同手機尺寸時即時跟著調整；在手機上可直接拖曳標題、按鈕與圖示，也能收合分類、復原重做及保存草稿；直式與橫式預覽都會跟隨捲動。預覽不影響正式遊戲。</p>
 <div class="layout">
 <section class="preview" aria-label="遊戲直式或橫式預覽">
-<div id="portraitPreview"><div class="phone-shell" id="phoneShell"><div class="phone" id="phone" style="width:402px;height:874px"><iframe id="game" src="./index.html?preview=menu" title="遊戲直式主畫面" loading="eager"></iframe></div></div></div>
-<div class="landscape-single" id="landscapeSingle" aria-label="可跟隨捲動的單一橫式預覽"><span class="landscape-caption" id="landscapeCaption">iPhone 18 Pro 橫式（874 × 402）</span><div class="phone-shell" id="landscapeShell"><div class="phone" id="landscapePhone"><iframe id="landscapeGame" title="遊戲橫式主畫面" loading="eager"></iframe></div></div></div>
+<div id="portraitPreview"><div class="phone-shell" id="phoneShell"><div class="phone" id="phone" style="width:402px;height:874px"><iframe id="game" src="./index.html?preview=menu" title="遊戲直式主畫面" loading="eager"></iframe><div class="drag-overlay" id="portraitHandles" aria-label="直式拖曳控制點"></div></div></div></div>
+<div class="landscape-single" id="landscapeSingle" aria-label="可跟隨捲動的單一橫式預覽"><span class="landscape-caption" id="landscapeCaption">iPhone 18 Pro 橫式（874 × 402）</span><div class="phone-shell" id="landscapeShell"><div class="phone" id="landscapePhone"><iframe id="landscapeGame" title="遊戲橫式主畫面" loading="eager"></iframe><div class="drag-overlay" id="landscapeHandles" aria-label="橫式拖曳控制點"></div></div></div></div>
 </section>
 <section class="controls" aria-label="主畫面排版調整">
 <div class="editor-quick-controls">
@@ -65,6 +73,7 @@ output{color:#ebbd80}small{display:block;color:#bdad97;line-height:1.6;margin-to
 <label for="zoom">預覽縮放 <output id="zoomValue">85%</output></label>
 <input id="zoom" type="range" min="30" max="110" step="1" value="85">
 </div>
+<div class="drag-tools"><button id="dragMode" type="button" aria-pressed="false">啟用拖曳</button><p>開啟後，拖曳畫面上的「標、鈕、語、設」控制點；關閉可正常點擊遊戲。</p></div>
 <div class="editor-sections-heading"><strong>介面調整</strong><button type="button" id="toggleAll" class="utility-button" aria-label="展開所有調整分類">全部展開</button></div>
 <div class="accordion-list"><details class="accordion" data-editor-section="title" open>
 <summary><span class="section-icon" aria-hidden="true">✦</span><span>標題位置與大小</span><span class="accordion-chevron" aria-hidden="true">⌄</span></summary>
@@ -157,6 +166,8 @@ const { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } =
  const $=id=>document.getElementById(id);
  const frame=$('game'),phone=$('phone'),phoneShell=$('phoneShell');
  const portraitPreview=$('portraitPreview'),landscapeSingle=$('landscapeSingle');
+ const portraitHandles=$('portraitHandles'),landscapeHandles=$('landscapeHandles'),dragMode=$('dragMode');
+ let dragging=null,dragEnabled=false;
  const landscapeFrame=$('landscapeGame'),landscapePhone=$('landscapePhone'),landscapeShell=$('landscapeShell'),landscapeCaption=$('landscapeCaption');
  let previewQueued=false;
  const orientation=$('orientation'),device=$('device'),status=$('status');
@@ -226,7 +237,98 @@ const { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } =
   for(const [key,el] of Object.entries(labels))
    el.textContent=p[key].toFixed(key.includes('Scale')?0:1)+'%';
   zoomValue.textContent=zoom.value+'%';
+  updateDragHandles();
  }
+ const dragTargets=[
+  {id:'title',symbol:'標',x:'titleX',y:'titleY',label:'標題'},
+  {id:'button',symbol:'鈕',x:'buttonX',y:'firstButtonY',label:'主要按鈕'},
+  {id:'language',symbol:'語',x:'languageX',y:'languageY',label:'語言圖示'},
+  {id:'settings',symbol:'設',x:'settingsX',y:'settingsY',label:'設定圖示'}
+ ];
+ const handleViews={portrait:{},landscape:{}};
+ for(const direction of ['portrait','landscape']){
+  const host=direction==='portrait'?portraitHandles:landscapeHandles;
+  for(const item of dragTargets){
+   const h=document.createElement('button');
+   h.type='button';
+   h.className='drag-handle';
+   h.textContent=item.symbol;
+   h.title='拖曳'+item.label;
+   h.setAttribute('aria-label','拖曳'+item.label);
+   h.addEventListener('pointerdown',event=>beginDrag(event,item,direction,h));
+   h.addEventListener('pointermove',moveDrag);
+   h.addEventListener('pointerup',endDrag);
+   h.addEventListener('pointercancel',endDrag);
+   h.addEventListener('lostpointercapture',endDrag);
+   host.appendChild(h);
+   handleViews[direction][item.id]=h;
+  }
+ }
+ function updateDragHandles(){
+  const direction=mode(),p=drafts[direction],w=Number(device.value.split(',')[0]),h=Number(device.value.split(',')[1]);
+  if(!w||!h)return;
+  const scale=Math.max(.3,Number(zoom.value)/100),inverse=(1/scale).toFixed(4);
+  const isPortrait=direction==='portrait';
+  const positions={
+   title:[50+p.titleX,p.titleY],
+   button:[50+p.buttonX,p.firstButtonY],
+   language:[(isPortrait?31:w-87)/w*100+p.languageX,32/h*100+p.languageY],
+   settings:[(w-31)/w*100+p.settingsX,32/h*100+p.settingsY]
+  };
+  for(const item of dragTargets){
+   const handle=handleViews[direction][item.id];
+   const [x,y]=positions[item.id];
+   handle.style.left=Math.max(0,Math.min(100,x))+'%';
+   handle.style.top=Math.max(0,Math.min(100,y))+'%';
+   handle.style.setProperty('--handle-inverse',inverse);
+  }
+ }
+ function beginDrag(event,item,direction,handle){
+  if(!dragEnabled||direction!==mode()||event.button!==0)return;
+  event.preventDefault();
+  commitHistory();
+  dragging={pointerId:event.pointerId,direction,item,startX:event.clientX,startY:event.clientY,
+   x0:drafts[direction][item.x],y0:drafts[direction][item.y],
+   width:Number(device.value.split(',')[0])*Number(zoom.value)/100,
+   height:Number(device.value.split(',')[1])*Number(zoom.value)/100};
+  handle.setPointerCapture(event.pointerId);
+ }
+ function moveDrag(event){
+  const d=dragging;
+  if(!d||event.pointerId!==d.pointerId||d.direction!==mode())return;
+  event.preventDefault();
+  for(const [axis,key,startCoord,first,span] of [
+   ['x',d.item.x,d.startX,d.x0,d.width],
+   ['y',d.item.y,d.startY,d.y0,d.height]
+  ]){
+   const input=controls[key];
+   const delta=(axis==='x'?event.clientX:event.clientY)-startCoord;
+   const desired=first+100*delta/Math.max(span,1);
+   const clamped=Math.max(Number(input.min),Math.min(Number(input.max),desired));
+   const step=Number(input.step)||.5;
+   const snapped=Math.round(clamped/step)*step;
+   drafts[d.direction][key]=snapped;
+   input.value=snapped;
+  }
+  updateLabels();
+  queuePreview();
+ }
+ function endDrag(event){
+  if(!dragging||event.pointerId!==dragging.pointerId)return;
+  dragging=null;
+  commitHistory();
+  status.textContent='已更新拖曳位置，可使用復原或儲存本機草稿';
+ }
+ function setDragMode(enabled){
+  dragEnabled=enabled;
+  dragging=null;
+  dragMode.setAttribute('aria-pressed',String(enabled));
+  dragMode.textContent=enabled?'結束拖曳':'啟用拖曳';
+  phone.classList.toggle('drag-active',enabled);
+  landscapePhone.classList.toggle('drag-active',enabled);
+  updateDragHandles();
+ }
+ dragMode.addEventListener('click',()=>setDragMode(!dragEnabled));
  function sendPreview(targetsOverride=null){
   const p=drafts[mode()];
   const packet={
@@ -263,6 +365,7 @@ const { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } =
   landscapeShell.style.width=(w*scale)+'px';
   landscapeShell.style.height=(h*scale)+'px';
   landscapeCaption.textContent=device.selectedOptions[0]?.textContent||'橫式預覽';
+  updateDragHandles();
   if(reload || !landscapeFrame.getAttribute('src') || landscapeFrame.getAttribute('src')==='about:blank'){
    landscapeFrame.src='./index.html?preview=menu&v='+Date.now();
   }
@@ -335,6 +438,7 @@ const { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } =
   const scale=Number(zoom.value)/100;
   zoomValue.textContent=zoom.value+'%';
   document.body.classList.toggle('landscape-mode',mode()==='landscape');
+  updateDragHandles();
   if(mode()==='landscape'){
    portraitPreview.style.display='none';
    if(frame.getAttribute('src')!=='about:blank')frame.src='about:blank';
