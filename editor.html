@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>鱗片與種子｜直式主畫面預覽編輯器</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif}
+*{box-sizing:border-box}body{margin:0;background:#19150f;color:#f5ebd5;padding:20px}
+main{max-width:980px;margin:auto}h1{font-size:clamp(21px,3vw,30px);margin:0 0 8px}
+p{color:#ccbda3;line-height:1.6}.layout{display:flex;gap:26px;justify-content:center;align-items:flex-start;flex-wrap:wrap}
+.preview{display:flex;justify-content:center;flex:1 1 340px;min-width:0}
+.phone{width:390px;height:720px;max-width:100%;background:#000;border:7px solid #795e3b;border-radius:25px;overflow:hidden;box-shadow:0 14px 44px #0008}
+iframe{display:block;border:0;width:100%;height:100%;background:#18130d}
+.controls{background:#2a2117;border:1px solid #6b4d2e;border-radius:14px;padding:20px;flex:1 1 280px;max-width:400px}
+label{display:flex;justify-content:space-between;gap:10px;margin:16px 0 8px;font-weight:600}
+input[type=range]{width:100%;accent-color:#d8a66c}
+button,select{background:#6e4928;color:white;border:1px solid #b88b58;border-radius:9px;padding:10px 12px;font:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #f5d28c}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+output{color:#ebbd80}small{display:block;color:#bdad97;line-height:1.6;margin-top:12px}
+#status{min-height:1.5em;color:#e8d19d}
+</style>
+</head>
+<body><main>
+<h1>鱗片與種子｜主畫面視覺編輯器</h1>
+<p>直接預覽真正的遊戲畫面。拖動下方滑桿，調整直式標題與四個按鈕的位置；橫式與正式遊戲不受影響。</p>
+<div class="layout">
+<section class="preview" aria-label="直式遊戲預覽"><div class="phone" id="phone"><iframe id="game" src="./index.html?preview=menu" title="遊戲直式主畫面" loading="eager"></iframe></div></section>
+<section class="controls">
+<label for="title">標題中心高度 <output id="titleValue">19.0%</output></label>
+<input id="title" type="range" min="10" max="35" step="0.5" value="19">
+<label for="buttons">第一個按鈕中心高度 <output id="buttonValue">40.5%</output></label>
+<input id="buttons" type="range" min="30" max="65" step="0.5" value="40.5">
+<label for="device">預覽尺寸</label>
+<select id="device"><option value="390,720">一般手機（390 × 720）</option><option value="375,667">小尺寸手機（375 × 667）</option><option value="430,820">大尺寸手機（430 × 820）</option></select>
+<div class="actions">
+<button id="reset" type="button">恢復預設</button>
+<button id="copy" type="button">複製調整數值</button>
+<button id="reload" type="button">重載預覽</button>
+</div>
+<p id="status" role="status"></p>
+<small>預覽數值只存在於這部裝置的編輯器中。複製數值並貼給 ChatGPT 後，才能正式修改 GitHub 的遊戲排版。本頁沒有 GitHub 寫入權限，也沒有帳號管理功能。</small>
+</section></div>
+</main>
+<script>
+(()=>{
+ const title=document.getElementById('title'),buttons=document.getElementById('buttons'),frame=document.getElementById('game'),phone=document.getElementById('phone'),status=document.getElementById('status');
+ const key='scales-seeds-menu-preview-v1';
+ try{const saved=JSON.parse(localStorage.getItem(key)||'null');if(saved){if(Number.isFinite(saved.titleY))title.value=saved.titleY;if(Number.isFinite(saved.buttonsY))buttons.value=saved.buttonsY;}}catch(_){}
+ function render(){
+  const titleY=Number(title.value),buttonsY=Number(buttons.value);
+  document.getElementById('titleValue').textContent=titleY.toFixed(1)+'%';
+  document.getElementById('buttonValue').textContent=buttonsY.toFixed(1)+'%';
+  try{localStorage.setItem(key,JSON.stringify({titleY,buttonsY}));}catch(_){}
+  if(frame.contentWindow)frame.contentWindow.postMessage({type:'scales-seeds-menu-preview',titleY:titleY/100,buttonsY:buttonsY/100},location.origin);
+ }
+ title.addEventListener('input',render);buttons.addEventListener('input',render);frame.addEventListener('load',()=>{render();setTimeout(render,700);});
+ document.getElementById('reset').addEventListener('click',()=>{title.value=19;buttons.value=40.5;render();status.textContent='已恢復預設位置';});
+ document.getElementById('reload').addEventListener('click',()=>{frame.src='./index.html?preview=menu&v='+Date.now();status.textContent='正在重新載入遊戲預覽';});
+ document.getElementById('device').addEventListener('change',e=>{const [w,h]=e.target.value.split(',').map(Number);phone.style.width=w+'px';phone.style.height=h+'px';render();});
+ document.getElementById('copy').addEventListener('click',async()=>{
+  const message='請更新《鱗片與種子》直式主畫面排版：標題中心高度 '+Number(title.value).toFixed(1)+'%，第一個按鈕中心高度 '+Number(buttons.value).toFixed(1)+'%；維持其他按鈕原有間距，橫式不變，請直接更新 GitHub main。';
+  try{await navigator.clipboard.writeText(message);status.textContent='已複製設定，請貼到 ChatGPT';}
+  catch(_){status.textContent=message;}
+ });
+ render();
+})();
+</script>
+</body></html>
