@@ -2293,3 +2293,11 @@ NPC 可自主結婚及邀請玩家參加婚禮；婚姻是否維持、修復、�
 - 新版保留木框內深色材質、蛋內幼蛇頭與眼睛、完整裝飾；保留舊標題檔 `title-frame.png` 供需要時還原。
 - **沒有更動背景、木質按鈕尺寸與位置、橫直式主標題配置、德文及其他語言翻譯功能**；GitHub 已提交，GitHub Pages 仍待手機實際檢查。
 - 詳細內容：`docs/ART_TITLE_LOCALIZATION_MASTER.md`。
+
+## 2026-11-07｜簡體中文主標題正式加入語言切換
+
+- 使用者已確認簡體中文新版完整標誌並同意投入使用。
+- 將透明背景 1774 × 887、256 色最佳化 Logo 上傳至 `assets/images/ui/main-menu/title-zh-CN.png`（Git blob `6e3a2af66be27262be8876c2c58db79eadef3013`；commit `2296d8d4f7fca60becb0e7e5be12259d098bff91`），完整保留木框、剛破殼幼蛇的眼睛與裝飾。
+- `src/scenes/LoginScene.js` 已加入 `zh-CN` → `main_menu_title_zh_CN` 的獨立圖片資產；原有 `zh-TW`、`de` 圖片映射及其他語言文字後備保留。
+- `src/main.js`、`index.html` 更新查詢版本，減少手機載入舊版快取風險。背景、按鈕與橫直式標題版面設定未改。
+- 圖片與程式已提交 GitHub `main`，實際 GitHub Pages 畫面仍待 iOS 上確認。詳細規格：`docs/ART_TITLE_LOCALIZATION_MASTER.md`。
