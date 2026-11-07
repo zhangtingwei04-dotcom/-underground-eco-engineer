@@ -44,7 +44,7 @@ output{color:#ebbd80}small{display:block;color:#bdad97;line-height:1.6;margin-to
 </section></div>
 </main>
 <script type="module">
-import { PORTRAIT_MENU_LAYOUT } from './src/config/menu-layout.js?v=shared-menu-layout-20261107';
+const { PORTRAIT_MENU_LAYOUT } = await import('./src/config/menu-layout.js?v=' + Date.now());
 
 (()=>{
  const title=document.getElementById('title'),buttons=document.getElementById('buttons'),
