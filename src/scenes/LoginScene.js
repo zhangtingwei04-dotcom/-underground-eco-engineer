@@ -7,7 +7,7 @@
 import { AudioSystem } from '../systems/AudioSystem.js';
 import { LanguageSystem } from '../systems/language-system.js';
 import { SettingsSystem } from '../systems/settings-system.js';
-import { PORTRAIT_MENU_LAYOUT } from '../config/menu-layout.js';
+import { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } from '../config/menu-layout.js';
 
 // 每個語言使用一張完整 Logo；只有已確認並實際上傳的素材才加入映射。
 // 其餘語言自動回退至 LanguageSystem 的當地語言文字木牌，避免顯示錯誤語言圖片。
@@ -174,11 +174,17 @@ export class LoginScene extends Phaser.Scene {
                 window.location.search.indexOf('preview=menu') === -1 ||
                 event.data?.type !== 'scales-seeds-menu-preview') return;
 
+            const orientation = event.data.orientation === 'landscape' ? 'landscape' : 'portrait';
             const title = Number(event.data.titleY);
             const buttons = Number(event.data.buttonsY);
             if (!Number.isFinite(title) || !Number.isFinite(buttons)) return;
-            this.previewTitleY = Phaser.Math.Clamp(title, 0.10, 0.35);
-            this.previewButtonsY = Phaser.Math.Clamp(buttons, 0.30, 0.65);
+            if (orientation === 'landscape') {
+                this.previewLandscapeTitleY = Phaser.Math.Clamp(title, 0.08, 0.34);
+                this.previewLandscapeButtonsY = Phaser.Math.Clamp(buttons, 0.28, 0.62);
+            } else {
+                this.previewTitleY = Phaser.Math.Clamp(title, 0.10, 0.35);
+                this.previewButtonsY = Phaser.Math.Clamp(buttons, 0.30, 0.65);
+            }
             if (this.scene.isActive()) this.drawLayout();
         };
         window.addEventListener('message', this.previewLayoutListener);
@@ -934,6 +940,8 @@ export class LoginScene extends Phaser.Scene {
     drawLandscapeLayout(centerX, width, height) {
 
         const textScale = this.getTextScale();
+        const titleY = this.previewLandscapeTitleY ?? LANDSCAPE_MENU_LAYOUT.titleY;
+        const buttonsY = this.previewLandscapeButtonsY ?? LANDSCAPE_MENU_LAYOUT.firstButtonY;
         const margin = Math.max(16, width * 0.02);
 
         // 橫式採用左上標題、左側操作、中央與右側生態展示的構圖。
@@ -951,11 +959,11 @@ export class LoginScene extends Phaser.Scene {
         const titleWrapWidth = Math.min(width * 0.43, leftAreaWidth * 1.55);
 
         // 主標題放在左上方，與下方歡迎文字形成標題區。
-        const imageTitle = this.drawMainMenuTitle(leftCenterX, height * 0.19, Math.min(width * 0.52, 650), Math.min(height * 0.40, 205));
+        const imageTitle = this.drawMainMenuTitle(leftCenterX, height * titleY, Math.min(width * 0.52, 650), Math.min(height * 0.40, 205));
 
         if (!imageTitle) this.addLayoutText(
             leftCenterX,
-            height * 0.12,
+            height * (titleY - 0.07),
             this.getMainMenuTitle(),
             {
                 fontFamily: 'Georgia, serif',
@@ -978,7 +986,7 @@ export class LoginScene extends Phaser.Scene {
 
         if (!imageTitle) this.addLayoutText(
             leftCenterX,
-            height * 0.225,
+            height * (titleY + 0.035),
             LanguageSystem.t('game.subtitle'),
             {
                 fontFamily: 'Georgia, serif',
@@ -996,7 +1004,7 @@ export class LoginScene extends Phaser.Scene {
         const buttonWidth = Math.min(leftAreaWidth - 62, 185);
         const buttonHeight = Math.max(34, Math.min(48, height * 0.12));
         const buttonGap = buttonHeight + Math.max(5, height * 0.014);
-        const buttonStartY = height * 0.40;
+        const buttonStartY = height * buttonsY;
         const buttonFontSize = Math.max(13, 16 * scale * textScale);
 
         this.createResponsiveButton(
