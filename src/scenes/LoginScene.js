@@ -710,10 +710,40 @@ export class LoginScene extends Phaser.Scene {
         return title.replace(suffix, '');
     }
 
+    // 標題木牌與文字分離：使用現有純背景，不將文字烘焙在圖片。
+    createMenuTitlePlaque(x, y, width, height) {
+        const wood = this.add.graphics();
+        wood.fillStyle(0x20140d, 0.88);
+        wood.fillRoundedRect(x - width / 2 - 4, y - height / 2 - 4, width + 8, height + 8, 16);
+        wood.fillStyle(0x714321, 0.96);
+        wood.fillRoundedRect(x - width / 2, y - height / 2, width, height, 13);
+        wood.fillStyle(0x925b2d, 0.8);
+        wood.fillRoundedRect(x - width / 2 + 6, y - height / 2 + 6, width - 12, height - 12, 9);
+        wood.lineStyle(2, 0xd6ab67, 0.95);
+        wood.strokeRoundedRect(x - width / 2 + 4, y - height / 2 + 4, width - 8, height - 8, 11);
+        wood.lineStyle(1, 0x3c2414, 0.45);
+        for (let i = 0; i < 3; i++) {
+            const yy = y - height * 0.28 + i * height * 0.28;
+            wood.beginPath();
+            wood.moveTo(x - width * 0.42, yy);
+            wood.lineTo(x + width * 0.42, yy);
+            wood.strokePath();
+        }
+        this.layoutContainer.add(wood);
+        return wood;
+    }
+
+    // 圖鑑與遊戲內收藏先沿用現有場景；公開百科內容日後獨立拆分。
+    openMainMenuEncyclopedia() {
+        this.scene.start('EncyclopediaScene');
+    }
+
     drawPortraitLayout(centerX, width, height) {
 
         const shortScreen = height < 650;
         const textScale = this.getTextScale();
+
+        this.createMenuTitlePlaque(centerX, height * 0.157, Math.min(width - 22, 390), Math.min(144, height * 0.24));
 
         this.addLayoutText(
             centerX,
@@ -746,9 +776,9 @@ export class LoginScene extends Phaser.Scene {
 
 
         const buttonWidth = Math.min(width - 48, 330);
-        const buttonHeight = shortScreen ? 46 : 52;
-        const buttonGap = shortScreen ? 58 : 66;
-        const buttonStartY = height * 0.43;
+        const buttonHeight = shortScreen ? 42 : 48;
+        const buttonGap = shortScreen ? 49 : 57;
+        const buttonStartY = height * (shortScreen ? 0.40 : 0.42);
 
         this.createResponsiveButton(
             centerX,
@@ -766,6 +796,17 @@ export class LoginScene extends Phaser.Scene {
             buttonStartY + buttonGap,
             buttonWidth,
             buttonHeight,
+            LanguageSystem.t('menu.encyclopedia') === 'menu.encyclopedia' ? '生物百科' : LanguageSystem.t('menu.encyclopedia'),
+            'encyclopediaSelected',
+            18,
+            true
+        );
+
+        this.createResponsiveButton(
+            centerX,
+            buttonStartY + buttonGap * 2,
+            buttonWidth,
+            buttonHeight,
             LanguageSystem.t('login.login'),
             'loginSelected',
             18,
@@ -774,7 +815,7 @@ export class LoginScene extends Phaser.Scene {
 
         this.createResponsiveButton(
             centerX,
-            buttonStartY + buttonGap * 2,
+            buttonStartY + buttonGap * 3,
             buttonWidth,
             buttonHeight,
             LanguageSystem.t('login.create_account'),
@@ -808,6 +849,8 @@ export class LoginScene extends Phaser.Scene {
         const titleWrapWidth = Math.min(width * 0.43, leftAreaWidth * 1.55);
 
         // 主標題放在左上方，與下方歡迎文字形成標題區。
+        this.createMenuTitlePlaque(leftCenterX, height * 0.16, Math.min(leftAreaWidth + 12, 425), Math.min(height * 0.29, 136));
+
         this.addLayoutText(
             leftCenterX,
             height * 0.12,
@@ -849,9 +892,9 @@ export class LoginScene extends Phaser.Scene {
 
 
         const buttonWidth = Math.min(leftAreaWidth - 18, 290);
-        const buttonHeight = Math.max(38, Math.min(49, height * 0.125));
-        const buttonGap = buttonHeight + Math.max(6, height * 0.018);
-        const buttonStartY = height * 0.435;
+        const buttonHeight = Math.max(29, Math.min(44, height * 0.105));
+        const buttonGap = buttonHeight + Math.max(3, height * 0.012);
+        const buttonStartY = height * 0.40;
         const buttonFontSize = Math.max(13, 16 * scale * textScale);
 
         this.createResponsiveButton(
@@ -870,6 +913,17 @@ export class LoginScene extends Phaser.Scene {
             buttonStartY + buttonGap,
             buttonWidth,
             buttonHeight,
+            LanguageSystem.t('menu.encyclopedia') === 'menu.encyclopedia' ? '生物百科' : LanguageSystem.t('menu.encyclopedia'),
+            'encyclopediaSelected',
+            buttonFontSize,
+            true
+        );
+
+        this.createResponsiveButton(
+            leftCenterX,
+            buttonStartY + buttonGap * 2,
+            buttonWidth,
+            buttonHeight,
             LanguageSystem.t('login.login'),
             'loginSelected',
             buttonFontSize,
@@ -878,7 +932,7 @@ export class LoginScene extends Phaser.Scene {
 
         this.createResponsiveButton(
             leftCenterX,
-            buttonStartY + buttonGap * 2,
+            buttonStartY + buttonGap * 3,
             buttonWidth,
             buttonHeight,
             LanguageSystem.t('login.create_account'),
@@ -1360,7 +1414,11 @@ export class LoginScene extends Phaser.Scene {
                     this.pulseStartButton();
                 }
 
-                this.events.emit(eventName);
+                if (eventName === 'encyclopediaSelected') {
+                    this.openMainMenuEncyclopedia();
+                } else {
+                    this.events.emit(eventName);
+                }
             });
 
             this.layoutContainer.add(container);
