@@ -2125,7 +2125,6 @@ export class LoginScene extends Phaser.Scene {
             };
 
             drawButton();
-            this.drawLanguageFlag(item, language.code, 27, 18);
 
             const label = this.add.text(
                 20,
@@ -2145,7 +2144,9 @@ export class LoginScene extends Phaser.Scene {
 
             const hitArea = this.add.rectangle(0, 0, cellWidth, cellHeight, 0xffffff, 0.001);
             hitArea.setInteractive({ useHandCursor: true });
-            item.add([background, label, hitArea]);
+            item.add(background);
+            this.drawLanguageFlag(item, language.code, 27, 18);
+            item.add([label, hitArea]);
             this.settingsPageContainer.add(item);
 
             hitArea.on('pointerover', () => {
