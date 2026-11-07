@@ -44,8 +44,8 @@ output{color:#ebbd80}small{display:block;color:#bdad97;line-height:1.6;margin-to
 <input id="buttonX" type="range" min="-25" max="25" step="0.5" value="0">
 <label for="buttonScale">按鈕大小 <output id="buttonScaleValue">100%</output></label>
 <input id="buttonScale" type="range" min="60" max="140" step="5" value="100">
-<label for="zoom">預覽縮放 <output id="zoomValue">72%</output></label>
-<input id="zoom" type="range" min="30" max="110" step="1" value="72">
+<label for="zoom">預覽縮放 <output id="zoomValue">85%</output></label>
+<input id="zoom" type="range" min="30" max="110" step="1" value="85">
 <label for="device">預覽尺寸</label>
 <select id="device"><option value="402,874">iPhone 18 Pro 直式（402 × 874）</option><option value="390,720">一般手機直式（390 × 720）</option><option value="375,667">小尺寸手機直式（375 × 667）</option><option value="430,820">大尺寸手機直式（430 × 820）</option></select>
 <div class="actions">
@@ -85,7 +85,7 @@ const { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } =
  const drafts={
   portrait:{...official.portrait},landscape:{...official.landscape}
  };
- const zoomDraft={portrait:72,landscape:40};
+ const zoomDraft={portrait:85,landscape:40};
  const devices={
   portrait:[['402,874','iPhone 18 Pro 直式（402 × 874）'],['390,720','一般手機直式（390 × 720）'],['375,667','小尺寸手機直式（375 × 667）'],['430,820','大尺寸手機直式（430 × 820）']],
   landscape:[['874,402','iPhone 18 Pro 橫式（874 × 402）'],['720,390','一般手機橫式（720 × 390）'],['667,375','小尺寸手機橫式（667 × 375）'],['820,430','大尺寸手機橫式（820 × 430）']]
@@ -155,7 +155,7 @@ const { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } =
  });
  $('reset').addEventListener('click',()=>{
   drafts[mode()]={...official[mode()]};
-  zoomDraft[mode()]=mode()==='portrait'?72:40;
+  zoomDraft[mode()]=mode()==='portrait'?85:40;
   fillControls();resizePreview(false);sendPreview();
   status.textContent='已恢復本方向的 GitHub 正式版設定';
  });
