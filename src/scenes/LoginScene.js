@@ -1615,7 +1615,7 @@ export class LoginScene extends Phaser.Scene {
 
     drawLanguageButton(width, height) {
 
-        const button = this.add.container(width - 87, 32);
+        const button = this.add.container(31, 32);
         const wood = this.add.graphics();
 
         wood.fillStyle(0x21150e, 0.95);
