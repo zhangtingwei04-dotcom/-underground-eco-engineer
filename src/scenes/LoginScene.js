@@ -824,11 +824,11 @@ export class LoginScene extends Phaser.Scene {
         const shortScreen = height < 650;
         const textScale = this.getTextScale();
 
-        const imageTitle = this.drawMainMenuTitle(centerX, height * 0.165, Math.min(width - 20, 400), Math.min(190, height * 0.30));
+        const imageTitle = this.drawMainMenuTitle(centerX, height * 0.19, Math.min(width - 20, 400), Math.min(190, height * 0.30));
 
         if (!imageTitle) this.addLayoutText(
             centerX,
-            height * 0.12,
+            height * 0.145,
             this.getMainMenuTitle(),
             {
                 fontFamily: 'Georgia, serif',
@@ -844,7 +844,7 @@ export class LoginScene extends Phaser.Scene {
 
         if (!imageTitle) this.addLayoutText(
             centerX,
-            height * 0.205,
+            height * 0.23,
             LanguageSystem.t('game.subtitle'),
             {
                 fontFamily: 'Georgia, serif',
@@ -859,7 +859,7 @@ export class LoginScene extends Phaser.Scene {
         const buttonWidth = Math.min(width - 110, 185);
         const buttonHeight = shortScreen ? 44 : 50;
         // 四個按鈕等距排列：保留巨蜥頭部附近的垂直留白。
-        const buttonStartY = height * (shortScreen ? 0.41 : 0.43);
+        const buttonStartY = height * (shortScreen ? 0.385 : 0.405);
         const buttonGap = height * (shortScreen ? 0.086 : 0.091);
         const buttonCenterX = centerX;
 
