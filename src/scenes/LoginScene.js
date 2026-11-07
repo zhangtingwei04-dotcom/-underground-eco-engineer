@@ -839,8 +839,8 @@ export class LoginScene extends Phaser.Scene {
 
         const shortScreen = height < 650;
         const textScale = this.getTextScale();
-        const titleY = this.previewTitleY ?? 0.19;
-        const buttonsY = this.previewButtonsY ?? (shortScreen ? 0.385 : 0.405);
+        const titleY = this.previewTitleY ?? 0.17;
+        const buttonsY = this.previewButtonsY ?? 0.375;
 
         const imageTitle = this.drawMainMenuTitle(centerX, height * titleY, Math.min(width - 20, 400), Math.min(190, height * 0.30));
 
