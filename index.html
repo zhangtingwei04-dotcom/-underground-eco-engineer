@@ -96,9 +96,9 @@
         window.addEventListener('DOMContentLoaded', async () => {
             const panel = document.createElement('div');
             panel.style.cssText = 'position:fixed;z-index:999999;top:8px;left:8px;right:8px;padding:10px;background:#21150ef2;color:#fff;font:13px/1.5 monospace;white-space:pre-wrap;border:2px solid #e9c17b;border-radius:8px;pointer-events:none';
-            panel.textContent = 'TITLE DIAG v7 | 檢查中…';
+            panel.textContent = 'TITLE DIAG v8 | 檢查中…';
             document.body.appendChild(panel);
-            const url = 'assets/images/ui/main-menu/title-frame.png?diag=7';
+            const url = 'assets/images/ui/main-menu/title-zh-TW.png?diag=8';
             const image = new Image();
             const imageState = await new Promise(resolve => {
                 image.onload = () => resolve('PNG OK ' + image.naturalWidth + '×' + image.naturalHeight);
@@ -109,9 +109,9 @@
             try {
                 const response = await fetch('src/scenes/LoginScene.js?diag=7', { cache: 'no-store' });
                 const body = await response.text();
-                codeState = 'JS HTTP ' + response.status + ' / title=' + body.includes('drawMainMenuTitle') + ' / image=' + body.includes('main_menu_title_frame');
+                codeState = 'JS HTTP ' + response.status + ' / title=' + body.includes('drawMainMenuTitle') + ' / image=' + body.includes('main_menu_title_zh_TW');
             } catch (error) { codeState = String(error); }
-            panel.textContent = 'TITLE DIAG v7\\n' + imageState + '\\n' + codeState + '\\n畫面：' + innerWidth + '×' + innerHeight;
+            panel.textContent = 'TITLE DIAG v8\\n' + imageState + '\\n' + codeState + '\\n畫面：' + innerWidth + '×' + innerHeight;
         });
     }
     </script>
