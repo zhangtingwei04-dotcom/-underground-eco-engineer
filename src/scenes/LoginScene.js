@@ -813,7 +813,7 @@ export class LoginScene extends Phaser.Scene {
         const buttonHeight = shortScreen ? 38 : 43;
         const buttonGap = shortScreen ? 41 : 46;
         const buttonStartY = height * (shortScreen ? 0.34 : 0.36);
-        const buttonCenterX = centerX + Math.min(14, width * 0.02);
+        const buttonCenterX = centerX + Math.min(48, width * 0.085);
 
         this.createResponsiveButton(
             buttonCenterX,
