@@ -1555,7 +1555,7 @@ export class LoginScene extends Phaser.Scene {
     }
 
     // =====================================
-    // 五個設定分類
+    // 四個設定分類；語言切換由主畫面獨立的地球按鈕開啟。
     // =====================================
 
     getSettingsCategories() {
@@ -1564,7 +1564,6 @@ export class LoginScene extends Phaser.Scene {
             { id: 'screen', icon: '▤', label: '畫面' },
             { id: 'sound', icon: '♫', label: '音效' },
             { id: 'operation', icon: '✥', label: '操作' },
-            { id: 'language', icon: '🌐', label: '語言' },
             { id: 'system', icon: '⚙', label: '系統' }
         ];
     }
@@ -2757,7 +2756,7 @@ export class LoginScene extends Phaser.Scene {
         this.addPageButton(
             centerX,
             startY + 130,
-            '恢復預設設定',
+            '重設為預設值',
             () => {
 
                 SettingsSystem.reset();
