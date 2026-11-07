@@ -69,6 +69,9 @@ export class LoginScene extends Phaser.Scene {
             }
         });
 
+        // 原圖直接作為畫面：檔案尚未上傳時安全回退既有介面。
+        this.load.image('menu_reference_exact', 'assets/images/menu-reference-exact.png');
+
         AudioSystem.preloadSceneBGM(this);
     }
 
@@ -316,9 +319,9 @@ export class LoginScene extends Phaser.Scene {
 
         const portrait = this.isPortrait();
 
-        const imageKey = portrait
-            ? 'login_background_portrait'
-            : 'login_background_landscape';
+        const imageKey = this.useExactReferenceMenu()
+            ? 'menu_reference_exact'
+            : (portrait ? 'login_background_portrait' : 'login_background_landscape');
 
         if (this.textures.exists(imageKey)) {
 
@@ -678,7 +681,9 @@ export class LoginScene extends Phaser.Scene {
         const height = this.scale.height;
         const centerX = width / 2;
 
-        if (this.isPortrait()) {
+        if (this.useExactReferenceMenu()) {
+            this.drawExactReferenceMenu(width, height);
+        } else if (this.isPortrait()) {
             this.drawPortraitLayout(centerX, width, height);
         } else {
             this.drawLandscapeLayout(centerX, width, height);
@@ -694,7 +699,58 @@ export class LoginScene extends Phaser.Scene {
         );
 
         this.drawLanguageButton(width, height);
-        this.drawSettingsButton(width, height);
+        // 參考圖已有「設定」木牌，避免額外的齒輪按鈕重疊。
+        if (!this.useExactReferenceMenu()) this.drawSettingsButton(width, height);
+    }
+
+    // 原圖文字為繁體中文，其他語言先保留原有可翻譯的動態介面。
+    // 只有在原圖素材確實載入後才切換，避免缺檔造成空白畫面。
+    useExactReferenceMenu() {
+        return !this.isPortrait() &&
+            LanguageSystem.getLanguage() === 'zh-TW' &&
+            this.textures.exists('menu_reference_exact');
+    }
+
+    // 使用上傳原圖的完整像素；不重新繪製背景、標題、動物與木牌。
+    // 互動熱區與背景使用同一組 cover 幾何轉換，避免不同螢幕錯位。
+    drawExactReferenceMenu(width, height) {
+        const texture = this.textures.get('menu_reference_exact').getSourceImage();
+        const factor = Math.max(width / texture.width, height / texture.height);
+        const offsetX = (width - texture.width * factor) / 2;
+        const offsetY = (height - texture.height * factor) / 2;
+        const buttons = [
+            { box: [74, 307, 378, 381], action: () => this.events.emit('guestSelected') },
+            { box: [74, 385, 378, 455], action: () => {
+                if (this.scene.get('EncyclopediaScene')) this.scene.start('EncyclopediaScene');
+            } },
+            { box: [74, 465, 378, 536], action: () => this.openSettings() },
+            { box: [74, 545, 378, 614], action: () => {
+                // 瀏覽器不能可靠關閉非腳本開啟的分頁，提供清楚說明。
+                this.showMenuNotice('網頁版請使用瀏覽器關閉分頁離開遊戲');
+            } }
+        ];
+        for (const { box, action } of buttons) {
+            const [left, top, right, bottom] = box;
+            const x = offsetX + (left + right) * factor / 2;
+            const y = offsetY + (top + bottom) * factor / 2;
+            const hit = this.add.zone(x, y, (right - left) * factor, (bottom - top) * factor)
+                .setInteractive({ useHandCursor: true });
+            hit.on('pointerdown', action);
+            this.layoutContainer.add(hit);
+        }
+    }
+
+    showMenuNotice(message) {
+        if (this.menuNotice) this.menuNotice.destroy();
+        const width = this.scale.width;
+        this.menuNotice = this.add.text(width / 2, this.scale.height - 38, message, {
+            fontFamily: 'Arial, sans-serif', fontSize: '14px', color: '#fff1cf',
+            backgroundColor: '#2b1b11', padding: { x: 12, y: 7 }
+        }).setOrigin(0.5).setDepth(1300);
+        this.time.delayedCall(3500, () => {
+            if (this.menuNotice?.active) this.menuNotice.destroy();
+            this.menuNotice = null;
+        });
     }
 
     // =====================================
