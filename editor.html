@@ -311,8 +311,9 @@ const { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } =
   categoryDraft[direction]=allowedCategory.includes(state.category)?state.category:'none';
   const validDevice=devices[direction].some(([value])=>value===state.device);
   deviceDraft[direction]=validDevice?state.device:devices[direction][0][0];
+  const sizeChanged=device.value!==deviceDraft[direction];
   fillControls();
-  resizePreview(true);
+  resizePreview(sizeChanged);
   queuePreview();
   updateHistoryButtons();
  }
@@ -417,31 +418,44 @@ const { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } =
    const data=JSON.parse(raw);
    if(data.version!==1 || !data.portrait?.layout || !data.landscape?.layout)
     throw Error('invalid draft');
+   // 先完整驗證兩個方向，避免草稿損壞時只更新一半。
+   const normalized={};
    for(const direction of ['portrait','landscape']){
-    const value=data[direction];
-    const savedMode=orientation.value;
-    orientation.value=direction;
-    for(const [key,input] of Object.entries(controls)){
-     input.min=key==='titleY'?(direction==='portrait'?10:8):
-      key==='firstButtonY'?(direction==='portrait'?30:28):input.min;
-     input.max=key==='titleY'?(direction==='portrait'?35:34):
-      key==='firstButtonY'?(direction==='portrait'?65:62):input.max;
+    const saved=data[direction],layout={};
+    for(const [key,defaultValue] of Object.entries(official[direction])){
+     const input=controls[key];
+     const min=key==='titleY'?(direction==='portrait'?10:8):
+      key==='firstButtonY'?(direction==='portrait'?30:28):Number(input.min);
+     const max=key==='titleY'?(direction==='portrait'?35:34):
+      key==='firstButtonY'?(direction==='portrait'?65:62):Number(input.max);
+     const candidate=saved.layout[key];
+     layout[key]=typeof candidate==='number' && Number.isFinite(candidate)?
+      Math.min(max,Math.max(min,candidate)):defaultValue;
     }
-    // 套用前先更新方向尺寸列表，保留完整數值並驗證草稿。
-    for(const [key,def] of Object.entries(official[direction])){
-     const valueNumber=Number(value.layout[key]);
-     drafts[direction][key]=Number.isFinite(valueNumber)?
-       Math.min(Number(controls[key].max),Math.max(Number(controls[key].min),valueNumber)):def;
-    }
-    zoomDraft[direction]=Number.isFinite(value.zoom)?Math.min(110,Math.max(30,value.zoom)):(direction==='portrait'?85:40);
-    categoryDraft[direction]=['none','screen','sound','operation','system','language'].includes(value.category)?value.category:'none';
-    deviceDraft[direction]=devices[direction].some(([v])=>v===value.device)?value.device:devices[direction][0][0];
-    histories[direction]={states:[snapshot(direction)],index:0};
-    orientation.value=savedMode;
+    normalized[direction]={
+     layout,
+     zoom:typeof saved.zoom==='number'&&Number.isFinite(saved.zoom)?
+      Math.min(110,Math.max(30,saved.zoom)):(direction==='portrait'?85:40),
+     category:['none','screen','sound','operation','system','language'].includes(saved.category)?saved.category:'none',
+     device:devices[direction].some(([v])=>v===saved.device)?saved.device:devices[direction][0][0]
+    };
    }
-   changeMode();
-   status.textContent='已載入此瀏覽器保存的直式與橫式草稿';
-  }catch(error){status.textContent='草稿格式不正確或目前無法讀取，尚未更新正式遊戲';}
+   commitHistory();
+   for(const direction of ['portrait','landscape']){
+    const saved=normalized[direction];
+    drafts[direction]=saved.layout;
+    zoomDraft[direction]=saved.zoom;
+    categoryDraft[direction]=saved.category;
+    deviceDraft[direction]=saved.device;
+    commitHistory(direction);
+   }
+   fillControls();
+   resizePreview(true);
+   updateHistoryButtons();
+   status.textContent='已載入此瀏覽器保存的直式與橫式草稿（可復原）';
+  }catch(error){
+   status.textContent='草稿格式不正確或目前無法讀取，沒有套用變更';
+  }
  });
  $('clearDraft').addEventListener('click',()=>{
   try{
