@@ -811,7 +811,7 @@ export class LoginScene extends Phaser.Scene {
 
         const buttonWidth = Math.min(width - 110, 185);
         const buttonHeight = shortScreen ? 44 : 50;
-        const buttonGap = shortScreen ? 47 : 54;
+        const buttonGap = shortScreen ? 39 : 43;
         // 將按鈕分成上下兩組，保留中央巨蜥頭部的展示空間。
         const buttonStartY = height * (shortScreen ? 0.31 : 0.33);
         const lowerButtonStartY = height * (shortScreen ? 0.59 : 0.62);
