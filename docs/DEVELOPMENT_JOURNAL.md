@@ -2309,3 +2309,11 @@ NPC 可自主結婚及邀請玩家參加婚禮；婚姻是否維持、修復、�
 - `src/scenes/LoginScene.js` 新增 `en` 對應正式 Logo，`src/locales/en.json` 使英文副標題與圖片一致；更新 `src/main.js` 和 `index.html` 快取版本，避免 iPhone 繼續讀舊 JavaScript。
 - 繁體中文、簡體中文、德文正式標題仍保持原設定；背景、按鈕、橫直式版面不變。
 - GitHub `main` 程式和素材已提交，GitHub Pages 真機顯示仍待使用者檢查。詳情見 `docs/ART_TITLE_LOCALIZATION_MASTER.md`。
+
+## 2026-11-07｜日文完整主標題正式接入語言切換
+
+- 使用者於日文候選稿選擇第一張美術方向，經修正後確認上傳；主標題「鱗と種子」、副標題「地下生態の物語」。
+- 已上傳保留完整深咖啡色木框、孵化幼蛇眼睛、白花、水晶、藤蔓與蜥蜴的透明版日文 Logo `assets/images/ui/main-menu/title-ja.png`（1774 × 887，532,028 bytes，Git blob `f570e2b6d55fbeedf3e737d950708a2d47fb270e`；資產提交 `ae3e060eefc72c5b6df35a8f449606cfc872ed87`）。
+- `LoginScene.js` 增加 `ja` → `main_menu_title_ja` 的圖片資產映射，`src/locales/ja.json` 將標題、副標題文字與圖面統一。原有繁中、簡中、英文、德文映射與其他語言文字後備保留。
+- `src/main.js` 和 `index.html` 快取版本同步更新以降低手機讀取舊 JS 的問題。**背景、按鈕、橫直式排版不變**。
+- GitHub `main` 上傳和程式已提交；網站在 iPhone 上的實際顯示仍需使用者查看驗收。詳見 `docs/ART_TITLE_LOCALIZATION_MASTER.md`。
