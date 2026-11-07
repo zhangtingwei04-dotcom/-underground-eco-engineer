@@ -103,3 +103,12 @@
 - `LoginScene.js` 的 `MAIN_MENU_TITLE_ASSETS` 新增 `ja → main_menu_title_ja → title-ja.png`，玩家改用日語即顯示此完整標題圖；其他語言的圖與後備機制不變。
 - 已將 `src/locales/ja.json` 的 `game.title` 調整為 `鱗と種子：地下生態の物語`、`game.subtitle` 設為 `地下生態の物語`，與圖像文字一致。
 - 手機快取版本已同步更新（`src/main.js`、`index.html`），未更動背景、四個木質按鈕尺寸與位置、橫直式版型。已確認 GitHub 提交；GitHub Pages iOS 實際畫面**仍待驗收**。
+
+## 十一、2026-11-07｜韓文主標題正式接入
+
+- 使用者確認韓文美術稿可用，並指示「幫我加進去」；正式主標題 **비늘과 씨앗**、副標題 **지하 생태계 이야기**。
+- 將核定的完整 Logo 轉為透明背景 1774 × 887 PNG（256 色網站最佳化，535,126 bytes），保留木質框架、破殼幼蛇及眼睛、細長蜥蜴、藤蔓、白花、水晶與其他裝飾。未裁切木框。
+- GitHub 檔案：`assets/images/ui/main-menu/title-ko.png`；Git blob `1adb77859b8a73609128bb3db52b4f933ff9e04f`；圖片提交 `40bb909988f6568095ba5417b1b7fb97834c07e7`；SHA-256 `d793778f39cf12a7b7b6e2dcc5515077d0bc360763f7b17a3c3d0296315aaf88`。
+- 已在 `LoginScene.js` 完成 `ko → main_menu_title_ko → title-ko.png` 完整圖片映射；`src/locales/ko.json` 的 title / subtitle 同步改為圖片上的「지하 생태계 이야기」。
+- `src/main.js` 與 `index.html` 更新版本查詢字串，降低手機載入舊版快取的風險；原有繁中、簡中、英文、日文、德文圖片及木質按鈕／背景／直橫式配置完全保留。
+- 圖片和程式已更新到 GitHub `main`，**GitHub Pages 的 iOS 真機畫面仍待實際驗收**。
