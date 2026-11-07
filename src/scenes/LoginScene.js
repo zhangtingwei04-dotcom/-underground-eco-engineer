@@ -54,7 +54,7 @@ export class LoginScene extends Phaser.Scene {
             'assets/images/login-background-portrait.jpg'
         );
 
-        this.load.image('main_menu_title_frame', 'assets/images/ui/main-menu/title-frame.png?v=20261107-4');
+        this.load.image('main_menu_title_frame', 'assets/images/ui/main-menu/title-frame.png?v=20261107-5');
 
         this.load.image(
             'btn_start_frame',
@@ -743,29 +743,26 @@ export class LoginScene extends Phaser.Scene {
     // PNG 內已有繁體中文標題，其他語言保留原本的動態文字木牌。
     // 主標題圖片與既有背景分離；中文採用正式圖像，其他語言採用動態文字。
     drawMainMenuTitle(x, y, width, height) {
-        const locale = String(LanguageSystem.getLanguage() || '').replace('_', '-').toLowerCase();
         const key = 'main_menu_title_frame';
-        const texture = this.textures.exists(key) ? this.textures.get(key) : null;
-        const frame = texture && texture.get('__BASE');
-        const sourceWidth = frame && frame.width;
-        const sourceHeight = frame && frame.height;
-        const valid = Number.isFinite(sourceWidth) && Number.isFinite(sourceHeight) && sourceWidth > 1 && sourceHeight > 1;
-        const traditionalChinese = locale === 'zh-tw' || locale === 'zh-hk' || locale === 'zh-mo';
-        if (traditionalChinese && valid) {
-            const title = this.add.image(x, y, key);
-            const fit = Math.min(width / sourceWidth, height / sourceHeight);
-            title.setScale(fit);
-            this.layoutContainer.add(title);
-            return true;
+        // 先以實際貼圖是否存在作為顯示條件，排除語言代碼造成的誤判。
+        if (this.textures.exists(key)) {
+            const image = this.add.image(x, y, key);
+            const frameWidth = image.width;
+            const frameHeight = image.height;
+            if (frameWidth > 1 && frameHeight > 1) {
+                const fit = Math.min(width / frameWidth, height / frameHeight);
+                image.setScale(fit);
+                this.layoutContainer.add(image);
+                return true;
+            }
+            image.destroy();
         }
-        if (traditionalChinese && !valid) {
-            console.error('[LoginScene] 主標題圖片載入失敗', { key, locale, sourceWidth, sourceHeight });
-            const warning = this.add.text(x, y, '主標題圖片載入失敗', {
-                fontFamily: 'sans-serif', fontSize: '15px', color: '#fff1d3',
-                backgroundColor: '#7c2424', padding: { x: 9, y: 6 }
-            }).setOrigin(0.5);
-            this.layoutContainer.add(warning);
-        }
+        console.error('[LoginScene] 無法載入主標題圖片：', key);
+        const warning = this.add.text(x, y, '主標題圖片載入失敗', {
+            fontFamily: 'sans-serif', fontSize: '15px', color: '#fff1d3',
+            backgroundColor: '#7c2424', padding: { x: 9, y: 6 }
+        }).setOrigin(0.5);
+        this.layoutContainer.add(warning);
         this.createMenuTitlePlaque(x, y, width, height);
         return false;
     }
