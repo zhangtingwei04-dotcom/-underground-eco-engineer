@@ -2301,3 +2301,11 @@ NPC 可自主結婚及邀請玩家參加婚禮；婚姻是否維持、修復、�
 - `src/scenes/LoginScene.js` 已加入 `zh-CN` → `main_menu_title_zh_CN` 的獨立圖片資產；原有 `zh-TW`、`de` 圖片映射及其他語言文字後備保留。
 - `src/main.js`、`index.html` 更新查詢版本，減少手機載入舊版快取風險。背景、按鈕與橫直式標題版面設定未改。
 - 圖片與程式已提交 GitHub `main`，實際 GitHub Pages 畫面仍待 iOS 上確認。詳細規格：`docs/ART_TITLE_LOCALIZATION_MASTER.md`。
+
+## 2026-11-07｜英文完整版主標題正式加入語言切換
+
+- 使用者從兩張英文 Logo 候選選擇第一張，主標題 `Scales & Seeds`，副標題 `An Underground Ecology Tale`，並授權加入英文版。
+- 製作透明背景 PNG 網站版 1774 × 887（約 559 KiB），新增 `assets/images/ui/main-menu/title-en.png`；Git blob `a387bfc752d17f676d39a379517a21f99a2ea866`，上傳 commit `77c994fa5a0d9bd1997a4379fe4853b7264c1ea8`。完整保留咖啡色木框、幼蛇頭與眼睛、植物和裝飾，沒有裁切內容。
+- `src/scenes/LoginScene.js` 新增 `en` 對應正式 Logo，`src/locales/en.json` 使英文副標題與圖片一致；更新 `src/main.js` 和 `index.html` 快取版本，避免 iPhone 繼續讀舊 JavaScript。
+- 繁體中文、簡體中文、德文正式標題仍保持原設定；背景、按鈕、橫直式版面不變。
+- GitHub `main` 程式和素材已提交，GitHub Pages 真機顯示仍待使用者檢查。詳情見 `docs/ART_TITLE_LOCALIZATION_MASTER.md`。
