@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>鱗片與種子｜主畫面視覺編輯器 V4</title>
+<title>鱗片與種子｜主畫面視覺編輯器 V5</title>
 <style>
 :root{color-scheme:dark;font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif}
 *{box-sizing:border-box}body{margin:0;background:#19150f;color:#f5ebd5;padding:20px}
@@ -20,12 +20,12 @@ button,select{background:#6e4928;color:white;border:1px solid #b88b58;border-rad
 button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #f5d28c}
 .actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
 output{color:#ebbd80}small{display:block;color:#bdad97;line-height:1.6;margin-top:12px}
-#status{min-height:1.5em;color:#e8d19d}.control-group{margin-top:18px;padding-top:8px;border-top:1px solid #6b4d2e}.control-group h2{font-size:16px;color:#e9c58c;margin:10px 0}
+#status{min-height:1.5em;color:#e8d19d}.control-group{margin-top:18px;padding-top:8px;border-top:1px solid #6b4d2e}.control-group h2{font-size:16px;color:#e9c58c;margin:10px 0}.hint{font-size:12px;color:#c5b59d}
 </style>
 </head>
 <body><main>
 <p><a href="./workbench.html" style="color:#e7c38a;text-decoration:underline">← 返回開發者工作台</a></p>
-<h1>鱗片與種子｜主畫面視覺編輯器 V4</h1>
+<h1>鱗片與種子｜主畫面視覺編輯器 V5</h1>
 <p>直接預覽真正的遊戲畫面。切換直式或橫式，即時調整標題、按鈕的大小和位置，或縮放預覽畫面。預覽不影響正式遊戲。</p>
 <div class="layout">
 <section class="preview" aria-label="遊戲直式或橫式預覽"><div class="phone-shell" id="phoneShell"><div class="phone" id="phone" style="width:402px;height:874px"><iframe id="game" src="./index.html?preview=menu" title="遊戲直式主畫面" loading="eager"></iframe></div></div></section>
@@ -58,6 +58,26 @@ output{color:#ebbd80}small{display:block;color:#bdad97;line-height:1.6;margin-to
 <input id="settingsY" type="range" min="-50" max="50" step="0.5" value="0">
 <label for="settingsScale">大小 <output id="settingsScaleValue">100%</output></label>
 <input id="settingsScale" type="range" min="60" max="140" step="5" value="100"></div>
+<div class="control-group"><h2>木質設定面板</h2>
+<label for="previewCategory">預覽設定分類</label>
+<select id="previewCategory">
+<option value="none">不開啟面板</option>
+<option value="screen">畫面設定</option>
+<option value="sound">音效設定</option>
+<option value="operation">操作設定</option>
+<option value="system">系統設定</option>
+<option value="language">語言選擇</option>
+</select>
+<label for="panelX">面板左右偏移 <output id="panelXValue">0.0%</output></label>
+<input id="panelX" type="range" min="-25" max="25" step="0.5" value="0">
+<label for="panelY">面板上下偏移 <output id="panelYValue">0.0%</output></label>
+<input id="panelY" type="range" min="-25" max="25" step="0.5" value="0">
+<label for="panelScale">面板整體大小 <output id="panelScaleValue">100%</output></label>
+<input id="panelScale" type="range" min="70" max="125" step="5" value="100">
+<label for="railSpacing">設定分類間距 <output id="railSpacingValue">100%</output></label>
+<input id="railSpacing" type="range" min="70" max="130" step="5" value="100">
+<p class="hint">面板會連同內容一起縮放，分類間距只影響右側設定分類。選擇一種分類才能看到面板。</p>
+</div>
 <label for="zoom">預覽縮放 <output id="zoomValue">85%</output></label>
 <input id="zoom" type="range" min="30" max="110" step="1" value="85">
 <label for="device">預覽尺寸</label>
@@ -82,21 +102,24 @@ const { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } =
   titleY:$('title'),firstButtonY:$('buttons'),titleX:$('titleX'),
   buttonX:$('buttonX'),titleScale:$('titleScale'),buttonScale:$('buttonScale'),
   languageX:$('languageX'),languageY:$('languageY'),languageScale:$('languageScale'),
-  settingsX:$('settingsX'),settingsY:$('settingsY'),settingsScale:$('settingsScale')
+  settingsX:$('settingsX'),settingsY:$('settingsY'),settingsScale:$('settingsScale'),
+  panelX:$('panelX'),panelY:$('panelY'),panelScale:$('panelScale'),railSpacing:$('railSpacing')
  };
  const labels={
   titleY:$('titleValue'),firstButtonY:$('buttonValue'),titleX:$('titleXValue'),
   buttonX:$('buttonXValue'),titleScale:$('titleScaleValue'),buttonScale:$('buttonScaleValue'),
   languageX:$('languageXValue'),languageY:$('languageYValue'),languageScale:$('languageScaleValue'),
-  settingsX:$('settingsXValue'),settingsY:$('settingsYValue'),settingsScale:$('settingsScaleValue')
+  settingsX:$('settingsXValue'),settingsY:$('settingsYValue'),settingsScale:$('settingsScaleValue'),
+  panelX:$('panelXValue'),panelY:$('panelYValue'),panelScale:$('panelScaleValue'),railSpacing:$('railSpacingValue')
  };
- const zoom=$('zoom'),zoomValue=$('zoomValue');
+ const zoom=$('zoom'),zoomValue=$('zoomValue'),previewCategory=$('previewCategory');
  const fromConfig=cfg=>({
   titleY:cfg.titleY*100,firstButtonY:cfg.firstButtonY*100,
   titleX:cfg.titleX*100,buttonX:cfg.buttonX*100,
   titleScale:cfg.titleScale*100,buttonScale:cfg.buttonScale*100,
   languageX:cfg.languageX*100,languageY:cfg.languageY*100,languageScale:cfg.languageScale*100,
-  settingsX:cfg.settingsX*100,settingsY:cfg.settingsY*100,settingsScale:cfg.settingsScale*100
+  settingsX:cfg.settingsX*100,settingsY:cfg.settingsY*100,settingsScale:cfg.settingsScale*100,
+  panelX:cfg.panelX*100,panelY:cfg.panelY*100,panelScale:cfg.panelScale*100,railSpacing:cfg.railSpacing*100
  });
  const official={
   portrait:fromConfig(PORTRAIT_MENU_LAYOUT),
@@ -106,6 +129,7 @@ const { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } =
   portrait:{...official.portrait},landscape:{...official.landscape}
  };
  const zoomDraft={portrait:85,landscape:40};
+ const categoryDraft={portrait:'none',landscape:'none'};
  const devices={
   portrait:[['402,874','iPhone 18 Pro 直式（402 × 874）'],['390,720','一般手機直式（390 × 720）'],['375,667','小尺寸手機直式（375 × 667）'],['430,820','大尺寸手機直式（430 × 820）']],
   landscape:[['874,402','iPhone 18 Pro 橫式（874 × 402）'],['720,390','一般手機橫式（720 × 390）'],['667,375','小尺寸手機橫式（667 × 375）'],['820,430','大尺寸手機橫式（820 × 430）']]
@@ -114,6 +138,7 @@ const { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } =
  function fillControls(){
   for(const [key,el] of Object.entries(controls))el.value=drafts[mode()][key];
   zoom.value=zoomDraft[mode()];
+  previewCategory.value=categoryDraft[mode()];
   updateLabels();
  }
  function updateLabels(){
@@ -130,7 +155,9 @@ const { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } =
    titleX:p.titleX/100,buttonX:p.buttonX/100,
    titleScale:p.titleScale/100,buttonScale:p.buttonScale/100,
    languageX:p.languageX/100,languageY:p.languageY/100,languageScale:p.languageScale/100,
-   settingsX:p.settingsX/100,settingsY:p.settingsY/100,settingsScale:p.settingsScale/100
+   settingsX:p.settingsX/100,settingsY:p.settingsY/100,settingsScale:p.settingsScale/100,
+   panelX:p.panelX/100,panelY:p.panelY/100,panelScale:p.panelScale/100,
+   railSpacing:p.railSpacing/100,previewCategory:categoryDraft[mode()]
   },location.origin);
  }
  function updateControls(){
@@ -168,6 +195,7 @@ const { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } =
   zoomDraft[mode()]=Number(zoom.value);
   resizePreview(false);
  });
+ previewCategory.addEventListener('change',()=>{categoryDraft[mode()]=previewCategory.value;sendPreview();});
  orientation.addEventListener('change',changeMode);
  device.addEventListener('change',()=>resizePreview(true));
  frame.addEventListener('load',()=>{
@@ -178,6 +206,7 @@ const { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } =
  $('reset').addEventListener('click',()=>{
   drafts[mode()]={...official[mode()]};
   zoomDraft[mode()]=mode()==='portrait'?85:40;
+  categoryDraft[mode()]='none';
   fillControls();resizePreview(false);sendPreview();
   status.textContent='已恢復本方向的 GitHub 正式版設定';
  });
@@ -187,7 +216,7 @@ const { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } =
  });
  $('copy').addEventListener('click',async()=>{
   const p=drafts[mode()],dir=mode()==='portrait'?'直式':'橫式';
-  const message='請更新《鱗片與種子》'+dir+'主畫面排版：標題中心高度 '+p.titleY.toFixed(1)+'%，第一個按鈕中心高度 '+p.firstButtonY.toFixed(1)+'%，標題左右偏移 '+p.titleX.toFixed(1)+'%，標題大小 '+p.titleScale.toFixed(0)+'%，按鈕左右偏移 '+p.buttonX.toFixed(1)+'%，按鈕大小 '+p.buttonScale.toFixed(0)+'%，語言圖示左右偏移 '+p.languageX.toFixed(1)+'%，上下偏移 '+p.languageY.toFixed(1)+'%，大小 '+p.languageScale.toFixed(0)+'%，設定圖示左右偏移 '+p.settingsX.toFixed(1)+'%，上下偏移 '+p.settingsY.toFixed(1)+'%，大小 '+p.settingsScale.toFixed(0)+'%。維持其他按鈕間距，另一方向不變。請更新 GitHub main 的 src/config/menu-layout.js。預覽縮放只屬編輯器，不修改正式遊戲。';
+  const message='請更新《鱗片與種子》'+dir+'主畫面排版：標題中心高度 '+p.titleY.toFixed(1)+'%，第一個按鈕中心高度 '+p.firstButtonY.toFixed(1)+'%，標題左右偏移 '+p.titleX.toFixed(1)+'%，標題大小 '+p.titleScale.toFixed(0)+'%，按鈕左右偏移 '+p.buttonX.toFixed(1)+'%，按鈕大小 '+p.buttonScale.toFixed(0)+'%，語言圖示左右偏移 '+p.languageX.toFixed(1)+'%，上下偏移 '+p.languageY.toFixed(1)+'%，大小 '+p.languageScale.toFixed(0)+'%，設定圖示左右偏移 '+p.settingsX.toFixed(1)+'%，上下偏移 '+p.settingsY.toFixed(1)+'%，大小 '+p.settingsScale.toFixed(0)+'%，設定面板左右偏移 '+p.panelX.toFixed(1)+'%，上下偏移 '+p.panelY.toFixed(1)+'%，面板大小 '+p.panelScale.toFixed(0)+'%，設定分類間距 '+p.railSpacing.toFixed(0)+'%。維持其他按鈕間距，另一方向不變。請更新 GitHub main 的 src/config/menu-layout.js。預覽縮放只屬編輯器，不修改正式遊戲。';
   try{await navigator.clipboard.writeText(message);status.textContent='已複製'+dir+'設定，請貼給 ChatGPT';}
   catch(_){status.textContent=message;}
  });
