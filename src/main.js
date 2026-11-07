@@ -54,7 +54,10 @@ window.addEventListener('DOMContentLoaded', async () => {
         const initialSize = getScreenSize();
 
         // 5. Phaser 遊戲設定
+        // 編輯器 iframe 使用較低更新頻率，避免五個橫式畫面佔滿手機資源。
+        const isMenuPreview = new URLSearchParams(window.location.search).get('preview') === 'menu';
         const config = {
+            fps: { target: isMenuPreview ? 20 : 60 },
 
             type: Phaser.AUTO,
 
@@ -87,6 +90,10 @@ window.addEventListener('DOMContentLoaded', async () => {
 
         // 7. 初始化音效系統
         AudioSystem.initialize(window.game);
+        // 僅靜音預覽中的遊戲，正式遊戲仍保留原有音效設定。
+        if (isMenuPreview && window.game.sound) {
+            window.game.sound.mute = true;
+        }
 
         // 8. 畫面尺寸調整
         let resizeTimer = null;
