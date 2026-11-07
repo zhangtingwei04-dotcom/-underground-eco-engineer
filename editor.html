@@ -10,7 +10,8 @@
 main{max-width:980px;margin:auto}h1{font-size:clamp(21px,3vw,30px);margin:0 0 8px}
 p{color:#ccbda3;line-height:1.6}.layout{display:flex;gap:26px;justify-content:center;align-items:flex-start;flex-wrap:wrap}
 .preview{display:flex;justify-content:flex-start;flex:1 1 340px;min-width:0;overflow-x:auto;padding:8px}
-.phone{width:390px;height:720px;flex-shrink:0;background:#000;border:7px solid #795e3b;border-radius:25px;overflow:hidden;box-shadow:0 14px 44px #0008}
+.phone-shell{width:289px;height:629px;flex-shrink:0;position:relative}
+.phone{width:390px;height:720px;flex-shrink:0;transform-origin:top left;transform:scale(.72);background:#000;border:7px solid #795e3b;border-radius:25px;overflow:hidden;box-shadow:0 14px 44px #0008}
 iframe{display:block;border:0;width:100%;height:100%;background:#18130d}
 .controls{background:#2a2117;border:1px solid #6b4d2e;border-radius:14px;padding:20px;flex:1 1 280px;max-width:400px}
 label{display:flex;justify-content:space-between;gap:10px;margin:16px 0 8px;font-weight:600}
@@ -27,7 +28,7 @@ output{color:#ebbd80}small{display:block;color:#bdad97;line-height:1.6;margin-to
 <h1>鱗片與種子｜主畫面視覺編輯器</h1>
 <p>直接預覽真正的遊戲畫面。切換直式或橫式，即時調整該方向的標題及按鈕位置。預覽不影響正式遊戲。</p>
 <div class="layout">
-<section class="preview" aria-label="遊戲直式或橫式預覽"><div class="phone" id="phone" style="width:402px;height:874px"><iframe id="game" src="./index.html?preview=menu" title="遊戲直式主畫面" loading="eager"></iframe></div></section>
+<section class="preview" aria-label="遊戲直式或橫式預覽"><div class="phone-shell" id="phoneShell"><div class="phone" id="phone" style="width:402px;height:874px"><iframe id="game" src="./index.html?preview=menu" title="遊戲直式主畫面" loading="eager"></iframe></div></div></section>
 <section class="controls">
 <label for="orientation">畫面方向</label>
 <select id="orientation"><option value="portrait">直式</option><option value="landscape">橫式</option></select>
@@ -54,6 +55,7 @@ const { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } =
  const title=document.getElementById('title'), buttons=document.getElementById('buttons'),
        orientation=document.getElementById('orientation'), device=document.getElementById('device'),
        frame=document.getElementById('game'), phone=document.getElementById('phone'),
+       phoneShell=document.getElementById('phoneShell'),
        status=document.getElementById('status');
  const official={
   portrait:{titleY:PORTRAIT_MENU_LAYOUT.titleY*100,buttonsY:PORTRAIT_MENU_LAYOUT.firstButtonY*100},
@@ -94,7 +96,12 @@ const { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } =
  function resizeDevice(){
   const [w,h]=device.value.split(',').map(Number);
   phone.style.width=w+'px';phone.style.height=h+'px';
-  // iframe 使用真實邏輯尺寸，橫式預覽在窄螢幕上可左右捲動。
+  // 只縮放外觀，不改變 iframe 內部邏輯解析度。
+  const previewScale=orientation.value==='portrait'?0.72:1;
+  phone.style.transform='scale('+previewScale+')';
+  phoneShell.style.width=(w*previewScale)+'px';
+  phoneShell.style.height=(h*previewScale)+'px';
+  // 橫式維持原本比例，窄螢幕可左右捲動。
   render();
   frame.src='./index.html?preview=menu&v='+Date.now();
  }
@@ -121,7 +128,7 @@ const { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } =
   catch(_){status.textContent=message;}
  });
  title.value=official.portrait.titleY;buttons.value=official.portrait.buttonsY;
- render();
+ resizeDevice();
 })();
 </script>
 </body></html>
