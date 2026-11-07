@@ -809,7 +809,7 @@ export class LoginScene extends Phaser.Scene {
         );
 
 
-        const buttonWidth = Math.min(width - 48, 330);
+        const buttonWidth = Math.min(width - 64, 270);
         const buttonHeight = shortScreen ? 42 : 48;
         const buttonGap = shortScreen ? 49 : 57;
         const buttonStartY = height * (shortScreen ? 0.40 : 0.42);
@@ -925,7 +925,7 @@ export class LoginScene extends Phaser.Scene {
         );
 
 
-        const buttonWidth = Math.min(leftAreaWidth - 18, 290);
+        const buttonWidth = Math.min(leftAreaWidth - 38, 235);
         const buttonHeight = Math.max(29, Math.min(44, height * 0.105));
         const buttonGap = buttonHeight + Math.max(3, height * 0.012);
         const buttonStartY = height * 0.40;
