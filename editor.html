@@ -40,30 +40,48 @@ output{color:#ebbd80}small{display:block;color:#bdad97;line-height:1.6;margin-to
 <button id="reload" type="button">重載預覽</button>
 </div>
 <p id="status" role="status"></p>
-<small>預覽數值只存在於這部裝置的編輯器中。複製數值並貼給 ChatGPT 後，才能正式修改 GitHub 的遊戲排版。本頁沒有 GitHub 寫入權限，也沒有帳號管理功能。</small>
+<small>每次重新開啟編輯器都會以 GitHub 正式排版數值為準。拖曳僅影響本次預覽，複製數值貼給 ChatGPT 後才會正式更新。本頁沒有 GitHub 寫入權限，也沒有帳號管理功能。</small>
 </section></div>
 </main>
-<script>
+<script type="module">
+import { PORTRAIT_MENU_LAYOUT } from './src/config/menu-layout.js?v=shared-menu-layout-20261107';
+
 (()=>{
- const title=document.getElementById('title'),buttons=document.getElementById('buttons'),frame=document.getElementById('game'),phone=document.getElementById('phone'),status=document.getElementById('status');
- const key='scales-seeds-menu-preview-v4';
- try{const saved=JSON.parse(localStorage.getItem(key)||'null');if(saved){if(Number.isFinite(saved.titleY))title.value=saved.titleY;if(Number.isFinite(saved.buttonsY))buttons.value=saved.buttonsY;}}catch(_){}
+ const title=document.getElementById('title'),buttons=document.getElementById('buttons'),
+       frame=document.getElementById('game'),phone=document.getElementById('phone'),status=document.getElementById('status');
+ // 每次開啟都以正式遊戲排版為準；暫時拖動只影響本次預覽。
+ const officialTitleY=PORTRAIT_MENU_LAYOUT.titleY*100;
+ const officialButtonsY=PORTRAIT_MENU_LAYOUT.firstButtonY*100;
+ title.value=officialTitleY;
+ buttons.value=officialButtonsY;
  function render(){
   const titleY=Number(title.value),buttonsY=Number(buttons.value);
   document.getElementById('titleValue').textContent=titleY.toFixed(1)+'%';
   document.getElementById('buttonValue').textContent=buttonsY.toFixed(1)+'%';
-  try{localStorage.setItem(key,JSON.stringify({titleY,buttonsY}));}catch(_){}
-  if(frame.contentWindow)frame.contentWindow.postMessage({type:'scales-seeds-menu-preview',titleY:titleY/100,buttonsY:buttonsY/100},location.origin);
+  if(frame.contentWindow)frame.contentWindow.postMessage({
+    type:'scales-seeds-menu-preview',titleY:titleY/100,buttonsY:buttonsY/100
+  },location.origin);
  }
- title.addEventListener('input',render);buttons.addEventListener('input',render);frame.addEventListener('load',()=>{render();setTimeout(render,700);});
- document.getElementById('reset').addEventListener('click',()=>{title.value=14;buttons.value=37.5;render();status.textContent='已恢復預設位置';});
- document.getElementById('reload').addEventListener('click',()=>{frame.src='./index.html?preview=menu&v='+Date.now();status.textContent='正在重新載入遊戲預覽';});
- document.getElementById('device').addEventListener('change',e=>{const [w,h]=e.target.value.split(',').map(Number);phone.style.width=w+'px';phone.style.height=h+'px';render();});
+ title.addEventListener('input',render);
+ buttons.addEventListener('input',render);
+ frame.addEventListener('load',()=>{render();setTimeout(render,700);});
+ document.getElementById('reset').addEventListener('click',()=>{
+  title.value=officialTitleY;buttons.value=officialButtonsY;render();
+  status.textContent='已恢復 GitHub 正式版設定';
+ });
+ document.getElementById('reload').addEventListener('click',()=>{
+  frame.src='./index.html?preview=menu&v='+Date.now();status.textContent='正在重新載入遊戲預覽';
+ });
+ document.getElementById('device').addEventListener('change',e=>{
+  const [w,h]=e.target.value.split(',').map(Number);
+  phone.style.width=w+'px';phone.style.height=h+'px';render();
+ });
  document.getElementById('copy').addEventListener('click',async()=>{
-  const message='請更新《鱗片與種子》直式主畫面排版：標題中心高度 '+Number(title.value).toFixed(1)+'%，第一個按鈕中心高度 '+Number(buttons.value).toFixed(1)+'%；維持其他按鈕原有間距，橫式不變，請直接更新 GitHub main。';
+  const message='請更新《鱗片與種子》直式主畫面排版：標題中心高度 '+Number(title.value).toFixed(1)+'%，第一個按鈕中心高度 '+Number(buttons.value).toFixed(1)+'%；維持其他按鈕原有間距，橫式不變，請直接更新 GitHub main，並同步更新 src/config/menu-layout.js。';
   try{await navigator.clipboard.writeText(message);status.textContent='已複製設定，請貼到 ChatGPT';}
   catch(_){status.textContent=message;}
  });
+ status.textContent='已載入 GitHub 正式版位置';
  render();
 })();
 </script>
