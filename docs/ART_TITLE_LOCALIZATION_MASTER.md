@@ -94,3 +94,12 @@
 - `LoginScene.js` 的 `MAIN_MENU_TITLE_ASSETS` 已加入 `en → main_menu_title_en → title-en.png`，玩家切換英文直接顯示這張完整美術圖；原本 `zh-TW`、`zh-CN`、`de` 圖片設定維持不變。
 - 使英文資料一致，`src/locales/en.json` 的主標題及副標題分別設為 `Scales & Seeds: An Underground Ecology Tale`、`An Underground Ecology Tale`；也更新了入口 JS 版本降低手機快取舊程式的機率。
 - 沒有改變原本的背景、四個木質按鈕或橫直式布局。**GitHub 已提交，尚未完成 iPhone 真機畫面驗收。**
+
+## 十、2026-11-07｜日文正式主標題上傳與語言切換
+
+- 使用者在兩張日文 Logo 試稿中選擇第一張美術風格，後續確認校正版本並指示「上傳吧」，採用主標題 `鱗と種子`、副標題 `地下生態の物語`。
+- 已將確認的最終日文圖片轉成透明背景 1774 × 887 PNG（256 色最佳化、532,028 bytes），完整保留深色木框、蛋內幼蛇與眼睛、右上修長蜥蜴、藍水晶、白花、金黃蛇身、繁茂葉片和藤蔓，不切除內部深咖啡色。
+- 正式遊戲圖片：`assets/images/ui/main-menu/title-ja.png`，SHA-256 `0dfb3d63c8516e1fb68cc78c7758da4aa5d137d9407ccd5cca82c7cb0ec09319`、Git blob SHA `f570e2b6d55fbeedf3e737d950708a2d47fb270e`；圖片加入 GitHub `main` 提交：`ae3e060eefc72c5b6df35a8f449606cfc872ed87`。
+- `LoginScene.js` 的 `MAIN_MENU_TITLE_ASSETS` 新增 `ja → main_menu_title_ja → title-ja.png`，玩家改用日語即顯示此完整標題圖；其他語言的圖與後備機制不變。
+- 已將 `src/locales/ja.json` 的 `game.title` 調整為 `鱗と種子：地下生態の物語`、`game.subtitle` 設為 `地下生態の物語`，與圖像文字一致。
+- 手機快取版本已同步更新（`src/main.js`、`index.html`），未更動背景、四個木質按鈕尺寸與位置、橫直式版型。已確認 GitHub 提交；GitHub Pages iOS 實際畫面**仍待驗收**。
