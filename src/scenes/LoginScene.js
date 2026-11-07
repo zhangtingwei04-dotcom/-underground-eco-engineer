@@ -167,6 +167,21 @@ export class LoginScene extends Phaser.Scene {
         this.drawBackground();
         this.drawLayout();
 
+        // 預覽編輯器僅接受同來源 iframe 的即時位置訊息，不修改正式設定。
+        this.previewLayoutListener = event => {
+            if (event.origin !== window.location.origin ||
+                window.location.search.indexOf('preview=menu') === -1 ||
+                event.data?.type !== 'scales-seeds-menu-preview') return;
+
+            const title = Number(event.data.titleY);
+            const buttons = Number(event.data.buttonsY);
+            if (!Number.isFinite(title) || !Number.isFinite(buttons)) return;
+            this.previewTitleY = Phaser.Math.Clamp(title, 0.10, 0.35);
+            this.previewButtonsY = Phaser.Math.Clamp(buttons, 0.30, 0.65);
+            if (this.scene.isActive()) this.drawLayout();
+        };
+        window.addEventListener('message', this.previewLayoutListener);
+
         this.languageListener = () => {
 
             if (!this.scene.isActive()) return;
@@ -226,6 +241,7 @@ export class LoginScene extends Phaser.Scene {
 
         this.events.once('shutdown', () => {
 
+            window.removeEventListener('message', this.previewLayoutListener);
             window.removeEventListener(
                 'languageChanged',
                 this.languageListener
@@ -823,12 +839,14 @@ export class LoginScene extends Phaser.Scene {
 
         const shortScreen = height < 650;
         const textScale = this.getTextScale();
+        const titleY = this.previewTitleY ?? 0.19;
+        const buttonsY = this.previewButtonsY ?? (shortScreen ? 0.385 : 0.405);
 
-        const imageTitle = this.drawMainMenuTitle(centerX, height * 0.19, Math.min(width - 20, 400), Math.min(190, height * 0.30));
+        const imageTitle = this.drawMainMenuTitle(centerX, height * titleY, Math.min(width - 20, 400), Math.min(190, height * 0.30));
 
         if (!imageTitle) this.addLayoutText(
             centerX,
-            height * 0.145,
+            height * (titleY - 0.045),
             this.getMainMenuTitle(),
             {
                 fontFamily: 'Georgia, serif',
@@ -844,7 +862,7 @@ export class LoginScene extends Phaser.Scene {
 
         if (!imageTitle) this.addLayoutText(
             centerX,
-            height * 0.23,
+            height * (titleY + 0.04),
             LanguageSystem.t('game.subtitle'),
             {
                 fontFamily: 'Georgia, serif',
@@ -859,7 +877,7 @@ export class LoginScene extends Phaser.Scene {
         const buttonWidth = Math.min(width - 110, 185);
         const buttonHeight = shortScreen ? 44 : 50;
         // 四個按鈕等距排列：保留巨蜥頭部附近的垂直留白。
-        const buttonStartY = height * (shortScreen ? 0.385 : 0.405);
+        const buttonStartY = height * buttonsY;
         const buttonGap = height * (shortScreen ? 0.086 : 0.091);
         const buttonCenterX = centerX;
 
