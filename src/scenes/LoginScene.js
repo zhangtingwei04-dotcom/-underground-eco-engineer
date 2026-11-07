@@ -194,11 +194,34 @@ export class LoginScene extends Phaser.Scene {
                 languageScale: read('languageScale', 0.6, 1.4),
                 settingsX: read('settingsX', -0.5, 0.5),
                 settingsY: read('settingsY', -0.5, 0.5),
-                settingsScale: read('settingsScale', 0.6, 1.4)
+                settingsScale: read('settingsScale', 0.6, 1.4),
+                panelX: read('panelX', -0.25, 0.25),
+                panelY: read('panelY', -0.25, 0.25),
+                panelScale: read('panelScale', 0.7, 1.25),
+                railSpacing: read('railSpacing', 0.7, 1.3)
             };
             if (orientation === 'landscape') this.previewLandscapeLayout = preview;
             else this.previewPortraitLayout = preview;
-            if (this.scene.isActive()) this.drawLayout();
+            if (this.scene.isActive()) {
+                this.drawLayout();
+                this.refreshSettingsRail();
+                this.applySettingsPanelPreview();
+                const category = event.data.previewCategory;
+                if (category === 'none') {
+                    if (this.settingsExpanded) this.closeSettings();
+                } else if (category === 'language') {
+                    if (!this.settingsExpanded || !this.languageOnly) {
+                        if (this.settingsExpanded) this.closeSettings();
+                        this.openLanguageSelector();
+                    }
+                } else if (['screen', 'sound', 'operation', 'system'].includes(category)) {
+                    if (!this.settingsExpanded || this.languageOnly) {
+                        if (this.settingsExpanded) this.closeSettings();
+                        this.openSettings();
+                    }
+                    if (this.settingsCategory !== category) this.selectSettingsCategory(category);
+                }
+            }
         };
         window.addEventListener('message', this.previewLayoutListener);
 
@@ -1823,11 +1846,17 @@ export class LoginScene extends Phaser.Scene {
 
         const x = this.scale.width - 30;
         const startY = 91;
-        const spacing = 49;
+        const spacing = 49 * this.getEditorPanelLayout().railSpacing;
 
         if (this.settingsRailItems.length > 0) {
 
-            this.settingsRailItems.forEach(item => {
+            this.settingsRailItems.forEach((item, index) => {
+                const baseY = 91 + index * 49;
+                const deltaY = index * (spacing - 49);
+                item.glow.y = baseY + deltaY;
+                item.background.y = baseY + deltaY;
+                // 地球圖標使用原點繪圖，文字圖標使用實際座標。
+                item.icon.y = (item.category.id === 'language' ? 0 : baseY) + deltaY;
 
                 const selected =
                     this.settingsCategory === item.category.id;
@@ -2039,6 +2068,24 @@ export class LoginScene extends Phaser.Scene {
         }
     }
 
+    getEditorPanelLayout() {
+        return this.isPortrait()
+            ? (this.previewPortraitLayout ?? PORTRAIT_MENU_LAYOUT)
+            : (this.previewLandscapeLayout ?? LANDSCAPE_MENU_LAYOUT);
+    }
+
+    applySettingsPanelPreview() {
+        if (!this.settingsPageContainer || !this.settingsCategory) return;
+        const layout = this.getEditorPanelLayout();
+        const center = this.getSettingsPosition();
+        const scale = layout.panelScale;
+        this.settingsPageContainer.setScale(scale);
+        this.settingsPageContainer.setPosition(
+            this.scale.width * layout.panelX + center.x * (1 - scale),
+            this.scale.height * layout.panelY + center.y * (1 - scale)
+        );
+    }
+
     // =====================================
     // 面板尺寸
     // =====================================
@@ -2181,7 +2228,7 @@ export class LoginScene extends Phaser.Scene {
         }
 
         this.settingsPageContainer.setAlpha(1);
-        this.settingsPageContainer.setScale(1);
+        this.applySettingsPanelPreview();
     }
 
     // =====================================
