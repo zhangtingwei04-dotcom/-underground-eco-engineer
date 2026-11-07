@@ -784,19 +784,19 @@ export class LoginScene extends Phaser.Scene {
         const textScale = this.getTextScale();
         const margin = Math.max(16, width * 0.025);
 
-        // 左側集中放置操作介面，右側保留背景生物與場景主視覺。
-        const leftAreaWidth = Math.min(width * 0.44, 420);
+        // 操作介面收窄並固定在左側，避免遮住右側巨蜥等主視覺。
+        const leftAreaWidth = Math.min(width * 0.36, 360);
         const leftCenterX = Math.max(
             leftAreaWidth / 2 + margin,
-            width * 0.23
+            width * 0.20
         );
 
         const compact = height < 430 || width < 760;
         const scale = Math.min(1, height / 390, width / 720);
 
         const panelWidth = Math.min(
-            width * 0.48,
-            leftAreaWidth + 34
+            width * 0.40,
+            leftAreaWidth + 24
         );
         const panelHeight = Math.min(
             height * 0.88,
@@ -1830,7 +1830,8 @@ export class LoginScene extends Phaser.Scene {
         );
 
         const heights = {
-            language: 205,
+            // 語言改為兩欄五列，提供足夠點擊空間。
+            language: 300,
             screen: 245,
             sound: 345,
             operation: 325,
@@ -2051,144 +2052,137 @@ export class LoginScene extends Phaser.Scene {
 
     buildLanguagePage(centerX, startY) {
 
+        // 不使用旗幟 Emoji，避免部分手機／瀏覽器的 Canvas 字型
+        // 無法繪製旗幟而出現空白。以清楚的原生語言名稱呈現。
         const languages = [
-
-            { code: 'zh-TW', flag: '🇹🇼', label: '繁體中文' },
-            { code: 'zh-CN', flag: '🇨🇳', label: '简体中文' },
-            { code: 'en', flag: '🇺🇸', label: 'English' },
-            { code: 'ja', flag: '🇯🇵', label: '日本語' },
-            { code: 'ko', flag: '🇰🇷', label: '한국어' },
-
-            { code: 'th', flag: '🇹🇭', label: 'ไทย' },
-            { code: 'fr', flag: '🇫🇷', label: 'Français' },
-            { code: 'de', flag: '🇩🇪', label: 'Deutsch' },
-            { code: 'es', flag: '🇪🇸', label: 'Español' },
-            { code: 'pt-BR', flag: '🇧🇷', label: 'Português' }
+            { code: 'zh-TW', label: '繁體中文' },
+            { code: 'zh-CN', label: '简体中文' },
+            { code: 'en', label: 'English' },
+            { code: 'ja', label: '日本語' },
+            { code: 'ko', label: '한국어' },
+            { code: 'th', label: 'ไทย' },
+            { code: 'fr', label: 'Français' },
+            { code: 'de', label: 'Deutsch' },
+            { code: 'es', label: 'Español' },
+            { code: 'pt-BR', label: 'Português' }
         ];
 
         const currentCode = LanguageSystem.getLanguage();
-
-        const panelWidth =
-            this.getPanelSize('language').width;
-
-        const cellWidth = (panelWidth - 24) / 5;
-
-        const startX =
-            centerX - panelWidth / 2 + 12 + cellWidth / 2;
-
-        const rowGap = 62;
+        const panelWidth = this.getPanelSize('language').width;
+        const columns = 2;
+        const gapX = 10;
+        const gapY = 8;
+        const cellWidth = (panelWidth - 28 - gapX) / columns;
+        const cellHeight = 34;
+        const startX = centerX - panelWidth / 2 + 14 + cellWidth / 2;
+        const firstY = startY + 15;
 
         languages.forEach((language, index) => {
 
-            const column = index % 5;
-            const row = Math.floor(index / 5);
-
-            const x = startX + column * cellWidth;
-            const y = startY + 18 + row * rowGap;
-
+            const column = index % columns;
+            const row = Math.floor(index / columns);
+            const x = startX + column * (cellWidth + gapX);
+            const y = firstY + row * (cellHeight + gapY);
             const selected = currentCode === language.code;
-
             const item = this.add.container(x, y);
+            const background = this.add.graphics();
 
-            if (selected) {
-
-                const selectedGlow = this.add.circle(
-                    0,
-                    -8,
-                    18,
-                    0x9a6b3e,
-                    0.30
+            const drawButton = (active = selected, hover = false) => {
+                background.clear();
+                background.fillStyle(0x2a1a10, 0.95);
+                background.fillRoundedRect(
+                    -cellWidth / 2 + 1,
+                    -cellHeight / 2 + 2,
+                    cellWidth,
+                    cellHeight,
+                    6
                 );
-
-                selectedGlow.setStrokeStyle(
-                    1.5,
-                    0xe0bd7d,
-                    0.95
+                background.fillStyle(
+                    active ? 0x987044 : (hover ? 0x8a6038 : 0x694326),
+                    1
                 );
+                background.fillRoundedRect(
+                    -cellWidth / 2,
+                    -cellHeight / 2,
+                    cellWidth,
+                    cellHeight,
+                    6
+                );
+                background.lineStyle(
+                    active ? 1.8 : 1,
+                    active ? 0xffdfa0 : 0xd0a064,
+                    1
+                );
+                background.strokeRoundedRect(
+                    -cellWidth / 2 + 1,
+                    -cellHeight / 2 + 1,
+                    cellWidth - 2,
+                    cellHeight - 2,
+                    5
+                );
+            };
 
-                item.add(selectedGlow);
-            }
-
-            const flag = this.add.text(
-                0,
-                -8,
-                language.flag,
-                {
-                    fontSize: selected ? '27px' : '25px'
-                }
-            ).setOrigin(0.5);
+            drawButton();
 
             const label = this.add.text(
                 0,
-                19,
-                language.label,
+                0,
+                (selected ? '✓  ' : '') + language.label,
                 {
                     fontFamily: 'Arial, sans-serif',
-                    fontSize: '8px',
+                    fontSize: '12px',
                     fontStyle: selected ? 'bold' : 'normal',
-                    color: selected ? '#f3d49b' : '#f4e5c7',
+                    color: selected ? '#fff0c9' : '#f4e5c7',
                     stroke: '#392316',
                     strokeThickness: 2,
                     align: 'center',
-                    fixedWidth: cellWidth - 1,
-                    wordWrap: {
-                        width: cellWidth - 1
-                    }
+                    fixedWidth: cellWidth - 10
                 }
             ).setOrigin(0.5);
 
-            item.add([
-                flag,
-                label
-            ]);
-
             const hitArea = this.add.rectangle(
                 0,
-                4,
-                cellWidth - 2,
-                55,
+                0,
+                cellWidth,
+                cellHeight,
                 0xffffff,
                 0.001
             );
 
-            hitArea.setInteractive({
-                useHandCursor: true
-            });
-
-            item.add(hitArea);
+            hitArea.setInteractive({ useHandCursor: true });
+            item.add([background, label, hitArea]);
+            this.settingsPageContainer.add(item);
 
             hitArea.on('pointerover', () => {
-                item.setScale(1.08);
-                label.setColor('#ffe2a8');
+                drawButton(selected, true);
+                item.setScale(1.025);
             });
 
             hitArea.on('pointerout', () => {
-
+                drawButton();
                 item.setScale(1);
-
-                label.setColor(
-                    selected ? '#f3d49b' : '#f4e5c7'
-                );
             });
 
             hitArea.on('pointerdown', () => {
+                if (LanguageSystem.getLanguage() === language.code) return;
 
-                this.settingsCategory = 'language';
-
-                LanguageSystem.setLanguage(language.code);
+                // 延後至目前點擊事件結束後再重建設定面板，
+                // 避免在 Phaser 正處理 pointerdown 時銷毀觸發物件。
+                this.time.delayedCall(0, () => {
+                    if (!this.scene.isActive()) return;
+                    LanguageSystem.setLanguage(language.code);
+                });
             });
 
-            this.settingsPageContainer.add(item);
-
             item.setAlpha(0);
-            item.setScale(0.85);
+            item.setScale(0.94);
 
             this.tweens.add({
                 targets: item,
                 alpha: 1,
-                scale: selected ? 1.06 : 1,
-                duration: 160,
-                delay: index * 25,
+                scale: 1,
+                duration: 150,
+                delay: index * 18,
                 ease: 'Cubic.easeOut'
             });
         });
