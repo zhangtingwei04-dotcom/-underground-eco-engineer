@@ -46,7 +46,7 @@ output{color:#ebbd80}small{display:block;color:#bdad97;line-height:1.6;margin-to
 <script>
 (()=>{
  const title=document.getElementById('title'),buttons=document.getElementById('buttons'),frame=document.getElementById('game'),phone=document.getElementById('phone'),status=document.getElementById('status');
- const key='scales-seeds-menu-preview-v1';
+ const key='scales-seeds-menu-preview-v2';
  try{const saved=JSON.parse(localStorage.getItem(key)||'null');if(saved){if(Number.isFinite(saved.titleY))title.value=saved.titleY;if(Number.isFinite(saved.buttonsY))buttons.value=saved.buttonsY;}}catch(_){}
  function render(){
   const titleY=Number(title.value),buttonsY=Number(buttons.value);
