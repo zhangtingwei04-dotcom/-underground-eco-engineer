@@ -52,6 +52,8 @@
 
 - 使用者確認：**德文試作的整張主標題圖片可以放入遊戲**；不同語言的版型、排版與裝飾不必完全一模一樣，**風格相似即可**。
 - 德文主標題：`Schuppen und Samen`；副標題：`Eine Geschichte der unterirdischen Ökologie`。
-- 德文美術稿已生成並於工作區處理成透明背景 PNG（`title-de-transparent.png`）。預計正式 GitHub 素材：`assets/images/ui/main-menu/title-de.png`。
-- **注意：現有 GitHub connector 僅能新增 UTF-8 文字檔，尚未能將本次產出的 PNG 二進位檔直接上傳**。遊戲程式可先加入德文圖的路徑與缺檔後備，圖片實際上傳前不應宣稱德文已於網站顯示。
+- 德文美術稿已生成並於工作區處理成透明背景 PNG（`title-de-transparent.png`）；縮圖最佳化後已提交 GitHub 正式素材：`assets/images/ui/main-menu/title-de.png`。
+- **實作已完成（2026-11-07）**：德文圖片以 Git Blob + Tree + Commit 上傳到 GitHub `main`：`assets/images/ui/main-menu/title-de.png`（PNG 1000 × 500、索引色與透明度，約 200 KB）。已在 `LoginScene.js` 加入 `de → main_menu_title_de` 的完整圖片映射，切換到德文時自動使用它。
+- 原始較高解析度透明稿為工作區 `title-de-transparent.png`（1774 × 887）。部署所用的 1000 × 500 版是壓縮版，適合目前網站的主標題顯示；若之後覺得字邊不夠清晰，可由高解析度原稿重新輸出。
+- 相關資產提交：`1c190b7a2618873e9476a57594834d0381784f73`。目前已驗證 GitHub `main` 上原有繁體中文素材與 `LoginScene.js` 仍存在，但**尚未完成 GitHub Pages 上的手機實機視覺測試**。
 - 德文版的木框比例、字體與裝飾配置可依字數獨立調整，只需保持與繁體版同一系列的視覺辨識度。
