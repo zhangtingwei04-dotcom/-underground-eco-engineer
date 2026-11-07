@@ -782,68 +782,20 @@ export class LoginScene extends Phaser.Scene {
     drawLandscapeLayout(centerX, width, height) {
 
         const textScale = this.getTextScale();
-        const margin = Math.max(16, width * 0.025);
+        const margin = Math.max(16, width * 0.02);
 
-        // 操作介面收窄並固定在左側，避免遮住右側巨蜥等主視覺。
-        const leftAreaWidth = Math.min(width * 0.36, 360);
+        // 橫式不再放置大型底板，讓背景與巨蜥完整露出。
+        // 文字及木製按鈕直接疊在背景上，以描邊和陰影維持辨識度。
+        const leftAreaWidth = Math.min(width * 0.32, 330);
         const leftCenterX = Math.max(
             leftAreaWidth / 2 + margin,
-            width * 0.20
+            width * 0.17
         );
 
-        const compact = height < 430 || width < 760;
         const scale = Math.min(1, height / 390, width / 720);
-
-        const panelWidth = Math.min(
-            width * 0.40,
-            leftAreaWidth + 24
-        );
-        const panelHeight = Math.min(
-            height * 0.88,
-            compact ? 350 : 390
-        );
-
-        const panel = this.add.graphics();
-        panel.fillStyle(0x101b16, 0.48);
-        panel.fillRoundedRect(
-            leftCenterX - panelWidth / 2 + 4,
-            height / 2 - panelHeight / 2 + 6,
-            panelWidth,
-            panelHeight,
-            18
-        );
-        panel.fillStyle(0x17251d, 0.56);
-        panel.fillRoundedRect(
-            leftCenterX - panelWidth / 2,
-            height / 2 - panelHeight / 2,
-            panelWidth,
-            panelHeight,
-            18
-        );
-        panel.lineStyle(1.5, 0xd6b77d, 0.62);
-        panel.strokeRoundedRect(
-            leftCenterX - panelWidth / 2 + 2,
-            height / 2 - panelHeight / 2 + 2,
-            panelWidth - 4,
-            panelHeight - 4,
-            16
-        );
-        panel.lineStyle(1, 0xead5a5, 0.18);
-        panel.beginPath();
-        panel.moveTo(
-            leftCenterX - panelWidth * 0.32,
-            height / 2 - panelHeight / 2 + 12
-        );
-        panel.lineTo(
-            leftCenterX + panelWidth * 0.32,
-            height / 2 - panelHeight / 2 + 12
-        );
-        panel.strokePath();
-        this.layoutContainer.add(panel);
-
         const titleSize = Math.max(20, 31 * scale);
-        const welcomeSize = Math.max(13, 17 * scale);
-        const messageSize = Math.max(10, 12 * scale);
+        const welcomeSize = Math.max(13, 16 * scale);
+        const messageSize = Math.max(10, 11 * scale);
         const top = Math.max(25, height * 0.085);
 
         this.addLayoutText(
@@ -856,12 +808,12 @@ export class LoginScene extends Phaser.Scene {
                 color: '#f6e9ca',
                 fontStyle: 'bold',
                 stroke: '#302014',
-                strokeThickness: 4,
+                strokeThickness: 5,
                 shadow: {
                     offsetX: 1,
                     offsetY: 2,
                     color: '#160f0a',
-                    blur: 5,
+                    blur: 6,
                     fill: true
                 },
                 align: 'center',
@@ -876,9 +828,10 @@ export class LoginScene extends Phaser.Scene {
             {
                 fontFamily: 'Georgia, serif',
                 fontSize: `${welcomeSize * textScale}px`,
-                color: '#f1e6ce',
+                color: '#fff0d2',
                 stroke: '#253329',
-                strokeThickness: 2,
+                strokeThickness: 4,
+                shadow: { offsetX: 1, offsetY: 2, color: '#160f0a', blur: 4, fill: true },
                 align: 'center',
                 wordWrap: { width: leftAreaWidth - 16 }
             }
@@ -891,19 +844,20 @@ export class LoginScene extends Phaser.Scene {
             {
                 fontFamily: 'Arial, sans-serif',
                 fontSize: `${messageSize * textScale}px`,
-                color: '#dce5d1',
-                stroke: '#1b2a20',
-                strokeThickness: 2,
+                color: '#f3ead8',
+                stroke: '#1b211b',
+                strokeThickness: 4,
+                shadow: { offsetX: 1, offsetY: 2, color: '#160f0a', blur: 4, fill: true },
                 align: 'center',
-                wordWrap: { width: leftAreaWidth - 28 }
+                wordWrap: { width: leftAreaWidth - 24 }
             }
         );
 
-        const buttonWidth = Math.min(leftAreaWidth - 28, 310);
-        const buttonHeight = Math.max(40, Math.min(52, height * 0.135));
-        const buttonGap = buttonHeight + Math.max(7, height * 0.022);
+        const buttonWidth = Math.min(leftAreaWidth - 18, 290);
+        const buttonHeight = Math.max(38, Math.min(49, height * 0.125));
+        const buttonGap = buttonHeight + Math.max(6, height * 0.018);
         const buttonStartY = height * 0.515;
-        const buttonFontSize = Math.max(13, 17 * scale * textScale);
+        const buttonFontSize = Math.max(13, 16 * scale * textScale);
 
         this.createResponsiveButton(
             leftCenterX,
@@ -2050,10 +2004,83 @@ export class LoginScene extends Phaser.Scene {
     // 十種語言
     // =====================================
 
+    drawLanguageFlag(container, code, width, height) {
+
+        // 使用 Phaser Graphics 繪製旗幟，不依賴手機系統 Emoji 字型。
+        const g = this.add.graphics();
+        const x = -width / 2;
+        const y = -height / 2;
+        const stripe = (color, sx, sy, sw, sh) => {
+            g.fillStyle(color, 1);
+            g.fillRect(sx, sy, sw, sh);
+        };
+        const circle = (color, cx, cy, radius) => {
+            g.fillStyle(color, 1);
+            g.fillCircle(cx, cy, radius);
+        };
+
+        if (code === 'zh-TW') {
+            stripe(0xfe0000, x, y, width, height);
+            stripe(0x000095, x + 2, y + 2, width * 0.42, height * 0.48);
+            circle(0xffffff, x + width * 0.21, y + height * 0.25, height * 0.105);
+            circle(0x000095, x + width * 0.21, y + height * 0.25, height * 0.055);
+        } else if (code === 'zh-CN') {
+            stripe(0xde2910, x, y, width, height);
+            circle(0xffde00, x + width * 0.23, y + height * 0.32, height * 0.17);
+            [0, 1, 2, 3].forEach((n) => circle(0xffde00, x + width * (0.43 + (n % 2) * 0.12), y + height * (0.17 + Math.floor(n / 2) * 0.2), height * 0.045));
+        } else if (code === 'en') {
+            stripe(0xffffff, x, y, width, height);
+            for (let n = 0; n < 7; n++) stripe(0xb22234, x, y + n * height / 7, width, height / 13);
+            stripe(0x3c3b6e, x, y, width * 0.43, height * 0.56);
+            for (let row = 0; row < 3; row++) for (let col = 0; col < 4; col++) circle(0xffffff, x + width * (0.055 + col * 0.1), y + height * (0.1 + row * 0.17), 0.45);
+        } else if (code === 'ja') {
+            stripe(0xffffff, x, y, width, height);
+            circle(0xbc002d, 0, 0, height * 0.29);
+        } else if (code === 'ko') {
+            stripe(0xffffff, x, y, width, height);
+            circle(0xcd2e3a, -width * 0.025, -height * 0.045, height * 0.25);
+            circle(0x0047a0, width * 0.025, height * 0.045, height * 0.25);
+            stripe(0x111111, x + 3, y + 2, width * 0.2, 1.5);
+            stripe(0x111111, x + 3, y + 5, width * 0.2, 1.5);
+            stripe(0x111111, x + width - width * 0.2 - 3, y + height - 4, width * 0.2, 1.5);
+            stripe(0x111111, x + width - width * 0.2 - 3, y + height - 7, width * 0.2, 1.5);
+        } else if (code === 'th') {
+            stripe(0xa51931, x, y, width, height);
+            stripe(0xf4f5f8, x, y + height * 0.18, width, height * 0.16);
+            stripe(0x2d2a4a, x, y + height * 0.34, width, height * 0.32);
+            stripe(0xf4f5f8, x, y + height * 0.66, width, height * 0.16);
+        } else if (code === 'fr') {
+            stripe(0x0055a4, x, y, width / 3, height);
+            stripe(0xffffff, x + width / 3, y, width / 3, height);
+            stripe(0xef4135, x + width * 2 / 3, y, width / 3, height);
+        } else if (code === 'de') {
+            stripe(0x000000, x, y, width, height / 3);
+            stripe(0xdd0000, x, y + height / 3, width, height / 3);
+            stripe(0xffce00, x, y + height * 2 / 3, width, height / 3);
+        } else if (code === 'es') {
+            stripe(0xaa151b, x, y, width, height);
+            stripe(0xf1bf00, x, y + height * 0.25, width, height * 0.5);
+            stripe(0xaa151b, x, y + height * 0.75, width, height * 0.25);
+        } else if (code === 'pt-BR') {
+            stripe(0x009b3a, x, y, width, height);
+            g.fillStyle(0xffdf00, 1);
+            g.fillPoints([
+                { x: 0, y: y + 1 },
+                { x: width * 0.46, y: y + height / 2 },
+                { x: 0, y: y + height - 1 },
+                { x: -width * 0.46, y: y + height / 2 }
+            ], true);
+            circle(0x002776, 0, 0, height * 0.27);
+        }
+
+        g.lineStyle(1, 0xf4e5c7, 0.85);
+        g.strokeRect(x, y, width, height);
+        container.add(g);
+        return g;
+    }
+
     buildLanguagePage(centerX, startY) {
 
-        // 不使用旗幟 Emoji，避免部分手機／瀏覽器的 Canvas 字型
-        // 無法繪製旗幟而出現空白。以清楚的原生語言名稱呈現。
         const languages = [
             { code: 'zh-TW', label: '繁體中文' },
             { code: 'zh-CN', label: '简体中文' },
@@ -2073,7 +2100,7 @@ export class LoginScene extends Phaser.Scene {
         const gapX = 10;
         const gapY = 8;
         const cellWidth = (panelWidth - 28 - gapX) / columns;
-        const cellHeight = 34;
+        const cellHeight = 36;
         const startX = centerX - panelWidth / 2 + 14 + cellWidth / 2;
         const firstY = startY + 15;
 
@@ -2090,65 +2117,33 @@ export class LoginScene extends Phaser.Scene {
             const drawButton = (active = selected, hover = false) => {
                 background.clear();
                 background.fillStyle(0x2a1a10, 0.95);
-                background.fillRoundedRect(
-                    -cellWidth / 2 + 1,
-                    -cellHeight / 2 + 2,
-                    cellWidth,
-                    cellHeight,
-                    6
-                );
-                background.fillStyle(
-                    active ? 0x987044 : (hover ? 0x8a6038 : 0x694326),
-                    1
-                );
-                background.fillRoundedRect(
-                    -cellWidth / 2,
-                    -cellHeight / 2,
-                    cellWidth,
-                    cellHeight,
-                    6
-                );
-                background.lineStyle(
-                    active ? 1.8 : 1,
-                    active ? 0xffdfa0 : 0xd0a064,
-                    1
-                );
-                background.strokeRoundedRect(
-                    -cellWidth / 2 + 1,
-                    -cellHeight / 2 + 1,
-                    cellWidth - 2,
-                    cellHeight - 2,
-                    5
-                );
+                background.fillRoundedRect(-cellWidth / 2 + 1, -cellHeight / 2 + 2, cellWidth, cellHeight, 6);
+                background.fillStyle(active ? 0x987044 : (hover ? 0x8a6038 : 0x694326), 1);
+                background.fillRoundedRect(-cellWidth / 2, -cellHeight / 2, cellWidth, cellHeight, 6);
+                background.lineStyle(active ? 1.8 : 1, active ? 0xffdfa0 : 0xd0a064, 1);
+                background.strokeRoundedRect(-cellWidth / 2 + 1, -cellHeight / 2 + 1, cellWidth - 2, cellHeight - 2, 5);
             };
 
             drawButton();
+            this.drawLanguageFlag(item, language.code, 27, 18);
 
             const label = this.add.text(
+                20,
                 0,
-                0,
-                (selected ? '✓  ' : '') + language.label,
+                (selected ? '✓ ' : '') + language.label,
                 {
                     fontFamily: 'Arial, sans-serif',
-                    fontSize: '12px',
+                    fontSize: '11px',
                     fontStyle: selected ? 'bold' : 'normal',
                     color: selected ? '#fff0c9' : '#f4e5c7',
                     stroke: '#392316',
                     strokeThickness: 2,
-                    align: 'center',
-                    fixedWidth: cellWidth - 10
+                    align: 'left',
+                    fixedWidth: cellWidth - 43
                 }
-            ).setOrigin(0.5);
+            ).setOrigin(0, 0.5);
 
-            const hitArea = this.add.rectangle(
-                0,
-                0,
-                cellWidth,
-                cellHeight,
-                0xffffff,
-                0.001
-            );
-
+            const hitArea = this.add.rectangle(0, 0, cellWidth, cellHeight, 0xffffff, 0.001);
             hitArea.setInteractive({ useHandCursor: true });
             item.add([background, label, hitArea]);
             this.settingsPageContainer.add(item);
@@ -2165,9 +2160,6 @@ export class LoginScene extends Phaser.Scene {
 
             hitArea.on('pointerdown', () => {
                 if (LanguageSystem.getLanguage() === language.code) return;
-
-                // 延後至目前點擊事件結束後再重建設定面板，
-                // 避免在 Phaser 正處理 pointerdown 時銷毀觸發物件。
                 this.time.delayedCall(0, () => {
                     if (!this.scene.isActive()) return;
                     LanguageSystem.setLanguage(language.code);
@@ -2176,7 +2168,6 @@ export class LoginScene extends Phaser.Scene {
 
             item.setAlpha(0);
             item.setScale(0.94);
-
             this.tweens.add({
                 targets: item,
                 alpha: 1,
