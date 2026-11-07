@@ -9,7 +9,11 @@
 *{box-sizing:border-box}body{margin:0;background:#19150f;color:#f5ebd5;padding:20px}
 main{max-width:980px;margin:auto}h1{font-size:clamp(21px,3vw,30px);margin:0 0 8px}
 p{color:#ccbda3;line-height:1.6}.layout{display:flex;gap:26px;justify-content:center;align-items:flex-start;flex-wrap:wrap}
-.preview{display:flex;flex-direction:column;align-items:flex-start;gap:14px;flex:1 1 340px;min-width:0;overflow:visible;padding:8px}.landscape-single{display:none;flex-direction:column;gap:6px;align-items:flex-start;max-width:100%;overflow-x:auto}.landscape-caption{font-size:12px;color:#eac795}.landscape-mode .preview{position:sticky;top:8px;align-self:flex-start;z-index:5;background:#211910;border:1px solid #685035;border-radius:12px;max-width:100%;box-shadow:0 6px 22px #0007}.landscape-mode .layout{align-items:flex-start}@media(max-width:680px){.landscape-mode .layout{flex-direction:column;gap:12px}.landscape-mode .preview{width:100%;flex:none;max-height:48vh;overflow:visible}.landscape-mode .controls{width:100%;max-width:none;flex:none}}
+.preview{display:flex;flex-direction:column;align-items:flex-start;gap:14px;flex:1 1 340px;min-width:0;padding:8px;position:sticky;top:8px;align-self:flex-start;z-index:5;background:#211910;border:1px solid #685035;border-radius:12px;box-shadow:0 6px 22px #0007;max-height:calc(100dvh - 16px);overflow:auto;overscroll-behavior:contain}
+.landscape-single{display:none;flex-direction:column;gap:6px;align-items:flex-start;max-width:100%;overflow-x:auto}
+.landscape-caption{font-size:12px;color:#eac795}
+.layout{align-items:flex-start}
+@media(max-width:680px){.layout{flex-direction:column;gap:12px}.preview{width:100%;flex:none;max-height:46dvh;overflow:auto}.controls{width:100%;max-width:none;flex:none}}
 .phone-shell{width:289px;height:629px;flex-shrink:0;position:relative}
 .phone{width:390px;height:720px;flex-shrink:0;transform-origin:top left;transform:scale(.72);background:#000;border:7px solid #795e3b;border-radius:25px;overflow:hidden;box-shadow:0 14px 44px #0008}
 iframe{display:block;border:0;width:100%;height:100%;background:#18130d}
@@ -26,7 +30,7 @@ output{color:#ebbd80}small{display:block;color:#bdad97;line-height:1.6;margin-to
 <body><main>
 <p><a href="./workbench.html" style="color:#e7c38a;text-decoration:underline">← 返回開發者工作台</a></p>
 <h1>鱗片與種子｜主畫面視覺編輯器 V5</h1>
-<p>直接預覽真正的遊戲畫面。切換直式或橫式，即時調整標題、按鈕的大小和位置。橫式採單一預覽，切換不同手機尺寸時即時跟著調整；上下滑動設定選項時，橫式預覽會固定在可視範圍。預覽不影響正式遊戲。</p>
+<p>直接預覽真正的遊戲畫面。切換直式或橫式，即時調整標題、按鈕的大小和位置。橫式採單一預覽，切換不同手機尺寸時即時跟著調整；上下滑動設定選項時，直式與橫式預覽都會保持可見；直式畫面較高時可在預覽區內捲動查看完整畫面。預覽不影響正式遊戲。</p>
 <div class="layout">
 <section class="preview" aria-label="遊戲直式或橫式預覽">
 <div id="portraitPreview"><div class="phone-shell" id="phoneShell"><div class="phone" id="phone" style="width:402px;height:874px"><iframe id="game" src="./index.html?preview=menu" title="遊戲直式主畫面" loading="eager"></iframe></div></div></div>
@@ -91,7 +95,7 @@ output{color:#ebbd80}small{display:block;color:#bdad97;line-height:1.6;margin-to
 <button id="reload" type="button">重載預覽</button>
 </div>
 <p id="status" role="status"></p>
-<small>直式與橫式數值互不影響；橫式採單一預覽，滑動調整選項時會維持在可視範圍，切換尺寸會更新這一個畫面。左右偏移以螢幕寬度百分比計算，0% 為原始位置；尺寸 100% 為原始大小。預覽縮放不改變遊戲解析度。重新開啟會從 GitHub 讀取正式設定，複製給 ChatGPT 確認後才更新正式版。本頁沒有 GitHub 寫入權限，也沒有帳號管理功能。</small>
+<small>直式與橫式數值互不影響；兩種模式都採單一跟隨捲動預覽，畫面超過可視高度時可以在預覽區內捲動，切換尺寸只更新當前畫面。左右偏移以螢幕寬度百分比計算，0% 為原始位置；尺寸 100% 為原始大小。預覽縮放不改變遊戲解析度。重新開啟會從 GitHub 讀取正式設定，複製給 ChatGPT 確認後才更新正式版。本頁沒有 GitHub 寫入權限，也沒有帳號管理功能。</small>
 </section></div>
 </main>
 <script type="module">
