@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>鱗片與種子｜主畫面視覺編輯器 V3</title>
+<title>鱗片與種子｜主畫面視覺編輯器 V4</title>
 <style>
 :root{color-scheme:dark;font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif}
 *{box-sizing:border-box}body{margin:0;background:#19150f;color:#f5ebd5;padding:20px}
@@ -20,12 +20,12 @@ button,select{background:#6e4928;color:white;border:1px solid #b88b58;border-rad
 button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #f5d28c}
 .actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
 output{color:#ebbd80}small{display:block;color:#bdad97;line-height:1.6;margin-top:12px}
-#status{min-height:1.5em;color:#e8d19d}
+#status{min-height:1.5em;color:#e8d19d}.control-group{margin-top:18px;padding-top:8px;border-top:1px solid #6b4d2e}.control-group h2{font-size:16px;color:#e9c58c;margin:10px 0}
 </style>
 </head>
 <body><main>
 <p><a href="./workbench.html" style="color:#e7c38a;text-decoration:underline">← 返回開發者工作台</a></p>
-<h1>鱗片與種子｜主畫面視覺編輯器 V3</h1>
+<h1>鱗片與種子｜主畫面視覺編輯器 V4</h1>
 <p>直接預覽真正的遊戲畫面。切換直式或橫式，即時調整標題、按鈕的大小和位置，或縮放預覽畫面。預覽不影響正式遊戲。</p>
 <div class="layout">
 <section class="preview" aria-label="遊戲直式或橫式預覽"><div class="phone-shell" id="phoneShell"><div class="phone" id="phone" style="width:402px;height:874px"><iframe id="game" src="./index.html?preview=menu" title="遊戲直式主畫面" loading="eager"></iframe></div></div></section>
@@ -44,6 +44,20 @@ output{color:#ebbd80}small{display:block;color:#bdad97;line-height:1.6;margin-to
 <input id="buttonX" type="range" min="-25" max="25" step="0.5" value="0">
 <label for="buttonScale">按鈕大小 <output id="buttonScaleValue">100%</output></label>
 <input id="buttonScale" type="range" min="60" max="140" step="5" value="100">
+<div class="control-group"><h2>語言圖示</h2>
+<label for="languageX">左右偏移 <output id="languageXValue">0.0%</output></label>
+<input id="languageX" type="range" min="-50" max="50" step="0.5" value="0">
+<label for="languageY">上下偏移 <output id="languageYValue">0.0%</output></label>
+<input id="languageY" type="range" min="-50" max="50" step="0.5" value="0">
+<label for="languageScale">大小 <output id="languageScaleValue">100%</output></label>
+<input id="languageScale" type="range" min="60" max="140" step="5" value="100"></div>
+<div class="control-group"><h2>設定圖示</h2>
+<label for="settingsX">左右偏移 <output id="settingsXValue">0.0%</output></label>
+<input id="settingsX" type="range" min="-50" max="50" step="0.5" value="0">
+<label for="settingsY">上下偏移 <output id="settingsYValue">0.0%</output></label>
+<input id="settingsY" type="range" min="-50" max="50" step="0.5" value="0">
+<label for="settingsScale">大小 <output id="settingsScaleValue">100%</output></label>
+<input id="settingsScale" type="range" min="60" max="140" step="5" value="100"></div>
 <label for="zoom">預覽縮放 <output id="zoomValue">85%</output></label>
 <input id="zoom" type="range" min="30" max="110" step="1" value="85">
 <label for="device">預覽尺寸</label>
@@ -66,17 +80,23 @@ const { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } =
  const orientation=$('orientation'),device=$('device'),status=$('status');
  const controls={
   titleY:$('title'),firstButtonY:$('buttons'),titleX:$('titleX'),
-  buttonX:$('buttonX'),titleScale:$('titleScale'),buttonScale:$('buttonScale')
+  buttonX:$('buttonX'),titleScale:$('titleScale'),buttonScale:$('buttonScale'),
+  languageX:$('languageX'),languageY:$('languageY'),languageScale:$('languageScale'),
+  settingsX:$('settingsX'),settingsY:$('settingsY'),settingsScale:$('settingsScale')
  };
  const labels={
   titleY:$('titleValue'),firstButtonY:$('buttonValue'),titleX:$('titleXValue'),
-  buttonX:$('buttonXValue'),titleScale:$('titleScaleValue'),buttonScale:$('buttonScaleValue')
+  buttonX:$('buttonXValue'),titleScale:$('titleScaleValue'),buttonScale:$('buttonScaleValue'),
+  languageX:$('languageXValue'),languageY:$('languageYValue'),languageScale:$('languageScaleValue'),
+  settingsX:$('settingsXValue'),settingsY:$('settingsYValue'),settingsScale:$('settingsScaleValue')
  };
  const zoom=$('zoom'),zoomValue=$('zoomValue');
  const fromConfig=cfg=>({
   titleY:cfg.titleY*100,firstButtonY:cfg.firstButtonY*100,
   titleX:cfg.titleX*100,buttonX:cfg.buttonX*100,
-  titleScale:cfg.titleScale*100,buttonScale:cfg.buttonScale*100
+  titleScale:cfg.titleScale*100,buttonScale:cfg.buttonScale*100,
+  languageX:cfg.languageX*100,languageY:cfg.languageY*100,languageScale:cfg.languageScale*100,
+  settingsX:cfg.settingsX*100,settingsY:cfg.settingsY*100,settingsScale:cfg.settingsScale*100
  });
  const official={
   portrait:fromConfig(PORTRAIT_MENU_LAYOUT),
@@ -108,7 +128,9 @@ const { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } =
    type:'scales-seeds-menu-preview',orientation:mode(),
    titleY:p.titleY/100,buttonsY:p.firstButtonY/100,
    titleX:p.titleX/100,buttonX:p.buttonX/100,
-   titleScale:p.titleScale/100,buttonScale:p.buttonScale/100
+   titleScale:p.titleScale/100,buttonScale:p.buttonScale/100,
+   languageX:p.languageX/100,languageY:p.languageY/100,languageScale:p.languageScale/100,
+   settingsX:p.settingsX/100,settingsY:p.settingsY/100,settingsScale:p.settingsScale/100
   },location.origin);
  }
  function updateControls(){
@@ -165,7 +187,7 @@ const { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } =
  });
  $('copy').addEventListener('click',async()=>{
   const p=drafts[mode()],dir=mode()==='portrait'?'直式':'橫式';
-  const message='請更新《鱗片與種子》'+dir+'主畫面排版：標題中心高度 '+p.titleY.toFixed(1)+'%，第一個按鈕中心高度 '+p.firstButtonY.toFixed(1)+'%，標題左右偏移 '+p.titleX.toFixed(1)+'%，標題大小 '+p.titleScale.toFixed(0)+'%，按鈕左右偏移 '+p.buttonX.toFixed(1)+'%，按鈕大小 '+p.buttonScale.toFixed(0)+'%。維持其他按鈕間距，另一方向不變。請更新 GitHub main 的 src/config/menu-layout.js。預覽縮放只屬編輯器，不修改正式遊戲。';
+  const message='請更新《鱗片與種子》'+dir+'主畫面排版：標題中心高度 '+p.titleY.toFixed(1)+'%，第一個按鈕中心高度 '+p.firstButtonY.toFixed(1)+'%，標題左右偏移 '+p.titleX.toFixed(1)+'%，標題大小 '+p.titleScale.toFixed(0)+'%，按鈕左右偏移 '+p.buttonX.toFixed(1)+'%，按鈕大小 '+p.buttonScale.toFixed(0)+'%，語言圖示左右偏移 '+p.languageX.toFixed(1)+'%，上下偏移 '+p.languageY.toFixed(1)+'%，大小 '+p.languageScale.toFixed(0)+'%，設定圖示左右偏移 '+p.settingsX.toFixed(1)+'%，上下偏移 '+p.settingsY.toFixed(1)+'%，大小 '+p.settingsScale.toFixed(0)+'%。維持其他按鈕間距，另一方向不變。請更新 GitHub main 的 src/config/menu-layout.js。預覽縮放只屬編輯器，不修改正式遊戲。';
   try{await navigator.clipboard.writeText(message);status.textContent='已複製'+dir+'設定，請貼給 ChatGPT';}
   catch(_){status.textContent=message;}
  });
