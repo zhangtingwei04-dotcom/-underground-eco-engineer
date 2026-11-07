@@ -2266,3 +2266,13 @@ NPC 可自主結婚及邀請玩家參加婚禮；婚姻是否維持、修復、�
 - `LoginScene.js` 以 `MAIN_MENU_TITLE_ASSETS` 進行「語言代碼 → 整張 Logo」選取；已存在的繁體中文素材 `title-frame.png` 暫時沿用。尚未上傳的九種語言**不要求不存在檔案、不顯示錯誤的繁體標題**，改用其語系的動態文字木牌後備。語言切換事件沿用現有即時重繪機制。
 - 已更新入口 JS 版本查詢字串，降低手機瀏覽器繼續執行舊版程式的風險。
 - **未完成**：新的獨立繁體中文母版是黑底圖，尚需透明處理、視覺驗收及正式上傳；九語言完整 Logo 也尚待製作。未在瀏覽器或 iOS 真機測試，現行主畫面、按鈕與背景維持原樣。
+
+
+## 2026-11-07｜德文主標題完整美術圖上線準備（程式與圖檔已提交）
+
+- 使用者確認德文試作標題可用，且九種語言的版型不用完全相同，只需與繁體中文維持相似的木質奇幻爬蟲生態風格。
+- 德文標題：`Schuppen und Samen`；副標題：`Eine Geschichte der unterirdischen Ökologie`。
+- 已將德文生成圖處理成透明 PNG，並製作輕量化網站版 1000×500：`assets/images/ui/main-menu/title-de.png`（約 200 KB）。圖檔 GitHub commit：`1c190b7a2618873e9476a57594834d0381784f73`。
+- `src/scenes/LoginScene.js` 已加入 `de` 對應整張圖的映射及缺圖時文字後備，並更新 `src/main.js` 和 `index.html` 入口版本以避免手機使用舊 JS 快取；原本繁體圖、按鈕位置與背景不改。
+- **GitHub commit 已確認**：圖片新增且現有 `LoginScene.js`、`index.html`、繁體中文標題素材仍存在。**尚未實際以手機測試 GitHub Pages 顯示**，故勿宣稱已視覺驗收。
+- 詳細規格已修訂：`docs/ART_TITLE_LOCALIZATION_MASTER.md`。
