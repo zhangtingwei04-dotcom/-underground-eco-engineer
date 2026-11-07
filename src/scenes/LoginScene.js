@@ -54,7 +54,7 @@ export class LoginScene extends Phaser.Scene {
             'assets/images/login-background-portrait.jpg'
         );
 
-        this.load.image('main_menu_title_frame', 'assets/images/ui/main-menu/title-frame.png');
+        this.load.image('main_menu_title_frame', 'assets/images/ui/main-menu/title-frame.png?v=20261107-2');
 
         this.load.image(
             'btn_start_frame',
@@ -62,6 +62,10 @@ export class LoginScene extends Phaser.Scene {
         );
 
         this.load.on('loaderror', file => {
+
+            if (file.key === 'main_menu_title_frame') {
+                console.error('[LoginScene] 主標題 PNG 載入失敗：assets/images/ui/main-menu/title-frame.png', file.src);
+            }
 
             if (file.key === 'btn_start_frame') {
 
@@ -737,17 +741,24 @@ export class LoginScene extends Phaser.Scene {
 
     // 主標題素材獨立於背景：直式與橫式共用一張透明 PNG。
     // PNG 內已有繁體中文標題，其他語言保留原本的動態文字木牌。
-    drawMainMenuTitle(x, y, width, height, subtitleY, textScale, titleFontSize, wrapWidth) {
+    // 主標題圖片與既有背景分離；中文採用正式圖像，其他語言採用動態文字。
+    drawMainMenuTitle(x, y, width, height) {
         const locale = LanguageSystem.getLanguage();
-        const texture = this.textures.get('main_menu_title_frame');
-        const source = texture && texture.getSourceImage();
-        const hasPng = this.textures.exists('main_menu_title_frame') && source && source.width > 1 && source.height > 1;
-        if (locale === 'zh-TW' && hasPng) {
-            const title = this.add.image(x, y, 'main_menu_title_frame');
-            const fit = Math.min(width / title.width, height / title.height);
-            title.setScale(fit);
+        const key = 'main_menu_title_frame';
+        const texture = this.textures.exists(key) ? this.textures.get(key) : null;
+        const source = texture && texture.source && texture.source[0];
+        const sourceWidth = source && source.width;
+        const sourceHeight = source && source.height;
+        const valid = Number.isFinite(sourceWidth) && Number.isFinite(sourceHeight) && sourceWidth > 1 && sourceHeight > 1;
+        if (locale === 'zh-TW' && valid) {
+            const title = this.add.image(x, y, key);
+            const fit = Math.min(width / sourceWidth, height / sourceHeight);
+            title.setDisplaySize(sourceWidth * fit, sourceHeight * fit);
             this.layoutContainer.add(title);
             return true;
+        }
+        if (locale === 'zh-TW' && !valid) {
+            console.warn('[LoginScene] 主標題 PNG 未載入或圖片尺寸無效，改用文字標題。請檢查 assets/images/ui/main-menu/title-frame.png');
         }
         this.createMenuTitlePlaque(x, y, width, height);
         return false;
