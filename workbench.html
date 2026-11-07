@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>鱗片與種子｜開發者工作台</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(circle at 50% -15%,#55412b 0,#211b14 44%,#13110e 100%);color:#f5ebd5;padding:clamp(16px,4vw,40px)}
+main{max-width:1050px;margin:0 auto}header{padding-bottom:22px;border-bottom:1px solid #675038}
+h1{font-size:clamp(25px,4vw,38px);margin:6px 0}h2{font-size:19px;margin:22px 0 12px}p{line-height:1.6;color:#d4c3a7;margin:8px 0 12px}
+.eyebrow{letter-spacing:.13em;color:#e8ba7e;font-size:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.card{padding:19px;border:1px solid #715538;border-radius:14px;background:#302419;display:flex;flex-direction:column;gap:7px}
+.card h3{font-size:18px;margin:0}.card p{font-size:14px;flex:1;margin:0 0 10px}
+.tag{font-size:12px;color:#f1c88f}.soon{opacity:.67}
+a.action{display:inline-block;color:#241707;background:#e6bc80;border-radius:9px;padding:11px 14px;text-decoration:none;font-weight:700;text-align:center}
+a.action:hover{background:#f2d5a8}a.secondary{background:transparent;color:#f4d6a9;border:1px solid #a17c51}
+.disabled{font-size:13px;color:#bdad97;border-top:1px solid #655039;padding-top:10px}
+.note{padding:15px;border:1px solid #735b40;border-radius:12px;margin-top:24px;background:#251e17}
+footer{margin-top:22px;color:#ae9b80;font-size:12px;line-height:1.6}
+</style>
+</head>
+<body><main>
+<header>
+<div class="eyebrow">SCALES & SEEDS · DEVELOPMENT WORKSPACE</div>
+<h1>鱗片與種子｜開發者工作台</h1>
+<p>集中查看遊戲介面、調整排版與確認成果。先從主畫面開始，其他功能完成後再逐步接入。</p>
+</header>
+<h2>目前可使用</h2>
+<div class="grid">
+<section class="card">
+<span class="tag">可使用 · 直式與橫式</span>
+<h3>主畫面視覺編輯器</h3>
+<p>直接預覽 Phaser 遊戲主畫面，調整標題及第一個按鈕位置，切換手機尺寸；數值可複製交由 ChatGPT 更新 GitHub。</p>
+<a class="action" href="./editor.html">開啟主畫面編輯器</a>
+</section>
+<section class="card">
+<span class="tag">可使用 · 正式遊戲</span>
+<h3>遊戲畫面檢查</h3>
+<p>直接開啟網站目前的正式版本，檢查語言、設定、按鈕與不同裝置的顯示效果。</p>
+<a class="action secondary" href="./index.html">查看遊戲</a>
+</section>
+</div>
+<h2>後續逐步加入</h2>
+<div class="grid">
+<section class="card soon"><span class="tag">尚未接入</span><h3>登入與註冊</h3><p>規劃表單、背景與木質面板的視覺配置和可用性檢查。</p><div class="disabled">後續實作，不提供假預覽</div></section>
+<section class="card soon"><span class="tag">尚未接入</span><h3>寵物飼養箱</h3><p>預覽設備、裝飾與飼養空間配置，實際模擬功能另行測試。</p><div class="disabled">後續實作，不提供假預覽</div></section>
+<section class="card soon"><span class="tag">尚未接入</span><h3>NPC 與對話</h3><p>檢視角色立繪、對話框、選項和不同語言的排版。</p><div class="disabled">後續實作，不提供假預覽</div></section>
+<section class="card soon"><span class="tag">尚未接入</span><h3>圖鑑與設定</h3><p>未來檢查內容卡片、按鈕、字級、圖像與介面配置。</p><div class="disabled">後續實作，不提供假預覽</div></section>
+</div>
+<div class="note">
+<strong>開發方式與資料保護</strong>
+<p>預覽編輯器不會直接寫入 GitHub；調整結果需確認後才更新正式版本。此頁目前是靜態網頁，沒有登入驗證或權限隔離，請勿放入金鑰、未公開設計文件或私人資料；不索引標籤不代表真正保密。</p>
+</div>
+<footer>主畫面排版設定來源：src/config/menu-layout.js · 本頁僅為第一版工作台入口</footer>
+</main></body></html>
