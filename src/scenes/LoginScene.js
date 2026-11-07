@@ -8,6 +8,17 @@ import { AudioSystem } from '../systems/AudioSystem.js';
 import { LanguageSystem } from '../systems/language-system.js';
 import { SettingsSystem } from '../systems/settings-system.js';
 
+// 每個語言使用一張完整 Logo；只有已確認並實際上傳的素材才加入映射。
+// 其餘語言自動回退至 LanguageSystem 的當地語言文字木牌，避免顯示錯誤語言圖片。
+// 未來新增例：'zh-CN': { key: 'main_menu_title_zh_CN', url: 'assets/images/ui/main-menu/title-zh-CN.png' }
+const MAIN_MENU_TITLE_ASSETS = Object.freeze({
+    'zh-TW': {
+        key: 'main_menu_title_frame',
+        url: 'assets/images/ui/main-menu/title-frame.png?v=20261107-5'
+    }
+});
+
+
 export class LoginScene extends Phaser.Scene {
 
     constructor() {
@@ -54,7 +65,9 @@ export class LoginScene extends Phaser.Scene {
             'assets/images/login-background-portrait.jpg'
         );
 
-        this.load.image('main_menu_title_frame', 'assets/images/ui/main-menu/title-frame.png?v=20261107-5');
+        Object.values(MAIN_MENU_TITLE_ASSETS).forEach(asset => {
+            this.load.image(asset.key, asset.url);
+        });
 
         this.load.image(
             'btn_start_frame',
@@ -63,8 +76,8 @@ export class LoginScene extends Phaser.Scene {
 
         this.load.on('loaderror', file => {
 
-            if (file.key === 'main_menu_title_frame') {
-                console.error('[LoginScene] 主標題 PNG 載入失敗：assets/images/ui/main-menu/title-frame.png', file.src);
+            if (Object.values(MAIN_MENU_TITLE_ASSETS).some(asset => asset.key === file.key)) {
+                console.warn('[LoginScene] 主標題 PNG 載入失敗，將使用當前語言文字標題：', file.src);
             }
 
             if (file.key === 'btn_start_frame') {
@@ -739,30 +752,28 @@ export class LoginScene extends Phaser.Scene {
         return wood;
     }
 
-    // 主標題素材獨立於背景：直式與橫式共用一張透明 PNG。
-    // PNG 內已有繁體中文標題，其他語言保留原本的動態文字木牌。
-    // 主標題圖片與既有背景分離；中文採用正式圖像，其他語言採用動態文字。
+    // 語言切換時直接替換整張標題圖片，沒有素材的語系使用文字木牌後備。
+    // 不改動共用背景與四個木質按鈕的位置／尺寸。
     drawMainMenuTitle(x, y, width, height) {
-        const key = 'main_menu_title_frame';
-        // 先以實際貼圖是否存在作為顯示條件，排除語言代碼造成的誤判。
-        if (this.textures.exists(key)) {
-            const image = this.add.image(x, y, key);
+        const language = LanguageSystem.getLanguage();
+        const asset = MAIN_MENU_TITLE_ASSETS[language];
+
+        // 尚未製作的語言不能錯用繁體中文圖片。
+        if (asset && this.textures.exists(asset.key)) {
+            const image = this.add.image(x, y, asset.key);
             const frameWidth = image.width;
             const frameHeight = image.height;
+
             if (frameWidth > 1 && frameHeight > 1) {
-                const fit = Math.min(width / frameWidth, height / frameHeight);
-                image.setScale(fit);
+                image.setScale(Math.min(width / frameWidth, height / frameHeight));
                 this.layoutContainer.add(image);
                 return true;
             }
+
             image.destroy();
         }
-        console.error('[LoginScene] 無法載入主標題圖片：', key);
-        const warning = this.add.text(x, y, '主標題圖片載入失敗', {
-            fontFamily: 'sans-serif', fontSize: '15px', color: '#fff1d3',
-            backgroundColor: '#7c2424', padding: { x: 9, y: 6 }
-        }).setOrigin(0.5);
-        this.layoutContainer.add(warning);
+
+        // 等待對應語言的完整 Logo 美術完成前，保持即時語言翻譯。
         this.createMenuTitlePlaque(x, y, width, height);
         return false;
     }
