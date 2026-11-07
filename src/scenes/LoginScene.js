@@ -2196,8 +2196,20 @@ export class LoginScene extends Phaser.Scene {
 
             drawButton();
 
+            // 國旗與語言名稱統一靠左排列，避免文字偏向按鈕右側。
+            const flagContainer = this.add.container(
+                -cellWidth / 2 + 22,
+                0
+            );
+            this.drawLanguageFlag(
+                flagContainer,
+                language.code,
+                27,
+                18
+            );
+
             const label = this.add.text(
-                20,
+                -cellWidth / 2 + 42,
                 0,
                 (selected ? '✓ ' : '') + language.label,
                 {
@@ -2208,15 +2220,13 @@ export class LoginScene extends Phaser.Scene {
                     stroke: '#392316',
                     strokeThickness: 2,
                     align: 'left',
-                    fixedWidth: cellWidth - 43
+                    fixedWidth: cellWidth - 50
                 }
             ).setOrigin(0, 0.5);
 
             const hitArea = this.add.rectangle(0, 0, cellWidth, cellHeight, 0xffffff, 0.001);
             hitArea.setInteractive({ useHandCursor: true });
-            item.add(background);
-            this.drawLanguageFlag(item, language.code, 27, 18);
-            item.add([label, hitArea]);
+            item.add([background, flagContainer, label, hitArea]);
             this.settingsPageContainer.add(item);
 
             hitArea.on('pointerover', () => {
