@@ -345,11 +345,12 @@ const { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } =
    const absolute=base+desired;
    const threshold=100*snapThreshold/(axis==='x'?width:height);
    const nearCenter=Math.abs(absolute-50)<=threshold;
-   if(snapEnabled.checked && nearCenter){
-    desired=50-base;
+   const min=Number(input.min),max=Number(input.max);
+   const snapValue=50-base;
+   if(snapEnabled.checked && nearCenter && snapValue>=min && snapValue<=max){
+    desired=snapValue;
     if(axis==='x')snapX=true;else snapY=true;
    }
-   const min=Number(input.min),max=Number(input.max);
    const clamped=Math.max(min,Math.min(max,desired));
    const step=Number(input.step)||.5;
    const snapped=Math.round(clamped/step)*step;
@@ -357,6 +358,9 @@ const { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } =
    input.value=p[key];
    const absoluteAfter=base+p[key];
    const nearEdge=absoluteAfter<6||absoluteAfter>94;
+   // 若步進量造成無法精準落於中心，不顯示錯誤的吸附提示。
+   if(axis==='x'&&snapX&&Math.abs(absoluteAfter-50)>0.35)snapX=false;
+   if(axis==='y'&&snapY&&Math.abs(absoluteAfter-50)>0.35)snapY=false;
    if(axis==='x')borderX=nearEdge;else borderY=nearEdge;
    if(Math.abs(desired-clamped)>0.01){
     if(axis==='x')borderX=true;else borderY=true;
