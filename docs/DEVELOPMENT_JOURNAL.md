@@ -2325,3 +2325,11 @@ NPC 可自主結婚及邀請玩家參加婚禮；婚姻是否維持、修復、�
 - `src/scenes/LoginScene.js` 新增韓文完整 Logo 映射；`src/locales/ko.json` 的 title/subtitle 已與圖片一致；`src/main.js`、`index.html` 更新載入版本。
 - 保留繁中、簡中、英文、日文及德文圖片與動態文字後備。背景、木質按鈕、橫直式主畫面版型保持不變。
 - 已完成 GitHub `main` 提交，但尚未於使用者 iPhone 上視覺驗收；詳見 `docs/ART_TITLE_LOCALIZATION_MASTER.md`。
+
+## 2026-11-07｜西班牙文及泰文完整標題加入（8／10 種語言）
+
+- 使用者稱西班牙文與泰文兩張試作「很滿意」，確認此後其他語言也沿用相似的木質、幼蛇、爬蟲與地下生態主題，圖片只去除外部黑底，不裁切木框與幼蛇眼睛。
+- 已上傳 `assets/images/ui/main-menu/title-es.png`（Git blob `692a106515055ff0a0da0e1a63baf6e85a080373`）及 `title-th.png`（Git blob `0138920406a76f7ce2dc9bf7ef94cd10f7094cf9`），圖檔提交 `caaef16fe2460f36906027fe4edbc3bc7b0453f4`。
+- 已完成 `LoginScene.js` 的 `es` / `th` 全圖切換與入口快取更新。原有繁中、簡中、英文、日文、韓文、德文版本均保留。既有 `es`、`th` 語言字典與圖片用語一致。
+- 法文、巴西葡萄牙文仍需獨立的完整解析度單張 PNG。生成時曾得到多語言拼貼圖，**未作為正式素材上傳**。
+- 主畫面背景與按鈕未修改，網站 iPhone 畫面仍待驗收。詳情見 `docs/ART_TITLE_LOCALIZATION_MASTER.md`。
