@@ -21,6 +21,7 @@ export class LoginScene extends Phaser.Scene {
 
         this.settingsCategory = null;
         this.settingsExpanded = false;
+        this.languageOnly = false;
 
         this.particles = [];
         this.backgroundTweens = [];
@@ -84,6 +85,7 @@ export class LoginScene extends Phaser.Scene {
 
         this.settingsCategory = null;
         this.settingsExpanded = false;
+        this.languageOnly = false;
 
         this.startButton = null;
         this.startButtonGlow = [];
@@ -116,7 +118,9 @@ export class LoginScene extends Phaser.Scene {
 
             this.drawLayout();
 
-            if (this.settingsExpanded) {
+            if (this.languageOnly) {
+                this.closeSettings();
+            } else if (this.settingsExpanded) {
                 this.refreshSettings();
             }
         };
@@ -127,7 +131,9 @@ export class LoginScene extends Phaser.Scene {
 
             this.drawLayout();
 
-            if (this.settingsExpanded) {
+            if (this.languageOnly) {
+                this.closeSettings();
+            } else if (this.settingsExpanded) {
                 this.refreshSettings();
             }
         };
@@ -802,8 +808,8 @@ export class LoginScene extends Phaser.Scene {
 
         // 遊戲標題獨立置於畫面上方中央，不與左側操作區重疊。
         this.addLayoutText(
-            centerX,
-            top,
+            leftCenterX,
+            height * 0.135,
             LanguageSystem.t('game.title'),
             {
                 fontFamily: 'Georgia, serif',
@@ -820,7 +826,7 @@ export class LoginScene extends Phaser.Scene {
                     fill: true
                 },
                 align: 'center',
-                wordWrap: { width: width * 0.58 }
+                wordWrap: { width: leftAreaWidth - 16 }
             }
         );
 
@@ -1492,8 +1498,11 @@ export class LoginScene extends Phaser.Scene {
         hitArea.on('pointerover', () => button.setScale(1.07));
         hitArea.on('pointerout', () => button.setScale(1));
         hitArea.on('pointerdown', () => {
-            if (!this.settingsExpanded) this.openSettings();
-            this.selectSettingsCategory('language');
+            if (this.settingsExpanded) {
+                this.closeSettings();
+                return;
+            }
+            this.openLanguageSelector();
         });
 
         button.add([wood, globe, hitArea]);
@@ -1566,6 +1575,27 @@ export class LoginScene extends Phaser.Scene {
             { id: 'operation', icon: '✥', label: '操作' },
             { id: 'system', icon: '⚙', label: '系統' }
         ];
+    }
+
+    // =====================================
+    // 獨立語言選擇：不展開設定側欄或下拉分類
+    // =====================================
+
+    openLanguageSelector() {
+
+        if (this.settingsExpanded) return;
+
+        this.settingsExpanded = true;
+        this.languageOnly = true;
+        this.settingsCategory = 'language';
+
+        this.settingsContainer = this.add.container(0, 0);
+        this.settingsContainer.setDepth(1200);
+
+        this.settingsPageContainer = this.add.container(0, 0);
+        this.settingsContainer.add(this.settingsPageContainer);
+
+        this.buildSettingsPage();
     }
 
     // =====================================
@@ -1857,7 +1887,9 @@ export class LoginScene extends Phaser.Scene {
         );
 
         const railX = this.scale.width - 30;
-        const panelCenterX = railX - 27 - size.width / 2;
+        const panelCenterX = this.languageOnly
+            ? this.scale.width / 2
+            : railX - 27 - size.width / 2;
 
         const minY = size.height / 2 + 12;
         const maxY = this.scale.height - size.height / 2 - 12;
@@ -2240,10 +2272,14 @@ export class LoginScene extends Phaser.Scene {
             });
 
             hitArea.on('pointerdown', () => {
-                if (LanguageSystem.getLanguage() === language.code) return;
+                if (LanguageSystem.getLanguage() === language.code) {
+                    if (this.languageOnly) this.closeSettings();
+                    return;
+                }
                 this.time.delayedCall(0, () => {
                     if (!this.scene.isActive()) return;
                     LanguageSystem.setLanguage(language.code);
+                    if (this.languageOnly) this.closeSettings();
                 });
             });
 
@@ -2823,5 +2859,6 @@ export class LoginScene extends Phaser.Scene {
 
         this.settingsCategory = null;
         this.settingsExpanded = false;
+        this.languageOnly = false;
     }
 }
