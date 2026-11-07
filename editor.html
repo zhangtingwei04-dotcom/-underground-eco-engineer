@@ -26,14 +26,14 @@ output{color:#ebbd80}small{display:block;color:#bdad97;line-height:1.6;margin-to
 <h1>鱗片與種子｜主畫面視覺編輯器</h1>
 <p>直接預覽真正的遊戲畫面。拖動下方滑桿，調整直式標題與四個按鈕的位置；橫式與正式遊戲不受影響。</p>
 <div class="layout">
-<section class="preview" aria-label="直式遊戲預覽"><div class="phone" id="phone"><iframe id="game" src="./index.html?preview=menu" title="遊戲直式主畫面" loading="eager"></iframe></div></section>
+<section class="preview" aria-label="直式遊戲預覽"><div class="phone" id="phone" style="width:402px;height:874px"><iframe id="game" src="./index.html?preview=menu" title="遊戲直式主畫面" loading="eager"></iframe></div></section>
 <section class="controls">
 <label for="title">標題中心高度 <output id="titleValue">15.0%</output></label>
 <input id="title" type="range" min="10" max="35" step="0.5" value="15">
 <label for="buttons">第一個按鈕中心高度 <output id="buttonValue">37.5%</output></label>
 <input id="buttons" type="range" min="30" max="65" step="0.5" value="37.5">
 <label for="device">預覽尺寸</label>
-<select id="device"><option value="390,720">一般手機（390 × 720）</option><option value="375,667">小尺寸手機（375 × 667）</option><option value="430,820">大尺寸手機（430 × 820）</option></select>
+<select id="device"><option value="402,874">iPhone 18 Pro（402 × 874）</option><option value="390,720">一般手機（390 × 720）</option><option value="375,667">小尺寸手機（375 × 667）</option><option value="430,820">大尺寸手機（430 × 820）</option></select>
 <div class="actions">
 <button id="reset" type="button">恢復預設</button>
 <button id="copy" type="button">複製調整數值</button>
