@@ -35,7 +35,7 @@ iframe{display:block;border:0;width:100%;height:100%;background:#18130d}
 input[type=range]{min-height:30px;touch-action:pan-y}
 select{width:100%;min-height:44px}
 button{min-height:44px}
-.utility-button{min-height:38px;font-size:13px;padding:7px 10px;white-space:nowrap}
+.utility-button{min-height:38px;font-size:13px;padding:7px 10px;white-space:nowrap}.editor-history-actions button{flex:1 1 42%;font-size:13px}.actions button:disabled{opacity:.45;cursor:not-allowed}.history-hint{font-size:12px;color:#d5bfa2}
 @media(max-width:680px){.controls{padding:12px;width:100%;max-width:none;flex:none}.accordion summary{min-height:52px}.accordion-body{padding:0 12px 12px}.editor-quick-controls{padding:10px}}
 
 label{display:flex;justify-content:space-between;gap:10px;margin:16px 0 8px;font-weight:600}
@@ -133,12 +133,20 @@ output{color:#ebbd80}small{display:block;color:#bdad97;line-height:1.6;margin-to
 <p class="hint">面板整體縮放會同步影響內容；分類間距只作用於右側分類按鈕。</p>
 </div>
 </details></div>
+<div class="actions editor-history-actions">
+<button id="undo" type="button" disabled>↶ 復原</button>
+<button id="redo" type="button" disabled>↷ 重做</button>
+<button id="saveDraft" type="button">儲存本機草稿</button>
+<button id="loadDraft" type="button">載入本機草稿</button>
+<button id="clearDraft" type="button">清除草稿</button>
+</div>
 <div class="actions">
 <button id="reset" type="button">恢復預設</button>
 <button id="copy" type="button">複製調整數值</button>
 <button id="reload" type="button">重載預覽</button>
 </div>
 <p id="status" role="status"></p>
+<p class="history-hint">復原／重做只保留目前頁面的操作紀錄；草稿需手動儲存到此瀏覽器，與 GitHub 正式設定完全分開。</p>
 <small>直式與橫式數值互不影響；兩種模式都採單一跟隨捲動預覽，畫面超過可視高度時可以在預覽區內捲動，切換尺寸只更新當前畫面。左右偏移以螢幕寬度百分比計算，0% 為原始位置；尺寸 100% 為原始大小。預覽縮放不改變遊戲解析度。重新開啟會從 GitHub 讀取正式設定，複製給 ChatGPT 確認後才更新正式版。本頁沒有 GitHub 寫入權限，也沒有帳號管理功能。</small>
 </section></div>
 </main>
@@ -198,6 +206,9 @@ const { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } =
  };
  const zoomDraft={portrait:85,landscape:40};
  const categoryDraft={portrait:'none',landscape:'none'};
+ const deviceDraft={portrait:'402,874',landscape:'874,402'};
+ const HISTORY_LIMIT=50;
+ const DRAFT_KEY='scales-seeds-editor-layout-drafts-v1';
  const devices={
   portrait:[['402,874','iPhone 18 Pro 直式（402 × 874）'],['390,720','一般手機直式（390 × 720）'],['375,667','小尺寸手機直式（375 × 667）'],['430,820','大尺寸手機直式（430 × 820）']],
   landscape:[['874,402','iPhone 18 Pro 橫式（874 × 402）'],['720,390','一般手機橫式（720 × 390）'],['667,375','小尺寸手機橫式（667 × 375）'],['820,430','大尺寸手機橫式（820 × 430）'],['932,430','寬螢幕橫式（932 × 430）']]
@@ -207,6 +218,7 @@ const { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } =
   for(const [key,el] of Object.entries(controls))el.value=drafts[mode()][key];
   zoom.value=zoomDraft[mode()];
   previewCategory.value=categoryDraft[mode()];
+  if(deviceDraft[mode()] && Array.from(device.options).some(option=>option.value===deviceDraft[mode()]))device.value=deviceDraft[mode()];
   updateLabels();
  }
  function updateLabels(){
@@ -255,6 +267,63 @@ const { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } =
    landscapeFrame.src='./index.html?preview=menu&v='+Date.now();
   }
  }
+ function snapshot(direction){
+  return {
+   layout:{...drafts[direction]},
+   zoom:zoomDraft[direction],
+   category:categoryDraft[direction],
+   device:deviceDraft[direction]
+  };
+ }
+ const histories={
+  portrait:{states:[snapshot('portrait')],index:0},
+  landscape:{states:[snapshot('landscape')],index:0}
+ };
+ function updateHistoryButtons(){
+  const h=histories[mode()];
+  $('undo').disabled=h.index===0;
+  $('redo').disabled=h.index>=h.states.length-1;
+ }
+ function commitHistory(direction=mode()){
+  const h=histories[direction],value=snapshot(direction);
+  if(JSON.stringify(value)===JSON.stringify(h.states[h.index]))return;
+  h.states=h.states.slice(0,h.index+1);
+  h.states.push(value);
+  if(h.states.length>HISTORY_LIMIT)h.states.shift();
+  h.index=h.states.length-1;
+  updateHistoryButtons();
+ }
+ function applySnapshot(state){
+  const direction=mode();
+  const valid=state&&state.layout&&typeof state.layout==='object';
+  if(!valid)return;
+  const layout={...official[direction]};
+  for(const [key,defaultValue] of Object.entries(layout)){
+   const candidate=Number(state.layout[key]);
+   const input=controls[key];
+   if(Number.isFinite(candidate)&&input){
+    layout[key]=Math.min(Number(input.max),Math.max(Number(input.min),candidate));
+   }else layout[key]=defaultValue;
+  }
+  drafts[direction]=layout;
+  zoomDraft[direction]=Number.isFinite(state.zoom)?Math.min(110,Math.max(30,state.zoom)):(direction==='portrait'?85:40);
+  const allowedCategory=['none','screen','sound','operation','system','language'];
+  categoryDraft[direction]=allowedCategory.includes(state.category)?state.category:'none';
+  const validDevice=devices[direction].some(([value])=>value===state.device);
+  deviceDraft[direction]=validDevice?state.device:devices[direction][0][0];
+  fillControls();
+  resizePreview(true);
+  queuePreview();
+  updateHistoryButtons();
+ }
+ function stepHistory(delta){
+  commitHistory();
+  const h=histories[mode()],next=h.index+delta;
+  if(next<0||next>=h.states.length)return;
+  h.index=next;
+  applySnapshot(h.states[next]);
+  status.textContent=delta<0?'已復原上一個調整':'已重做調整';
+ }
  function updateControls(){
   const p=drafts[mode()];
   for(const [key,el] of Object.entries(controls))p[key]=Number(el.value);
@@ -296,17 +365,24 @@ const { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } =
   controls.firstButtonY.max=mode()==='portrait'?65:62;
   fillControls();
   resizePreview(false);
+  updateHistoryButtons();
   status.textContent=(mode()==='portrait'?'直式':'橫式')+'：已載入此方向的設定';
  }
- for(const el of Object.values(controls))el.addEventListener('input',updateControls);
+ for(const el of Object.values(controls)){
+  el.addEventListener('input',updateControls);
+  el.addEventListener('change',()=>{updateControls();commitHistory();});
+ }
  zoom.addEventListener('input',()=>{
   zoomDraft[mode()]=Number(zoom.value);
   resizePreview(false);
  });
- previewCategory.addEventListener('change',()=>{categoryDraft[mode()]=previewCategory.value;queuePreview();});
- orientation.addEventListener('change',changeMode);
+ zoom.addEventListener('change',()=>commitHistory());
+ previewCategory.addEventListener('change',()=>{categoryDraft[mode()]=previewCategory.value;queuePreview();commitHistory();});
+ orientation.addEventListener('change',()=>{const old=orientation.value==='portrait'?'landscape':'portrait';commitHistory(old);changeMode();});
  device.addEventListener('change',()=>{
+  deviceDraft[mode()]=device.value;
   resizePreview(true);
+  commitHistory();
   status.textContent='已更新預覽尺寸：'+device.selectedOptions[0]?.textContent;
  });
  frame.addEventListener('load',()=>{if(mode()==='portrait')sendPreview([frame]);});
@@ -318,11 +394,67 @@ const { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } =
   if(target && (target===frame ? mode()==='portrait' : mode()==='landscape'))
    sendPreview([target]);
  });
+ $('undo').addEventListener('click',()=>stepHistory(-1));
+ $('redo').addEventListener('click',()=>stepHistory(1));
+ $('saveDraft').addEventListener('click',()=>{
+  commitHistory();
+  try{
+   localStorage.setItem(DRAFT_KEY,JSON.stringify({
+    version:1,
+    portrait:snapshot('portrait'),
+    landscape:snapshot('landscape'),
+    savedAt:new Date().toISOString()
+   }));
+   status.textContent='已將直式與橫式草稿儲存在此瀏覽器';
+  }catch(error){
+   status.textContent='無法儲存本機草稿，可能是私人瀏覽或儲存空間受限';
+  }
+ });
+ $('loadDraft').addEventListener('click',()=>{
+  try{
+   const raw=localStorage.getItem(DRAFT_KEY);
+   if(!raw){status.textContent='此瀏覽器沒有已儲存的草稿';return;}
+   const data=JSON.parse(raw);
+   if(data.version!==1 || !data.portrait?.layout || !data.landscape?.layout)
+    throw Error('invalid draft');
+   for(const direction of ['portrait','landscape']){
+    const value=data[direction];
+    const savedMode=orientation.value;
+    orientation.value=direction;
+    for(const [key,input] of Object.entries(controls)){
+     input.min=key==='titleY'?(direction==='portrait'?10:8):
+      key==='firstButtonY'?(direction==='portrait'?30:28):input.min;
+     input.max=key==='titleY'?(direction==='portrait'?35:34):
+      key==='firstButtonY'?(direction==='portrait'?65:62):input.max;
+    }
+    // 套用前先更新方向尺寸列表，保留完整數值並驗證草稿。
+    for(const [key,def] of Object.entries(official[direction])){
+     const valueNumber=Number(value.layout[key]);
+     drafts[direction][key]=Number.isFinite(valueNumber)?
+       Math.min(Number(controls[key].max),Math.max(Number(controls[key].min),valueNumber)):def;
+    }
+    zoomDraft[direction]=Number.isFinite(value.zoom)?Math.min(110,Math.max(30,value.zoom)):(direction==='portrait'?85:40);
+    categoryDraft[direction]=['none','screen','sound','operation','system','language'].includes(value.category)?value.category:'none';
+    deviceDraft[direction]=devices[direction].some(([v])=>v===value.device)?value.device:devices[direction][0][0];
+    histories[direction]={states:[snapshot(direction)],index:0};
+    orientation.value=savedMode;
+   }
+   changeMode();
+   status.textContent='已載入此瀏覽器保存的直式與橫式草稿';
+  }catch(error){status.textContent='草稿格式不正確或目前無法讀取，尚未更新正式遊戲';}
+ });
+ $('clearDraft').addEventListener('click',()=>{
+  try{
+   localStorage.removeItem(DRAFT_KEY);
+   status.textContent='已清除此瀏覽器的草稿；目前預覽不變';
+  }catch(error){status.textContent='目前無法清除本機草稿';}
+ });
  $('reset').addEventListener('click',()=>{
   drafts[mode()]={...official[mode()]};
   zoomDraft[mode()]=mode()==='portrait'?85:40;
   categoryDraft[mode()]='none';
-  fillControls();resizePreview(false);queuePreview();
+  deviceDraft[mode()]=devices[mode()][0][0];
+  fillControls();resizePreview(false);queuePreview();commitHistory();
   status.textContent='已恢復本方向的 GitHub 正式版設定';
  });
  $('reload').addEventListener('click',()=>{
@@ -338,6 +470,7 @@ const { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } =
  fillControls();
  resizePreview(false);
  queuePreview();
+ updateHistoryButtons();
 })();
 </script>
 </body></html>
