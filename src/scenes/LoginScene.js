@@ -54,7 +54,7 @@ export class LoginScene extends Phaser.Scene {
             'assets/images/login-background-portrait.jpg'
         );
 
-        this.load.image('main_menu_title_frame', 'assets/images/ui/main-menu/title-frame.png?v=20261107-2');
+        this.load.image('main_menu_title_frame', 'assets/images/ui/main-menu/title-frame.png?v=20261107-3');
 
         this.load.image(
             'btn_start_frame',
@@ -758,7 +758,12 @@ export class LoginScene extends Phaser.Scene {
             return true;
         }
         if (locale === 'zh-TW' && !valid) {
-            console.warn('[LoginScene] 主標題 PNG 未載入或圖片尺寸無效，改用文字標題。請檢查 assets/images/ui/main-menu/title-frame.png');
+            console.error('[LoginScene] 主標題 PNG 無法使用。請直接開啟圖片網址確認是否回傳有效 PNG：assets/images/ui/main-menu/title-frame.png');
+            const warning = this.add.text(x, y, '主標題圖片載入失敗', {
+                fontFamily: 'sans-serif', fontSize: '15px', color: '#fff1d3',
+                backgroundColor: '#7c2424', padding: { x: 9, y: 6 }
+            }).setOrigin(0.5);
+            this.layoutContainer.add(warning);
         }
         this.createMenuTitlePlaque(x, y, width, height);
         return false;
