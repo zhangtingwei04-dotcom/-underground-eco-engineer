@@ -54,6 +54,8 @@ export class LoginScene extends Phaser.Scene {
             'assets/images/login-background-portrait.jpg'
         );
 
+        this.load.image('main_menu_title_frame', 'assets/images/ui/main-menu/title-frame.png');
+
         this.load.image(
             'btn_start_frame',
             'assets/images/ui/btn-start-frame.png'
@@ -733,6 +735,24 @@ export class LoginScene extends Phaser.Scene {
         return wood;
     }
 
+    // 主標題素材獨立於背景：直式與橫式共用一張透明 PNG。
+    // PNG 內已有繁體中文標題，其他語言保留原本的動態文字木牌。
+    drawMainMenuTitle(x, y, width, height, subtitleY, textScale, titleFontSize, wrapWidth) {
+        const locale = LanguageSystem.getLanguage();
+        const texture = this.textures.get('main_menu_title_frame');
+        const source = texture && texture.getSourceImage();
+        const hasPng = this.textures.exists('main_menu_title_frame') && source && source.width > 1 && source.height > 1;
+        if (locale === 'zh-TW' && hasPng) {
+            const title = this.add.image(x, y, 'main_menu_title_frame');
+            const fit = Math.min(width / title.width, height / title.height);
+            title.setScale(fit);
+            this.layoutContainer.add(title);
+            return true;
+        }
+        this.createMenuTitlePlaque(x, y, width, height);
+        return false;
+    }
+
     // 圖鑑與遊戲內收藏先沿用現有場景；公開百科內容日後獨立拆分。
     openMainMenuEncyclopedia() {
         this.scene.start('EncyclopediaScene');
@@ -743,9 +763,9 @@ export class LoginScene extends Phaser.Scene {
         const shortScreen = height < 650;
         const textScale = this.getTextScale();
 
-        this.createMenuTitlePlaque(centerX, height * 0.157, Math.min(width - 22, 390), Math.min(144, height * 0.24));
+        const imageTitle = this.drawMainMenuTitle(centerX, height * 0.165, Math.min(width - 20, 400), Math.min(190, height * 0.30));
 
-        this.addLayoutText(
+        if (!imageTitle) this.addLayoutText(
             centerX,
             height * 0.12,
             this.getMainMenuTitle(),
@@ -761,7 +781,7 @@ export class LoginScene extends Phaser.Scene {
             }
         );
 
-        this.addLayoutText(
+        if (!imageTitle) this.addLayoutText(
             centerX,
             height * 0.205,
             LanguageSystem.t('game.subtitle'),
@@ -849,9 +869,9 @@ export class LoginScene extends Phaser.Scene {
         const titleWrapWidth = Math.min(width * 0.43, leftAreaWidth * 1.55);
 
         // 主標題放在左上方，與下方歡迎文字形成標題區。
-        this.createMenuTitlePlaque(leftCenterX, height * 0.16, Math.min(leftAreaWidth + 12, 425), Math.min(height * 0.29, 136));
+        const imageTitle = this.drawMainMenuTitle(leftCenterX, height * 0.17, Math.min(leftAreaWidth + 12, 425), Math.min(height * 0.32, 160));
 
-        this.addLayoutText(
+        if (!imageTitle) this.addLayoutText(
             leftCenterX,
             height * 0.12,
             this.getMainMenuTitle(),
@@ -874,7 +894,7 @@ export class LoginScene extends Phaser.Scene {
             }
         );
 
-        this.addLayoutText(
+        if (!imageTitle) this.addLayoutText(
             leftCenterX,
             height * 0.225,
             LanguageSystem.t('game.subtitle'),
