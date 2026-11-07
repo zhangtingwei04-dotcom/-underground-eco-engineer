@@ -926,9 +926,9 @@ export class LoginScene extends Phaser.Scene {
         );
 
 
-        const buttonWidth = Math.min(leftAreaWidth - 38, 235);
-        const buttonHeight = Math.max(29, Math.min(44, height * 0.105));
-        const buttonGap = buttonHeight + Math.max(3, height * 0.012);
+        const buttonWidth = Math.min(leftAreaWidth - 62, 185);
+        const buttonHeight = Math.max(26, Math.min(37, height * 0.09));
+        const buttonGap = buttonHeight + Math.max(5, height * 0.014);
         const buttonStartY = height * 0.40;
         const buttonFontSize = Math.max(13, 16 * scale * textScale);
 
