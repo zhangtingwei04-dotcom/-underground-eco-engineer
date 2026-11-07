@@ -2020,19 +2020,41 @@ export class LoginScene extends Phaser.Scene {
         };
         drawWood();
 
-        const text = this.add.text(0, 0, label, {
-            fontFamily: 'Georgia, serif',
-            fontSize: '12px',
-            color: '#f8e7c4',
-            fontStyle: 'bold',
-            stroke: '#392316',
-            strokeThickness: 2,
-            align: 'center'
-        }).setOrigin(0.5);
+        const isResetButton = label === '重設為預設值';
+        const text = this.add.text(
+            isResetButton ? 9 : 0,
+            0,
+            label,
+            {
+                fontFamily: 'Georgia, serif',
+                fontSize: '12px',
+                color: '#f8e7c4',
+                fontStyle: 'bold',
+                stroke: '#392316',
+                strokeThickness: 2,
+                align: 'center'
+            }
+        ).setOrigin(0.5);
+
+        const children = [background, text];
+
+        if (isResetButton) {
+            // 使用環形回轉箭頭，表達回到預設狀態的動作。
+            const resetIcon = this.add.text(-width / 2 + 19, 0, '↻', {
+                fontFamily: 'Arial, sans-serif',
+                fontSize: '22px',
+                color: '#ffe0a2',
+                stroke: '#392316',
+                strokeThickness: 2,
+                fontStyle: 'bold'
+            }).setOrigin(0.5);
+            children.push(resetIcon);
+        }
 
         const hitArea = this.add.rectangle(0, 0, width, 30, 0xffffff, 0.001);
         hitArea.setInteractive({ useHandCursor: true });
-        buttonContainer.add([background, text, hitArea]);
+        children.push(hitArea);
+        buttonContainer.add(children);
 
         hitArea.on('pointerover', () => {
             drawWood(true);
