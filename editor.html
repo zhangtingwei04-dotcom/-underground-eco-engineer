@@ -20,11 +20,11 @@ iframe{display:block;border:0;width:100%;height:100%;background:#18130d}
 .drag-overlay{display:none;position:absolute;inset:0;pointer-events:none;z-index:8}
 .drag-active .drag-overlay{display:block}
 .drag-handle{position:absolute;display:flex;align-items:center;justify-content:center;width:44px;height:44px;border:2px solid #ffe9ac;border-radius:50%;background:#604025e8;color:#fff5d6;box-shadow:0 2px 12px #000b;font-size:15px;font-weight:700;cursor:grab;touch-action:none;user-select:none;pointer-events:auto;transform:translate(-50%,-50%) scale(var(--handle-inverse,1));transform-origin:center}
-.drag-handle:active{cursor:grabbing;background:#95653b}
+.drag-handle[hidden]{display:none}.drag-handle:active{cursor:grabbing;background:#95653b}
 .drag-handle:focus-visible{outline:3px solid #fff;outline-offset:2px}
 .drag-tools{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:8px 0 12px}
 .drag-tools button[aria-pressed=true]{background:#997044;color:#fff4d8;border-color:#ffe3ac}
-.drag-tools p{margin:0;font-size:12px;color:#d6c5a4}
+.drag-tools p{margin:0;font-size:12px;color:#d6c5a4;width:100%}.drag-tools .drag-target-label{margin:0;font-size:13px;white-space:nowrap}.drag-tools select{flex:1;min-width:100px;width:auto}
 .controls{background:#2a2117;border:1px solid #6b4d2e;border-radius:14px;padding:16px;flex:1 1 280px;max-width:400px}
 .editor-quick-controls{background:#352919;padding:12px;border:1px solid #765536;border-radius:12px;margin-bottom:14px}
 .editor-sections-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:12px 0 9px}
@@ -73,7 +73,7 @@ output{color:#ebbd80}small{display:block;color:#bdad97;line-height:1.6;margin-to
 <label for="zoom">預覽縮放 <output id="zoomValue">85%</output></label>
 <input id="zoom" type="range" min="30" max="110" step="1" value="85">
 </div>
-<div class="drag-tools"><button id="dragMode" type="button" aria-pressed="false">啟用拖曳</button><p>開啟後，拖曳畫面上的「標、鈕、語、設」控制點；關閉可正常點擊遊戲。</p></div>
+<div class="drag-tools"><button id="dragMode" type="button" aria-pressed="false">啟用拖曳</button><label for="dragTarget" class="drag-target-label">拖曳對象</label><select id="dragTarget" aria-label="選擇要拖曳的畫面元件"><option value="title">標題</option><option value="button">主要按鈕</option><option value="language">語言圖示</option><option value="settings">設定圖示</option></select><p>先選擇元件，再拖曳畫面上的控制點；關閉後可正常操作遊戲。小尺寸橫式也不會讓控制點互相遮擋。</p></div>
 <div class="editor-sections-heading"><strong>介面調整</strong><button type="button" id="toggleAll" class="utility-button" aria-label="展開所有調整分類">全部展開</button></div>
 <div class="accordion-list"><details class="accordion" data-editor-section="title" open>
 <summary><span class="section-icon" aria-hidden="true">✦</span><span>標題位置與大小</span><span class="accordion-chevron" aria-hidden="true">⌄</span></summary>
@@ -166,7 +166,7 @@ const { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } =
  const $=id=>document.getElementById(id);
  const frame=$('game'),phone=$('phone'),phoneShell=$('phoneShell');
  const portraitPreview=$('portraitPreview'),landscapeSingle=$('landscapeSingle');
- const portraitHandles=$('portraitHandles'),landscapeHandles=$('landscapeHandles'),dragMode=$('dragMode');
+ const portraitHandles=$('portraitHandles'),landscapeHandles=$('landscapeHandles'),dragMode=$('dragMode'),dragTarget=$('dragTarget');
  let dragging=null,dragEnabled=false;
  const landscapeFrame=$('landscapeGame'),landscapePhone=$('landscapePhone'),landscapeShell=$('landscapeShell'),landscapeCaption=$('landscapeCaption');
  let previewQueued=false;
@@ -281,6 +281,7 @@ const { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } =
    handle.style.left=Math.max(0,Math.min(100,x))+'%';
    handle.style.top=Math.max(0,Math.min(100,y))+'%';
    handle.style.setProperty('--handle-inverse',inverse);
+   handle.hidden=item.id!==dragTarget.value;
   }
  }
  function beginDrag(event,item,direction,handle){
@@ -329,6 +330,7 @@ const { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } =
   updateDragHandles();
  }
  dragMode.addEventListener('click',()=>setDragMode(!dragEnabled));
+ dragTarget.addEventListener('change',updateDragHandles);
  function sendPreview(targetsOverride=null){
   const p=drafts[mode()];
   const packet={
