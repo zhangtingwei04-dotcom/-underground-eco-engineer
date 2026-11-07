@@ -112,3 +112,12 @@
 - 已在 `LoginScene.js` 完成 `ko → main_menu_title_ko → title-ko.png` 完整圖片映射；`src/locales/ko.json` 的 title / subtitle 同步改為圖片上的「지하 생태계 이야기」。
 - `src/main.js` 與 `index.html` 更新版本查詢字串，降低手機載入舊版快取的風險；原有繁中、簡中、英文、日文、德文圖片及木質按鈕／背景／直橫式配置完全保留。
 - 圖片和程式已更新到 GitHub `main`，**GitHub Pages 的 iOS 真機畫面仍待實際驗收**。
+
+## 十二、2026-11-07｜西班牙文與泰文圖採用同一系列美術、只去外部黑底
+
+- 使用者表示西班牙文與泰文兩張圖「很滿意」，確認後續其他語言繼續以此種寬幅木框、生態奇幻圖像風格製作。**不要求所有語言每片葉子都一模一樣**，但主標題完整、幼蛇蛋眼睛、蜥蜴、白花、晶石、藤蔓及木框內深咖啡色必須保留，只去除**外部**黑底。
+- 已加入 `assets/images/ui/main-menu/title-es.png` (1774 × 887、256 色透明 PNG、514972 bytes)，Git blob `692a106515055ff0a0da0e1a63baf6e85a080373`、SHA-256 `fcc3de8d317598675b1559e5d7fdcf3f6b7e66abbe5be450204c3202624dce4c`。顯示主標題「Escamas y Semillas」、副標題「Una Historia de Ecología Subterránea」。西班牙文現有字典措辭一致，僅大小寫排版不同。
+- 已加入 `assets/images/ui/main-menu/title-th.png` (1774 × 887、256 色透明 PNG、544614 bytes)，Git blob `0138920406a76f7ce2dc9bf7ef94cd10f7094cf9`、SHA-256 `8cc10df4fbd9d3e013b40d5e8622d1605877ddafaf3ad30e95ba72f3dbfa6cde`。顯示主標題「เกล็ดและเมล็ดพันธุ์」、副標題「เรื่องราวระบบนิเวศใต้ดิน」。
+- 同一提交 `caaef16fe2460f36906027fe4edbc3bc7b0453f4` 上傳兩張透明 PNG；`LoginScene.js` 已加入語言代碼 `es`、`th` 完整 Logo 對應圖片，現有其他六種語言保留。更新 `src/main.js`、`index.html` 防止手機快取舊版程式。
+- 剩下 **法文 `fr`、巴西葡萄牙文 `pt-BR`** 尚未有通過完整尺寸、文字校對的單張正式 Logo。多語言拼貼實驗不是正式圖片、不能上線；等待合格單張素材後才擴充。
+- 保留主畫面背景、木質按鈕及橫直式配置。GitHub 提交完成，尚待手機實機畫面驗收。
