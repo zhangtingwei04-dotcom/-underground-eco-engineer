@@ -9,7 +9,7 @@
 *{box-sizing:border-box}body{margin:0;background:#19150f;color:#f5ebd5;padding:20px}
 main{max-width:980px;margin:auto}h1{font-size:clamp(21px,3vw,30px);margin:0 0 8px}
 p{color:#ccbda3;line-height:1.6}.layout{display:flex;gap:26px;justify-content:center;align-items:flex-start;flex-wrap:wrap}
-.preview{display:flex;justify-content:flex-start;flex:1 1 340px;min-width:0;overflow-x:auto;padding:8px}
+.preview{display:flex;flex-direction:column;align-items:flex-start;gap:14px;flex:1 1 340px;min-width:0;overflow-x:auto;padding:8px}.landscape-stack{display:none;flex-direction:column;gap:18px;align-items:flex-start}.landscape-unit{display:flex;flex-direction:column;gap:6px}.landscape-unit figcaption{font-size:12px;color:#eac795}.landscape-unit figure{margin:0}.landscape-stack .phone-shell{margin:0}
 .phone-shell{width:289px;height:629px;flex-shrink:0;position:relative}
 .phone{width:390px;height:720px;flex-shrink:0;transform-origin:top left;transform:scale(.72);background:#000;border:7px solid #795e3b;border-radius:25px;overflow:hidden;box-shadow:0 14px 44px #0008}
 iframe{display:block;border:0;width:100%;height:100%;background:#18130d}
@@ -26,9 +26,12 @@ output{color:#ebbd80}small{display:block;color:#bdad97;line-height:1.6;margin-to
 <body><main>
 <p><a href="./workbench.html" style="color:#e7c38a;text-decoration:underline">← 返回開發者工作台</a></p>
 <h1>鱗片與種子｜主畫面視覺編輯器 V5</h1>
-<p>直接預覽真正的遊戲畫面。切換直式或橫式，即時調整標題、按鈕的大小和位置，或縮放預覽畫面。預覽不影響正式遊戲。</p>
+<p>直接預覽真正的遊戲畫面。切換直式或橫式，即時調整標題、按鈕的大小和位置。橫式提供五個不同尺寸的畫面，從上到下垂直排列並同步調整。預覽不影響正式遊戲。</p>
 <div class="layout">
-<section class="preview" aria-label="遊戲直式或橫式預覽"><div class="phone-shell" id="phoneShell"><div class="phone" id="phone" style="width:402px;height:874px"><iframe id="game" src="./index.html?preview=menu" title="遊戲直式主畫面" loading="eager"></iframe></div></div></section>
+<section class="preview" aria-label="遊戲直式或橫式預覽">
+<div id="portraitPreview"><div class="phone-shell" id="phoneShell"><div class="phone" id="phone" style="width:402px;height:874px"><iframe id="game" src="./index.html?preview=menu" title="遊戲直式主畫面" loading="eager"></iframe></div></div></div>
+<div class="landscape-stack" id="landscapeStack" aria-label="五個橫式預覽畫面，由上往下排列"></div>
+</section>
 <section class="controls">
 <label for="orientation">畫面方向</label>
 <select id="orientation"><option value="portrait">直式</option><option value="landscape">橫式</option></select>
@@ -88,7 +91,7 @@ output{color:#ebbd80}small{display:block;color:#bdad97;line-height:1.6;margin-to
 <button id="reload" type="button">重載預覽</button>
 </div>
 <p id="status" role="status"></p>
-<small>直式與橫式數值互不影響。左右偏移以螢幕寬度百分比計算，0% 為原始位置；尺寸 100% 為原始大小。預覽縮放不改變遊戲解析度。重新開啟會從 GitHub 讀取正式設定，複製給 ChatGPT 確認後才更新正式版。本頁沒有 GitHub 寫入權限，也沒有帳號管理功能。</small>
+<small>直式與橫式數值互不影響；橫式的五個預覽同時共用同一組調整數值。左右偏移以螢幕寬度百分比計算，0% 為原始位置；尺寸 100% 為原始大小。預覽縮放不改變遊戲解析度。重新開啟會從 GitHub 讀取正式設定，複製給 ChatGPT 確認後才更新正式版。本頁沒有 GitHub 寫入權限，也沒有帳號管理功能。</small>
 </section></div>
 </main>
 <script type="module">
@@ -97,6 +100,8 @@ const { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } =
 (()=>{
  const $=id=>document.getElementById(id);
  const frame=$('game'),phone=$('phone'),phoneShell=$('phoneShell');
+ const portraitPreview=$('portraitPreview'),landscapeStack=$('landscapeStack');
+ const landscapeFrames=[];
  const orientation=$('orientation'),device=$('device'),status=$('status');
  const controls={
   titleY:$('title'),firstButtonY:$('buttons'),titleX:$('titleX'),
@@ -132,7 +137,7 @@ const { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } =
  const categoryDraft={portrait:'none',landscape:'none'};
  const devices={
   portrait:[['402,874','iPhone 18 Pro 直式（402 × 874）'],['390,720','一般手機直式（390 × 720）'],['375,667','小尺寸手機直式（375 × 667）'],['430,820','大尺寸手機直式（430 × 820）']],
-  landscape:[['874,402','iPhone 18 Pro 橫式（874 × 402）'],['720,390','一般手機橫式（720 × 390）'],['667,375','小尺寸手機橫式（667 × 375）'],['820,430','大尺寸手機橫式（820 × 430）']]
+  landscape:[['874,402','iPhone 18 Pro 橫式（874 × 402）'],['720,390','一般手機橫式（720 × 390）'],['667,375','小尺寸手機橫式（667 × 375）'],['820,430','大尺寸手機橫式（820 × 430）'],['932,430','寬螢幕橫式（932 × 430）']]
  };
  const mode=()=>orientation.value;
  function fillControls(){
@@ -149,7 +154,7 @@ const { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } =
  }
  function sendPreview(){
   const p=drafts[mode()];
-  frame.contentWindow?.postMessage({
+  const packet={
    type:'scales-seeds-menu-preview',orientation:mode(),
    titleY:p.titleY/100,buttonsY:p.firstButtonY/100,
    titleX:p.titleX/100,buttonX:p.buttonX/100,
@@ -158,7 +163,44 @@ const { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } =
    settingsX:p.settingsX/100,settingsY:p.settingsY/100,settingsScale:p.settingsScale/100,
    panelX:p.panelX/100,panelY:p.panelY/100,panelScale:p.panelScale/100,
    railSpacing:p.railSpacing/100,previewCategory:categoryDraft[mode()]
-  },location.origin);
+  };
+  const targets=mode()==='portrait'?[frame]:landscapeFrames;
+  for(const target of targets)target.contentWindow?.postMessage(packet,location.origin);
+ }
+ function refreshLandscapeFrames(reload=false){
+  const scale=Number(zoom.value)/100;
+  if(!landscapeFrames.length){
+   for(const [size,label] of devices.landscape){
+    const [w,h]=size.split(',').map(Number);
+    const unit=document.createElement('div');
+    unit.className='landscape-unit';
+    const caption=document.createElement('figcaption');
+    caption.textContent=label;
+    const shell=document.createElement('div');
+    shell.className='phone-shell';
+    const mock=document.createElement('div');
+    mock.className='phone';
+    const iframe=document.createElement('iframe');
+    iframe.title=label+' 遊戲預覽';
+    iframe.loading='lazy';
+    iframe.addEventListener('load',()=>{
+     if(mode()==='landscape'){
+      sendPreview();setTimeout(sendPreview,700);setTimeout(sendPreview,1600);
+     }
+    });
+    mock.appendChild(iframe);shell.appendChild(mock);
+    unit.append(caption,shell);landscapeStack.appendChild(unit);
+    landscapeFrames.push(iframe);
+   }
+  }
+  landscapeFrames.forEach((iframe,i)=>{
+   const [w,h]=devices.landscape[i][0].split(',').map(Number);
+   const mock=iframe.parentElement,shell=mock.parentElement;
+   mock.style.width=w+'px';mock.style.height=h+'px';
+   mock.style.transform='scale('+scale+')';
+   shell.style.width=(w*scale)+'px';shell.style.height=(h*scale)+'px';
+   if(reload||!iframe.getAttribute('src'))iframe.src='./index.html?preview=menu&v='+Date.now()+'-'+i;
+  });
  }
  function updateControls(){
   const p=drafts[mode()];
@@ -167,14 +209,22 @@ const { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } =
   sendPreview();
  }
  function resizePreview(reload=false){
-  const [w,h]=device.value.split(',').map(Number);
   const scale=Number(zoom.value)/100;
-  phone.style.width=w+'px';
-  phone.style.height=h+'px';
+  zoomValue.textContent=zoom.value+'%';
+  if(mode()==='landscape'){
+   portraitPreview.style.display='none';
+   landscapeStack.style.display='flex';
+   refreshLandscapeFrames(reload);
+   sendPreview();
+   return;
+  }
+  landscapeStack.style.display='none';
+  portraitPreview.style.display='block';
+  const [w,h]=device.value.split(',').map(Number);
+  phone.style.width=w+'px';phone.style.height=h+'px';
   phone.style.transform='scale('+scale+')';
   phoneShell.style.width=(w*scale)+'px';
   phoneShell.style.height=(h*scale)+'px';
-  zoomValue.textContent=zoom.value+'%';
   if(reload)frame.src='./index.html?preview=menu&v='+Date.now();
  }
  function changeMode(){
@@ -197,7 +247,7 @@ const { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } =
  });
  previewCategory.addEventListener('change',()=>{categoryDraft[mode()]=previewCategory.value;sendPreview();});
  orientation.addEventListener('change',changeMode);
- device.addEventListener('change',()=>resizePreview(true));
+ device.addEventListener('change',()=>{if(mode()==='portrait')resizePreview(true);else status.textContent='橫式已同時顯示全部五種尺寸';});
  frame.addEventListener('load',()=>{
   sendPreview();
   setTimeout(sendPreview,700);
