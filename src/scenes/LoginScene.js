@@ -7,6 +7,7 @@
 import { AudioSystem } from '../systems/AudioSystem.js';
 import { LanguageSystem } from '../systems/language-system.js';
 import { SettingsSystem } from '../systems/settings-system.js';
+import { PORTRAIT_MENU_LAYOUT } from '../config/menu-layout.js';
 
 // 每個語言使用一張完整 Logo；只有已確認並實際上傳的素材才加入映射。
 // 其餘語言自動回退至 LanguageSystem 的當地語言文字木牌，避免顯示錯誤語言圖片。
@@ -839,8 +840,8 @@ export class LoginScene extends Phaser.Scene {
 
         const shortScreen = height < 650;
         const textScale = this.getTextScale();
-        const titleY = this.previewTitleY ?? 0.14;
-        const buttonsY = this.previewButtonsY ?? 0.375;
+        const titleY = this.previewTitleY ?? PORTRAIT_MENU_LAYOUT.titleY;
+        const buttonsY = this.previewButtonsY ?? PORTRAIT_MENU_LAYOUT.firstButtonY;
 
         const imageTitle = this.drawMainMenuTitle(centerX, height * titleY, Math.min(width - 20, 400), Math.min(190, height * 0.30));
 
