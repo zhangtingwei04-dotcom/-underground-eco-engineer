@@ -128,3 +128,24 @@
 - 使用者喜歡西班牙文與泰文兩張獨立寬幅木質標誌，要求後續語言維持相似風格：保留深咖啡色木框、破殼幼蛇眼睛與裝飾，只去除外圍背景。
 - 已上傳 `assets/images/ui/main-menu/title-es.png`、`assets/images/ui/main-menu/title-th.png`；資產提交 `caaef16fe2460f36906027fe4edbc3bc7b0453f4`，已加入 `LoginScene.js` 的 `es`、`th` 語系圖片映射及入口快取更新。
 - 法文 `fr` 與巴西葡萄牙文 `pt-BR` 尚未加入正式資產。多語言拼貼生成稿不符合「每個語言一張獨立高品質 Logo」要求，不應直接上線。
+
+## 十三、2026-11-07｜十語言新版完整 Logo 逐張上傳完成
+
+- 使用者要求將剛生成的十張獨立語言標題圖**一張一張上傳到各自對應的檔案**。先以完整圖核對實際文字，避免使用生成時不相符的本地檔名誤判語言。
+- 正式對應（皆存放在 `assets/images/ui/main-menu/`）：
+  - 繁體中文 `zh-TW` → `title-zh-TW.png`（上傳 commit `ee8cab19ccea4fa5772b43b04e53fc45337eaba4`）
+  - 簡體中文 `zh-CN` → `title-zh-CN.png`（`240f465994c9034200b0ac62af3e7be636c1cfaf`）
+  - 英文 `en` → `title-en.png`（`ab0fef5e8e6ac923b4ba6be1916ee5267a4a0cab`）
+  - 德文 `de` → `title-de.png`（`ffa41003d24de65b57064e2638ca86ccfff2d500`）
+  - 日文 `ja` → `title-ja.png`（`2a99868b26ada323560e3a01ea785b5e2e528cd6`）
+  - 韓文 `ko` → `title-ko.png`（`ea9063e6bda1ae377fc33173b452f29f0601a440`）
+  - 西班牙文 `es` → `title-es.png`（`80d80b999d7d01e3bb1a4673d47e4b5e2661e9c6`）
+  - 泰文 `th` → `title-th.png`（`c7b066d811007d8f168b031a3686073ecec36232`）
+  - 法文 `fr` → `title-fr.png`（`fc68105d86b5e6abfc8bd07b08b13814ce154fb2`）
+  - 巴西葡萄牙文 `pt-BR` → `title-pt-BR.png`（`2c1c54835795b1db4c577fa9d46475aa3b95d9e9`）
+- 所有圖片保持 1774 × 887 px 的寬幅完整構圖，外圍透明，未裁切深咖啡色木框、蛇蛋、幼蛇眼睛與周圍裝飾；以 256 色 PNG 最佳化降低網站傳輸大小（約 0.44–0.52 MB／圖）。
+- **GitHub 每張圖獨立提交**，先前舊圖仍可由 Git 提交歷史復原；新圖取代相同正式路徑。新增法文及巴西葡萄牙文映射；`LoginScene.js` 的 `MAIN_MENU_TITLE_ASSETS` 現涵蓋全部 10 語言，所有圖片查詢字串統一刷新為 `ten-language-refresh-20261107-10`。
+- `src/locales/fr.json` 副標題更新為 `Une histoire d’écologie souterraine`，與法文圖片語意一致；其餘各語言保留既有翻譯設定。
+- `src/main.js` 和 `index.html` 入口版本更新為 `ten-language-titles-20261107-10`，避免 iOS 瀏覽器繼續讀到舊 Scene 模組。
+- **完成狀態：10／10 圖片與語言映射已提交 GitHub `main`；尚未做 GitHub Pages 真機、所有語言的文字微細節與跨裝置視覺驗收。** 背景、按鈕、橫直式尺寸配置保持不變。
+
