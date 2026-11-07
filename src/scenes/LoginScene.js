@@ -836,7 +836,7 @@ export class LoginScene extends Phaser.Scene {
         );
 
         this.addLayoutText(
-            leftCenterX,
+            centerX,
             height * 0.255,
             LanguageSystem.t('login.welcome'),
             {
@@ -847,12 +847,12 @@ export class LoginScene extends Phaser.Scene {
                 strokeThickness: 4,
                 shadow: { offsetX: 1, offsetY: 2, color: '#160f0a', blur: 4, fill: true },
                 align: 'center',
-                wordWrap: { width: leftAreaWidth - 16 }
+                wordWrap: { width: width * 0.58 }
             }
         );
 
         this.addLayoutText(
-            leftCenterX,
+            centerX,
             height * 0.335,
             LanguageSystem.t('login.welcome_message'),
             {
@@ -863,7 +863,7 @@ export class LoginScene extends Phaser.Scene {
                 strokeThickness: 4,
                 shadow: { offsetX: 1, offsetY: 2, color: '#160f0a', blur: 4, fill: true },
                 align: 'center',
-                wordWrap: { width: leftAreaWidth - 24 }
+                wordWrap: { width: width * 0.58 }
             }
         );
 
