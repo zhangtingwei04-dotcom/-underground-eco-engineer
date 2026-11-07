@@ -796,10 +796,9 @@ export class LoginScene extends Phaser.Scene {
         const textScale = this.getTextScale();
         const margin = Math.max(16, width * 0.02);
 
-        // 橫式不再放置大型底板，讓背景與巨蜥完整露出。
-        // 文字及木製按鈕直接疊在背景上，以描邊和陰影維持辨識度。
-        // 恢復原本左側操作區尺寸；僅將遊戲標題獨立置中，避免被操作內容擠壓。
-        const leftAreaWidth = Math.min(width * 0.32, 330);
+        // 橫式採用左上標題、左側操作、中央與右側生態展示的構圖。
+        // 標題文字仍由語言系統即時提供，不烘焙於背景圖片。
+        const leftAreaWidth = Math.min(width * 0.38, 430);
         const leftCenterX = Math.max(
             leftAreaWidth / 2 + margin,
             width * 0.17
@@ -809,12 +808,12 @@ export class LoginScene extends Phaser.Scene {
         const titleSize = Math.max(20, 31 * scale);
         const welcomeSize = Math.max(13, 16 * scale);
         const messageSize = Math.max(10, 11 * scale);
-        const top = Math.max(25, height * 0.085);
+        const titleWrapWidth = Math.min(width * 0.43, leftAreaWidth * 1.55);
 
-        // 遊戲標題獨立置於畫面上方中央，不與左側操作區重疊。
+        // 主標題放在左上方，與下方歡迎文字形成標題區。
         this.addLayoutText(
-            centerX,
-            height * 0.135,
+            leftCenterX,
+            height * 0.12,
             LanguageSystem.t('game.title'),
             {
                 fontFamily: 'Georgia, serif',
@@ -831,13 +830,13 @@ export class LoginScene extends Phaser.Scene {
                     fill: true
                 },
                 align: 'center',
-                wordWrap: { width: width * 0.58 }
+                wordWrap: { width: titleWrapWidth }
             }
         );
 
         this.addLayoutText(
-            centerX,
-            height * 0.255,
+            leftCenterX,
+            height * 0.235,
             LanguageSystem.t('login.welcome'),
             {
                 fontFamily: 'Georgia, serif',
@@ -847,13 +846,13 @@ export class LoginScene extends Phaser.Scene {
                 strokeThickness: 4,
                 shadow: { offsetX: 1, offsetY: 2, color: '#160f0a', blur: 4, fill: true },
                 align: 'center',
-                wordWrap: { width: width * 0.58 }
+                wordWrap: { width: titleWrapWidth }
             }
         );
 
         this.addLayoutText(
-            centerX,
-            height * 0.335,
+            leftCenterX,
+            height * 0.305,
             LanguageSystem.t('login.welcome_message'),
             {
                 fontFamily: 'Arial, sans-serif',
@@ -863,14 +862,14 @@ export class LoginScene extends Phaser.Scene {
                 strokeThickness: 4,
                 shadow: { offsetX: 1, offsetY: 2, color: '#160f0a', blur: 4, fill: true },
                 align: 'center',
-                wordWrap: { width: width * 0.58 }
+                wordWrap: { width: titleWrapWidth }
             }
         );
 
         const buttonWidth = Math.min(leftAreaWidth - 18, 290);
         const buttonHeight = Math.max(38, Math.min(49, height * 0.125));
         const buttonGap = buttonHeight + Math.max(6, height * 0.018);
-        const buttonStartY = height * 0.515;
+        const buttonStartY = height * 0.435;
         const buttonFontSize = Math.max(13, 16 * scale * textScale);
 
         this.createResponsiveButton(
