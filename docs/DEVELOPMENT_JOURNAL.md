@@ -2284,3 +2284,12 @@ NPC 可自主結婚及邀請玩家參加婚禮；婚姻是否維持、修復、�
 - 最新版圖像的外部區域原本就是透明 alpha，內部深咖啡色和小蛇眼睛直接保留。由原 1774×887 RGBA PNG 匯出同尺寸 256 色最佳化 PNG，沒有對內部進行裁切或依黑色刪除像素。網站圖片：`assets/images/ui/main-menu/title-de.png`，Git blob `1290b44e2de246813e9c28f199f0c7e1248e9fbe`，圖檔提交 `7d9ae88e8fb38c4d6c3e8d6e5940a9650d2b48da`。
 - 已更新 `LoginScene.js` 德文素材查詢參數、`src/main.js` 及 `index.html` 的版本參數，以避免手機瀏覽器顯示舊圖。其他語言和背景／按鈕不變。
 - 相關規格 `docs/ART_TITLE_LOCALIZATION_MASTER.md` 已更新。完成 GitHub 確認，尚待網站手機視覺驗收。
+
+
+## 2026-11-07｜繁體中文主標題正式替換為重新製作版
+
+- 使用者確認重新製作的繁體中文完整 Logo：「可以，替換吧」。
+- 已新增 `assets/images/ui/main-menu/title-zh-TW.png`（1774 × 887，透明 PNG，約 539 KiB，Git blob `1fae0ad0a128e16aa6deb2c5f998dce49dae6461`），於 `LoginScene.js` 以語系 `zh-TW` 指向新標題，並更新 `src/main.js` 和 `index.html` 快取版本。
+- 新版保留木框內深色材質、蛋內幼蛇頭與眼睛、完整裝飾；保留舊標題檔 `title-frame.png` 供需要時還原。
+- **沒有更動背景、木質按鈕尺寸與位置、橫直式主標題配置、德文及其他語言翻譯功能**；GitHub 已提交，GitHub Pages 仍待手機實際檢查。
+- 詳細內容：`docs/ART_TITLE_LOCALIZATION_MASTER.md`。
