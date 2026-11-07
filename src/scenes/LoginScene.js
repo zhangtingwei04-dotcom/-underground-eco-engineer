@@ -1664,8 +1664,8 @@ export class LoginScene extends Phaser.Scene {
         const hitArea = this.add.rectangle(0, 0, 48, 48, 0xffffff, 0.001);
         hitArea.setInteractive({ useHandCursor: true });
 
-        hitArea.on('pointerover', () => button.setScale(1.07));
-        hitArea.on('pointerout', () => button.setScale(1));
+        hitArea.on('pointerover', () => button.setScale(portrait ? controls.scale * 1.07 : 1.07));
+        hitArea.on('pointerout', () => button.setScale(portrait ? controls.scale : 1));
         hitArea.on('pointerdown', () => {
             if (this.settingsExpanded) {
                 this.closeSettings();
@@ -1719,11 +1719,11 @@ export class LoginScene extends Phaser.Scene {
         hitArea.setInteractive({ useHandCursor: true });
 
         hitArea.on('pointerover', () => {
-            button.setScale(1.07);
+            button.setScale(portrait ? controls.scale * 1.07 : 1.07);
             icon.setColor('#fff0c9');
         });
         hitArea.on('pointerout', () => {
-            button.setScale(1);
+            button.setScale(portrait ? controls.scale : 1);
             icon.setColor('#f6dfb0');
         });
         hitArea.on('pointerdown', () => {
