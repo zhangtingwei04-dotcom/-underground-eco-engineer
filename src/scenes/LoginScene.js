@@ -200,12 +200,17 @@ export class LoginScene extends Phaser.Scene {
                 panelScale: read('panelScale', 0.7, 1.25),
                 railSpacing: read('railSpacing', 0.7, 1.3)
             };
+            const previous = orientation === 'landscape'
+                ? this.previewLandscapeLayout : this.previewPortraitLayout;
+            const layoutChanged = !previous || Object.keys(preview).some(key => previous[key] !== preview[key]);
+            const railChanged = !previous || previous.railSpacing !== preview.railSpacing;
             if (orientation === 'landscape') this.previewLandscapeLayout = preview;
             else this.previewPortraitLayout = preview;
+            // 相同參數不重畫整個 Phaser 選單；面板預覽仍可獨立切換。
             if (this.scene.isActive()) {
-                this.drawLayout();
-                this.refreshSettingsRail();
-                this.applySettingsPanelPreview();
+                if (layoutChanged) this.drawLayout();
+                if (railChanged) this.refreshSettingsRail();
+                if (layoutChanged) this.applySettingsPanelPreview();
                 const category = event.data.previewCategory;
                 if (category === 'none') {
                     if (this.settingsExpanded) this.closeSettings();
@@ -224,6 +229,11 @@ export class LoginScene extends Phaser.Scene {
             }
         };
         window.addEventListener('message', this.previewLayoutListener);
+
+        // 通知編輯器 Phaser 場景已可接受預覽設定，避免 iframe 載入競態。
+        if (window.location.search.includes('preview=menu') && window.parent !== window) {
+            window.parent.postMessage({ type: 'scales-seeds-menu-ready' }, window.location.origin);
+        }
 
         this.languageListener = () => {
 
