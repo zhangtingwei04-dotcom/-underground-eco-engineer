@@ -85,7 +85,7 @@ const { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } =
  const drafts={
   portrait:{...official.portrait},landscape:{...official.landscape}
  };
- const zoomDraft={portrait:72,landscape:100};
+ const zoomDraft={portrait:72,landscape:40};
  const devices={
   portrait:[['402,874','iPhone 18 Pro 直式（402 × 874）'],['390,720','一般手機直式（390 × 720）'],['375,667','小尺寸手機直式（375 × 667）'],['430,820','大尺寸手機直式（430 × 820）']],
   landscape:[['874,402','iPhone 18 Pro 橫式（874 × 402）'],['720,390','一般手機橫式（720 × 390）'],['667,375','小尺寸手機橫式（667 × 375）'],['820,430','大尺寸手機橫式（820 × 430）']]
@@ -155,7 +155,7 @@ const { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } =
  });
  $('reset').addEventListener('click',()=>{
   drafts[mode()]={...official[mode()]};
-  zoomDraft[mode()]=mode()==='portrait'?72:100;
+  zoomDraft[mode()]=mode()==='portrait'?72:40;
   fillControls();resizePreview(false);sendPreview();
   status.textContent='已恢復本方向的 GitHub 正式版設定';
  });
