@@ -104,7 +104,6 @@ const { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } =
  const landscapeFrames=[];
  let landscapeObserver=null;
  let previewQueued=false;
- let landscapeModeStarted=false;
  const orientation=$('orientation'),device=$('device'),status=$('status');
  const controls={
   titleY:$('title'),firstButtonY:$('buttons'),titleX:$('titleX'),
@@ -169,6 +168,7 @@ const { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } =
   };
   const targets=targetsOverride ?? (mode()==='portrait'?[frame]:landscapeFrames);
   for(const target of targets){
+   if(target===frame && frame.getAttribute('src')==='about:blank')continue;
    if(target!==frame && target.dataset.live!=='true')continue;
    target.contentWindow?.postMessage(packet,location.origin);
   }
@@ -263,6 +263,8 @@ const { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } =
   zoomValue.textContent=zoom.value+'%';
   if(mode()==='landscape'){
    portraitPreview.style.display='none';
+   // 隱藏直式時同時釋放 Phaser，避免直式 + 五個橫式一起執行。
+   if(frame.getAttribute('src')!=='about:blank')frame.src='about:blank';
    landscapeStack.style.display='flex';
    refreshLandscapeFrames(reload);
    queuePreview();
@@ -276,7 +278,8 @@ const { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } =
   phone.style.transform='scale('+scale+')';
   phoneShell.style.width=(w*scale)+'px';
   phoneShell.style.height=(h*scale)+'px';
-  if(reload)frame.src='./index.html?preview=menu&v='+Date.now();
+  if(reload||frame.getAttribute('src')==='about:blank')
+   frame.src='./index.html?preview=menu&v='+Date.now();
  }
  function changeMode(){
   device.replaceChildren();
@@ -298,7 +301,13 @@ const { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } =
  });
  previewCategory.addEventListener('change',()=>{categoryDraft[mode()]=previewCategory.value;queuePreview();});
  orientation.addEventListener('change',changeMode);
- device.addEventListener('change',()=>{if(mode()==='portrait')resizePreview(true);else status.textContent='橫式已同時顯示全部五種尺寸';});
+ device.addEventListener('change',()=>{
+  if(mode()==='portrait'){resizePreview(true);return;}
+  const index=devices.landscape.findIndex(entry=>entry[0]===device.value);
+  const item=landscapeStack.children[index];
+  item?.scrollIntoView({behavior:'smooth',block:'center'});
+  status.textContent='已定位至'+devices.landscape[index]?.[1]+'，五個畫面仍同步調整';
+ });
  frame.addEventListener('load',()=>{if(mode()==='portrait')sendPreview([frame]);});
  // Phaser 會主動回報場景已建立；只同步正在運作的 iframe。
  window.addEventListener('message',event=>{
