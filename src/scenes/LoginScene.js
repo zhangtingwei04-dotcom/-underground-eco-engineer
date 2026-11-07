@@ -18,7 +18,7 @@ const MAIN_MENU_TITLE_ASSETS = Object.freeze({
     },
     'de': {
         key: 'main_menu_title_de',
-        url: 'assets/images/ui/main-menu/title-de.png'
+        url: 'assets/images/ui/main-menu/title-de.png?v=approved-full-20261107-3'
     }
 });
 
