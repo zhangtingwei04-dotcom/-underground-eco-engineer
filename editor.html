@@ -9,7 +9,7 @@
 *{box-sizing:border-box}body{margin:0;background:#19150f;color:#f5ebd5;padding:20px}
 main{max-width:980px;margin:auto}h1{font-size:clamp(21px,3vw,30px);margin:0 0 8px}
 p{color:#ccbda3;line-height:1.6}.layout{display:flex;gap:26px;justify-content:center;align-items:flex-start;flex-wrap:wrap}
-.preview{display:flex;flex-direction:column;align-items:flex-start;gap:14px;flex:1 1 340px;min-width:0;overflow-x:auto;padding:8px}.landscape-stack{display:none;flex-direction:column;gap:18px;align-items:flex-start}.landscape-unit{display:flex;flex-direction:column;gap:6px}.landscape-unit figcaption{font-size:12px;color:#eac795}.landscape-unit figure{margin:0}.landscape-stack .phone-shell{margin:0}
+.preview{display:flex;flex-direction:column;align-items:flex-start;gap:14px;flex:1 1 340px;min-width:0;overflow-x:auto;padding:8px}.landscape-single{display:none;flex-direction:column;gap:6px;align-items:flex-start}.landscape-caption{font-size:12px;color:#eac795}.landscape-mode .preview{position:sticky;top:8px;align-self:flex-start;z-index:5;background:#211910;border:1px solid #685035;border-radius:12px;max-width:100%;box-shadow:0 6px 22px #0007}.landscape-mode .layout{align-items:flex-start}@media(max-width:680px){.landscape-mode .layout{flex-direction:column;gap:12px}.landscape-mode .preview{width:100%;flex:none;max-height:48vh;overflow:auto}.landscape-mode .controls{width:100%;max-width:none;flex:none}}
 .phone-shell{width:289px;height:629px;flex-shrink:0;position:relative}
 .phone{width:390px;height:720px;flex-shrink:0;transform-origin:top left;transform:scale(.72);background:#000;border:7px solid #795e3b;border-radius:25px;overflow:hidden;box-shadow:0 14px 44px #0008}
 iframe{display:block;border:0;width:100%;height:100%;background:#18130d}
@@ -26,11 +26,11 @@ output{color:#ebbd80}small{display:block;color:#bdad97;line-height:1.6;margin-to
 <body><main>
 <p><a href="./workbench.html" style="color:#e7c38a;text-decoration:underline">← 返回開發者工作台</a></p>
 <h1>鱗片與種子｜主畫面視覺編輯器 V5</h1>
-<p>直接預覽真正的遊戲畫面。切換直式或橫式，即時調整標題、按鈕的大小和位置。橫式提供五個不同尺寸的畫面，從上到下垂直排列並同步調整；畫面移到可見範圍才載入，以降低手機負擔。預覽不影響正式遊戲。</p>
+<p>直接預覽真正的遊戲畫面。切換直式或橫式，即時調整標題、按鈕的大小和位置。橫式採單一預覽，切換不同手機尺寸時即時跟著調整；上下滑動設定選項時，橫式預覽會固定在可視範圍。預覽不影響正式遊戲。</p>
 <div class="layout">
 <section class="preview" aria-label="遊戲直式或橫式預覽">
 <div id="portraitPreview"><div class="phone-shell" id="phoneShell"><div class="phone" id="phone" style="width:402px;height:874px"><iframe id="game" src="./index.html?preview=menu" title="遊戲直式主畫面" loading="eager"></iframe></div></div></div>
-<div class="landscape-stack" id="landscapeStack" aria-label="五個橫式預覽畫面，由上往下排列"></div>
+<div class="landscape-single" id="landscapeSingle" aria-label="可跟隨捲動的單一橫式預覽"><span class="landscape-caption" id="landscapeCaption">iPhone 18 Pro 橫式（874 × 402）</span><div class="phone-shell" id="landscapeShell"><div class="phone" id="landscapePhone"><iframe id="landscapeGame" title="遊戲橫式主畫面" loading="eager"></iframe></div></div></div>
 </section>
 <section class="controls">
 <label for="orientation">畫面方向</label>
@@ -91,7 +91,7 @@ output{color:#ebbd80}small{display:block;color:#bdad97;line-height:1.6;margin-to
 <button id="reload" type="button">重載預覽</button>
 </div>
 <p id="status" role="status"></p>
-<small>直式與橫式數值互不影響；橫式五個預覽共用同一組調整數值，離開可見範圍會暫停並釋放畫面資源。左右偏移以螢幕寬度百分比計算，0% 為原始位置；尺寸 100% 為原始大小。預覽縮放不改變遊戲解析度。重新開啟會從 GitHub 讀取正式設定，複製給 ChatGPT 確認後才更新正式版。本頁沒有 GitHub 寫入權限，也沒有帳號管理功能。</small>
+<small>直式與橫式數值互不影響；橫式採單一預覽，滑動調整選項時會維持在可視範圍，切換尺寸會更新這一個畫面。左右偏移以螢幕寬度百分比計算，0% 為原始位置；尺寸 100% 為原始大小。預覽縮放不改變遊戲解析度。重新開啟會從 GitHub 讀取正式設定，複製給 ChatGPT 確認後才更新正式版。本頁沒有 GitHub 寫入權限，也沒有帳號管理功能。</small>
 </section></div>
 </main>
 <script type="module">
@@ -100,9 +100,8 @@ const { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } =
 (()=>{
  const $=id=>document.getElementById(id);
  const frame=$('game'),phone=$('phone'),phoneShell=$('phoneShell');
- const portraitPreview=$('portraitPreview'),landscapeStack=$('landscapeStack');
- const landscapeFrames=[];
- let landscapeObserver=null;
+ const portraitPreview=$('portraitPreview'),landscapeSingle=$('landscapeSingle');
+ const landscapeFrame=$('landscapeGame'),landscapePhone=$('landscapePhone'),landscapeShell=$('landscapeShell'),landscapeCaption=$('landscapeCaption');
  let previewQueued=false;
  const orientation=$('orientation'),device=$('device'),status=$('status');
  const controls={
@@ -166,10 +165,10 @@ const { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } =
    panelX:p.panelX/100,panelY:p.panelY/100,panelScale:p.panelScale/100,
    railSpacing:p.railSpacing/100,previewCategory:categoryDraft[mode()]
   };
-  const targets=targetsOverride ?? (mode()==='portrait'?[frame]:landscapeFrames);
+  const targets=targetsOverride ?? (mode()==='portrait'?[frame]:[landscapeFrame]);
   for(const target of targets){
    if(target===frame && frame.getAttribute('src')==='about:blank')continue;
-   if(target!==frame && target.dataset.live!=='true')continue;
+   if(target===landscapeFrame && landscapeFrame.getAttribute('src')==='about:blank')continue;
    target.contentWindow?.postMessage(packet,location.origin);
   }
  }
@@ -181,75 +180,17 @@ const { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } =
    sendPreview();
   });
  }
- function activateLandscape(iframe,reload=false){
-  if(mode()!=='landscape')return;
-  if(iframe.dataset.live==='true'&&!reload)return;
-  iframe.dataset.live='true';
-  iframe.src='./index.html?preview=menu&v='+Date.now();
- }
- function releaseLandscape(iframe){
-  if(iframe.dataset.live!=='true')return;
-  iframe.dataset.live='false';
-  iframe.src='about:blank';
- }
- function releaseAllLandscapes(){
-  for(const iframe of landscapeFrames)releaseLandscape(iframe);
- }
- function refreshLandscapeFrames(reload=false){
+ function refreshLandscape(reload=false){
+  const [w,h]=device.value.split(',').map(Number);
   const scale=Number(zoom.value)/100;
-  if(!landscapeFrames.length){
-   for(const [size,label] of devices.landscape){
-    const unit=document.createElement('div');
-    unit.className='landscape-unit';
-    const caption=document.createElement('figcaption');
-    caption.textContent=label;
-    const shell=document.createElement('div');
-    shell.className='phone-shell';
-    const mock=document.createElement('div');
-    mock.className='phone';
-    const iframe=document.createElement('iframe');
-    iframe.title=label+' 遊戲預覽';
-    iframe.loading='lazy';
-    iframe.dataset.live='false';
-    iframe.addEventListener('load',()=>{
-     if(iframe.dataset.live==='true' && mode()==='landscape'){
-      sendPreview([iframe]);
-     }
-    });
-    mock.appendChild(iframe);
-    shell.appendChild(mock);
-    unit.append(caption,shell);
-    landscapeStack.appendChild(unit);
-    landscapeFrames.push(iframe);
-   }
-  }
-  landscapeFrames.forEach((iframe,i)=>{
-   const [w,h]=devices.landscape[i][0].split(',').map(Number);
-   const mock=iframe.parentElement,shell=mock.parentElement;
-   mock.style.width=w+'px';mock.style.height=h+'px';
-   mock.style.transform='scale('+scale+')';
-   shell.style.width=(w*scale)+'px';shell.style.height=(h*scale)+'px';
-  });
-  if(!landscapeObserver && 'IntersectionObserver' in window){
-   landscapeObserver=new IntersectionObserver(entries=>{
-    if(mode()!=='landscape')return;
-    for(const entry of entries){
-     const iframe=entry.target.querySelector('iframe');
-     if(!iframe)continue;
-     if(entry.isIntersecting)activateLandscape(iframe);
-     else releaseLandscape(iframe);
-    }
-   },{root:null,rootMargin:'160px 0px',threshold:0});
-   for(const unit of landscapeStack.children)landscapeObserver.observe(unit);
-  }
-  // 沒有 IntersectionObserver 的瀏覽器，仍可使用全部五個畫面。
-  if(!landscapeObserver){
-   for(const iframe of landscapeFrames)activateLandscape(iframe,reload);
-  }else if(reload){
-   // 只重載正在顯示的畫面；其他畫面進入可見區域時再載入。
-   for(const iframe of landscapeFrames){
-    if(iframe.dataset.live==='true')activateLandscape(iframe,true);
-   }
+  landscapePhone.style.width=w+'px';
+  landscapePhone.style.height=h+'px';
+  landscapePhone.style.transform='scale('+scale+')';
+  landscapeShell.style.width=(w*scale)+'px';
+  landscapeShell.style.height=(h*scale)+'px';
+  landscapeCaption.textContent=device.selectedOptions[0]?.textContent||'橫式預覽';
+  if(reload || !landscapeFrame.getAttribute('src') || landscapeFrame.getAttribute('src')==='about:blank'){
+   landscapeFrame.src='./index.html?preview=menu&v='+Date.now();
   }
  }
  function updateControls(){
@@ -261,17 +202,18 @@ const { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } =
  function resizePreview(reload=false){
   const scale=Number(zoom.value)/100;
   zoomValue.textContent=zoom.value+'%';
+  document.body.classList.toggle('landscape-mode',mode()==='landscape');
   if(mode()==='landscape'){
    portraitPreview.style.display='none';
-   // 隱藏直式時同時釋放 Phaser，避免直式 + 五個橫式一起執行。
    if(frame.getAttribute('src')!=='about:blank')frame.src='about:blank';
-   landscapeStack.style.display='flex';
-   refreshLandscapeFrames(reload);
+   landscapeSingle.style.display='flex';
+   refreshLandscape(reload);
    queuePreview();
    return;
   }
-  landscapeStack.style.display='none';
-  releaseAllLandscapes();
+  landscapeSingle.style.display='none';
+  if(landscapeFrame.getAttribute('src') && landscapeFrame.getAttribute('src')!=='about:blank')
+   landscapeFrame.src='about:blank';
   portraitPreview.style.display='block';
   const [w,h]=device.value.split(',').map(Number);
   phone.style.width=w+'px';phone.style.height=h+'px';
@@ -291,7 +233,7 @@ const { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } =
   controls.firstButtonY.min=mode()==='portrait'?30:28;
   controls.firstButtonY.max=mode()==='portrait'?65:62;
   fillControls();
-  resizePreview(mode()==='portrait');
+  resizePreview(false);
   status.textContent=(mode()==='portrait'?'直式':'橫式')+'：已載入此方向的設定';
  }
  for(const el of Object.values(controls))el.addEventListener('input',updateControls);
@@ -302,18 +244,16 @@ const { PORTRAIT_MENU_LAYOUT, LANDSCAPE_MENU_LAYOUT } =
  previewCategory.addEventListener('change',()=>{categoryDraft[mode()]=previewCategory.value;queuePreview();});
  orientation.addEventListener('change',changeMode);
  device.addEventListener('change',()=>{
-  if(mode()==='portrait'){resizePreview(true);return;}
-  const index=devices.landscape.findIndex(entry=>entry[0]===device.value);
-  const item=landscapeStack.children[index];
-  item?.scrollIntoView({behavior:'smooth',block:'center'});
-  status.textContent='已定位至'+devices.landscape[index]?.[1]+'，五個畫面仍同步調整';
+  resizePreview(true);
+  status.textContent='已更新預覽尺寸：'+device.selectedOptions[0]?.textContent;
  });
  frame.addEventListener('load',()=>{if(mode()==='portrait')sendPreview([frame]);});
+ landscapeFrame.addEventListener('load',()=>{if(mode()==='landscape')sendPreview([landscapeFrame]);});
  // Phaser 會主動回報場景已建立；只同步正在運作的 iframe。
  window.addEventListener('message',event=>{
   if(event.origin!==location.origin || event.data?.type!=='scales-seeds-menu-ready')return;
-  const target=[frame,...landscapeFrames].find(item=>item.contentWindow===event.source);
-  if(target && (target===frame ? mode()==='portrait' : mode()==='landscape' && target.dataset.live==='true'))
+  const target=[frame,landscapeFrame].find(item=>item.contentWindow===event.source);
+  if(target && (target===frame ? mode()==='portrait' : mode()==='landscape'))
    sendPreview([target]);
  });
  $('reset').addEventListener('click',()=>{
