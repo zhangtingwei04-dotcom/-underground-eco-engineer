@@ -811,11 +811,12 @@ export class LoginScene extends Phaser.Scene {
 
         const buttonWidth = Math.min(width - 92, 225);
         const buttonHeight = shortScreen ? 38 : 43;
-        const buttonGap = shortScreen ? 44 : 50;
+        const buttonGap = shortScreen ? 41 : 46;
         const buttonStartY = height * (shortScreen ? 0.34 : 0.36);
+        const buttonCenterX = centerX + Math.min(14, width * 0.02);
 
         this.createResponsiveButton(
-            centerX,
+            buttonCenterX,
             buttonStartY,
             buttonWidth,
             buttonHeight,
@@ -826,7 +827,7 @@ export class LoginScene extends Phaser.Scene {
         );
 
         this.createResponsiveButton(
-            centerX,
+            buttonCenterX,
             buttonStartY + buttonGap,
             buttonWidth,
             buttonHeight,
@@ -837,7 +838,7 @@ export class LoginScene extends Phaser.Scene {
         );
 
         this.createResponsiveButton(
-            centerX,
+            buttonCenterX,
             buttonStartY + buttonGap * 2,
             buttonWidth,
             buttonHeight,
@@ -848,7 +849,7 @@ export class LoginScene extends Phaser.Scene {
         );
 
         this.createResponsiveButton(
-            centerX,
+            buttonCenterX,
             buttonStartY + buttonGap * 3,
             buttonWidth,
             buttonHeight,
