@@ -813,7 +813,7 @@ export class LoginScene extends Phaser.Scene {
 
         // 遊戲標題獨立置於畫面上方中央，不與左側操作區重疊。
         this.addLayoutText(
-            leftCenterX,
+            centerX,
             height * 0.135,
             LanguageSystem.t('game.title'),
             {
@@ -831,7 +831,7 @@ export class LoginScene extends Phaser.Scene {
                     fill: true
                 },
                 align: 'center',
-                wordWrap: { width: leftAreaWidth - 16 }
+                wordWrap: { width: width * 0.58 }
             }
         );
 
