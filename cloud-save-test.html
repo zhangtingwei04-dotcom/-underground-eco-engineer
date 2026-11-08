@@ -35,6 +35,7 @@ small{color:#ddd5c7}
 <button id="read" disabled>唯讀測試：檢查自己的雲端存檔</button>
 <button id="write" disabled class="danger">寫入測試：只限完全空白的測試帳號</button>
 <button id="history" disabled>檢查自己的歷史版本</button>
+<button id="compare" disabled>跨裝置唯讀比對（不修改存檔）</button>
 <button id="version2" disabled class="danger">測試專用：建立第二版存檔</button>
 <button id="restore" disabled class="danger">測試專用：還原版本 1（保留所有歷史）</button>
 <small>寫入只會在再次確認「雲端沒有既有存檔」且按下確認後執行；不會自動覆蓋。</small>
@@ -54,7 +55,7 @@ let emptyConfirmed = false;
 const update = async()=>{
   const {data,error}=await auth.auth.getUser();
   accountId=error?null:data?.user?.id||null;
-  ['read','history'].forEach(id=>$(id).disabled=!accountId);
+  ['read','history','compare'].forEach(id=>$(id).disabled=!accountId);
   $('write').disabled=true;$('version2').disabled=true;$('restore').disabled=true;emptyConfirmed=false;
   status(accountId?'登入成功。可先執行唯讀測試。':'尚未登入。請使用專門的測試帳號。');
 };
@@ -137,6 +138,18 @@ $('restore').addEventListener('click',async()=>{
   if(check.success && check.data?.save?.marker==='scales-seeds-cloud-test-v1' && check.data.revision===restored.data.revision)
     status('還原測試成功！已從版本 1 建立新版本 '+check.data.revision+'，原有版本保留。');
   else status('還原 API 回覆成功，但讀回驗證失敗；請暫停進一步操作。');
+});
+$('compare').addEventListener('click',async()=>{
+  $('compare').disabled=true;
+  try {
+    const r=await api.load();
+    if(!r.success) {status('跨裝置唯讀測試無法讀取：'+r.mode);return;}
+    if(!r.data?.found){status('跨裝置唯讀測試：雲端沒有存檔。');return;}
+    if(r.data.save?._testOnly!==true || typeof r.data.save.marker!=='string'){
+      status('目前不是指定測試資料；為保護個人資訊，不顯示存檔內容。');return;
+    }
+    status('跨裝置唯讀結果：版本 '+r.data.revision+'；測試標記 '+r.data.save.marker+'。請在另一個裝置登入相同測試帳號，對照是否一致。本功能不會寫入資料。');
+  } finally { $('compare').disabled=!accountId; }
 });
 $('history').addEventListener('click',async()=>{
   const r=await api.listRevisions();
