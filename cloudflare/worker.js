@@ -5,7 +5,7 @@ const MAX_SAVE_BYTES = 512 * 1024;
 const ORIGINS = new Set(['https://zhangtingwei04-dotcom.github.io']);
 const json = (value, status = 200, extra = {}) => Response.json(value, {status, headers: {'Cache-Control':'no-store','X-Content-Type-Options':'nosniff',...extra}});
 function headersFor(origin) {
-  return origin && ORIGINS.has(origin) ? {'Access-Control-Allow-Origin':origin,'Vary':'Origin','Access-Control-Allow-Methods':'GET,PUT,OPTIONS','Access-Control-Allow-Headers':'Authorization,Content-Type'} : {};
+  return origin && ORIGINS.has(origin) ? {'Access-Control-Allow-Origin':origin,'Vary':'Origin','Access-Control-Allow-Methods':'GET,PUT,POST,OPTIONS','Access-Control-Allow-Headers':'Authorization,Content-Type'} : {};
 }
 async function identity(request, env) {
   const auth = request.headers.get('authorization') || '';
