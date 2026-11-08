@@ -2393,3 +2393,12 @@ NPC 可自主結婚及邀請玩家參加婚禮；婚姻是否維持、修復、�
 - 本輪提交：`457afe2dfe6e7ff5519a545f11239edd411a12d1`、`ff861d9de60b5b51db4f7ed94c0bf6afd0e76580`。CI/Pages 是否成功需依 GitHub Actions 實際結果確認，不以提交成功推論測試通過。
 - 尚待：真正洞穴遮擋、遮擋與頭部輪廓精度、手機 Safari 人工觀察及幀率測試；本階段仍是 2D 美術圖層，非碰撞、真實生物力學或行為頻率證據。下一次先核對 CI/Pages 與獨立 v0.6 頁，再評估小幅視覺改良。
 - 未動正式 LoginScene、Phaser 主遊戲、Supabase/Cloudflare 或存檔；第三方影片、PSD、JPG、骨骼標本影像均未重製或上傳。
+
+## 2026-11-09｜玉米蛇 v0.6 第五階段：交付前核對（07:00 台灣時間）
+
+- 已回讀 `main` 最新提交 `f4eb07153a0745c3178a786901e4f2ee528d1963`，確認獨立展示頁 `corn-snake-lab-v06.html`、活動模組 `src/ohm-core/corn-snake-activity-v06.mjs`、遮擋模組 `src/ohm-core/corn-snake-occlusion-v06.mjs`、遮擋測試與 `.github/workflows/ohm-core.yml` 均存在。v0.3 `corn-snake-lab.html`、v0.4 `corn-snake-lab-v04.html`、v0.5 `corn-snake-lab-v05.html` 仍在原路徑。
+- GitHub Actions 查詢結果：`Ohm Core checks` 對 `ff861d9de60b5b51db4f7ed94c0bf6afd0e76580` 為 **success**（run 42527828438）；`pages build and deployment` 對當時最新 `f4eb07153a0745c3178a786901e4f2ee528d1963` 為 **success**（run 42527847887）。較早部分 Pages runs 因新提交而取消，非最終部署失敗。
+- 透過 GitHub 回讀確認 CI YAML 確實執行 v0.6 seeded activity 與 foliage occlusion Node 測試，且遮擋測試含非法頭尾座標、無效區域、遮擋比例與部分露頭預覽搜尋。此次為核對階段，**未新增動作或改變正式遊戲**。
+- 公開測試網址：`https://zhangtingwei04-dotcom.github.io/-underground-eco-engineer/corn-snake-lab-v06.html`。Pages 工作流程成功不等於已完成公開頁面 HTTP/畫面驗收；本次外部頁面存取失敗，無法證實 HTTP 200、手機 Safari 幀率與遮擋畫面，須由實際瀏覽器確認。
+- 仍待改善：頭先露出而軀體保留遮擋的自然過渡、洞穴碰撞／避障、支點攀爬、正式像素美術與不同物種解剖、真機效能。葉片遮擋比例只代表 2D 螢幕取樣，不是生物力學實測；未使用或上傳未授權影片、PSD、JPG。
+- 範圍維持獨立 v0.6 原型；未動正式 LoginScene、Phaser 主遊戲、Supabase、Cloudflare D1 或玩家存檔。
