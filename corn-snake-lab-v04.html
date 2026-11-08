@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="zh-TW"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow">
+<title>鱗片與種子｜玉米蛇動態原型</title>
+<style>
+:root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#181811;color:#f1e5c5;font:16px/1.5 system-ui,-apple-system,sans-serif}
+main{max-width:940px;margin:0 auto;padding:16px}header{margin-bottom:12px}h1{font-size:clamp(22px,5vw,32px);margin:8px 0}p{margin:8px 0;color:#c9c1aa}
+canvas{display:block;width:100%;height:auto;aspect-ratio:16/9;background:#273328;border:2px solid #796343;border-radius:14px;touch-action:manipulation}
+section{background:#29271d;padding:12px 16px;border:1px solid #655538;border-radius:12px;margin-top:14px}
+.controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}button,select{background:#775b37;color:#fff4d7;border:1px solid #a98a5a;border-radius:8px;padding:11px;font:inherit;cursor:pointer}button:focus-visible,select:focus-visible{outline:3px solid #c2d89b}
+label{display:flex;align-items:center;gap:8px}input[type=range]{width:110px;accent-color:#bca26e}small{color:#c3b89d}.tag{font-size:12px;background:#454a35;border-radius:5px;padding:3px 6px;display:inline-block}
+a{color:#f2c987}#status{min-height:24px}
+</style></head><body><main>
+<header><span class="tag">Ohm Core 獨立視覺測試 v0.4</span><h1>玉米蛇｜模板與像素紋理測試</h1>
+<p>本頁在 v0.3 路徑跟隨基礎上試作身體比例、固定個體紋理與局部底材粒子；無登入或存檔，不會影響正式遊戲。</p></header>
+<canvas id="stage" width="960" height="540" role="img" aria-label="玉米蛇在飼養箱底材平面向前爬行並轉彎，尾部依序跟隨的動畫示範"></canvas>
+<section class="controls">
+<label for="morph">花紋／色型參考
+<select id="morph"><option value="normal">原色 Normal</option><option value="amelanistic">白化 Amelanistic</option><option value="anerythristic">缺紅 Anerythristic</option><option value="motley">Motley 花紋</option><option value="stripe">Stripe 條紋</option></select></label>
+<label for="speed">移動速度 <input id="speed" type="range" min="0" max="2" step="0.1" value="1"><output id="speedValue">1.0×</output></label>
+<label><input id="details" type="checkbox" checked> 像素鱗片細節</label>
+<label><input id="motes" type="checkbox"> 少量底材粒子</label>
+<button id="pause" type="button">暫停</button><button id="reroll" type="button">生成新的個體紋路</button>
+</section>
+<section><strong>觀察說明</strong><p id="status" aria-live="polite"></p><small>v0.4：改良漸細蛇身，加入依物種模板生成、固定在身體座標的細小像素紋理，可開關少量底材粒子與像素細節。<strong>仍是美術示意而非已驗證的物種鱗片排列、遺傳或生物力學</strong>；目前沒有真實避障、攀爬、3D 身體扭轉與正式棲地碰撞。</small></section>
+<p><a href="./corn-snake-lab.html">對照 v0.3 舊版</a> · <a href="./ohm-core-test.html">Ohm Core 世界核心測試</a> · <a href="./index.html">返回遊戲首頁</a></p>
+</main>
+<script type="module">
+import {generateSnakePose,makeCornSnakePattern} from './src/ohm-core/corn-snake-motion.mjs';
+import {createCornSnakeAppearance} from './src/ohm-core/corn-snake-profile.mjs';
+import {getCornSnakeHalfWidth,makeCornSnakeVisualTemplate} from './src/ohm-core/corn-snake-visual-template.mjs';
+const $=id=>document.getElementById(id);
+const canvas=$('stage'),ctx=canvas.getContext('2d');
+if(!ctx){$('status').textContent='此瀏覽器不支援 2D Canvas';throw new Error('canvas_unavailable');}
+const palettes={
+ normal:{body:'#cf8e49',spots:'#a34332',outline:'#513b2d',belly:'#eacb91',eyes:'#251d16'},
+ amelanistic:{body:'#f4bb75',spots:'#d96d40',outline:'#f8e4ae',belly:'#fce9c2',eyes:'#ca3333'},
+ anerythristic:{body:'#aaa79b',spots:'#56595a',outline:'#292f34',belly:'#d6d1bc',eyes:'#1d2226'},
+ motley:{body:'#cf9450',spots:'#9c4937',outline:'#674835',belly:'#e5ce9d',eyes:'#1d1b16'},
+ stripe:{body:'#d6a565',spots:'#9c4f38',outline:'#6a432e',belly:'#eed0a1',eyes:'#231d16'}
+};
+let morph='normal',seed=1049,elapsed=0,last=0,paused=false,speed=1;
+let visual=makeCornSnakeVisualTemplate({seed,morphId:morph}).visual;
+const showDetails=$('details'),showMotes=$('motes');
+const width=canvas.width,height=canvas.height;
+function point(p){return {x:p.x*width,y:p.y*height};}
+function normal(points,i){const a=points[Math.max(0,i-1)],b=points[Math.min(points.length-1,i+1)];
+const dx=b.x-a.x,dy=b.y-a.y,len=Math.hypot(dx,dy)||1;return {x:-dy/len,y:dx/len};}
+const groundY=height*0.68;
+function drawScene(){
+ const bg=ctx.createLinearGradient(0,0,0,height);
+ bg.addColorStop(0,'#23372f');bg.addColorStop(0.81,'#485340');bg.addColorStop(1,'#4f3928');
+ ctx.fillStyle=bg;ctx.fillRect(0,0,width,height);
+ // Rocks and plants remain in the backdrop; only substrate below is the floor.
+ for(let i=0;i<14;i++){
+  const x=40+(i*193)%910,y=250+(i*79)%170;
+  ctx.fillStyle=i%2?'#58614e55':'#343d3655';
+  ctx.beginPath();ctx.ellipse(x,y,25+i%4*9,12+i%5*5,0,0,Math.PI*2);ctx.fill();
+ }
+ ctx.fillStyle='#604a33';ctx.fillRect(0,groundY,width,height-groundY);
+ ctx.fillStyle='#796044';ctx.fillRect(0,groundY,width,8);
+ for(let i=0;i<72;i++){
+  const x=(i*179)%width,y=groundY+10+(i*47)%(height-groundY-10);
+  ctx.fillStyle=i%3?'#9c7d5766':'#392a2066';ctx.beginPath();
+  ctx.ellipse(x,y,2+i%5,1+i%3,0,0,Math.PI*2);ctx.fill();
+ }
+ ctx.fillStyle='#f0e3c1';ctx.font='19px system-ui';
+ ctx.fillText('玉米蛇｜身體模板與程序化紋理 v0.4',26,35);
+}
+function drawGroundShadow(pose){
+ const pts=pose.map(point);
+ ctx.save();ctx.strokeStyle='#161a1652';ctx.lineCap='round';ctx.lineJoin='round';ctx.lineWidth=29;
+ ctx.beginPath();
+ for(let i=0;i<pts.length;i++){
+  const q=pts[i],y=q.y+9;
+  if(i===0)ctx.moveTo(q.x,y);else ctx.lineTo(q.x,y);
+ }
+ ctx.stroke();ctx.restore();
+}
+function drawSnake(pose){
+ const pal=palettes[morph],pts=pose.map(point),n=pts.length-1,baseWidth=16;
+ const sides=[[],[]];
+ for(let i=0;i<=n;i++){
+  const v=normal(pts,i),s=i/n,w=getCornSnakeHalfWidth(s,baseWidth);
+  sides[0].push({x:pts[i].x+v.x*w,y:pts[i].y+v.y*w});
+  sides[1].push({x:pts[i].x-v.x*w,y:pts[i].y-v.y*w});
+ }
+ ctx.lineJoin='round';ctx.lineCap='round';
+ ctx.beginPath();ctx.moveTo(sides[0][0].x,sides[0][0].y);
+ for(const p of sides[0].slice(1))ctx.lineTo(p.x,p.y);
+ for(const p of sides[1].reverse())ctx.lineTo(p.x,p.y);
+ ctx.closePath();
+ ctx.fillStyle=pal.body;ctx.fill();
+ // Keep markings and fine texture strictly inside the body silhouette.
+ ctx.save();ctx.clip();
+ ctx.beginPath();
+ for(let i=0;i<=n;i++){
+  const q=pts[i],v=normal(pts,i),w=getCornSnakeHalfWidth(i/n,baseWidth)*.82;
+  if(i===0)ctx.moveTo(q.x+v.x*w,q.y+v.y*w);
+  else ctx.lineTo(q.x+v.x*w,q.y+v.y*w);
+ }
+ ctx.strokeStyle=pal.belly;ctx.lineWidth=2.2;ctx.stroke();
+ if(morph==='stripe'){
+  for(const offset of [-.48,.48]){
+   ctx.beginPath();
+   for(let i=1;i<n;i++){
+    const v=normal(pts,i),w=getCornSnakeHalfWidth(i/n,baseWidth);
+    const x=pts[i].x+v.x*w*offset,y=pts[i].y+v.y*w*offset;
+    if(i===1)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+   }
+   ctx.strokeStyle=pal.spots;ctx.lineWidth=6;ctx.stroke();
+  }
+ }else{
+  for(const mark of visual.marks){
+   const i=Math.min(n-2,Math.max(2,Math.round(mark.position*n)));
+   const w=getCornSnakeHalfWidth(i/n,baseWidth),p=pts[i],v=normal(pts,i);
+   if(w<3)continue;
+   const t={x:-v.y,y:v.x};
+   ctx.save();ctx.translate(p.x,p.y);ctx.rotate(Math.atan2(t.y,t.x));
+   const span=(morph==='motley'?19:13)*mark.size;
+   ctx.fillStyle=pal.spots;ctx.strokeStyle=pal.outline;
+   ctx.lineWidth=morph==='amelanistic'?1:1.5;
+   ctx.beginPath();ctx.ellipse(0,0,span,w*.75,mark.angle,0,Math.PI*2);
+   ctx.fill();ctx.stroke();ctx.restore();
+  }
+ }
+ if(showDetails.checked){
+  for(const mark of visual.flecks){
+   const i=Math.max(0,Math.min(n,Math.round(mark.s*n)));
+   const p=pts[i],v=normal(pts,i),w=getCornSnakeHalfWidth(i/n,baseWidth);
+   const x=p.x+v.x*w*mark.radial,y=p.y+v.y*w*mark.radial;
+   ctx.fillStyle=mark.shade===0?pal.outline:(mark.shade===1?pal.belly:pal.spots);
+   ctx.globalAlpha=mark.shade===0?.25:.30;
+   const size=Math.max(1,Math.round(mark.size));
+   ctx.fillRect(Math.round(x),Math.round(y),size,size);
+  }
+  ctx.globalAlpha=1;
+ }
+ ctx.restore();
+ ctx.beginPath();ctx.moveTo(sides[0][0].x,sides[0][0].y);
+ for(const p of sides[0].slice(1))ctx.lineTo(p.x,p.y);
+ for(const p of sides[1].reverse())ctx.lineTo(p.x,p.y);
+ ctx.closePath();ctx.strokeStyle=pal.outline;ctx.lineWidth=2.3;ctx.stroke();
+ // Corn snake prototype head: slim, continuous with the cervical body.
+ const head=pts[0],behind=pts[3],angle=Math.atan2(head.y-behind.y,head.x-behind.x);
+ ctx.save();ctx.translate(head.x,head.y);ctx.rotate(angle);
+ ctx.fillStyle=pal.body;ctx.strokeStyle=pal.outline;ctx.lineWidth=2;
+ ctx.beginPath();
+ ctx.moveTo(-13,-11);
+ ctx.bezierCurveTo(-1,-16,13,-14,19,-9);
+ ctx.quadraticCurveTo(28,-5,29,0);
+ ctx.quadraticCurveTo(28,5,19,9);
+ ctx.bezierCurveTo(13,14,-1,16,-13,11);
+ ctx.closePath();ctx.fill();ctx.stroke();
+ ctx.fillStyle=pal.eyes;
+ for(const y of [-9,9]){
+  ctx.beginPath();ctx.arc(12,y,2.25,0,Math.PI*2);ctx.fill();
+ }
+ ctx.restore();
+}
+function drawSubstrateMotes(pose){
+ if(!showMotes.checked)return;
+ for(let i=0;i<12;i++){
+  const j=(i*7+3)%pose.length,p=pose[j];
+  // Only substrate contact, never magic dust floating around the animal.
+  if(p.y<.792)continue;
+  const phase=elapsed*2+i*1.93;
+  const x=p.x*width+Math.sin(phase)*6;
+  const y=p.y*height+12+Math.abs(Math.cos(phase))*(3+i%3);
+  ctx.fillStyle=i%2?'#b09368a6':'#c7aa7a99';
+  const k=i%3===0?3:2;
+  ctx.fillRect(Math.round(x),Math.round(y),k,k);
+ }
+}
+let frames=0;
+function tick(now){
+ if(last===0)last=now;const dt=Math.min(.05,Math.max(0,(now-last)/1000));last=now;
+ if(!paused)elapsed+=dt*speed;
+ const pose=generateSnakePose(elapsed,{speed:1});drawScene();drawGroundShadow(pose);drawSnake(pose);drawSubstrateMotes(pose);
+ if(frames++%25===0)$('status').textContent='色型參考：'+$('morph').selectedOptions[0].textContent+'｜個體種子：'+seed+'｜'+(paused?'已暫停':'移動中')+'｜局部像素細節：'+(showDetails.checked?'開':'關');
+ requestAnimationFrame(tick);
+}
+$('morph').addEventListener('change',()=>{morph=$('morph').value;const result=createCornSnakeAppearance({morphId:morph,patternSeed:seed});if(!result.ok)$('status').textContent=result.error;else visual=makeCornSnakeVisualTemplate({seed,morphId:morph}).visual;});
+$('speed').addEventListener('input',()=>{speed=Number($('speed').value);$('speedValue').textContent=speed.toFixed(1)+'×';});
+$('pause').addEventListener('click',()=>{paused=!paused;$('pause').textContent=paused?'繼續播放':'暫停';});
+$('reroll').addEventListener('click',()=>{seed=(seed+104729)>>>0;visual=makeCornSnakeVisualTemplate({seed,morphId:morph}).visual;});
+requestAnimationFrame(tick);
+</script></body></html>
