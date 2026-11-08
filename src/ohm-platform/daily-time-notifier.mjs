@@ -1,4 +1,4 @@
-// Browser adapter for three real-world checkpoints per day.
+// Browser adapter for four real-world checkpoints per day (midnight, morning, noon, evening).
 // Starts on game entry. Timer is scheduled for the next boundary rather than polling each second.
 import {getBrowserGameClock,startBrowserGameClock} from './browser-game-clock.mjs';
 import {DAILY_CHECKPOINTS,checkDailyTime,millisecondsUntilNextCheckpoint} from '../ohm-core/daily-time-checkpoints.mjs';
