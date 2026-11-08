@@ -62,3 +62,11 @@
 - `docs/research` 保存文獻與來源的中文整理；Cloudflare D1 `scales-seeds-biology-research` 只在新增值得查詢的**已判別內容**時考慮建立對應索引，飼主貼文不得冒充正式研究。
 - 實作前轉換：`scientific_name`、`care_topic`、`claim_text`、`claim_type`、`source_url`、`checked_at`、`confidence_tier`、`life_stage`、`environment_context`、`player_facing_text`、`gameplay_hint`、`safety_review`。
 - 本文件只確立資料判別和遊戲知識路線，**尚未建成教學介面、沒更新 Phaser 遊戲程式或玩家存檔**。
+
+## 7. 新發現來源錯置與安全數值衝突（2026-11-08）
+
+- **新增來源排除案例：** Bowling Green State University「Western Hognose Snake」頁面與其「Corn Snake」頁面高度重複，且豬鼻蛇頁的地理資料疑似錯置。將該物種照護頁設為 D／待網站修正，不使用其中的飼養數值或可共養宣稱。
+- **玉米蛇濕度衝突仍在：** RSPCA 約40–50%、ReptiFiles 快速頁40–60%、詳細頁65–75%，不宜強行混成「標準值」或以各區域全年戶外濕度推定安全室內條件。
+- **豬鼻蛇照護：** 2022 年獸醫 DVM 指南、ReptiFiles 與救援中心對可挖底材、暖涼區、躲藏和常見平均濕度有部分共識，低風險觀念可先作新手知識，精確底材厚度與籠體尺寸仍不能當唯一標準。
+- **野外防禦：** 2014年27隻西部豬鼻蛇裝死實驗是在模擬掠食者攻擊下進行，不能把「玩家一碰就裝死」當真實個體的常態，更不能獎勵造成壓力的玩法。
+- 詳見 [本次來源修正與三項豬鼻蛇新研究](./REPTILE_HUSBANDRY_EVIDENCE_CONFLICTS_HOGNOSE_V02_20261108.md)。
