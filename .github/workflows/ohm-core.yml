@@ -7,6 +7,7 @@ on:
       - 'tests/scene-registry.test.mjs'
       - 'src/ohm-platform/**'
       - 'tests/day-period.test.mjs'
+      - 'tests/browser-game-clock.test.mjs'
       - '.github/workflows/ohm-core.yml'
   pull_request:
     paths:
@@ -15,6 +16,7 @@ on:
       - 'tests/scene-registry.test.mjs'
       - 'src/ohm-platform/**'
       - 'tests/day-period.test.mjs'
+      - 'tests/browser-game-clock.test.mjs'
       - '.github/workflows/ohm-core.yml'
   workflow_dispatch:
 permissions:
@@ -38,3 +40,5 @@ jobs:
         run: node tests/scene-registry.test.mjs
       - name: Real-world time adapter tests
         run: node tests/day-period.test.mjs
+      - name: Gameplay clock tests
+        run: node tests/browser-game-clock.test.mjs
