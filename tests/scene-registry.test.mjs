@@ -1,0 +1,22 @@
+import {createWorld} from '../src/ohm-core/world.mjs';
+import {OHM_LOCATIONS,validateSceneRegistry,describeScene,travelToScene} from '../src/ohm-core/scene-registry.mjs';
+const tests=[];
+function check(label,condition){tests.push([label,Boolean(condition)]);}
+const world=createWorld();
+const view=describeScene(world);
+check('registry validates',validateSceneRegistry(OHM_LOCATIONS).ok);
+check('current scene matches',view.ok && view.title==='地下研究所');
+check('available exit names are resolved',view.exits.length===2 && view.exits[0].title==='生態箱室');
+const move=travelToScene(world,'terrarium-room');
+check('travel produces new world state',move.ok && move.state.location==='terrarium-room');
+check('original state stays unchanged',world.location==='research-room');
+check('non-adjacent travel is denied',!travelToScene(move.state,'library').ok);
+check('return trip works',travelToScene(move.state,'research-room').ok);
+check('unknown scene is denied',!travelToScene(world,'unknown-room').ok);
+check('dangling exits are denied',!validateSceneRegistry({locations:{a:{title:'A',description:'',exits:['b']}}}).ok);
+check('duplicate exits are denied',!validateSceneRegistry({locations:{a:{title:'A',description:'',exits:['a','a']}}}).ok);
+check('unknown current location safely rejected',!describeScene({...world,location:'ghost-room'}).ok);
+for(const [label,passed] of tests)console.log((passed?'PASS ':'FAIL ')+label);
+export const sceneRegistryResults=tests;
+export const sceneRegistryPassed=tests.every(x=>x[1]);
+if(!sceneRegistryPassed && typeof process!=='undefined' && process?.versions?.node)process.exitCode=1;
