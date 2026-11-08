@@ -1,13 +1,35 @@
-<!doctype html><html lang="zh-TW"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Ohm Core 獨立架構測試</title><style>body{max-width:680px;margin:24px auto;padding:0 16px;background:#1b211d;color:#eee8d9;font:16px/1.6 system-ui}button{margin:4px;padding:10px 15px;background:#a5814e;border:0;border-radius:7px;color:#111;font-size:16px}pre{white-space:pre-wrap;word-break:break-word;background:#111b15;padding:14px;border-radius:8px}h1{font-size:22px}</style></head><body><h1>Ohm Core v0.1 — 獨立引擎核心</h1><p>此頁面不啟動 Phaser、不使用登入或雲端資料，純粹測試遊戲規則引擎。僅供開發測試。</p><div id="tests">正在執行核心測試…</div><h2>互動示範</h2><p id="location"></p><button id="research">研究室</button><button id="terrarium">生態箱室</button><button id="library">圖書館</button><button id="observe">紀錄觀察</button><button id="tick">推進 5 分鐘</button><pre id="result"></pre><script type="module">
-import {createWorld,dispatchWorld,DEMO_MAP} from './src/ohm-core/world.mjs';
+<!doctype html><html lang="zh-TW"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Ohm Core 獨立架構測試</title><style>body{max-width:680px;margin:24px auto;padding:0 16px;background:#1b211d;color:#eee8d9;font:16px/1.6 system-ui}button{margin:4px;padding:10px 15px;background:#a5814e;border:0;border-radius:7px;color:#111;font-size:16px}pre{white-space:pre-wrap;word-break:break-word;background:#111b15;padding:14px;border-radius:8px}h1{font-size:22px}</style></head><body><h1>Ohm Core v0.2 — 世界與場景管理</h1><p>此頁面不啟動 Phaser、不使用登入或雲端資料，純粹測試遊戲規則引擎。僅供開發測試。</p><div id="tests">正在執行核心測試…</div><h2>互動示範</h2><p id="location"></p><div id="exits"></div><button id="observe">紀錄觀察</button><button id="tick">推進 5 分鐘</button><pre id="result"></pre><script type="module">
+import {createWorld,dispatchWorld} from './src/ohm-core/world.mjs';
+import {OHM_LOCATIONS,describeScene,travelToScene} from './src/ohm-core/scene-registry.mjs';
+import {sceneRegistryResults,sceneRegistryPassed} from './tests/scene-registry.test.mjs';
 import {ohmCoreResults,ohmCorePassed} from './tests/ohm-core.test.mjs';
 const $=id=>document.getElementById(id);
-$('tests').textContent=(ohmCorePassed?'全部測試通過':'發現測試失敗')+'：'+ohmCoreResults.filter(x=>x.pass).length+'/'+ohmCoreResults.length+'\n'+ohmCoreResults.map(x=>(x.pass?'✓ ':'✗ ')+x.name).join('\n');
+const allTests=[...ohmCoreResults,...sceneRegistryResults.map(([name,pass])=>({name,pass}))];
+const allPassed=ohmCorePassed&&sceneRegistryPassed;
+$('tests').textContent=(allPassed?'全部測試通過':'發現測試失敗')+'：'+allTests.filter(x=>x.pass).length+'/'+allTests.length+'\n'+allTests.map(x=>(x.pass?'✓ ':'✗ ')+x.name).join('\n');
 $('tests').style.whiteSpace='pre-wrap';
 let world=createWorld();
-function render(info='已啟動獨立核心'){$('location').textContent='場景：'+world.location+'｜遊戲時間：'+world.clock+' 分鐘｜觀察紀錄：'+world.observations.length;$('result').textContent=info+'\n'+JSON.stringify(world,null,2);}
-function send(command){const outcome=dispatchWorld(world,command,DEMO_MAP);if(outcome.ok)world=outcome.state;render(outcome.ok?'事件：'+outcome.events.map(x=>x.type).join(', '):'操作拒絕：'+outcome.error);}
-for(const [id,location] of [['research','research-room'],['terrarium','terrarium-room'],['library','library']]) $(id).onclick=()=>send({type:'TRAVEL',location});
+function render(info='已啟動獨立核心'){
+  const scene=describeScene(world,OHM_LOCATIONS);
+  $('location').textContent=scene.ok
+    ? '目前地點：'+scene.title+'｜'+scene.description+'｜遊戲時間：'+world.clock+' 分鐘｜觀察紀錄：'+world.observations.length
+    : '場景資料異常：'+scene.error;
+  const exits=$('exits');exits.replaceChildren();
+  if(scene.ok) for(const exit of scene.exits){
+    const button=document.createElement('button');
+    button.textContent='前往：'+exit.title;
+    button.addEventListener('click',()=>send({type:'TRAVEL',location:exit.id}));
+    exits.appendChild(button);
+  }
+  $('result').textContent=info+'\\n'+JSON.stringify(world,null,2);
+}
+function send(command){
+  const outcome=command.type==='TRAVEL'
+    ?travelToScene(world,command.location,OHM_LOCATIONS)
+    :dispatchWorld(world,command,OHM_LOCATIONS);
+  if(outcome.ok)world=outcome.state;
+  render(outcome.ok?'事件：'+outcome.events.map(x=>x.type).join(', '):'操作拒絕：'+outcome.error);
+}
 $('observe').onclick=()=>send({type:'OBSERVE'});
 $('tick').onclick=()=>send({type:'TICK',minutes:5});
 render();
