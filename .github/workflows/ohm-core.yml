@@ -8,6 +8,7 @@ on:
       - 'src/ohm-platform/**'
       - 'tests/day-period.test.mjs'
       - 'tests/browser-game-clock.test.mjs'
+      - 'tests/daily-time-checkpoints.test.mjs'
       - '.github/workflows/ohm-core.yml'
   pull_request:
     paths:
@@ -17,6 +18,7 @@ on:
       - 'src/ohm-platform/**'
       - 'tests/day-period.test.mjs'
       - 'tests/browser-game-clock.test.mjs'
+      - 'tests/daily-time-checkpoints.test.mjs'
       - '.github/workflows/ohm-core.yml'
   workflow_dispatch:
 permissions:
@@ -42,3 +44,5 @@ jobs:
         run: node tests/day-period.test.mjs
       - name: Gameplay clock tests
         run: node tests/browser-game-clock.test.mjs
+      - name: Three daily checkpoints test
+        run: node tests/daily-time-checkpoints.test.mjs
