@@ -2374,3 +2374,13 @@ NPC 可自主結婚及邀請玩家參加婚禮；婚姻是否維持、修復、�
 - 已另記錄手機 A/B 視覺檢查要求在 `docs/species/CORN_SNAKE_REAL_SPECIES_FOUNDATION_V01.md` 第七節。
 - **尚未驗收：** iPhone Safari 畫面是否自然流暢；是真實爬行物理而非美術原型的要求、正式 pixel sprite、障礙物碰撞、攀爬、準確品系外觀／基因、正式生態箱整合皆未完成。
 - **不變事項：** 舊 v0.3 保留；正式 Phaser 遊戲 Scene、存檔、Supabase、Cloudflare D1、已確認生物美術參考圖均未被本輪覆蓋。
+
+## 2026-11-08｜玉米蛇 v0.5 停頓／轉頭／探頭獨立原型
+
+- 使用者確認 v0.4 有進步，但希望玉米蛇不再始終爬行，而是會停頓、轉頭朝畫面觀察、伸頭探索。
+- 新增不依賴 Phaser 的 `src/ohm-core/corn-snake-activity.mjs`：純函式狀態時序與頭頸局部姿態；身體停止時的路線時間凍結、轉頭漸變與探頭往返；固定示範時序 **52 秒／輪**，並不是科學測得的行為時間分配。
+- 新增 `corn-snake-lab-v05.html`；沿用 v0.4 像素紋理與色型演示，開關「自然停頓與探頭」，並提供「看停頓」「看轉頭」「看探頭」即時預覽按鈕。底材粒子在停止移動時不播放；v0.3/v0.4 原頁保留。
+- 新增 `tests/corn-snake-activity.test.mjs` 並更新 `.github/workflows/ohm-core.yml`，驗證活動邊界連續、身體停止、局部頭動作、循環接續與基本參數處理。
+- 本次只更新獨立原型、測試和文檔，不修改正式生態箱、玩家存檔或已確認的生物像素參考圖。
+- 新版網址：https://zhangtingwei04-dotcom.github.io/-underground-eco-engineer/corn-snake-lab-v05.html
+- 內容限制與人工驗收要求：見 `docs/species/CORN_SNAKE_REAL_SPECIES_FOUNDATION_V01.md` 第八節。
