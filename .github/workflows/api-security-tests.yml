@@ -1,0 +1,26 @@
+name: API security guard tests
+on:
+  push:
+    paths:
+      - 'cloudflare/security-guard.mjs'
+      - 'tests/security-guard.test.mjs'
+      - '.github/workflows/api-security-tests.yml'
+  pull_request:
+    paths:
+      - 'cloudflare/security-guard.mjs'
+      - 'tests/security-guard.test.mjs'
+      - '.github/workflows/api-security-tests.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  security-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check cloudflare/security-guard.mjs
+      - run: node tests/security-guard.test.mjs
