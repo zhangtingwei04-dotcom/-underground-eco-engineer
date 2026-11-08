@@ -154,3 +154,10 @@ Creature Visual Adapter（依物種與視角選動畫；映射舊版欄位）
 - 生態箱照護參考：`docs/research/BIOACTIVE_REPTILE_VIVARIUM_REFERENCES_20261108_V01.md`
 
 **此次只新增設計文件，不產生美術素材、不重寫現有 Phaser 行為、不修改 Github Pages、Cloudflare D1、Supabase 或玩家存檔。**
+
+## 11. 使用者確認的 V1 生物像素概念圖
+
+2026-11-08 使用者確認首張生物像素美術概念整合圖「很不錯」，並要求保存。已於 ChatGPT 檔案庫保留原始 PNG：
+`/鱗片與種子/美術參考/scales-seeds-creature-pixel-concept-v1-20261108.png`（1536 × 1024，SHA-256 `c1dd1e606619d8b1812cd4a281eed81316531604beff7bd8f949c3c7bd44da54`）。
+
+它是**風格參考，不是已製作完成的 sprite sheet、動畫或可直接套用的動物素材**。接下來以此為氛圍基準生成單一物種的透明原畫，校對豬鼻蛇／玉米蛇真實特徵，再試作獨立動作；**不因參考圖表現而覆蓋已確認首頁或重寫生態系統**。詳細保存資訊見 `docs/ART_DIRECTION_HARMONIOUS_PIXEL_STYLES_V01.md` 第 10 節。
