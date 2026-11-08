@@ -12,7 +12,7 @@ async function identity(request, env) {
   if (!/^Bearer [A-Za-z0-9._~+/-]+=*$/i.test(auth) || !env.SUPABASE_PUBLISHABLE_KEY) return null;
   const result = await fetch(PROJECT_URL+'/auth/v1/user', {
     headers: { authorization:auth, apikey:env.SUPABASE_PUBLISHABLE_KEY },
-    redirect:'error'
+    redirect:'manual'
   });
   if (!result.ok) return null;
   const user = await result.json();
