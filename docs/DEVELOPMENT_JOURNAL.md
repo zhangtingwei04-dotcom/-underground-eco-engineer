@@ -2384,3 +2384,12 @@ NPC 可自主結婚及邀請玩家參加婚禮；婚姻是否維持、修復、�
 - 本次只更新獨立原型、測試和文檔，不修改正式生態箱、玩家存檔或已確認的生物像素參考圖。
 - 新版網址：https://zhangtingwei04-dotcom.github.io/-underground-eco-engineer/corn-snake-lab-v05.html
 - 內容限制與人工驗收要求：見 `docs/species/CORN_SNAKE_REAL_SPECIES_FOUNDATION_V01.md` 第八節。
+
+## 2026-11-09｜玉米蛇 v0.6 第四階段：遮擋資料防呆
+
+- 接續 v0.6 既有的前景葉片遮擋與局部遮擋百分比，沒有重做活動節奏或變更舊版頁面。
+- 修正 `src/ohm-core/corn-snake-occlusion-v06.mjs`：檢查**整條蛇**（含頭與尾）座標有限值，並拒絕不合法的遮擋區域邊界，避免頭部 NaN 被誤判為「露頭」及遮擋比例失真。
+- 擴充 `tests/corn-snake-occlusion-v06.test.mjs`：新增頭部 NaN、尾部 Infinity、顛倒的遮擋邊界及非有限區域邊界等回歸案例。核心仍為與渲染器無關的純 JS。
+- 本輪提交：`457afe2dfe6e7ff5519a545f11239edd411a12d1`、`ff861d9de60b5b51db4f7ed94c0bf6afd0e76580`。CI/Pages 是否成功需依 GitHub Actions 實際結果確認，不以提交成功推論測試通過。
+- 尚待：真正洞穴遮擋、遮擋與頭部輪廓精度、手機 Safari 人工觀察及幀率測試；本階段仍是 2D 美術圖層，非碰撞、真實生物力學或行為頻率證據。下一次先核對 CI/Pages 與獨立 v0.6 頁，再評估小幅視覺改良。
+- 未動正式 LoginScene、Phaser 主遊戲、Supabase/Cloudflare 或存檔；第三方影片、PSD、JPG、骨骼標本影像均未重製或上傳。
