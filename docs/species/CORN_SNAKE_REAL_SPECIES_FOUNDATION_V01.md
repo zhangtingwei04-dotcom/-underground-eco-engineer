@@ -82,3 +82,11 @@
 **後續優先**：實機檢查是否真正向前、轉彎時頭先行尾後跟，然後加獨立障礙物／枝條的碰撞或攀爬測試；最後換成已核准的自然細緻像素風。
 
 本版只更新獨立 demo、純函式和其測試；**不修改正式 Phaser 生態箱、個體資料或玩家存檔**。
+
+### v0.3 CI 與部署驗收補記（2026-11-08）
+
+核對 commit `30326d3d16627f0189be514abf2b09892c527897` 的 GitHub Actions：
+- [Ohm Core checks](https://github.com/zhangtingwei04-dotcom/-underground-eco-engineer/actions/runs/42478988230)：**completed / success**；其中 `Corn snake curve and seeded pattern tests` 測試步驟也為 success。
+- [GitHub Pages build and deployment](https://github.com/zhangtingwei04-dotcom/-underground-eco-engineer/actions/runs/42478987385)：**completed / success**。
+
+這只證明自動化單元檢查及部署流程成功，**不代表 iPhone Safari 畫面、蛇類生物力學或真實碰撞已經過人工驗收**。下一步仍需使用者實機查看並回報。
