@@ -10,16 +10,16 @@ section{background:#29271d;padding:12px 16px;border:1px solid #655538;border-rad
 label{display:flex;align-items:center;gap:8px}input[type=range]{width:110px;accent-color:#bca26e}small{color:#c3b89d}.tag{font-size:12px;background:#454a35;border-radius:5px;padding:3px 6px;display:inline-block}
 a{color:#f2c987}#status{min-height:24px}
 </style></head><body><main>
-<header><span class="tag">Ohm Core 獨立可玩技術原型 v0.2</span><h1>玉米蛇｜動態與花紋實驗室</h1>
+<header><span class="tag">Ohm Core 獨立可玩技術原型 v0.3</span><h1>玉米蛇｜動態與花紋實驗室</h1>
 <p>這是無登入、無雲端存檔、無 Phaser 的獨立技術展示，不會影響正式遊戲。</p></header>
-<canvas id="stage" width="960" height="540" role="img" aria-label="玉米蛇在飼養箱底部地面貼地爬行的側面動畫示範"></canvas>
+<canvas id="stage" width="960" height="540" role="img" aria-label="玉米蛇在飼養箱底材平面向前爬行並轉彎，尾部依序跟隨的動畫示範"></canvas>
 <section class="controls">
 <label for="morph">花紋／色型參考
 <select id="morph"><option value="normal">原色 Normal</option><option value="amelanistic">白化 Amelanistic</option><option value="anerythristic">缺紅 Anerythristic</option><option value="motley">Motley 花紋</option><option value="stripe">Stripe 條紋</option></select></label>
 <label for="speed">移動速度 <input id="speed" type="range" min="0" max="2" step="0.1" value="1"><output id="speedValue">1.0×</output></label>
 <button id="pause" type="button">暫停</button><button id="reroll" type="button">生成新的個體紋路</button>
 </section>
-<section><strong>觀察說明</strong><p id="status" aria-live="polite"></p><small>目前已改為側面貼地移動。運動路徑、波動幅度、花紋尺寸及配色是<strong>美術／技術測試參數</strong>，不是從實測玉米蛇資料校正的生物力學或遺傳模型。真實物種生理、飼養環境與品系遺傳將另行研究。</small></section>
+<section><strong>觀察說明</strong><p id="status" aria-live="polite"></p><small>v0.3：蛇頭沿底材表面的預設曲線前進，身體與尾巴沿先前的路線跟進，轉彎時花紋仍貼附身體。這是<strong>美術／技術原型</strong>：路線與速度不是實測玉米蛇生物力學，也<strong>尚無自由尋路、實際障礙物碰撞、攀爬或正式遺傳模型</strong>。</small></section>
 <p><a href="./ohm-core-test.html">Ohm Core 世界核心測試</a> · <a href="./index.html">返回遊戲首頁</a></p>
 </main>
 <script type="module">
@@ -40,7 +40,7 @@ const width=canvas.width,height=canvas.height;
 function point(p){return {x:p.x*width,y:p.y*height};}
 function normal(points,i){const a=points[Math.max(0,i-1)],b=points[Math.min(points.length-1,i+1)];
 const dx=b.x-a.x,dy=b.y-a.y,len=Math.hypot(dx,dy)||1;return {x:-dy/len,y:dx/len};}
-const groundY=height*0.845;
+const groundY=height*0.68;
 function drawScene(){
  const bg=ctx.createLinearGradient(0,0,0,height);
  bg.addColorStop(0,'#23372f');bg.addColorStop(0.81,'#485340');bg.addColorStop(1,'#4f3928');
@@ -59,20 +59,20 @@ function drawScene(){
   ctx.ellipse(x,y,2+i%5,1+i%3,0,0,Math.PI*2);ctx.fill();
  }
  ctx.fillStyle='#f0e3c1';ctx.font='19px system-ui';
- ctx.fillText('玉米蛇｜飼養箱底部貼地測試',26,35);
+ ctx.fillText('玉米蛇｜底材表面前進與轉向測試 v0.3',26,35);
 }
 function drawGroundShadow(pose){
  const pts=pose.map(point);
- ctx.save();ctx.strokeStyle='#161a164f';ctx.lineCap='round';ctx.lineJoin='round';ctx.lineWidth=37;
+ ctx.save();ctx.strokeStyle='#161a1652';ctx.lineCap='round';ctx.lineJoin='round';ctx.lineWidth=29;
  ctx.beginPath();
  for(let i=0;i<pts.length;i++){
-  const x=pts[i].x,y=groundY+3;
-  if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+  const q=pts[i],y=q.y+9;
+  if(i===0)ctx.moveTo(q.x,y);else ctx.lineTo(q.x,y);
  }
  ctx.stroke();ctx.restore();
 }
 function drawSnake(pose){
- const pal=palettes[morph],pts=pose.map(point),n=pts.length-1,bodyWidth=22;
+ const pal=palettes[morph],pts=pose.map(point),n=pts.length-1,bodyWidth=15;
  // Polygon around centerline with taper at tail.
  const sides=[[],[]];
  for(let i=0;i<=n;i++){
@@ -102,7 +102,7 @@ function drawSnake(pose){
    const v=normal(pts,i),t={x:-v.y,y:v.x},w=bodyWidth*bodyFactor;
    if(w<3)continue;
    ctx.save();ctx.translate(pts[i].x,pts[i].y);ctx.rotate(Math.atan2(t.y,t.x));
-   const span=(morph==='motley'?22:14)*m.size;
+   const span=(morph==='motley'?17:12)*m.size;
    ctx.fillStyle=pal.spots;ctx.strokeStyle=pal.outline;ctx.lineWidth=morph==='amelanistic'?1:2;
    ctx.beginPath();ctx.ellipse(0,0,span,w*.85,m.angle,0,Math.PI*2);ctx.fill();ctx.stroke();
    ctx.restore();
@@ -112,8 +112,8 @@ function drawSnake(pose){
  const head=pts[0],behind=pts[3],angle=Math.atan2(head.y-behind.y,head.x-behind.x);
  ctx.save();ctx.translate(head.x,head.y);ctx.rotate(angle);
  ctx.fillStyle=pal.body;ctx.strokeStyle=pal.outline;ctx.lineWidth=2.5;
- ctx.beginPath();ctx.ellipse(6,0,32,22,0,0,Math.PI*2);ctx.fill();ctx.stroke();
- ctx.fillStyle=pal.eyes;for(const y of [-14,14]){ctx.beginPath();ctx.arc(16,y,3.5,0,Math.PI*2);ctx.fill();}
+ ctx.beginPath();ctx.ellipse(5,0,24,15,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+ ctx.fillStyle=pal.eyes;for(const y of [-9,9]){ctx.beginPath();ctx.arc(13,y,2.4,0,Math.PI*2);ctx.fill();}
  ctx.restore();
 }
 let frames=0;
@@ -121,7 +121,7 @@ function tick(now){
  if(last===0)last=now;const dt=Math.min(.05,Math.max(0,(now-last)/1000));last=now;
  if(!paused)elapsed+=dt;
  const pose=generateSnakePose(elapsed,{speed});drawScene();drawGroundShadow(pose);drawSnake(pose);
- if(frames++%25===0)$('status').textContent='色型參考：'+$('morph').selectedOptions[0].textContent+'｜個體花紋種子：'+seed+'｜'+(paused?'已暫停':'動畫播放中');
+ if(frames++%25===0)$('status').textContent='色型參考：'+$('morph').selectedOptions[0].textContent+'｜個體花紋種子：'+seed+'｜'+(paused?'已暫停':'底材前進／轉彎播放中');
  requestAnimationFrame(tick);
 }
 $('morph').addEventListener('change',()=>{morph=$('morph').value;const result=createCornSnakeAppearance({morphId:morph,patternSeed:seed});if(!result.ok)$('status').textContent=result.error;});
