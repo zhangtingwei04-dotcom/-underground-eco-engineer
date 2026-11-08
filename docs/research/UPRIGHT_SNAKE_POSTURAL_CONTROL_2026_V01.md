@@ -47,3 +47,23 @@
 
 ## 6. 開發順序
 依《鱗片與種子》既有決策：玉米蛇普通貼地移動 → 一般樹棲攀爬與接觸 → 棕樹蛇／紫晶蟒的高伸展與平衡 → 特殊跳躍／滑翔。先真實物種，後傳說級虛構生物。
+
+
+## 7. 作者原始程式碼取得與檢查（2026-11-08）
+
+使用者上傳 `SnakePosture-main.zip`，已成功解壓檢查：ZIP 共有 39 個項目，解壓後內容約 631,665 bytes。為作者公開的 **研究分析／模擬程式碼**，並**不含** 4.8 GB Zenodo 原始影像序列。
+
+- `1_ImageAnalysis/Analyze_Experimental_Videos.py`：從特定格式的二值化 PNG 影格取得蛇身輪廓，採樣並計算局部曲率，再產生 pickle/NPZ 中間資料。需要額外輸入影像、像素與實際長度換算係數，以及程式參數；未附完整實驗影像，無法直接還原每一幀的真實姿態。
+- `1_ImageAnalysis/vid_helpers.py`：輪廓抽取、平滑與插值等工具，依賴 NumPy、SciPy、scikit-image、matplotlib 等第三方環境。
+- `2_ProportionalFeedback`：使用 AUTO-07p、Fortran 與 Notebook 做姿態曲率、分岔方程數值分析。
+- `3_OptimalPosture`：Python + CasADi 計算最適姿態控制，輸出結果與圖表。
+- `4_Stability`：Julia（加上 Python／Mathematica 研究工具）分析平衡與姿態失穩。
+
+### 授權
+根目錄 `LICENSE` 標示 **MIT License，Copyright (c) 2025 ludwighoffmann**。未來若直接複製、改作或分發該軟體的全部或實質部分，必須依 MIT 條件保留原作者著作權與授權聲明。外部第三方套件也要依各自授權檢查。
+
+### 目前結論
+- 已取得的是**研究程式**，不是已校準的現成蛇類動畫或遊戲可直接使用的 JSON 運動檔。
+- 對 Ohm Core 最有用的是「中心線／曲率」資料架構與「支撐點／姿態穩定性」概念；現階段應自行撰寫小型、平台無關的資料轉換與規則介面，避免將研究團隊完整的 Python/Julia/Fortran 求解器塞入瀏覽器。
+- **程式未在本次執行環境完整執行／數值驗證**；原始實驗影像、影片及逐格量測檔仍待取得與檢查。
+- 正式遊戲未修改；本段僅作研究建檔。
