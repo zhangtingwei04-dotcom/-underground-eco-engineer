@@ -1,0 +1,44 @@
+# 臺灣與國外爬蟲愛好者社群來源 v0.1
+
+查核日期：2026-11-08（Asia/Taipei）  
+專案：《鱗片與種子：地下生態物語》  
+**證據層級：飼主／社群／商業資訊，僅作尋找研究題目、行為影像、圈養經驗與採集線索的輔助來源；不取代同儕審查論文、獸醫專業意見及官方飼養指南。**
+
+## 臺灣
+
+| 社群 | 網址 | 可用資料 | 限制 |
+|---|---|---|---|
+| PTT Reptile 板 | https://www.ptt.cc/bbs/Reptile/index.html | 飼養問答、討論、設備、舊文與精華區 | 使用者敘述與交易貼文混雜，個案不能視為研究 |
+| PTT Reptile 精華區 | https://www.ptt.cc/man/Reptile/index.html | 蛇類、常見問題、設備、醫療與網站參考歷史紀錄 | 歷史文章需檢查日期與今日適用性 |
+| 台灣寵物蛇交流中心 LINE OpenChat | https://openchat.line.me/tw/cover/gDjgYMCsaz8EuUR8_37WJaRRzzIb-6bm3IkWjlNFBiJaEaYppmf3VmDtyzk | 寵物蛇飼養交流，群組也允許交易 | 有封閉群組內容，不能自動擷取私人對話或上傳未經同意的成員資訊 |
+| LINE 爬蟲社群搜尋 | https://openchat.line.me/tw/search?keyword=%E7%88%AC%E8%9F%B2 | 多個爬蟲飼主、設備、蛇、守宮社群 | 群組品質與活躍度差異大，且有大量買賣廣告 |
+| 台灣蛇類 Snakes of Taiwan | https://snakesoftaiwan.com/ | 臺灣野外蛇類愛好者整理的影像、辨識與物種介紹 | 作者自稱業餘愛好者，主要是**臺灣野生蛇，不是豬鼻蛇或玉米蛇的寵物飼養資料** |
+| ReptiHub Beta | https://reptihub.online/ | 臺灣特寵市場、商家、活體、設備、公開商品頁面 | 2026-11-08 Beta，公開商家商品暫少；商業網站資料不等於可查證生物學 |
+| EK Reptiles | https://www.ek-reptiles.com/ | 球蟒及玉米蛇商店、品系觀察與飼養交流連結 | 商業／會員服務，某些內容與 Discord 參與有付費或入會門檻 |
+
+## 國外
+
+| 社群／網站 | 網址 | 可用資料 | 限制 |
+|---|---|---|---|
+| MorphMarket Reptile Community | https://community.morphmarket.com/ | 不同蛇類分區、花紋品系、飼養箱、繁殖、近期照片與討論 | 大量玩家／販售相關判讀，不能把個案或商業 morph 名稱當作基因已證實 |
+| Reddit r/hognosesnakes | https://www.reddit.com/r/hognosesnakes/ | 西部豬鼻蛇飼主圖片、挖洞、吐舌、餵食、環境與求助 | 一般玩家內容，非實驗設計；健康問題需獸醫資料確認 |
+| Reddit r/cornsnakes | https://www.reddit.com/r/cornsnakes/ | 玉米蛇布置、攀爬、進食、走失、花紋與影片 | 偏差取樣，不能從貼文比例估族群行為盛行率 |
+| Kingsnake.com | https://www.kingsnake.com/ | 老牌爬蟲論壇、飼養交流與繁殖者目錄 | 商業與論壇混合，舊資料可能過時 |
+| ReptiFiles | https://reptifiles.com/care-guides | 蛇／蜥蜴／龜整理型飼養指南（玉米蛇、豬鼻蛇可直接查） | 來源彙整／指南，不等於每個數值均已由直接實驗驗證 |
+| Reptile Forums UK | https://www.reptileforums.co.uk/ | 英國歷史悠久的討論論壇（亦有論壇名錄收錄） | 本次網址直開驗證失敗；是否可正常瀏覽須另次確認 |
+
+## 如何將社群貼文安全轉成「研究線索」
+
+1. 只在合法且**公開可讀**的資料中尋找主題，紀錄公開文章的 URL、日期、所描述的物種與「待核實」標記；LINE 群、私密 FB、私人照片和影片不做未經授權擷取。
+2. 先觀察是否有明確條件：學名、年齡、生活階段、底材、躲藏／攀爬結構、測量時段、實際溫度與濕度、是否餵食或蛻皮。
+3. 將「飼主自述」、「繁殖者經驗」、「獸醫疾病建議」、「同行評審原始研究」分開存；沒有對照、時間和樣本數的個案**不推導族群固定機率**。
+4. 論文、正式試驗與臨床原始資料由既有 `HERPETOLOGY_RESEARCH_SOURCES_20261108_V01.md` 及 `TAIWAN_CAPTIVE_REPTILE_SOURCES_20261108_V01.md` 分類管理。
+5. 動物相片／影片可能受著作權保護，公開瀏覽不代表可放入商業遊戲；優先將社群作為**動作與生態參考、採訪受試者招募線索**，正式使用前需得到相關授權。
+6. LINE／社群不與玩家登入或存檔系統串接；不得記錄參與者帳號、姓名、地址、照片 EXIF、私人醫療資訊。
+
+## 對本專案的優先使用
+
+- 西部豬鼻蛇：`r/hognosesnakes`、MorphMarket 豬鼻蛇討論與台灣寵物蛇 LINE 社群，做掘洞與防禦行為影像**線索**。
+- 玉米蛇：`r/cornsnakes`、MorphMarket 玉米蛇分區、PTT Reptile 與 ReptiFiles，做攀爬、伸展、環境選擇與花紋資料**線索**。
+- 想找正式數據或確定健康資訊，仍需回到同儕審查論文、原始資料集與獸醫／政府機構。
+- 本文件只建立 GitHub 研究來源索引，**不自動抓取個人社群貼文、不加入 Cloudflare D1 作為已驗證研究發現、不變更遊戲程式或玩家存檔**。
