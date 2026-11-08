@@ -5,12 +5,16 @@ on:
       - 'src/ohm-core/**'
       - 'tests/ohm-core.test.mjs'
       - 'tests/scene-registry.test.mjs'
+      - 'src/ohm-platform/**'
+      - 'tests/day-period.test.mjs'
       - '.github/workflows/ohm-core.yml'
   pull_request:
     paths:
       - 'src/ohm-core/**'
       - 'tests/ohm-core.test.mjs'
       - 'tests/scene-registry.test.mjs'
+      - 'src/ohm-platform/**'
+      - 'tests/day-period.test.mjs'
       - '.github/workflows/ohm-core.yml'
   workflow_dispatch:
 permissions:
@@ -32,3 +36,5 @@ jobs:
         run: node --check src/ohm-core/scene-registry.mjs
       - name: Scene registry navigation tests
         run: node tests/scene-registry.test.mjs
+      - name: Real-world time adapter tests
+        run: node tests/day-period.test.mjs
