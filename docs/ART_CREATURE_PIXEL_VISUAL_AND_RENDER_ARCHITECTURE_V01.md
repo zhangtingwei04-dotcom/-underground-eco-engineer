@@ -161,3 +161,10 @@ Creature Visual Adapter（依物種與視角選動畫；映射舊版欄位）
 `/鱗片與種子/美術參考/scales-seeds-creature-pixel-concept-v1-20261108.png`（1536 × 1024，SHA-256 `c1dd1e606619d8b1812cd4a281eed81316531604beff7bd8f949c3c7bd44da54`）。
 
 它是**風格參考，不是已製作完成的 sprite sheet、動畫或可直接套用的動物素材**。接下來以此為氛圍基準生成單一物種的透明原畫，校對豬鼻蛇／玉米蛇真實特徵，再試作獨立動作；**不因參考圖表現而覆蓋已確認首頁或重寫生態系統**。詳細保存資訊見 `docs/ART_DIRECTION_HARMONIOUS_PIXEL_STYLES_V01.md` 第 10 節。
+
+## 12. 玉米蛇動態 v0.3 已交付試驗版本（2026-11-08）
+
+- 蛇類逐段路徑跟隨的第一個**純程式幾何技術版本**已納入 `src/ohm-core/corn-snake-motion.mjs`；獨立畫面 `corn-snake-lab.html` 已改為蛇頭沿底材曲線移動、轉彎、身體依序跟隨，顯示與舊版原地擺動的差異。可在 https://zhangtingwei04-dotcom.github.io/-underground-eco-engineer/corn-snake-lab.html 檢視。
+- 既有 pattern seed 和外觀下拉保留；`tests/corn-snake-motion.test.mjs` 已加入前進、折返、路徑跟隨、邊界及重現性檢查。核心邏輯已在修改時做直接函式檢查，GitHub main 檔案已驗證；**仍需真機畫面驗收及 CI 狀態確認**。
+- 此版本**沒有真正碰撞、尋路、枝條攀爬、完整動物生理或正式像素貼圖**；路線是預設閉環，適合優先評估視覺上是否有「蛇自己往前爬」的感覺。
+- 此次只改獨立實驗頁、底層純函式與相關測試／文件，不影響已運作的主畫面、研究進度、現有動物或玩家雲端存檔。
