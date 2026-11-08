@@ -1,5 +1,6 @@
 import {generateSnakePose,makeCornSnakePattern,POSE_VERSION} from '../src/ohm-core/corn-snake-motion.mjs';
 import assert from 'node:assert/strict';
+import {getCornSnakeHalfWidth,makeCornSnakeVisualTemplate} from '../src/ohm-core/corn-snake-visual-template.mjs';
 
 assert.equal(POSE_VERSION,2,'new geometry contract version');
 const p=generateSnakePose(1);
@@ -33,4 +34,23 @@ assert.deepEqual(makeCornSnakePattern(77),makeCornSnakePattern(77),'same individ
 assert.notDeepEqual(makeCornSnakePattern(77),makeCornSnakePattern(78),'different seed changes markings');
 assert.equal(makeCornSnakePattern(-1).ok,false);
 assert.ok(m.marks.every(q=>q.position>0&&q.position<1));
+// v0.4 isolated pixel-texture plan: stable animal-local markings and tapered body.
+const visualA=makeCornSnakeVisualTemplate({seed:1049,morphId:'normal'});
+const visualB=makeCornSnakeVisualTemplate({seed:1049,morphId:'normal'});
+const visualC=makeCornSnakeVisualTemplate({seed:1050,morphId:'normal'});
+assert.equal(visualA.ok,true);
+assert.deepEqual(visualA,visualB,'the same snake retains its texture seed');
+assert.notDeepEqual(visualA.visual.flecks,visualC.visual.flecks,'another individual differs');
+assert.equal(visualA.visual.flecks.length,180);
+assert.ok(visualA.visual.flecks.every(f=>f.s>=0&&f.s<=1&&Math.abs(f.radial)<=0.78&&f.size>0));
+assert.deepEqual(visualA.visual.marks,makeCornSnakePattern(1049).marks,'existing pattern design remains compatible');
+assert.equal(makeCornSnakeVisualTemplate({seed:-1}).ok,false);
+assert.equal(makeCornSnakeVisualTemplate({morphId:'fictional'}).ok,false);
+assert.equal(makeCornSnakeVisualTemplate({fleckCount:999}).ok,false);
+assert.ok(getCornSnakeHalfWidth(.26)>getCornSnakeHalfWidth(0),'body thickens behind the neck');
+assert.ok(getCornSnakeHalfWidth(.26)>getCornSnakeHalfWidth(.73),'body begins to taper');
+assert.ok(getCornSnakeHalfWidth(.87)>getCornSnakeHalfWidth(1),'tail ends thinner than the body');
+assert.throws(()=>getCornSnakeHalfWidth(-0.1),RangeError);
+console.log('PASS corn-snake v0.4 seeded pixel texture and body template');
+
 console.log('PASS corn-snake v0.3 forward route, turn-follow, bounds and seeded markings');
