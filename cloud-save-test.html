@@ -22,9 +22,10 @@ small{color:#ddd5c7}
 <h1>雲端存檔｜獨立測試頁面</h1>
 <p>僅供《鱗片與種子》開發測試，尚未接入正式遊戲。<strong>請使用專門建立的測試帳號，切勿使用已有遊戲進度的帳號進行寫入測試。</strong></p>
 <div class="panel">
-<strong>1. 登入測試帳號</strong>
+<strong>1. 註冊或登入測試帳號</strong>
 <label>測試帳號電子郵件<input id="email" type="email" autocomplete="username"></label>
 <label>密碼<input id="password" type="password" autocomplete="current-password"></label>
+<button id="signup">註冊測試帳號（可能需要電子郵件驗證）</button>
 <button id="login">登入 Supabase</button>
 <button id="logout">登出</button>
 <small>密碼由瀏覽器直接傳給 Supabase，不傳送到 ChatGPT、GitHub 或 Cloudflare；本頁不顯示或記錄登入憑證。</small>
@@ -55,6 +56,26 @@ const update = async()=>{
   $('write').disabled=true;emptyConfirmed=false;
   status(accountId?'登入成功。可先執行唯讀測試。':'尚未登入。請使用專門的測試帳號。');
 };
+$('signup').addEventListener('click',async()=>{
+  const email=$('email').value.trim();
+  const password=$('password').value;
+  if(!email || !password){status('請先填入可收信的電子郵件及自己設定的密碼。');return;}
+  if(password.length<12){status('測試帳號建議至少使用 12 字元的獨立密碼。');return;}
+  $('signup').disabled=true;
+  status('正在向 Supabase 申請建立測試帳號…');
+  try {
+    const {data,error}=await auth.auth.signUp({email,password});
+    $('password').value='';
+    if(error) throw error;
+    if(data?.session) {
+      await update();
+      status('註冊成功且已登入。請先使用唯讀功能確認這是全新帳號。');
+    } else {
+      status('註冊申請已送出。如果 Supabase 要求郵件驗證，請到信箱完成驗證，再返回本頁登入。為保護帳號隱私，不顯示使用者識別資訊。');
+    }
+  } catch(e) {status('無法完成註冊：'+e.message);}
+  finally {$('signup').disabled=false;}
+});
 $('login').addEventListener('click',async()=>{
   $('login').disabled=true;status('正在驗證測試帳號…');
   try{
