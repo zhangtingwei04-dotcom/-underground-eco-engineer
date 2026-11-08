@@ -88,3 +88,35 @@
 - [水蛇游泳轉向實驗原始資料（data.InDoRES）](https://doi.org/10.48579/PRO/5Q27ST)
 
 下次在可連線環境成功下載後，再計算 SHA-256、檢查 ZIP 內容、確定資料欄位與授權，分離研究資料和正式遊戲資產。
+
+
+## H. 使用者提供原始 ZIP — 首次實際檢查結果（2026-11-08）
+
+**實際收到並成功讀取**（不再是只有下載連結）：
+
+### data.InDoRES 水蛇游泳／轉向
+- 使用者提供：`dataverse_files.zip`（約 7.73 MiB 壓縮包）。
+- 內容：`kinematics_images.mat`（約 22.1 MiB）、`README.txt`、`MANIFEST.TXT`。
+- README 指出 **CC BY 4.0**；正式引用必須標示 Gregorio, E., Godoy-Diana, R., & Herrel, A. (2026), *Turning without fins: quantifying the distinct kinematics and vortex dynamics of maneuvering swimming snakes*, DOI `10.1103/c57h-kx57`，資料 DOI `10.48579/PRO/5Q27ST`。
+- MATLAB v7.3 / HDF5 結構已用 `h5py` 成功讀取，**12 組影像序列、合計 153 個影格**：`fwd1...fwd6` 各 9/14/10/4/14/10 幅；`turn1...turn6` 各 17/20/20/6/18/11 幅。
+- 每組影像 HDF5 維度為 `[frame, channel, 3088, 2064]`，含 6 隻蛇的 `bodyLength`、`mass`、`px2cm_turn/fwd`、`avgAng`、`avgH2T`、`avgMOI` 等統計量。
+- **注意：檔案是影像序列及統計數值，不是已標記好的中心線關節追蹤 CSV；未確認真實影格時間間距，不能推斷瞬時速度。** 若要轉為蛇身動畫，需依授權取樣、標註身體中心線，且保留物種與試驗來源。
+- `ddptv_data.mat`（約 2 GB）未上傳；此時不是製作 2D 泳姿的必要資料。
+
+### Dryad 海蛇活動／能量資料
+- 使用者提供：`doi_10_5061_dryad_516s0__v20170425.zip`（約 0.14 MiB）。
+- 內有海蛇研究資料內層 ZIP、PDF README。
+- 實際讀到兩個有效 CSV（忽略 macOS `__MACOSX` 中的資源衍生檔）：
+  - `FMR_Estimates.csv`：**1,567 列 × 7 欄**，21 個個體 ID；字段 `Species,SnakeID,DateTime,WaterTemp,VeDBA,FMR.ml,FMR.J`，**無缺值**。
+  - `Lab_calibration_data.csv`：**3,781 列 × 7 欄**，19 個個體 ID；字段 `DateTime,Species,SnakeID,Mass,WaterTemp.Treatment,VeDBA,sVo2`，部分缺值（例如 VeDBA 722、sVo2 117）。
+- PDF README 明確辨認 `LC=Hydrophis curtus`、`HE=Hydrophis elegans`；測量以**每小時彙整**的加速度、溫度、代謝數據為主。這不是逐幀泳姿或中心線數據，適合未來探索活動與能量狀態，不應直接拿來渲染蛇體彎曲。
+- Dryad 原始資料集： https://datadryad.org/dataset/doi:10.5061/dryad.516s0 。保留引用及資料使用授權檢查。
+
+### 另外兩個 ZIP
+- `-underground-eco-engineer-main 2.zip`、`-underground-eco-engineer-main 3.zip`：均為很小的舊版遊戲專案快照（各 26 項路徑），並非蛇類研究資料；**未合併至當前 GitHub main、未覆蓋現有程式**。
+
+### 下一步
+1. 對水蛇序列做受控縮圖／影像檢查與每幅中心線手工或半自動標記，需判別相機視角、標記方式、時間戳和比例尺。
+2. 把研究追蹤結果存成 Ohm Core 的 **來源／物種／試驗／單位／時間** 分開的中間資料格式；數據與現有的美術蛇身曲線不能直接混用。
+3. 海蛇 CSV 用於未來活動量和環境相關參數研究，保留物種差異。
+4. 原始第三方檔案暫留使用者附件，不公開提交至 GitHub；除非重新確認授權與明確決定資料發布策略。
