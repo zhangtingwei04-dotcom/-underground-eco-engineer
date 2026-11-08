@@ -44,6 +44,38 @@ export default {
         const items=await env.DB.prepare('SELECT revision, schema_version, created_at FROM save_revisions WHERE player_id=? AND save_id=? ORDER BY revision DESC LIMIT 20').bind(uid,uid+':'+slot).all();
         return json({revisions:items.results||[]},200,cors);
       }
+      // Restoring is a new revision, never a destructive rollback.
+      // Caller must state the latest revision to prevent stale-device overwrites.
+      if (url.pathname === '/v1/restore' && request.method === 'POST') {
+        const raw = await request.text();
+        if (new TextEncoder().encode(raw).byteLength > 2048)
+          return json({error:'invalid_restore_request'},400,cors);
+        let body;
+        try { body=JSON.parse(raw); } catch { return json({error:'invalid_json'},400,cors); }
+        if (!body || !Number.isSafeInteger(body.targetRevision) || body.targetRevision<1 ||
+            !Number.isSafeInteger(body.expectedRevision) || body.expectedRevision<1)
+          return json({error:'invalid_restore_request'},400,cors);
+        const saveId=uid+':'+slot;
+        const current=await env.DB.prepare('SELECT revision FROM player_saves WHERE player_id=? AND slot_name=?').bind(uid,slot).first();
+        if (!current) return json({error:'save_not_found'},404,cors);
+        if (current.revision!==body.expectedRevision)
+          return json({error:'revision_conflict',currentRevision:current.revision},409,cors);
+        const target=await env.DB.prepare('SELECT revision FROM save_revisions WHERE save_id=? AND player_id=? AND revision=?').bind(saveId,uid,body.targetRevision).first();
+        if(!target) return json({error:'revision_not_found'},404,cors);
+        const next=body.expectedRevision+1, revisionId=crypto.randomUUID();
+        const q=[
+          env.DB.prepare(`UPDATE player_saves SET revision=?,schema_version=(SELECT schema_version FROM save_revisions WHERE save_id=? AND player_id=? AND revision=?),save_data=(SELECT save_data FROM save_revisions WHERE save_id=? AND player_id=? AND revision=?),checksum=NULL,updated_at=CURRENT_TIMESTAMP WHERE save_id=? AND player_id=? AND revision=?`)
+            .bind(next,saveId,uid,body.targetRevision,saveId,uid,body.targetRevision,saveId,uid,body.expectedRevision),
+          env.DB.prepare('INSERT INTO save_revisions(revision_id,save_id,player_id,revision,schema_version,save_data) SELECT ?,save_id,player_id,revision,schema_version,save_data FROM player_saves WHERE save_id=? AND player_id=? AND revision=?')
+            .bind(revisionId,saveId,uid,next)
+        ];
+        const results=await env.DB.batch(q);
+        if (results[0]?.meta?.changes!==1 || results[1]?.meta?.changes!==1) {
+          const latest=await env.DB.prepare('SELECT revision FROM player_saves WHERE player_id=? AND slot_name=?').bind(uid,slot).first();
+          return json({error:'revision_conflict',currentRevision:latest?.revision||0},409,cors);
+        }
+        return json({restored:true,revision:next,restoredFrom:body.targetRevision},200,cors);
+      }
       if (url.pathname === '/v1/save' && request.method === 'PUT') {
         const len=Number(request.headers.get('content-length')||0);
         if(len>MAX_SAVE_BYTES) return json({error:'payload_too_large'},413,cors);
