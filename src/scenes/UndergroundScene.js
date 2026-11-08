@@ -4,6 +4,8 @@
 
 import { LanguageSystem } from '../systems/language-system.js';
 import { AudioSystem } from '../systems/AudioSystem.js';
+import { ObservationJournalSystem } from '../systems/observation-journal-system.js';
+import { getObservationSummary } from '../systems/terrarium-observation-interaction.js';
 
 export class UndergroundScene extends Phaser.Scene {
 
@@ -227,6 +229,29 @@ export class UndergroundScene extends Phaser.Scene {
             }
         );
 
+        // 玩家可以隨時觀察真實的生態箱數據，並存入觀察日誌。
+        // 観察操作不消耗 AP，也不設每日強制任務。
+        const observeY = Math.max(235, height - 95);
+        const observeButton = this.createButton(
+            Math.max(16, width / 2 - 86),
+            observeY,
+            '🔎 觀察生態箱',
+            '#66513b',
+            () => this.observeCurrentTerrarium()
+        );
+        observeButton.setDepth(10);
+
+        this.observationFeedback = this.add.text(
+            width / 2, Math.min(height - 15, observeY + 43), '',
+            {
+                fontSize: '13px',
+                color: '#efdfc4',
+                backgroundColor: '#241a13',
+                align: 'center',
+                wordWrap: { width: Math.max(150, width - 32) }
+            }
+        ).setOrigin(0.5, 0).setDepth(10);
+
         // 設定
         this.createButton(
             width - 170,
@@ -239,6 +264,50 @@ export class UndergroundScene extends Phaser.Scene {
 
             }
         );
+    }
+
+    // =====================================
+    // 生態箱觀察（依存檔實際狀態記錄）
+    // =====================================
+
+    async observeCurrentTerrarium() {
+        if (this.observationBusy) return;
+        this.observationBusy = true;
+        try {
+            if (!this.gameState) {
+                if (this.observationFeedback) this.observationFeedback.setText('無法取得存檔，請稍後再試。');
+                return;
+            }
+            const summary = getObservationSummary(
+                this.gameState,
+                window.globalTerrariumSystem?.activeTerrariumId
+            );
+            if (!summary.ok) {
+                if (this.observationFeedback) this.observationFeedback.setText(summary.message);
+                return;
+            }
+            // Observational text does not imply undocumented behaviours or animal health.
+            ObservationJournalSystem.addLog(this.gameState, 'environment', summary.message);
+            if (!window.gameSaveManager?.saveGame) {
+                if (this.observationFeedback) this.observationFeedback.setText('觀察已記錄於目前遊戲，但存檔服務尚不可用。');
+                return;
+            }
+            const saved = await window.gameSaveManager.saveGame(this.gameState);
+            if (!this.scene.isActive()) return;
+            if (this.observationFeedback) {
+                this.observationFeedback.setText(
+                    saved === false
+                        ? '觀察已記錄，但保存失敗；請確認存檔狀態。'
+                        : '觀察完成，已寫入日誌：' + summary.message
+                );
+            }
+        } catch (error) {
+            console.error('[UndergroundScene] Observation failed:', error);
+            if (this.observationFeedback && this.scene.isActive())
+                this.observationFeedback.setText('觀察記錄未能完成，請稍後再試。');
+        } finally {
+            this.observationBusy = false;
+        }
     }
 
     // =====================================
