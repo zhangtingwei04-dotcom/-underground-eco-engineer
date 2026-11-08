@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>鱗片與種子｜雲端存檔測試（開發用）</title>
+<style>
+body{font-family:system-ui,-apple-system,sans-serif;max-width:620px;margin:24px auto;padding:0 18px;line-height:1.65;background:#181c17;color:#f1eadc}
+h1{font-size:1.4rem} .panel{background:#293328;padding:18px;border:1px solid #73836d;border-radius:12px;margin-bottom:16px}
+label{display:block;margin-top:10px}input,button{box-sizing:border-box;width:100%;padding:11px;border-radius:8px;font-size:1rem}
+input{background:#fefdf7;color:#171717;border:1px solid #aaa}
+button{margin-top:12px;border:0;background:#d7b57a;color:#1c241b;font-weight:700}
+button:disabled{opacity:.42}.danger{background:#f2d0ad}
+pre{white-space:pre-wrap;overflow-wrap:anywhere;padding:14px;background:#111810;border-radius:8px}
+small{color:#ddd5c7}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./supabase-config.js"></script>
+</head>
+<body>
+<h1>雲端存檔｜獨立測試頁面</h1>
+<p>僅供《鱗片與種子》開發測試，尚未接入正式遊戲。<strong>請使用專門建立的測試帳號，切勿使用已有遊戲進度的帳號進行寫入測試。</strong></p>
+<div class="panel">
+<strong>1. 登入測試帳號</strong>
+<label>測試帳號電子郵件<input id="email" type="email" autocomplete="username"></label>
+<label>密碼<input id="password" type="password" autocomplete="current-password"></label>
+<button id="login">登入 Supabase</button>
+<button id="logout">登出</button>
+<small>密碼由瀏覽器直接傳給 Supabase，不傳送到 ChatGPT、GitHub 或 Cloudflare；本頁不顯示或記錄登入憑證。</small>
+</div>
+<div class="panel">
+<strong>2. 驗證 API</strong>
+<button id="read" disabled>唯讀測試：檢查自己的雲端存檔</button>
+<button id="write" disabled class="danger">寫入測試：只限完全空白的測試帳號</button>
+<button id="history" disabled>檢查自己的歷史版本</button>
+<small>寫入只會在再次確認「雲端沒有既有存檔」且按下確認後執行；不會自動覆蓋。</small>
+</div>
+<pre id="status" role="status" aria-live="polite">尚未登入。</pre>
+<script type="module">
+import { CloudflareSaveClient } from './src/systems/cloudflare-save-client.js';
+const $ = id => document.getElementById(id);
+const status = msg => { $('status').textContent = String(msg); };
+const base = window.ENV_SUPABASE_URL;
+const key = window.ENV_SUPABASE_KEY;
+if(!base || !key || !window.supabase) throw new Error('登入 SDK 或公開設定未就緒');
+const auth = window.supabase.createClient(base,key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});
+const api = new CloudflareSaveClient({supabaseClient:auth});
+let accountId = null;
+let emptyConfirmed = false;
+const update = async()=>{
+  const {data,error}=await auth.auth.getUser();
+  accountId=error?null:data?.user?.id||null;
+  ['read','history'].forEach(id=>$(id).disabled=!accountId);
+  $('write').disabled=true;emptyConfirmed=false;
+  status(accountId?'登入成功。可先執行唯讀測試。':'尚未登入。請使用專門的測試帳號。');
+};
+$('login').addEventListener('click',async()=>{
+  $('login').disabled=true;status('正在驗證測試帳號…');
+  try{
+    const {error}=await auth.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});
+    $('password').value='';
+    if(error) throw error;
+    await update();
+  }catch(e){status('登入失敗：'+e.message)}finally{$('login').disabled=false;}
+});
+$('logout').addEventListener('click',async()=>{await auth.auth.signOut();await update();});
+$('read').addEventListener('click',async()=>{
+  const r=await api.load();
+  emptyConfirmed=!!(r.success && r.data?.found===false);
+  $('write').disabled=!emptyConfirmed;
+  if(!r.success){status('讀取失敗：'+r.mode+'（HTTP '+(r.status||'—')+'）');return;}
+  if(r.data.found){status('已存在存檔！版本 '+r.data.revision+'。為避免覆蓋，寫入測試已鎖定。');return;}
+  status('讀取成功：目前沒有雲端存檔。確認這是專門的測試帳號後，才可選擇寫入測試。');
+});
+$('write').addEventListener('click',async()=>{
+  if(!emptyConfirmed || !accountId) return;
+  $('write').disabled=true;emptyConfirmed=false;
+  if(!confirm('確認這是全新專用測試帳號，且允許建立一份測試存檔？請勿使用正式遊戲帳號。'))return;
+  const latest=await api.load();
+  if(!latest.success || latest.data?.found!==false){status('寫入已取消：無法確認雲端存檔為空。');return;}
+  const marker='scales-seeds-cloud-test-v1';
+  const save={_testOnly:true,marker,createdAt:new Date().toISOString()};
+  const result=await api.save(save,0,1);
+  if(!result.success){status('寫入失敗：'+result.mode+'（HTTP '+(result.status||'—')+'）');return;}
+  const readback=await api.load();
+  if(readback.success && readback.data?.found && readback.data.save?.marker===marker) {
+    const conflict=await api.save(save,0,1);
+    status('測試成功：已寫入並讀回測試存檔，版本 '+readback.data.revision+'。舊版本重複寫入回傳 '+(conflict.status||'—')+' / '+conflict.mode+'（預期 409 revision_conflict）。');
+  }else status('寫入已回覆成功，但讀回檢查未通過；請保留現況並回報。');
+});
+$('history').addEventListener('click',async()=>{
+  const r=await api.listRevisions();
+  if(!r.success){status('歷史版本讀取失敗：'+r.mode);return;}
+  status('歷史版本查詢成功；筆數：'+(r.data.revisions?.length||0)+'。不顯示玩家存檔內容。');
+});
+update();
+</script>
+</body>
+</html>
