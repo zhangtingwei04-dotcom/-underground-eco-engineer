@@ -222,7 +222,7 @@ function tick(now){
     '｜色型：'+$('morph').selectedOptions[0].textContent+
     '｜個體紋路種子：'+seed+
     '｜鱗片細節：'+(showDetails.checked?'開':'關')+
-    '｜葉片遮擋：'+($('foliage').checked?(foliageOcclusionV06(pose).partialCover?'身體部分被遮住':'開啟'):'關閉');
+    '｜葉片遮擋：'+($('foliage').checked?(()=>{const cover=foliageOcclusionV06(pose);return cover.partialCover?'頭露出／軀幹遮擋 '+Math.round(cover.bodyCoverFraction*100)+'%':'開啟';})():'關閉');
  }
  requestAnimationFrame(tick);
 }
