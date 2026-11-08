@@ -6,6 +6,7 @@ import { LanguageSystem } from '../systems/language-system.js';
 import { AudioSystem } from '../systems/AudioSystem.js';
 import { ObservationJournalSystem } from '../systems/observation-journal-system.js';
 import { getObservationSummary } from '../systems/terrarium-observation-interaction.js';
+import { startBrowserGameClock } from '../ohm-platform/browser-game-clock.mjs';
 
 export class UndergroundScene extends Phaser.Scene {
 
@@ -69,6 +70,10 @@ export class UndergroundScene extends Phaser.Scene {
         if (!this.scene.isActive()) {
             return;
         }
+
+        // 玩家進入遊戲時建立現實時間基準，之後時間服務持續推進。
+        // 僅供場景與未來 NPC 作息讀取，不修改存檔或獎勵數值。
+        startBrowserGameClock();
 
         this.renderUI();
 
