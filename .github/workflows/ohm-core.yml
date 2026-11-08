@@ -12,6 +12,8 @@ on:
       - 'tests/offline-catch-up.test.mjs'
       - 'tests/reptile-motion.test.mjs'
       - 'tests/corn-snake-profile.test.mjs'
+      - 'tests/corn-snake-motion.test.mjs'
+      - 'corn-snake-lab.html'
       - '.github/workflows/ohm-core.yml'
   pull_request:
     paths:
@@ -25,6 +27,8 @@ on:
       - 'tests/offline-catch-up.test.mjs'
       - 'tests/reptile-motion.test.mjs'
       - 'tests/corn-snake-profile.test.mjs'
+      - 'tests/corn-snake-motion.test.mjs'
+      - 'corn-snake-lab.html'
       - '.github/workflows/ohm-core.yml'
   workflow_dispatch:
 permissions:
@@ -58,3 +62,5 @@ jobs:
         run: node tests/reptile-motion.test.mjs
       - name: Corn snake appearance descriptors tests
         run: node tests/corn-snake-profile.test.mjs
+      - name: Corn snake curve and seeded pattern tests
+        run: node tests/corn-snake-motion.test.mjs
