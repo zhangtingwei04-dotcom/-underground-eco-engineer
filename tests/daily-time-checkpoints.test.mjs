@@ -1,0 +1,14 @@
+import {checkDailyTime,millisecondsUntilNextCheckpoint} from '../src/ohm-core/daily-time-checkpoints.mjs';
+const checks=[];
+const check=(name,result)=>checks.push([name,!!result]);
+const dateKey='2026-11-08';
+check('before 6am nothing',checkDailyTime({dateKey,minuteOfDay:359}).due.length===0);
+check('morning once',checkDailyTime({dateKey,minuteOfDay:360}).due[0].id==='morning');
+check('morning deduplicated',checkDailyTime({dateKey,minuteOfDay:361,processedKeys:[dateKey+':morning']}).due.length===0);
+check('noon available',checkDailyTime({dateKey,minuteOfDay:720,processedKeys:[dateKey+':morning']}).due[0].id==='noon');
+check('evening available',checkDailyTime({dateKey,minuteOfDay:1080,processedKeys:[dateKey+':morning',dateKey+':noon']}).due[0].id==='evening');
+check('invalid minute rejected',!checkDailyTime({dateKey,minuteOfDay:1440}).ok);
+check('next boundary wait',millisecondsUntilNextCheckpoint({minuteOfDay:359,second:0})===60000);
+check('next day boundary',millisecondsUntilNextCheckpoint({minuteOfDay:1080,second:0})===43200000);
+for(const [name,pass] of checks)console.log((pass?'PASS ':'FAIL ')+name);
+if(checks.some(x=>!x[1]) && typeof process!=='undefined')process.exitCode=1;
