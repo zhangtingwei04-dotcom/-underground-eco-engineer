@@ -9,6 +9,10 @@ assert.equal(foliageOcclusionV06(sample().map(p=>({...p,y:.70}))).partialCover,f
 assert.throws(()=>foliageOcclusionV06([]),TypeError);
 assert.throws(()=>foliageOcclusionV06(sample().map((p,i)=>i===20?{x:NaN,y:p.y}:p)),TypeError,'reject invalid body coordinates');
 assert.ok(foliageOcclusionV06(sample()).bodyCoverFraction>0,'body cover is measurable');
+assert.throws(()=>foliageOcclusionV06(sample().map((p,i)=>i===0?{x:NaN,y:p.y}:p)),TypeError,'reject invalid head coordinates');
+assert.throws(()=>foliageOcclusionV06(sample(),{left:.8,right:.2,top:.7,bottom:.9}),TypeError,'reject inverted region');
+assert.throws(()=>foliageOcclusionV06(sample(),{left:.2,right:.8,top:NaN,bottom:.9}),TypeError,'reject nonfinite region');
+assert.throws(()=>foliageOcclusionV06(sample().map((p,i)=>i===64?{x:Infinity,y:p.y}:p)),TypeError,'reject invalid tail coordinates');
 assert.equal(foliageOcclusionV06(sample().map(p=>({...p,y:.70}))).bodyCoverFraction,0,'clear pose has zero cover');
 let found=false;
 for(let t=0;t<600;t+=.25){
