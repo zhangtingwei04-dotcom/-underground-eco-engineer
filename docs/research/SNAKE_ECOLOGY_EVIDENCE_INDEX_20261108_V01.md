@@ -130,6 +130,6 @@
 
 - 第一優先：西部豬鼻蛇、玉米蛇真實物種的環境選擇、躲藏、探索、感官、移動與蛻皮；再加入與地區／季節／生命階段有關的資料。
 - 設計行為時，需分別記錄 species、life_stage、context、source DOI、evidence_limit、game_interpretation；不將同一觀測直接提升成「所有蛇都會」。
-- 科學紀錄可日後匯入 Cloudflare D1「scales-seeds-biology-research」索引庫；玩家存檔與即時遊戲程式碼完全分離。
+- **2026-11-08 已同步至 Cloudflare D1「scales-seeds-biology-research」獨立索引庫**：本次新增 4 筆物種、11 筆研究、11 筆發現與 12 筆研究—物種關聯；經查詢總計 10 物種、18 研究、19 發現、19 筆研究—物種關聯。與玩家存檔與即時遊戲程式碼完全分離。
 - 不將第三方 PDF／高頻動捕 CSV 直接加入公開 GitHub 或當作已經備份到雲端。著作權、可再利用授權要逐件核實。
 - **本研究紀錄建立不代表 Phaser 遊戲本體已更改。**
