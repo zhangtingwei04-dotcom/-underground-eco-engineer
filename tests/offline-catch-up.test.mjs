@@ -1,0 +1,17 @@
+import {planOfflineCatchUp,MAX_OFFLINE_DAYS} from '../src/ohm-core/offline-catch-up.mjs';
+const H=3600000,D=24*H;
+const cases=[];
+const check=(name,pass)=>cases.push([name,!!pass]);
+const at=(h)=>Date.parse('2026-11-08T00:00:00+08:00')+h*H;
+let result=planOfflineCatchUp({lastSeenMs:at(1),nowMs:at(19)});
+check('three checkpoints from 1 to 19',result.ok&&result.checkpointCount===3);
+check('no state change or rewards',result.stateChangesApplied===false&&result.settlement==='summary_only');
+check('same time no checkpoint',planOfflineCatchUp({lastSeenMs:at(0),nowMs:at(0)}).checkpointCount===0);
+check('cross midnight boundary',planOfflineCatchUp({lastSeenMs:at(23),nowMs:at(25)}).checkpointCount===1);
+check('reverse clock rejected',!planOfflineCatchUp({lastSeenMs:at(1),nowMs:at(0)}).ok);
+check('30 day cap',planOfflineCatchUp({lastSeenMs:at(0),nowMs:at(0)+60*D}).appliedMs===MAX_OFFLINE_DAYS*D);
+check('cap disclosed',planOfflineCatchUp({lastSeenMs:at(0),nowMs:at(0)+60*D}).capped===true);
+check('invalid time rejected',!planOfflineCatchUp({lastSeenMs:NaN,nowMs:at(1)}).ok);
+check('reject unreasonable cap',!planOfflineCatchUp({lastSeenMs:0,nowMs:1,maxDays:10000}).ok);
+for(const [name,pass] of cases) console.log((pass?'PASS ':'FAIL ')+name);
+if(cases.some(x=>!x[1]) && typeof process!=='undefined')process.exitCode=1;
