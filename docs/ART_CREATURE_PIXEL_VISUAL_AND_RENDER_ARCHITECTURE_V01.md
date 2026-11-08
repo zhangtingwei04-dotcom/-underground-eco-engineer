@@ -175,3 +175,12 @@ Creature Visual Adapter（依物種與視角選動畫；映射舊版欄位）
 - 源碼／試驗頁更新對應 commit `30326d3d16627f0189be514abf2b09892c527897`，其 [Ohm Core checks](https://github.com/zhangtingwei04-dotcom/-underground-eco-engineer/actions/runs/42478988230) 已 **success**；玉米蛇曲線與固定花紋測試步驟 **success**。
 - 對應的 [Pages build and deployment](https://github.com/zhangtingwei04-dotcom/-underground-eco-engineer/actions/runs/42478987385) 亦 **success**。
 - **實機視覺驗收尚待進行。** GitHub Actions 不能證明真實蛇類運動已經驗證或美術已完成。
+
+## 13. 物種獨特性與可玩真實感（2026-11-08）
+
+使用者進一步確認：**真實物種應保有自己的外型、行為和生態，不因共用技術模板而被畫成／模擬成同一套；同時遊戲必須容易理解、觀察起來有趣，不做高壓而繁瑣的真實管理。**
+
+- 採「爬蟲結構模板（不同形態類型各自設計）＋物種專屬設定＋個體固定 seed＋程序化像素紋理生成（快取）＋動態適配器＋必要時少量環境粒子」。
+- 使用模板的目的在**重用運算／美術工具**，不是讓玉米蛇、豬鼻蛇、守宮等同一個形象或運動規則。
+- 外觀及環境保真優先，操作繁瑣、過度細分計算、強迫每日登入則合理遊戲化；生物福利安全與物種辨識不能因娛樂性犧牲。
+- 正式規格：[SYSTEM_DESIGN_SPECIES_UNIQUENESS_AND_PLAYABLE_REALISM_V01.md](./SYSTEM_DESIGN_SPECIES_UNIQUENESS_AND_PLAYABLE_REALISM_V01.md)。**這次僅更新規劃文件，未改遊戲程式。**
