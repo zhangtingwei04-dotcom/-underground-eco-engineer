@@ -7,6 +7,9 @@ assert.deepEqual(foliageOcclusionV06(sample()),foliageOcclusionV06(sample()),'de
 assert.ok(foliageOcclusionV06(sample()).partialCover,'head clear, torso behind foliage');
 assert.equal(foliageOcclusionV06(sample().map(p=>({...p,y:.70}))).partialCover,false,'outside foliage is clear');
 assert.throws(()=>foliageOcclusionV06([]),TypeError);
+assert.throws(()=>foliageOcclusionV06(sample().map((p,i)=>i===20?{x:NaN,y:p.y}:p)),TypeError,'reject invalid body coordinates');
+assert.ok(foliageOcclusionV06(sample()).bodyCoverFraction>0,'body cover is measurable');
+assert.equal(foliageOcclusionV06(sample().map(p=>({...p,y:.70}))).bodyCoverFraction,0,'clear pose has zero cover');
 let found=false;
 for(let t=0;t<600;t+=.25){
  const a=sampleCornSnakeActivityV06(t,{seed:1049});
