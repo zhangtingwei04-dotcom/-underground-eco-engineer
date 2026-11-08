@@ -57,6 +57,12 @@ export class CloudflareSaveClient {
     return this.request('/v1/save', { method: 'PUT', body });
   }
 
+  /** Restores a historical version as a new revision without deleting newer history. */
+  async restore(targetRevision, expectedRevision) {
+    if (!Number.isSafeInteger(targetRevision) || targetRevision < 1 || !Number.isSafeInteger(expectedRevision) || expectedRevision < 1) return {success:false,mode:'invalid_restore_request'};
+    return this.request('/v1/restore', {method:'POST',body:{targetRevision,expectedRevision}});
+  }
+
   async listRevisions() {
     return this.request('/v1/revisions');
   }
