@@ -35,6 +35,8 @@ small{color:#ddd5c7}
 <button id="read" disabled>唯讀測試：檢查自己的雲端存檔</button>
 <button id="write" disabled class="danger">寫入測試：只限完全空白的測試帳號</button>
 <button id="history" disabled>檢查自己的歷史版本</button>
+<button id="version2" disabled class="danger">測試專用：建立第二版存檔</button>
+<button id="restore" disabled class="danger">測試專用：還原版本 1（保留所有歷史）</button>
 <small>寫入只會在再次確認「雲端沒有既有存檔」且按下確認後執行；不會自動覆蓋。</small>
 </div>
 <pre id="status" role="status" aria-live="polite">尚未登入。</pre>
@@ -53,7 +55,7 @@ const update = async()=>{
   const {data,error}=await auth.auth.getUser();
   accountId=error?null:data?.user?.id||null;
   ['read','history'].forEach(id=>$(id).disabled=!accountId);
-  $('write').disabled=true;emptyConfirmed=false;
+  $('write').disabled=true;$('version2').disabled=true;$('restore').disabled=true;emptyConfirmed=false;
   status(accountId?'登入成功。可先執行唯讀測試。':'尚未登入。請使用專門的測試帳號。');
 };
 $('signup').addEventListener('click',async()=>{
@@ -90,6 +92,8 @@ $('read').addEventListener('click',async()=>{
   const r=await api.load();
   emptyConfirmed=!!(r.success && r.data?.found===false);
   $('write').disabled=!emptyConfirmed;
+  $('version2').disabled=!(r.success&&r.data?.found&&r.data?.save?._testOnly===true&&r.data.revision===1);
+  $('restore').disabled=!(r.success&&r.data?.found&&r.data?.save?._testOnly===true&&r.data.revision>=2);
   if(!r.success){status('讀取失敗：'+r.mode+'（HTTP '+(r.status||'—')+'）');return;}
   if(r.data.found){status('已存在存檔！版本 '+r.data.revision+'。為避免覆蓋，寫入測試已鎖定。');return;}
   status('讀取成功：目前沒有雲端存檔。確認這是專門的測試帳號後，才可選擇寫入測試。');
@@ -109,6 +113,30 @@ $('write').addEventListener('click',async()=>{
     const conflict=await api.save(save,0,1);
     status('測試成功：已寫入並讀回測試存檔，版本 '+readback.data.revision+'。舊版本重複寫入回傳 '+(conflict.status||'—')+' / '+conflict.mode+'（預期 409 revision_conflict）。');
   }else status('寫入已回覆成功，但讀回檢查未通過；請保留現況並回報。');
+});
+$('version2').addEventListener('click',async()=>{
+  $('version2').disabled=true;
+  const latest=await api.load();
+  if(!latest.success || !latest.data?.found || latest.data.revision!==1 || latest.data.save?._testOnly!==true || latest.data.save?.marker!=='scales-seeds-cloud-test-v1'){
+    status('已取消：不是版本 1 的指定測試存檔。');return;
+  }
+  if(!confirm('要替專用測試帳號建立版本 2 嗎？版本 1 將保留於歷史紀錄。'))return;
+  const result=await api.save({...latest.data.save,marker:'scales-seeds-cloud-test-v2'},latest.data.revision,latest.data.schemaVersion||1);
+  status(result.success?'版本 2 測試寫入成功。請點一次唯讀測試，然後選擇還原版本 1。':'版本 2 寫入失敗：'+result.mode);
+});
+$('restore').addEventListener('click',async()=>{
+  $('restore').disabled=true;
+  const latest=await api.load();
+  if(!latest.success || !latest.data?.found || latest.data.save?._testOnly!==true || latest.data.revision<2 || !['scales-seeds-cloud-test-v2','scales-seeds-cloud-test-v1'].includes(latest.data.save.marker)) {
+    status('已取消：目前存檔不是指定測試資料，或版本不足。');return;
+  }
+  if(!confirm('確認還原專用測試帳號的版本 1？系統會建立全新版本，不刪除目前版本及歷史。'))return;
+  const restored=await api.restore(1,latest.data.revision);
+  if(!restored.success){status('還原失敗：'+restored.mode+'（HTTP '+(restored.status||'—')+'）');return;}
+  const check=await api.load();
+  if(check.success && check.data?.save?.marker==='scales-seeds-cloud-test-v1' && check.data.revision===restored.data.revision)
+    status('還原測試成功！已從版本 1 建立新版本 '+check.data.revision+'，原有版本保留。');
+  else status('還原 API 回覆成功，但讀回驗證失敗；請暫停進一步操作。');
 });
 $('history').addEventListener('click',async()=>{
   const r=await api.listRevisions();
