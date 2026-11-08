@@ -4,11 +4,13 @@ on:
     paths:
       - 'src/ohm-core/**'
       - 'tests/ohm-core.test.mjs'
+      - 'tests/scene-registry.test.mjs'
       - '.github/workflows/ohm-core.yml'
   pull_request:
     paths:
       - 'src/ohm-core/**'
       - 'tests/ohm-core.test.mjs'
+      - 'tests/scene-registry.test.mjs'
       - '.github/workflows/ohm-core.yml'
   workflow_dispatch:
 permissions:
@@ -26,3 +28,7 @@ jobs:
         run: node --check src/ohm-core/world.mjs
       - name: World rules test
         run: node tests/ohm-core.test.mjs
+      - name: Scene registry syntax check
+        run: node --check src/ohm-core/scene-registry.mjs
+      - name: Scene registry navigation tests
+        run: node tests/scene-registry.test.mjs
