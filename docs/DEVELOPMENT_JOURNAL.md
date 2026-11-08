@@ -2363,3 +2363,14 @@ NPC 可自主結婚及邀請玩家參加婚禮；婚姻是否維持、修復、�
 - [Ohm Core 自動測試](https://github.com/zhangtingwei04-dotcom/-underground-eco-engineer/actions/runs/42478988230) **success**，包含玉米蛇曲線及花紋測試；[GitHub Pages 部署](https://github.com/zhangtingwei04-dotcom/-underground-eco-engineer/actions/runs/42478987385) **success**。
 - 供後續使用者實際觀看：https://zhangtingwei04-dotcom.github.io/-underground-eco-engineer/corn-snake-lab.html。實際 Safari/桌面視覺是否順暢、是否顯得像真正向前爬，**尚待實機驗收**。
 - 本次**未改正式遊戲 Scene、Supabase 存檔、Cloudflare D1 或其他玩家資料**。後續按視覺測試結果改進蛇身連續性、真正碰撞、攀爬與像素素材。
+
+## 2026-11-08｜玉米蛇 v0.4 獨立外觀模板及紋理比較
+
+- 使用者提出玉米蛇還需要調整。為避免影響舊版技術基礎及玩家存檔，**保留** `corn-snake-lab.html` v0.3，新增 `corn-snake-lab-v04.html` 獨立對照頁，網址：https://zhangtingwei04-dotcom.github.io/-underground-eco-engineer/corn-snake-lab-v04.html。
+- 新增 `src/ohm-core/corn-snake-visual-template.mjs`：依穩定個體 seed 生成局部像素紋理點，並提供頭頸、軀幹與尾巴漸細寬度模板；這是**視覺資料生成器**而不是實際由大量即時粒子組成的蛇或真實遺傳模型。
+- 示範頁保留原色／白化／缺紅／Motley／Stripe 外觀候選，增加**像素鱗片細節開關**與預設關閉的**少量底材粒子開關**；更新蛇頭外形與尾巴比例，花紋在蛇身局部座標貼附；採時間積分避免中途切換速度造成突然跳位。
+- `tests/corn-snake-motion.test.mjs` 新增同 seed 重現性、不同 seed 差異、局部紋理座標範圍、品系參數檢查與身體漸細測試。程式／頁面新增檔與測試皆已回讀 `main` 驗證。
+- 對 commit `8a331db42fbe1ad684111c1f81cba495f9e3838b`，[Ohm Core checks](https://github.com/zhangtingwei04-dotcom/-underground-eco-engineer/actions/runs/42480661888) **success**（玉米蛇外觀與動作測試步驟均通過），[GitHub Pages 部署](https://github.com/zhangtingwei04-dotcom/-underground-eco-engineer/actions/runs/42480661517) **success**。
+- 已另記錄手機 A/B 視覺檢查要求在 `docs/species/CORN_SNAKE_REAL_SPECIES_FOUNDATION_V01.md` 第七節。
+- **尚未驗收：** iPhone Safari 畫面是否自然流暢；是真實爬行物理而非美術原型的要求、正式 pixel sprite、障礙物碰撞、攀爬、準確品系外觀／基因、正式生態箱整合皆未完成。
+- **不變事項：** 舊 v0.3 保留；正式 Phaser 遊戲 Scene、存檔、Supabase、Cloudflare D1、已確認生物美術參考圖均未被本輪覆蓋。
