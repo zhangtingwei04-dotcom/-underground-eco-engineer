@@ -21,6 +21,7 @@ a{color:#f2c987}#status{min-height:24px}
 <label><input id="motes" type="checkbox"> 少量底材粒子</label>
 <label><input id="activity" type="checkbox" checked> 自然停頓與探頭</label>
 <button id="pause" type="button">暫停</button><button id="reroll" type="button">生成新的個體紋路</button>
+<button id="preview-rest" type="button">看停頓</button><button id="preview-look" type="button">看轉頭</button><button id="preview-peek" type="button">看探頭</button>
 </section>
 <section><strong>觀察說明</strong><p id="status" aria-live="polite"></p><small>v0.5：加入間歇性休息、轉頭朝畫面方向、短暫探頭，且可關閉對照連續爬行。<strong>這是固定的動畫展示節奏，不是玉米蛇實測活動頻率、對玩家的認知或情緒</strong>。蛇的外觀、花紋、地面路線與粒子仍屬初步美術測試；尚無避障、攀爬、正式行為 AI 或存檔整合。</small></section>
 <p><a href="./corn-snake-lab-v04.html">對照 v0.4 舊版</a> · <a href="./corn-snake-lab.html">v0.3 舊版</a> · <a href="./ohm-core-test.html">Ohm Core 世界核心測試</a> · <a href="./index.html">返回遊戲首頁</a></p>
@@ -201,5 +202,14 @@ $('speed').addEventListener('input',()=>{speed=Number($('speed').value);$('speed
 $('pause').addEventListener('click',()=>{paused=!paused;$('pause').textContent=paused?'繼續播放':'暫停';});
 $('reroll').addEventListener('click',()=>{seed=(seed+104729)>>>0;visual=makeCornSnakeVisualTemplate({seed,morphId:morph}).visual;});
 showActivity.addEventListener('change',()=>{elapsed=0;});
+for(const [id,previewTime] of [['preview-rest',9.2],['preview-look',13.2],['preview-peek',32.2]]){
+ $(id).addEventListener('click',()=>{
+  showActivity.checked=true;
+  elapsed=previewTime;
+  paused=false;
+  $('pause').textContent='暫停';
+ });
+}
+
 requestAnimationFrame(tick);
 </script></body></html>
