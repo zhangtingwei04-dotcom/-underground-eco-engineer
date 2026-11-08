@@ -90,3 +90,10 @@
 - 後續可找夜間紅外線行為觀察、無線電追蹤高頻記錄及原始行為掃描數據；新增資料須記 `method`, `sampling_times`, `denominator`, `sample_size`, `region`, `season`, `life_stage`, `full_text_status`。
 
 研究來源網站優先清單：`HERPETOLOGY_RESEARCH_SOURCES_20261108_V01.md`；其他行為研究：`HOGNOSE_CORN_SNAKE_DAILY_BEHAVIOR_EVIDENCE_20261108_V01.md`。
+
+## Cloudflare D1 同步驗證（2026-11-08）
+
+- 本次在既有獨立研究資料庫 `scales-seeds-biology-research` 新增 **4 筆論文索引**（2019 豬鼻蛇短期移動、2025 玉米蛇躲藏箱掃描、2016 玉米蛇鳥巢捕食、2015 玉米蛇肯塔基州自然史）；既有 2012 豬鼻蛇自然史索引沿用。
+- 新增 **6 條研究發現**：豬鼻蛇時段移動、2012 二次引述的地表比例、玉米蛇抽樣活動比例、躲藏比例、夜間鳥巢捕食、季節遭遇。
+- 實際查詢核對 D1 目前合計：**24 篇 studies、29 條 findings、25 條 study_species 關聯**。
+- **D1 純索引與研究摘要，不表示全文 PDF 已被備份**。未更動遊戲內容、主程式或玩家存檔。
