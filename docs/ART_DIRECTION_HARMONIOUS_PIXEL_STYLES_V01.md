@@ -95,3 +95,9 @@
 4. 後續依遊戲實際新增 NPC、圖書館、學校、研究院、雜誌與地下探索場景，再逐項生成素材。
 
 **現階段只更新設計文件，不產生圖片、覆蓋已確認標題、改動 Phaser 程式或玩家存檔。**
+
+## 9. 生物像素造型與跨平台動態（2026-11-08）
+
+生物素材規格正式採**「自然細緻的物種辨識＋場景／圖鑑不同細節密度＋分階段動畫混合」**為推薦方向。現階段先用透明逐格 Sprite Sheet／Texture Atlas 完成基本動作；之後針對蛇身連續轉彎逐步研究中心線／分段姿態／紋理貼附，Mesh 僅作需 WebGL 能力時的選配，必須保留跨平台降級。生物資料／行為／外觀 seed／渲染 adapter 分層，不覆蓋現有 CreatureFactory、Ohm Core、角色存檔或主畫面功能。
+
+完整設計與程式現況差距：[ART_CREATURE_PIXEL_VISUAL_AND_RENDER_ARCHITECTURE_V01.md](./ART_CREATURE_PIXEL_VISUAL_AND_RENDER_ARCHITECTURE_V01.md)。**目前只新增設計文件，未改遊戲程式或圖片。**
