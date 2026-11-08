@@ -95,3 +95,10 @@
 `species` + `life_stage` + `study_context` + `meal_condition` + `substrate_temp_vs_body_temp` + `thermal_refuge_available` + `behavior_category` + `result_measure` + `sample_size` + `source_doi` + `direct_or_secondary` + `uncertainty` + `access_status` + `game_candidate`。
 
 **實務原則：** 保留科學高精度來源，遊戲僅用高層次情境狀態切換；不增加必須每天登入的飼育負擔，不讓一條蛇缺乏觀察機會就被判定患病。此次不修改 Phaser、玩家資料庫或既有玩家存檔。
+
+## Cloudflare D1 入庫與驗證（2026-11-08）
+
+- 已將本批 **6 篇新論文**索引加入既有獨立 `scales-seeds-biology-research`；沿用既有 COSEWIC 2019 條目，不重複建立。
+- 已加入 **10 條具適用範圍與限制的研究發現**，包含進食代謝、底材溫度選擇、胃排空試驗、蛻皮眼部變化、真菌疾病警示、2025 年氣味辨識複驗、2026 年線索學習、豬鼻蛇的洞穴溫度與年齡食性。
+- 查詢驗證庫內累計 **30 篇 studies、39 條 findings、32 條 study_species 關聯**。
+- 研究庫目前**只保存文獻與研究結論索引，不表示 PDF、原始 CSV 或補充資料已下載／備份**；未更動遊戲本體、玩家存檔或其他付費資源。
