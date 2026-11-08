@@ -1,0 +1,28 @@
+name: Ohm Core checks
+on:
+  push:
+    paths:
+      - 'src/ohm-core/**'
+      - 'tests/ohm-core.test.mjs'
+      - '.github/workflows/ohm-core.yml'
+  pull_request:
+    paths:
+      - 'src/ohm-core/**'
+      - 'tests/ohm-core.test.mjs'
+      - '.github/workflows/ohm-core.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  core-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax check
+        run: node --check src/ohm-core/world.mjs
+      - name: World rules test
+        run: node tests/ohm-core.test.mjs
