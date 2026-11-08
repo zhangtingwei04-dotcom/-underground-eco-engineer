@@ -14,8 +14,10 @@ on:
       - 'tests/corn-snake-profile.test.mjs'
       - 'tests/corn-snake-motion.test.mjs'
       - 'tests/corn-snake-activity.test.mjs'
+      - 'tests/corn-snake-activity-v06.test.mjs'
       - 'corn-snake-lab.html'
       - 'corn-snake-lab-v05.html'
+      - 'corn-snake-lab-v06.html'
       - '.github/workflows/ohm-core.yml'
   pull_request:
     paths:
@@ -31,8 +33,10 @@ on:
       - 'tests/corn-snake-profile.test.mjs'
       - 'tests/corn-snake-motion.test.mjs'
       - 'tests/corn-snake-activity.test.mjs'
+      - 'tests/corn-snake-activity-v06.test.mjs'
       - 'corn-snake-lab.html'
       - 'corn-snake-lab-v05.html'
+      - 'corn-snake-lab-v06.html'
       - '.github/workflows/ohm-core.yml'
   workflow_dispatch:
 permissions:
@@ -70,3 +74,5 @@ jobs:
         run: node tests/corn-snake-motion.test.mjs
       - name: Corn snake natural activity and head gesture tests
         run: node tests/corn-snake-activity.test.mjs
+      - name: Corn snake v0.6 seeded activity tests
+        run: node tests/corn-snake-activity-v06.test.mjs
