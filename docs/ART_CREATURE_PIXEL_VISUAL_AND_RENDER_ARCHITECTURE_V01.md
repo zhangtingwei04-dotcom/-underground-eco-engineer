@@ -168,3 +168,10 @@ Creature Visual Adapter（依物種與視角選動畫；映射舊版欄位）
 - 既有 pattern seed 和外觀下拉保留；`tests/corn-snake-motion.test.mjs` 已加入前進、折返、路徑跟隨、邊界及重現性檢查。核心邏輯已在修改時做直接函式檢查，GitHub main 檔案已驗證；**仍需真機畫面驗收及 CI 狀態確認**。
 - 此版本**沒有真正碰撞、尋路、枝條攀爬、完整動物生理或正式像素貼圖**；路線是預設閉環，適合優先評估視覺上是否有「蛇自己往前爬」的感覺。
 - 此次只改獨立實驗頁、底層純函式與相關測試／文件，不影響已運作的主畫面、研究進度、現有動物或玩家雲端存檔。
+
+### v0.3 GitHub Actions 驗收補記（2026-11-08）
+
+- `corn-snake-motion.mjs`、`tests/corn-snake-motion.test.mjs` 與 `corn-snake-lab.html` 均已逐檔回讀確認存在於 `main`。
+- 源碼／試驗頁更新對應 commit `30326d3d16627f0189be514abf2b09892c527897`，其 [Ohm Core checks](https://github.com/zhangtingwei04-dotcom/-underground-eco-engineer/actions/runs/42478988230) 已 **success**；玉米蛇曲線與固定花紋測試步驟 **success**。
+- 對應的 [Pages build and deployment](https://github.com/zhangtingwei04-dotcom/-underground-eco-engineer/actions/runs/42478987385) 亦 **success**。
+- **實機視覺驗收尚待進行。** GitHub Actions 不能證明真實蛇類運動已經驗證或美術已完成。
