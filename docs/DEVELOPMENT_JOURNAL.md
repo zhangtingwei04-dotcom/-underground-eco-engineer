@@ -2353,3 +2353,13 @@ NPC 可自主結婚及邀請玩家參加婚禮；婚姻是否維持、修復、�
 - GitHub `main` 程式與美術已提交並逐一核對相關圖片提交。**GitHub Pages／iOS 真機視覺尚待使用者驗收**，若發現某語言字形瑕疵可單獨替換該語言而不影響另外九張。
 - 詳情參閱 `docs/ART_TITLE_LOCALIZATION_MASTER.md`「十語言新版完整 Logo 逐張上傳完成」。
 
+## 2026-11-08｜玉米蛇動態第一版 v0.3
+
+- 使用者要求「先做出來第一版，之後做測試」。本次在獨立測試頁 `corn-snake-lab.html` 實作蛇頭沿底材封閉路線持續前進、身體和尾巴沿路徑跟隨、轉向與原有花紋對應的第一版幾何原型。
+- `src/ohm-core/corn-snake-motion.mjs` 新增閉合 Catmull-Rom 路線與弧長取樣、按距離分布的身體點；`POSE_VERSION=2`，API `generateSnakePose`／`makeCornSnakePattern` 保留。速度與波形為**美術測試參數**，不是研究量測。
+- `corn-snake-lab.html` 更新到 v0.3，保留色型參考切換、暫停／速度、重新生成紋路，將蛇身姿態和陰影改為可跟隨路徑。舊版 Canvas 畫面仍未換成正式像素美術；不包括避障或攀爬。
+- `tests/corn-snake-motion.test.mjs` 更新前進、折返、身體跟隨、邊界、零速停下及花紋重現性測試。
+- 核對 GitHub `main` 上三項檔案均已更新。對應程式提交 `683d29f0a0716d13e27ed11cee1fdec2ca902567`、測試提交 `83ace2e2963d7c5f2cd43dd5756d642dab67bce0`、展示頁提交 `30326d3d16627f0189be514abf2b09892c527897`。
+- [Ohm Core 自動測試](https://github.com/zhangtingwei04-dotcom/-underground-eco-engineer/actions/runs/42478988230) **success**，包含玉米蛇曲線及花紋測試；[GitHub Pages 部署](https://github.com/zhangtingwei04-dotcom/-underground-eco-engineer/actions/runs/42478987385) **success**。
+- 供後續使用者實際觀看：https://zhangtingwei04-dotcom.github.io/-underground-eco-engineer/corn-snake-lab.html。實際 Safari/桌面視覺是否順暢、是否顯得像真正向前爬，**尚待實機驗收**。
+- 本次**未改正式遊戲 Scene、Supabase 存檔、Cloudflare D1 或其他玩家資料**。後續按視覺測試結果改進蛇身連續性、真正碰撞、攀爬與像素素材。
