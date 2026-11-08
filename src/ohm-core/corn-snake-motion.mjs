@@ -11,15 +11,18 @@ export function generateSnakePose(timeSeconds,{segments=64,length=0.47,speed=1}=
      !Number.isFinite(speed)||speed<0||speed>3)throw new RangeError('invalid_pose_params');
   const t=timeSeconds*speed;
   const result=[];
-  // Head follows a slow elliptical loop; body samples preceding head trajectory.
-  // Added small wave for visible curve propagation. Artistic parameterization only.
+  // Side-view ground-crawling demonstration. The centerline stays near the
+  // substrate, instead of tracing the previous airborne ellipse.
+  // Values are visual placeholders, NOT measured corn-snake biomechanics.
+  const groundCenterY=0.797;
   for(let i=0;i<=segments;i++){
     const s=i/segments;
-    const phase=t*0.44-s*length*4.2;
-    const wave=Math.sin(phase*2.15 + s*8.2)*0.016*s;
-    const x=0.50+0.31*Math.cos(phase)+wave*Math.cos(phase+Math.PI/2);
-    const y=0.51+0.28*Math.sin(phase)*0.75+wave*Math.sin(phase+Math.PI/2);
-    result.push({x:clamp(x,0.04,0.96),y:clamp(y,0.06,0.94),s});
+    const phase=t*1.2-s*15.0;
+    // Head has a small horizontal displacement while the body follows a
+    // continuous line along the terrarium floor. Never rise into the air.
+    const x=0.74 + 0.035*Math.sin(t*0.35) - s*length;
+    const y=groundCenterY + 0.004*Math.sin(phase)*Math.sin(Math.PI*s);
+    result.push({x:clamp(x,0.04,0.96),y:clamp(y,0.79,0.805),s});
   }
   return result;
 }
