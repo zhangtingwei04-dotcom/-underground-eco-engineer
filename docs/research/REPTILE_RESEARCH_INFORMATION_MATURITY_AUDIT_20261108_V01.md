@@ -80,3 +80,11 @@
 - 本次檢查 GitHub 的兩個 `src/ohm-core` 模組，不是所有遊戲場景、系統、測試及圖形資產的完整程式碼稽核；因此**不能**據此判定全部現有遊戲機制／可玩完成度。
 - Cloudflare D1 統計反映查詢時的索引內容，不代表逐一驗證32篇論文全文，亦不等於完整研究成果已在雲端備份。
 - 稽核沒有變更雲端資料結構、遊戲主程式、存檔系統或第三方原始資料。
+
+## 附錄｜本日後續修正追記（不覆蓋原稽核基線）
+
+- 本文正文所示 **32 studies、42 findings、11 species、34 links** 為該次稽核查詢快照。隨後西部豬鼻蛇補充三篇研究並增加四條發現，目前資料庫再次查詢得到 **35 studies、46 findings、11 species、37 links**。
+- 西部豬鼻蛇由 **6 studies / 8 findings** 更新成 **9 studies / 12 findings**，但仍缺長期圈養行為、底材深度最適試驗與明確安全定量標準，不能把研究數量增加視為飼養資料已齊全。
+- 檔案索引詳細更正：資料庫 **42 個 data_files = 38 CSV + 1 XLSX + 3 MATLAB .m 程式**。這42筆只屬於1套 Dryad 資料集，其餘4套只有來源目錄；所有42筆 `has_original_file=0`，全部缺SHA-256，並非已備份42份CSV。
+- 來源／授權／恢復紀錄：[REPTILE_ORIGINAL_DATA_RECOVERY_AUDIT_20261108_V01.md](./REPTILE_ORIGINAL_DATA_RECOVERY_AUDIT_20261108_V01.md)。
+- 飼養來源品質與新的西部豬鼻蛇實驗：[REPTILE_HUSBANDRY_EVIDENCE_CONFLICTS_HOGNOSE_V02_20261108.md](./REPTILE_HUSBANDRY_EVIDENCE_CONFLICTS_HOGNOSE_V02_20261108.md)。
