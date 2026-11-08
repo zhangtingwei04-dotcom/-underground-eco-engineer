@@ -90,3 +90,28 @@
 - [GitHub Pages build and deployment](https://github.com/zhangtingwei04-dotcom/-underground-eco-engineer/actions/runs/42478987385)：**completed / success**。
 
 這只證明自動化單元檢查及部署流程成功，**不代表 iPhone Safari 畫面、蛇類生物力學或真實碰撞已經過人工驗收**。下一步仍需使用者實機查看並回報。
+
+## 7. v0.4 外觀模板與像素紋理 A/B 測試（2026-11-08）
+
+使用者提出「玉米蛇仍需要調整，我們現在可以怎麼做」。本輪採**保留原有 v0.3、另建 v0.4 獨立對照頁**，避免回歸風險與影響正式存檔：
+
+- **新展示頁**：`corn-snake-lab-v04.html`。可直接與 `corn-snake-lab.html` 對照。操作功能：五種原有色型視覺候選、速度、暫停、重新生成個體種子，加上**像素鱗片細節開關**及**少量底材粒子開關**。後者預設關閉，僅為視覺回饋，非生物自身發光。
+- **新純資料模組**：`src/ohm-core/corn-snake-visual-template.mjs` 定義蛇身頭到尾的漸細輪廓、隨個體固定 seed 產生的局部像素小點資料，沿用既有 `makeCornSnakePattern()` 斑紋位置。每次渲染僅沿蛇身局部座標取樣，沒有把每個像素變成獨立的 Phaser 物件。
+- **動態不打掉重練**：仍使用 v0.3 的 `generateSnakePose()`，但 v0.4 將速度積分到演示時鐘，避免使用者中途調整速度時，由於「總時間 × 新速度」導致位置不連續的跳躍。
+- **品質限制**：目前是 Canvas 程序化外觀與小像素細節試驗，**不是已完成的精緻像素 sprite atlas，也未實作真正鱗片實測排列、動態碰撞、自由路徑、物種遺傳或攀爬**。粒子效果不表明真實蛇必然揚起可見灰塵。
+- **測試**：擴充 `tests/corn-snake-motion.test.mjs` 驗證程序貼圖同 seed 固定、不同 seed 不同、細節在局部身體座標範圍內、輪廓由肩部至尾部漸細、錯誤參數拒絕。
+
+### 接下來用手機比較的六項
+
+1. 先看 v0.3，再看 v0.4；判斷**頭身比例、尾巴粗細**是否變自然。
+2. 開／關「像素鱗片細節」：花紋是否更精緻，而不是變髒或噪點過多。
+3. 使用「生成新的個體紋路」，看兩隻的差異是否合理；重新進入頁面會回到預設種子 1049，**不代表正式存檔功能**。
+4. 轉彎時看斑紋與身體是否錯位、外溢、消失。
+5. 調整速度時看是否突然瞬移、斷裂或卡住。
+6. 最後開啟「少量底材粒子」，觀察是否自然且沒有造成手機發燙或卡頓。
+
+**兩個比較網址**：
+- v0.3（保留）：https://zhangtingwei04-dotcom.github.io/-underground-eco-engineer/corn-snake-lab.html
+- v0.4（新）：https://zhangtingwei04-dotcom.github.io/-underground-eco-engineer/corn-snake-lab-v04.html
+
+目前不更動正式 Phaser 場景、既有動物資料與 Supabase／Cloudflare。先接受視覺測試回饋，再考慮物種專屬頭部 sprite、貼圖快取、避障與攀爬。
