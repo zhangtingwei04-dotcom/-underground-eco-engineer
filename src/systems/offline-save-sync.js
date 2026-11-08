@@ -42,8 +42,10 @@ export class OfflineSaveSync {
         const tx=db.transaction(STORE, kind==='read'?'readonly':'readwrite');
         const store=tx.objectStore(STORE);
         const req=kind==='read'?store.get(key):kind==='delete'?store.delete(key):store.put(value,key);
-        req.onsuccess=()=>resolve(req.result);
+        let result;
+        req.onsuccess=()=>{result=req.result;};
         req.onerror=()=>reject(req.error||new Error('本機備份讀寫失敗'));
+        tx.oncomplete=()=>resolve(result); // Only report success once the transaction commits.
         tx.onerror=()=>reject(tx.error||new Error('本機備份交易失敗'));
         tx.onabort=()=>reject(tx.error||new Error('本機備份交易已取消'));
       });
