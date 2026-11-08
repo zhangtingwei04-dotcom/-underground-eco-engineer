@@ -1,0 +1,18 @@
+import {generateSnakePose,makeCornSnakePattern} from '../src/ohm-core/corn-snake-motion.mjs';
+import assert from 'node:assert/strict';
+const p=generateSnakePose(1);
+assert.equal(p.length,65);
+assert.ok(p.every(q=>Number.isFinite(q.x)&&Number.isFinite(q.y)&&q.x>=0&&q.x<=1&&q.y>=0&&q.y<=1));
+assert.deepEqual(generateSnakePose(1),generateSnakePose(1));
+assert.notDeepEqual(generateSnakePose(1),generateSnakePose(2));
+assert.deepEqual(generateSnakePose(3,{speed:0}),generateSnakePose(0,{speed:0}));
+assert.throws(()=>generateSnakePose(NaN));
+assert.throws(()=>generateSnakePose(0,{segments:1000}));
+const m=makeCornSnakePattern(77);
+assert.equal(m.ok,true);
+assert.equal(m.marks.length,35);
+assert.deepEqual(makeCornSnakePattern(77),makeCornSnakePattern(77));
+assert.notDeepEqual(makeCornSnakePattern(77),makeCornSnakePattern(78));
+assert.equal(makeCornSnakePattern(-1).ok,false);
+assert.ok(m.marks.every(q=>q.position>0&&q.position<1));
+console.log('PASS corn-snake pose geometry and seeded markings (11 checks)');
