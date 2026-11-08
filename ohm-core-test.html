@@ -2,17 +2,21 @@
 import {createWorld,dispatchWorld} from './src/ohm-core/world.mjs';
 import {OHM_LOCATIONS,describeScene,travelToScene} from './src/ohm-core/scene-registry.mjs';
 import {sceneRegistryResults,sceneRegistryPassed} from './tests/scene-registry.test.mjs';
+import {readBrowserTimeContext} from './src/ohm-platform/browser-time-context.mjs';
+import {dayPeriodResults,dayPeriodPassed} from './tests/day-period.test.mjs';
 import {ohmCoreResults,ohmCorePassed} from './tests/ohm-core.test.mjs';
 const $=id=>document.getElementById(id);
-const allTests=[...ohmCoreResults,...sceneRegistryResults.map(([name,pass])=>({name,pass}))];
-const allPassed=ohmCorePassed&&sceneRegistryPassed;
+const allTests=[...ohmCoreResults,...sceneRegistryResults.map(([name,pass])=>({name,pass})),...dayPeriodResults.map(([name,pass])=>({name,pass}))];
+const allPassed=ohmCorePassed&&sceneRegistryPassed&&dayPeriodPassed;
 $('tests').textContent=(allPassed?'全部測試通過':'發現測試失敗')+'：'+allTests.filter(x=>x.pass).length+'/'+allTests.length+'\n'+allTests.map(x=>(x.pass?'✓ ':'✗ ')+x.name).join('\n');
 $('tests').style.whiteSpace='pre-wrap';
 let world=createWorld();
+const actualTime=()=>readBrowserTimeContext({timeZone:'Asia/Taipei'});
 function render(info='已啟動獨立核心'){
   const scene=describeScene(world,OHM_LOCATIONS);
+  const time=actualTime();
   $('location').textContent=scene.ok
-    ? '目前地點：'+scene.title+'｜'+scene.description+'｜觀察紀錄：'+world.observations.length
+    ? '目前地點：'+scene.title+'｜'+scene.description+'｜現實時段：'+(time.ok?time.label:'偵測失敗')+'（裝置時間／台灣時區）｜觀察紀錄：'+world.observations.length
     : '場景資料異常：'+scene.error;
   const exits=$('exits');exits.replaceChildren();
   if(scene.ok) for(const exit of scene.exits){
@@ -31,5 +35,9 @@ function send(command){
   render(outcome.ok?'事件：'+outcome.events.map(x=>x.type).join(', '):'操作拒絕：'+outcome.error);
 }
 $('observe').onclick=()=>send({type:'OBSERVE'});
+// Read-only automatic refresh; scene travel never advances clock.
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)render('已重新偵測現實時段');});
+window.addEventListener('focus',()=>render('已重新偵測現實時段'));
+setInterval(()=>{if(!document.hidden)render('已自動更新現實時段');},60000);
 render();
 </script></body></html>
