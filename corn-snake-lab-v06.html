@@ -19,9 +19,10 @@ a{color:#f2c987}#status{min-height:24px}
 <label for="speed">移動速度 <input id="speed" type="range" min="0" max="2" step="0.1" value="1"><output id="speedValue">1.0×</output></label>
 <label><input id="details" type="checkbox" checked> 像素鱗片細節</label>
 <label><input id="motes" type="checkbox"> 少量底材粒子</label>
+<label><input id="foliage" type="checkbox" checked> 前景葉片遮擋</label>
 <label><input id="activity" type="checkbox" checked> 個體化自然節奏</label>
 <button id="pause" type="button">暫停</button><button id="reroll" type="button">生成新的個體紋路</button>
-<button id="preview-rest" type="button">看停頓</button><button id="preview-look" type="button">看轉頭</button><button id="preview-peek" type="button">看探頭</button>
+<button id="preview-cover" type="button">看局部遮擋</button><button id="preview-rest" type="button">看停頓</button><button id="preview-look" type="button">看轉頭</button><button id="preview-peek" type="button">看探頭</button>
 </section>
 <section><strong>觀察說明</strong><p id="status" aria-live="polite"></p><small>v0.6：不同個體種子決定非固定的移動、停頓、局部轉頭、探索與偶發短吐舌。<strong>這是可重現的美術示範，並非實測玉米蛇活動頻率、認知或情緒</strong>。蛇的外觀、花紋、地面路線與粒子仍屬初步美術測試；尚無避障、攀爬、正式行為 AI 或存檔整合。</small></section>
 <p><a href="./corn-snake-lab-v05.html">對照 v0.5 舊版</a> · <a href="./corn-snake-lab-v04.html">對照 v0.4 舊版</a> · <a href="./corn-snake-lab.html">v0.3 舊版</a> · <a href="./ohm-core-test.html">Ohm Core 世界核心測試</a> · <a href="./index.html">返回遊戲首頁</a></p>
@@ -31,6 +32,7 @@ import {generateSnakePose,makeCornSnakePattern} from './src/ohm-core/corn-snake-
 import {createCornSnakeAppearance} from './src/ohm-core/corn-snake-profile.mjs';
 import {getCornSnakeHalfWidth,makeCornSnakeVisualTemplate} from './src/ohm-core/corn-snake-visual-template.mjs';
 import {sampleCornSnakeActivityV06,applyCornSnakeGestureV06} from './src/ohm-core/corn-snake-activity-v06.mjs';
+import {CORN_FOLIAGE_V06,foliageOcclusionV06} from './src/ohm-core/corn-snake-occlusion-v06.mjs';
 const $=id=>document.getElementById(id);
 const canvas=$('stage'),ctx=canvas.getContext('2d');
 if(!ctx){$('status').textContent='此瀏覽器不支援 2D Canvas';throw new Error('canvas_unavailable');}
@@ -174,6 +176,24 @@ function drawSnake(pose,activity){
  }
  ctx.restore();
 }
+// Static foreground plants: body passes behind them while the head may emerge.
+// Pure visual layering: foliage does not follow the snake or claim real collisions.
+function drawForegroundFoliage(){
+ if(!$('foliage').checked)return;
+ const r=CORN_FOLIAGE_V06,x0=r.left*width,x1=r.right*width;
+ ctx.save();
+ ctx.fillStyle='#302e22';ctx.beginPath();ctx.ellipse((x0+x1)/2,height*.838,(x1-x0)*.52,28,0,0,Math.PI*2);ctx.fill();
+ for(let i=0;i<9;i++){
+  const x=x0+(i+.5)*(x1-x0)/9;
+  const base=height*.846;
+  const tipY=height*(.757+(i%3)*.016);
+  ctx.strokeStyle='#344b35';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(x,base);ctx.quadraticCurveTo(x+(i%2?15:-14),tipY+26,x+(i%2?7:-7),tipY);ctx.stroke();
+  ctx.fillStyle=i%2?'#526c46':'#60794d';
+  ctx.beginPath();ctx.ellipse(x+(i%2?7:-7),tipY+15,12,29,(i%2?-.45:.45),0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#81905d';ctx.fillRect(Math.round(x),Math.round(tipY+11),2,9);
+ }
+ ctx.restore();
+}
 function drawSubstrateMotes(pose,activity){
  if(!showMotes.checked || !activity.moving)return;
  for(let i=0;i<12;i++){
@@ -195,13 +215,14 @@ function tick(now){
  const activity=showActivity.checked?sampleCornSnakeActivityV06(elapsed,{seed}):
   {state:'slither',motionTime:elapsed,moving:true,look:0,peek:0};
  const pose=applyCornSnakeGestureV06(generateSnakePose(activity.motionTime,{speed:1}),activity);
- drawScene();drawGroundShadow(pose);drawSnake(pose,activity);drawSubstrateMotes(pose,activity);
+ drawScene();drawGroundShadow(pose);drawSnake(pose,activity);drawSubstrateMotes(pose,activity);drawForegroundFoliage();
  if(frames++%20===0){
   const labels={slither:'緩慢爬行',rest:'停下休息',orient:'局部轉頭',explore:'短暫探查'};
   $('status').textContent='目前：'+(paused?'手動暫停':labels[activity.state])+
     '｜色型：'+$('morph').selectedOptions[0].textContent+
     '｜個體紋路種子：'+seed+
-    '｜鱗片細節：'+(showDetails.checked?'開':'關');
+    '｜鱗片細節：'+(showDetails.checked?'開':'關')+
+    '｜葉片遮擋：'+($('foliage').checked?(foliageOcclusionV06(pose).partialCover?'身體部分被遮住':'開啟'):'關閉');
  }
  requestAnimationFrame(tick);
 }
@@ -210,6 +231,18 @@ $('speed').addEventListener('input',()=>{speed=Number($('speed').value);$('speed
 $('pause').addEventListener('click',()=>{paused=!paused;$('pause').textContent=paused?'繼續播放':'暫停';});
 $('reroll').addEventListener('click',()=>{seed=(seed+104729)>>>0;elapsed=0;visual=makeCornSnakeVisualTemplate({seed,morphId:morph}).visual;});
 showActivity.addEventListener('change',()=>{elapsed=0;});
+$('preview-cover').addEventListener('click',()=>{
+ showActivity.checked=true;
+ // Seek a reproducible pose where the head is outside and part of the torso is behind foliage.
+ let found=null;
+ for(let t=0;t<600;t+=.25){
+  const a=sampleCornSnakeActivityV06(t,{seed});
+  const p=applyCornSnakeGestureV06(generateSnakePose(a.motionTime,{speed:1}),a);
+  if(foliageOcclusionV06(p).partialCover){found=t;break;}
+ }
+ if(found!==null){elapsed=found;paused=true;$('pause').textContent='繼續播放';$('foliage').checked=true;}
+ else $('status').textContent='目前種子未找到局部遮擋示範，請重新生成個體後再試';
+});
 for(const [id,previewTime] of [['preview-rest',8],['preview-look',24],['preview-peek',39]]){
  $(id).addEventListener('click',()=>{
   showActivity.checked=true;
