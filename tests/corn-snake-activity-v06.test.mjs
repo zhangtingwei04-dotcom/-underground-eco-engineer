@@ -5,6 +5,8 @@ const a=t=>sample(t,{seed:1049}),b=t=>sample(t,{seed:775});
 for(const t of [0,1,7,12,28,51.999,52,52.001,104,200,500,1000]){
  assert.deepEqual(a(t),a(t),'same individual, same elapsed time reproducible');
  assert.ok(Number.isFinite(a(t).motionTime));
+ assert.ok(a(t).pace>=0&&a(t).pace<=1,'pace in normalized range');
+ if(!a(t).moving)assert.equal(a(t).pace,0,'rest has no travel pace');
  assert.ok(a(t).motionTime<=t+1e-8,'motion clock never exceeds elapsed time');
  const p=generateSnakePose(a(t).motionTime),q=gesture(p,a(t));
  assert.deepEqual(q.at(-1),p.at(-1),'tail remains fixed during local gestures');
@@ -25,6 +27,21 @@ for(const t of [52,104,156]){
  const left=a(t-.00001),right=a(t);
  assert.ok(Math.abs(left.motionTime-right.motionTime)<.0001,'no legacy fixed-cycle jump');
 }
+// At state boundaries, the movement clock must approach zero velocity.
+let checked=0;
+for(let t=.2;t<180;t+=.2){
+ const old=a(t-.2),next=a(t);
+ if(old.segmentIndex===next.segmentIndex)continue;
+ let lo=t-.2,hi=t;
+ for(let k=0;k<30;k++){const mid=(lo+hi)/2;if(a(mid).segmentIndex===old.segmentIndex)lo=mid;else hi=mid;}
+ const edge=(lo+hi)*.5,eps=.002;
+ const before=a(edge).motionTime-a(edge-eps).motionTime;
+ const after=a(edge+eps).motionTime-a(edge).motionTime;
+ assert.ok(before>=-1e-7&&after>=-1e-7);
+ assert.ok(before<.00001&&after<.00001,'no sudden start/stop at activity boundary');
+ checked++;
+}
+assert.ok(checked>=8);
 assert.throws(()=>sample(-1),RangeError);
 assert.throws(()=>sample(Infinity),RangeError);
 assert.throws(()=>sample(1,{seed:-1}),RangeError);

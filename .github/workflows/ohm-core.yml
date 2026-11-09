@@ -16,6 +16,7 @@ on:
       - 'tests/corn-snake-activity.test.mjs'
       - 'tests/corn-snake-activity-v06.test.mjs'
       - 'tests/corn-snake-occlusion-v06.test.mjs'
+      - 'tests/corn-snake-silhouette-v06.test.mjs'
       - 'corn-snake-lab.html'
       - 'corn-snake-lab-v05.html'
       - 'corn-snake-lab-v06.html'
@@ -36,6 +37,7 @@ on:
       - 'tests/corn-snake-activity.test.mjs'
       - 'tests/corn-snake-activity-v06.test.mjs'
       - 'tests/corn-snake-occlusion-v06.test.mjs'
+      - 'tests/corn-snake-silhouette-v06.test.mjs'
       - 'corn-snake-lab.html'
       - 'corn-snake-lab-v05.html'
       - 'corn-snake-lab-v06.html'
@@ -80,3 +82,5 @@ jobs:
         run: node tests/corn-snake-activity-v06.test.mjs
       - name: Corn snake v0.6 foliage occlusion tests
         run: node tests/corn-snake-occlusion-v06.test.mjs
+      - name: Corn snake v0.6 head silhouette tests
+        run: node tests/corn-snake-silhouette-v06.test.mjs

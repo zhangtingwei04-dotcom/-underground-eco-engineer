@@ -17,6 +17,18 @@ function duration(seed,index){
  const r=randomFor(seed,index,19);
  return index%2===0?5+9*r:3+7*r;
 }
+// Exact integral of eased start/stop pace. Timing is an art parameter, not measured speed.
+function integratedTravel(duration,seconds){
+ const t=clamp(seconds,0,duration),ramp=Math.min(1.1,duration*.24);
+ const area=u=>u*u*u-.5*u*u*u*u;
+ if(t<=ramp)return ramp*area(t/ramp);
+ if(t<duration-ramp)return t-ramp*.5;
+ return duration-ramp-ramp*area((duration-t)/ramp);
+}
+function travelPace(duration,seconds){
+ const ramp=Math.min(1.1,duration*.24);
+ return ease(Math.min(seconds,duration-seconds)/ramp);
+}
 function segment(seed,index){
  const moving=index%2===0;
  const startState=moving?'slither':'rest';
@@ -36,12 +48,12 @@ export function sampleCornSnakeActivityV06(seconds,{seed=1049}={}){
  while(index<2000){
   entry=segment(seed,index);
   if(seconds<start+entry.duration)break;
-  if(entry.moving)motionTime+=entry.duration;
+  if(entry.moving)motionTime+=integratedTravel(entry.duration,entry.duration);
   start+=entry.duration;index++;
  }
  if(index>=2000)throw new RangeError('activity_segment_limit');
  const t=(seconds-start)/entry.duration;
- if(entry.moving)motionTime+=seconds-start;
+ if(entry.moving)motionTime+=integratedTravel(entry.duration,seconds-start);
  const gesture=entry.state==='orient'?Math.sin(Math.PI*ease(t)):0;
  const peek=entry.state==='explore'?Math.sin(Math.PI*ease(t)):0;
  const tongueCandidate=!entry.moving&&randomFor(seed,index,311)<.34;
@@ -49,7 +61,7 @@ export function sampleCornSnakeActivityV06(seconds,{seed=1049}={}){
  const tongue=tongueCandidate&&tonguePhase>0&&tonguePhase<1?
    Math.sin(Math.PI*ease(tonguePhase)):0;
  const angle=gesture*(randomFor(seed,index,51)*2-1)*.50;
- return {state:entry.state,moving:entry.moving,motionTime,look:0,peek,
+ return {state:entry.state,moving:entry.moving,motionTime,pace:entry.moving?travelPace(entry.duration,seconds-start):0,look:0,peek,
   headTurn:angle,tongue,seed,segmentIndex:index,segmentProgress:t};
 }
 /** Smooth local neck offset; tail and rear torso unchanged. */

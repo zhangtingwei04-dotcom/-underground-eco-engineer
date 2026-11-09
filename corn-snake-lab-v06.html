@@ -11,7 +11,7 @@ label{display:flex;align-items:center;gap:8px}input[type=range]{width:110px;acce
 a{color:#f2c987}#status{min-height:24px}
 </style></head><body><main>
 <header><span class="tag">Ohm Core 獨立視覺測試 v0.6</span><h1>玉米蛇｜爬行、停頓與探頭測試</h1>
-<p>獨立 v0.6 原型：依個體種子產生可重現、非固定52秒的移動與停頓；頭頸局部轉向、短探查及偶發短吐舌。此為美術節奏測試，不代表實測活動頻率。</p></header>
+<p>獨立 v0.6 原型：依個體種子產生可重現、非固定52秒的移動與停頓；此次修正爬行漸進起停、縮小蛇頭並讓蛇頭沿頸部轉向，另有短探查及偶發短吐舌。此為美術節奏測試，不代表實測活動頻率。</p></header>
 <canvas id="stage" width="960" height="540" role="img" aria-label="玉米蛇非固定節奏爬行、停頓、局部轉頭、短吐舌的獨立示範"></canvas>
 <section class="controls">
 <label for="morph">花紋／色型參考
@@ -33,6 +33,7 @@ import {createCornSnakeAppearance} from './src/ohm-core/corn-snake-profile.mjs';
 import {getCornSnakeHalfWidth,makeCornSnakeVisualTemplate} from './src/ohm-core/corn-snake-visual-template.mjs';
 import {sampleCornSnakeActivityV06,applyCornSnakeGestureV06} from './src/ohm-core/corn-snake-activity-v06.mjs';
 import {CORN_FOLIAGE_V06,foliageOcclusionV06} from './src/ohm-core/corn-snake-occlusion-v06.mjs';
+import {getCornSnakeHeadShapeV06} from './src/ohm-core/corn-snake-silhouette-v06.mjs';
 const $=id=>document.getElementById(id);
 const canvas=$('stage'),ctx=canvas.getContext('2d');
 if(!ctx){$('status').textContent='此瀏覽器不支援 2D Canvas';throw new Error('canvas_unavailable');}
@@ -145,33 +146,36 @@ function drawSnake(pose,activity){
  for(const p of sides[0].slice(1))ctx.lineTo(p.x,p.y);
  for(const p of sides[1].reverse())ctx.lineTo(p.x,p.y);
  ctx.closePath();ctx.strokeStyle=pal.outline;ctx.lineWidth=2.3;ctx.stroke();
- // Corn snake prototype head: slim, continuous with the cervical body.
- const head=pts[0],behind=pts[3],baseAngle=Math.atan2(head.y-behind.y,head.x-behind.x);
- // A gentle head turn toward the lower edge of this 2.5D test scene.
- // This visually suggests orientation toward the camera, not human-like intent.
- const look=0,targetAngle=Math.PI/2;
- const difference=Math.atan2(Math.sin(targetAngle-baseAngle),Math.cos(targetAngle-baseAngle));
- const angle=baseAngle+difference*look+(activity?.headTurn??0);
- ctx.save();ctx.translate(head.x,head.y);ctx.rotate(angle);
- ctx.scale(1-.13*look,1+.08*look);
- ctx.fillStyle=pal.body;ctx.strokeStyle=pal.outline;ctx.lineWidth=2;
+ // V0.6 visual pass: smaller head, continuous with the neck tangent.
+ // The neck gesture has already moved the centerline; do not rotate twice.
+ const shape=getCornSnakeHeadShapeV06(pose,{width,height});
+ ctx.save();ctx.translate(shape.x,shape.y);ctx.rotate(shape.angle);
+ ctx.fillStyle=pal.body;ctx.strokeStyle=pal.outline;ctx.lineWidth=1.8;
  ctx.beginPath();
- ctx.moveTo(-13,-11);
- ctx.bezierCurveTo(-1,-16,13,-14,19,-9);
- ctx.quadraticCurveTo(28,-5,29,0);
- ctx.quadraticCurveTo(28,5,19,9);
- ctx.bezierCurveTo(13,14,-1,16,-13,11);
+ ctx.moveTo(-shape.back,-6.7);
+ ctx.bezierCurveTo(-5,-9.2,3,-10.5,9,-8.3);
+ ctx.quadraticCurveTo(shape.front-3,-6,shape.front,-1.8);
+ ctx.quadraticCurveTo(shape.front+1,0,shape.front,1.8);
+ ctx.quadraticCurveTo(shape.front-3,6,9,8.3);
+ ctx.bezierCurveTo(3,10.5,-5,9.2,-shape.back,6.7);
  ctx.closePath();ctx.fill();ctx.stroke();
- ctx.fillStyle=pal.eyes;
- for(const y of [-9,9]){
-  ctx.beginPath();ctx.arc(12,y,2.25,0,Math.PI*2);ctx.fill();
+ ctx.save();ctx.globalAlpha=.55;ctx.strokeStyle=pal.spots;ctx.lineWidth=2;
+ for(const sign of [-1,1]){
+  ctx.beginPath();ctx.moveTo(-5,sign*7.2);ctx.quadraticCurveTo(1,sign*3.6,8,sign*6.8);ctx.stroke();
  }
- // Brief, separate forked tongue — illustrative only, not a timed biological rate.
+ ctx.restore();
+ ctx.fillStyle=pal.eyes;
+ for(const sign of [-1,1]){
+  ctx.beginPath();ctx.ellipse(shape.eyeX,sign*shape.eyeY,2.2,1.65,0,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.arc(shape.nostrilX,sign*shape.nostrilY,.9,0,Math.PI*2);ctx.fill();
+ }
+ // Short incidental tongue: art choreography, not measured behavior frequency.
  if(activity?.tongue>0){
-  ctx.strokeStyle='#d96b77';ctx.lineWidth=1.8;ctx.beginPath();
-  ctx.moveTo(27,0);ctx.lineTo(27+12*activity.tongue,0);
-  ctx.lineTo(30+15*activity.tongue,-3*activity.tongue);
-  ctx.moveTo(27+12*activity.tongue,0);ctx.lineTo(30+15*activity.tongue,3*activity.tongue);
+  const tip=shape.front+9*activity.tongue;
+  ctx.strokeStyle='#d96b77';ctx.lineWidth=1.2;ctx.beginPath();
+  ctx.moveTo(shape.front,0);ctx.lineTo(tip,0);
+  ctx.lineTo(tip+3*activity.tongue,-2*activity.tongue);
+  ctx.moveTo(tip,0);ctx.lineTo(tip+3*activity.tongue,2*activity.tongue);
   ctx.stroke();
  }
  ctx.restore();
