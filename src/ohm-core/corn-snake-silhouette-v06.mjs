@@ -18,3 +18,14 @@ export function getCornSnakeHeadShapeV06(pose,{width=960,height=540}={}){
   back:13,front:21,halfWidth:10,eyeX:4,eyeY:6,nostrilX:17,nostrilY:2
  };
 }
+
+/** Smooth, ART-ONLY snake width profile, head-to-tail normalized 0..1. */
+const LIFE_WIDTH_KEYS_V06=Object.freeze([[0,.59],[.07,.61],[.15,.79],[.32,1],[.53,.95],[.70,.82],[.84,.59],[.94,.31],[1,.025]]);
+export function getSnakeSilhouetteHalfWidthV06(s,maxWidth=16){
+ if(!Number.isFinite(s)||s<0||s>1||!Number.isFinite(maxWidth)||maxWidth<=0)throw new RangeError('invalid_silhouette_width');
+ for(let i=1;i<LIFE_WIDTH_KEYS_V06.length;i++){
+  const [to,b]=LIFE_WIDTH_KEYS_V06[i],[from,a]=LIFE_WIDTH_KEYS_V06[i-1];
+  if(s<=to){const t=(s-from)/(to-from),smooth=t*t*(3-2*t);return maxWidth*(a+(b-a)*smooth);}
+ }
+ return maxWidth*LIFE_WIDTH_KEYS_V06.at(-1)[1];
+}

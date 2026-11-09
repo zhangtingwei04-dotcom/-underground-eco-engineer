@@ -16,4 +16,17 @@ assert.throws(()=>head([]),TypeError);
 assert.throws(()=>head(Array.from({length:5},()=>({x:.4,y:.8}))),RangeError);
 assert.throws(()=>head(Array.from({length:5},()=>({x:NaN,y:.8}))),TypeError);
 assert.throws(()=>head(generateSnakePose(0),{width:0}),TypeError);
-console.log('PASS v0.6 neck-aligned head shape');
+
+import {getSnakeSilhouetteHalfWidthV06 as halfWidth} from '../src/ohm-core/corn-snake-silhouette-v06.mjs';
+const widths=Array.from({length:101},(_,i)=>halfWidth(i/100));
+assert.ok(widths.every(Number.isFinite)&&widths.every(v=>v>0&&v<=16));
+assert.ok(halfWidth(.32)>halfWidth(0)&&halfWidth(.32)>halfWidth(.84));
+assert.ok(halfWidth(.94)>halfWidth(1));
+for(const s of [0,.07,.15,.32,.53,.70,.84,.94,1]){
+ const a=halfWidth(Math.max(0,s-1e-5)),b=halfWidth(Math.min(1,s+1e-5));
+ assert.ok(Math.abs(a-b)<.01,'profile width continuous');
+}
+assert.throws(()=>halfWidth(-.1),RangeError);
+assert.throws(()=>halfWidth(1.1),RangeError);
+assert.throws(()=>halfWidth(NaN),RangeError);
+console.log('PASS v0.6 neck-aligned head and continuous silhouette width');

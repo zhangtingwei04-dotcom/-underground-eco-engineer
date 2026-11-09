@@ -10,16 +10,17 @@ section{background:#29271d;padding:12px 16px;border:1px solid #655538;border-rad
 label{display:flex;align-items:center;gap:8px}input[type=range]{width:110px;accent-color:#bca26e}small{color:#c3b89d}.tag{font-size:12px;background:#454a35;border-radius:5px;padding:3px 6px;display:inline-block}
 a{color:#f2c987}#status{min-height:24px}
 </style></head><body><main>
-<header><span class="tag">Ohm Core 獨立視覺測試 v0.6</span><h1>玉米蛇｜爬行、停頓與探頭測試</h1>
-<p>獨立 v0.6 原型：依個體種子產生可重現、非固定52秒的移動與停頓；此次修正爬行漸進起停、縮小蛇頭並讓蛇頭沿頸部轉向，另有短探查及偶發短吐舌。此為美術節奏測試，不代表實測活動頻率。</p></header>
+<header><span class="tag">Ohm Core 獨立視覺測試 v0.6</span><h1>蛇類｜輪廓與生命感測試</h1>
+<p>獨立 v0.6 原型：先觀察整體蛇形、頭頸連續性與自然起停。預設只看輪廓、隱藏密集花紋；可切回早期花紋作比較。並非特定蛇種的解剖或習性鑑定。此為美術節奏測試，不代表實測活動頻率。</p></header>
 <canvas id="stage" width="960" height="540" role="img" aria-label="玉米蛇非固定節奏爬行、停頓、局部轉頭、短吐舌的獨立示範"></canvas>
 <section class="controls">
 <label for="morph">花紋／色型參考
 <select id="morph"><option value="normal">原色 Normal</option><option value="amelanistic">白化 Amelanistic</option><option value="anerythristic">缺紅 Anerythristic</option><option value="motley">Motley 花紋</option><option value="stripe">Stripe 條紋</option></select></label>
 <label for="speed">移動速度 <input id="speed" type="range" min="0" max="2" step="0.1" value="1"><output id="speedValue">1.0×</output></label>
-<label><input id="details" type="checkbox" checked> 像素鱗片細節</label>
+<label><input id="silhouette-only" type="checkbox" checked> 只看蛇形（隱藏花紋）</label>
+<label><input id="details" type="checkbox"> 像素鱗片細節</label>
 <label><input id="motes" type="checkbox"> 少量底材粒子</label>
-<label><input id="foliage" type="checkbox" checked> 前景葉片遮擋</label>
+<label><input id="foliage" type="checkbox"> 前景葉片遮擋</label>
 <label><input id="activity" type="checkbox" checked> 個體化自然節奏</label>
 <button id="pause" type="button">暫停</button><button id="reroll" type="button">生成新的個體紋路</button>
 <button id="preview-cover" type="button">看局部遮擋</button><button id="preview-rest" type="button">看停頓</button><button id="preview-look" type="button">看轉頭</button><button id="preview-peek" type="button">看探頭</button>
@@ -30,10 +31,10 @@ a{color:#f2c987}#status{min-height:24px}
 <script type="module">
 import {generateSnakePose,makeCornSnakePattern} from './src/ohm-core/corn-snake-motion.mjs';
 import {createCornSnakeAppearance} from './src/ohm-core/corn-snake-profile.mjs';
-import {getCornSnakeHalfWidth,makeCornSnakeVisualTemplate} from './src/ohm-core/corn-snake-visual-template.mjs';
+import {makeCornSnakeVisualTemplate} from './src/ohm-core/corn-snake-visual-template.mjs';
 import {sampleCornSnakeActivityV06,applyCornSnakeGestureV06} from './src/ohm-core/corn-snake-activity-v06.mjs';
 import {CORN_FOLIAGE_V06,foliageOcclusionV06} from './src/ohm-core/corn-snake-occlusion-v06.mjs';
-import {getCornSnakeHeadShapeV06} from './src/ohm-core/corn-snake-silhouette-v06.mjs';
+import {getCornSnakeHeadShapeV06,getSnakeSilhouetteHalfWidthV06} from './src/ohm-core/corn-snake-silhouette-v06.mjs';
 const $=id=>document.getElementById(id);
 const canvas=$('stage'),ctx=canvas.getContext('2d');
 if(!ctx){$('status').textContent='此瀏覽器不支援 2D Canvas';throw new Error('canvas_unavailable');}
@@ -46,12 +47,13 @@ const palettes={
 };
 let morph='normal',seed=1049,elapsed=0,last=0,paused=false,speed=1;
 let visual=makeCornSnakeVisualTemplate({seed,morphId:morph}).visual;
-const showDetails=$('details'),showMotes=$('motes'),showActivity=$('activity');
+const showDetails=$('details'),showMotes=$('motes'),showActivity=$('activity'),showSilhouette=$('silhouette-only');
 const width=canvas.width,height=canvas.height;
 function point(p){return {x:p.x*width,y:p.y*height};}
 function normal(points,i){const a=points[Math.max(0,i-1)],b=points[Math.min(points.length-1,i+1)];
 const dx=b.x-a.x,dy=b.y-a.y,len=Math.hypot(dx,dy)||1;return {x:-dy/len,y:dx/len};}
 const groundY=height*0.68;
+const silhouettePalette={body:'#b18e65',spots:'#886e51',outline:'#493c2d',belly:'#c1a680',eyes:'#211c18'};
 function drawScene(){
  const bg=ctx.createLinearGradient(0,0,0,height);
  bg.addColorStop(0,'#23372f');bg.addColorStop(0.81,'#485340');bg.addColorStop(1,'#4f3928');
@@ -70,23 +72,26 @@ function drawScene(){
   ctx.ellipse(x,y,2+i%5,1+i%3,0,0,Math.PI*2);ctx.fill();
  }
  ctx.fillStyle='#f0e3c1';ctx.font='19px system-ui';
- ctx.fillText('玉米蛇｜自然活動停頓／觀察／探頭 v0.6',26,35);
+ ctx.fillText('蛇類生命感測試｜輪廓與移動 v0.6',26,35);
 }
 function drawGroundShadow(pose){
- const pts=pose.map(point);
- ctx.save();ctx.strokeStyle='#161a1652';ctx.lineCap='round';ctx.lineJoin='round';ctx.lineWidth=29;
- ctx.beginPath();
- for(let i=0;i<pts.length;i++){
-  const q=pts[i],y=q.y+9;
-  if(i===0)ctx.moveTo(q.x,y);else ctx.lineTo(q.x,y);
+ // Shadow is tapered with the torso, not a thick stripe beneath the thin tail.
+ const pts=pose.map(point),left=[],right=[],last=pts.length-1;
+ for(let i=0;i<=last;i++){
+  const v=normal(pts,i),w=getSnakeSilhouetteHalfWidthV06(i/last,16)*.91;
+  left.push({x:pts[i].x+v.x*w,y:pts[i].y+v.y*w+7});
+  right.push({x:pts[i].x-v.x*w,y:pts[i].y-v.y*w+7});
  }
- ctx.stroke();ctx.restore();
+ ctx.save();ctx.fillStyle='#161a165e';ctx.beginPath();ctx.moveTo(left[0].x,left[0].y);
+ for(const p of left.slice(1))ctx.lineTo(p.x,p.y);
+ for(const p of right.reverse())ctx.lineTo(p.x,p.y);
+ ctx.closePath();ctx.fill();ctx.restore();
 }
 function drawSnake(pose,activity){
- const pal=palettes[morph],pts=pose.map(point),n=pts.length-1,baseWidth=16;
+ const pal=showSilhouette.checked?silhouettePalette:palettes[morph],pts=pose.map(point),n=pts.length-1,baseWidth=16;
  const sides=[[],[]];
  for(let i=0;i<=n;i++){
-  const v=normal(pts,i),s=i/n,w=getCornSnakeHalfWidth(s,baseWidth);
+  const v=normal(pts,i),s=i/n,w=getSnakeSilhouetteHalfWidthV06(s,baseWidth);
   sides[0].push({x:pts[i].x+v.x*w,y:pts[i].y+v.y*w});
   sides[1].push({x:pts[i].x-v.x*w,y:pts[i].y-v.y*w});
  }
@@ -98,9 +103,10 @@ function drawSnake(pose,activity){
  ctx.fillStyle=pal.body;ctx.fill();
  // Keep markings and fine texture strictly inside the body silhouette.
  ctx.save();ctx.clip();
+ if(!showSilhouette.checked){
  ctx.beginPath();
  for(let i=0;i<=n;i++){
-  const q=pts[i],v=normal(pts,i),w=getCornSnakeHalfWidth(i/n,baseWidth)*.82;
+  const q=pts[i],v=normal(pts,i),w=getSnakeSilhouetteHalfWidthV06(i/n,baseWidth)*.82;
   if(i===0)ctx.moveTo(q.x+v.x*w,q.y+v.y*w);
   else ctx.lineTo(q.x+v.x*w,q.y+v.y*w);
  }
@@ -109,30 +115,30 @@ function drawSnake(pose,activity){
   for(const offset of [-.48,.48]){
    ctx.beginPath();
    for(let i=1;i<n;i++){
-    const v=normal(pts,i),w=getCornSnakeHalfWidth(i/n,baseWidth);
+    const v=normal(pts,i),w=getSnakeSilhouetteHalfWidthV06(i/n,baseWidth);
     const x=pts[i].x+v.x*w*offset,y=pts[i].y+v.y*w*offset;
     if(i===1)ctx.moveTo(x,y);else ctx.lineTo(x,y);
    }
    ctx.strokeStyle=pal.spots;ctx.lineWidth=6;ctx.stroke();
   }
  }else{
-  for(const mark of visual.marks){
+  for(const [markIndex,mark] of visual.marks.entries()){
+   if(markIndex%2)continue; // less periodic banding; not a biological pattern claim
    const i=Math.min(n-2,Math.max(2,Math.round(mark.position*n)));
-   const w=getCornSnakeHalfWidth(i/n,baseWidth),p=pts[i],v=normal(pts,i);
+   const w=getSnakeSilhouetteHalfWidthV06(i/n,baseWidth),p=pts[i],v=normal(pts,i);
    if(w<3)continue;
    const t={x:-v.y,y:v.x};
    ctx.save();ctx.translate(p.x,p.y);ctx.rotate(Math.atan2(t.y,t.x));
-   const span=(morph==='motley'?19:13)*mark.size;
-   ctx.fillStyle=pal.spots;ctx.strokeStyle=pal.outline;
-   ctx.lineWidth=morph==='amelanistic'?1:1.5;
-   ctx.beginPath();ctx.ellipse(0,0,span,w*.75,mark.angle,0,Math.PI*2);
-   ctx.fill();ctx.stroke();ctx.restore();
+   const span=(morph==='motley'?13:9.5)*mark.size;
+   ctx.fillStyle=pal.spots;
+   ctx.beginPath();ctx.ellipse(0,0,span,w*.56,mark.angle,0,Math.PI*2);
+   ctx.fill();ctx.restore();
   }
  }
  if(showDetails.checked){
   for(const mark of visual.flecks){
    const i=Math.max(0,Math.min(n,Math.round(mark.s*n)));
-   const p=pts[i],v=normal(pts,i),w=getCornSnakeHalfWidth(i/n,baseWidth);
+   const p=pts[i],v=normal(pts,i),w=getSnakeSilhouetteHalfWidthV06(i/n,baseWidth);
    const x=p.x+v.x*w*mark.radial,y=p.y+v.y*w*mark.radial;
    ctx.fillStyle=mark.shade===0?pal.outline:(mark.shade===1?pal.belly:pal.spots);
    ctx.globalAlpha=mark.shade===0?.25:.30;
@@ -140,6 +146,7 @@ function drawSnake(pose,activity){
    ctx.fillRect(Math.round(x),Math.round(y),size,size);
   }
   ctx.globalAlpha=1;
+ }
  }
  ctx.restore();
  ctx.beginPath();ctx.moveTo(sides[0][0].x,sides[0][0].y);
@@ -159,7 +166,7 @@ function drawSnake(pose,activity){
  ctx.quadraticCurveTo(shape.front-3,6,9,8.3);
  ctx.bezierCurveTo(3,10.5,-5,9.2,-shape.back,6.7);
  ctx.closePath();ctx.fill();ctx.stroke();
- ctx.save();ctx.globalAlpha=.55;ctx.strokeStyle=pal.spots;ctx.lineWidth=2;
+ ctx.save();ctx.globalAlpha=showSilhouette.checked?0:.55;ctx.strokeStyle=pal.spots;ctx.lineWidth=2;
  for(const sign of [-1,1]){
   ctx.beginPath();ctx.moveTo(-5,sign*7.2);ctx.quadraticCurveTo(1,sign*3.6,8,sign*6.8);ctx.stroke();
  }
@@ -225,7 +232,8 @@ function tick(now){
   $('status').textContent='目前：'+(paused?'手動暫停':labels[activity.state])+
     '｜色型：'+$('morph').selectedOptions[0].textContent+
     '｜個體紋路種子：'+seed+
-    '｜鱗片細節：'+(showDetails.checked?'開':'關')+
+    '｜輪廓模式：'+(showSilhouette.checked?'開':'關')+
+    '｜鱗片細節：'+(showDetails.checked&&!showSilhouette.checked?'開':'關')+
     '｜葉片遮擋：'+($('foliage').checked?(()=>{const cover=foliageOcclusionV06(pose);return cover.partialCover?'頭露出／軀幹遮擋 '+Math.round(cover.bodyCoverFraction*100)+'%':'開啟';})():'關閉');
  }
  requestAnimationFrame(tick);
