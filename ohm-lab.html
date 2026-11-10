@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#1b2423">
+  <title>歐姆實驗室 V0.1｜Project OHM</title>
+  <style>
+    :root{color-scheme:dark;--bg:#111d1b;--panel:#1c2b28;--card:#24342e;--text:#f3ead7;--muted:#c4cdbb;--accent:#d8b37b;--border:#5b5948}
+    *{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,'Noto Sans TC',sans-serif;background:radial-gradient(ellipse at 90% -10%,#355047 0,transparent 40%),var(--bg);color:var(--text);line-height:1.6}
+    main{max-width:1050px;margin:0 auto;padding:28px clamp(16px,4vw,38px) 72px}h1{font-size:clamp(2rem,6vw,3.2rem);line-height:1.15;margin:10px 0 5px}h2{font-size:1.25rem}p{margin:8px 0 18px}.eyebrow{color:var(--accent);font-weight:700;letter-spacing:.13em;font-size:.82rem}
+    .lead{color:var(--muted);max-width:720px}.notice{border:1px solid var(--border);background:#28342d;border-radius:12px;padding:14px 18px;margin:22px 0}
+    .stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:26px 0}.stat{background:var(--panel);border:1px solid #3b4d43;border-radius:12px;padding:16px 12px;text-align:center}.stat strong{display:block;font-size:2rem;line-height:1.25;color:var(--accent)}.stat span{font-size:.85rem;color:var(--muted)}
+    .filters{display:flex;gap:7px;flex-wrap:wrap;margin:12px 0 20px}.filters button{background:#293a32;border:1px solid var(--border);color:var(--text);padding:8px 13px;border-radius:24px;cursor:pointer;font:inherit;font-size:.9rem}.filters button[aria-pressed="true"]{color:#1a2522;background:var(--accent);font-weight:750;border-color:var(--accent)}.filters button:focus-visible,a:focus-visible{outline:2px solid #ffe0ad;outline-offset:2px}
+    .cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.card{background:var(--panel);border:1px solid #415446;border-radius:12px;padding:18px}.card h3{margin:8px 0;font-size:1.1rem}.card p{color:var(--muted);font-size:.94rem;margin:5px 0 14px}.tag{display:inline-block;color:#d9dbcd;border:1px solid #73816b;border-radius:5px;padding:1px 8px;font-size:.75rem}.tag.research{border-color:#887f72}.tag.prototype{border-color:#ca9f5f}.tag.tested,.tag.integrated{border-color:#91ba9f}a{color:#efc88d;text-underline-offset:3px}.mini{font-size:.85rem;overflow-wrap:anywhere}.actions{display:flex;gap:12px;flex-wrap:wrap;padding-top:10px}.actions a{display:inline-flex;align-items:center;background:#354139;border-radius:8px;padding:9px 12px}
+    .placeholder{border:1px dashed #81785f;border-radius:12px;padding:20px;background:#23312b}footer{color:var(--muted);font-size:.83rem;margin-top:38px;border-top:1px solid #405148;padding-top:16px}
+    @media(max-width:640px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.cards{grid-template-columns:1fr}main{padding-top:22px}}
+  </style>
+</head>
+<body>
+  <main>
+    <div class="eyebrow">PROJECT OHM · ISOLATED LAB</div>
+    <h1>歐姆實驗室</h1>
+    <p class="lead">研究 → 試作 → 驗證 → 整合。從每一個可以獨立測試的小功能開始，逐步建立歐姆核心與引擎。</p>
+    <div class="notice"><strong>實驗室 V0.1</strong>：這是獨立的模組狀態檢視頁，不會執行完整遊戲、連線到玩家帳號或讀寫存檔；此頁不代表自研引擎已完成。</div>
+    <section aria-labelledby="status-heading"><h2 id="status-heading">技術模組狀態</h2><div id="stats" class="stats" aria-label="模組統計"></div><div class="filters" id="filters" aria-label="狀態篩選"></div><div id="module-status" role="status" aria-live="polite"></div><div id="cards" class="cards"></div></section>
+    <section aria-labelledby="demo-heading"><h2 id="demo-heading">獨立實驗入口</h2><div class="actions"><a href="./ohm-core-test.html">世界規則與場景測試頁</a><a href="./corn-snake-lab-v06.html">玉米蛇動作實驗 V0.6</a><a href="./workbench.html">既有工作台</a></div><p class="mini">以上是已存在的試作入口；每項功能是否可在目前手機上使用，仍需單獨實測，不表示通過完整驗收。</p></section>
+    <section class="placeholder" aria-labelledby="transport-heading"><h2 id="transport-heading">下一項實驗：S02-B 多節纜車運動骨架</h2><p>預定建立真正的路徑前進、車廂間距、懸掛連續性及車窗視差驗證。<strong>目前仍在研究階段，沒有可用動畫試作。</strong></p><a href="./docs/research/transport/CABLE_TRAIN_MOTION_RESEARCH_INDEX_V01.md">閱讀交通運動研究索引</a></section>
+    <footer>歐姆計劃只把實際驗證過的必要規則與模組整合進正式遊戲。這是獨立試驗環境，不包含外部追蹤、付費生成或雲端寫入。</footer>
+  </main>
+  <script type="module">
+    const byId=id=>document.getElementById(id);
+    const states={all:'全部',research:'研究中',prototype:'已有試作',tested:'已測試',integrated:'已整合'};
+    try {
+      const { OHM_MODULE_CATALOG, validateOhmModuleCatalog, summarizeOhmModules, getOhmModules } = await import('./src/ohm-core/module-catalog.mjs');
+      const valid=validateOhmModuleCatalog(OHM_MODULE_CATALOG);
+      if(!valid.ok) throw new Error('模組登錄資料無效：'+valid.error);
+      const counts=summarizeOhmModules();
+      for(const state of Object.keys(states).filter(s=>s!=='all')){
+        const cell=document.createElement('div');cell.className='stat';
+        const strong=document.createElement('strong');strong.textContent=String(counts[state]);
+        const label=document.createElement('span');label.textContent=states[state];
+        cell.append(strong,label);byId('stats').append(cell);
+      }
+      const cards=byId('cards');
+      function show(stage){
+        const modules=stage==='all'?OHM_MODULE_CATALOG.modules:getOhmModules({stage});
+        cards.replaceChildren();
+        for(const m of modules){
+          const el=document.createElement('article');el.className='card';
+          const tag=document.createElement('span');tag.className='tag '+m.stage;tag.textContent=states[m.stage];
+          const title=document.createElement('h3');title.textContent=m.name;
+          const desc=document.createElement('p');desc.textContent=m.summary;
+          const id=document.createElement('div');id.className='mini';id.textContent='模組：'+m.id+' · 類別：'+m.kind;
+          const link=document.createElement('a');link.href='./'+m.docs;link.textContent='查看規格與來源';
+          el.append(tag,title,desc,id,link);cards.append(el);
+        }
+        byId('module-status').textContent=`目前顯示 ${modules.length} 個登錄模組。`;
+        for(const btn of byId('filters').querySelectorAll('button'))btn.setAttribute('aria-pressed',String(btn.dataset.stage===stage));
+      }
+      for(const [key,label] of Object.entries(states)){
+        const btn=document.createElement('button');btn.type='button';btn.dataset.stage=key;btn.textContent=label;
+        btn.addEventListener('click',()=>show(key));byId('filters').append(btn);
+      }
+      show('all');
+    } catch(e){
+      byId('module-status').textContent='無法載入模組登錄資料：'+e.message+'。請檢查 GitHub Pages 是否已部署最新版本。';
+    }
+  </script>
+</body>
+</html>
