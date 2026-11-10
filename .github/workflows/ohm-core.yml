@@ -5,6 +5,9 @@ on:
       - 'src/ohm-core/**'
       - 'tests/ohm-core.test.mjs'
       - 'tests/scene-registry.test.mjs'
+      - 'tests/module-catalog.test.mjs'
+      - 'ohm-lab.html'
+      - 'docs/project-ohm/**'
       - 'src/ohm-platform/**'
       - 'tests/day-period.test.mjs'
       - 'tests/browser-game-clock.test.mjs'
@@ -26,6 +29,9 @@ on:
       - 'src/ohm-core/**'
       - 'tests/ohm-core.test.mjs'
       - 'tests/scene-registry.test.mjs'
+      - 'tests/module-catalog.test.mjs'
+      - 'ohm-lab.html'
+      - 'docs/project-ohm/**'
       - 'src/ohm-platform/**'
       - 'tests/day-period.test.mjs'
       - 'tests/browser-game-clock.test.mjs'
@@ -56,6 +62,10 @@ jobs:
           node-version: '22'
       - name: Syntax check
         run: node --check src/ohm-core/world.mjs
+      - name: Project OHM catalog syntax check
+        run: node --check src/ohm-core/module-catalog.mjs
+      - name: Project OHM module catalog checks
+        run: node tests/module-catalog.test.mjs
       - name: World rules test
         run: node tests/ohm-core.test.mjs
       - name: Scene registry syntax check
