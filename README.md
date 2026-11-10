@@ -11,6 +11,8 @@ A bilingual ecosystem simulation game combining underground exploration, creatur
 
 - [歐姆計劃總規劃](./docs/project-ohm/README.md)
 - [研究來源與可重用模組索引](./docs/project-ohm/REGISTRY_V01.md)
+- [歐姆計劃工程基礎與規範](./docs/project-ohm/FOUNDATION_BASELINE_V01.md)
+- [歐姆實驗室 V0.1｜獨立研究與模組管理](./ohm-lab.html)
 
 ---
 
