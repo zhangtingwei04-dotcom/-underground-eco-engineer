@@ -5,6 +5,15 @@ A bilingual ecosystem simulation game combining underground exploration, creatur
 
 ---
 
+## 🧭 歐姆計劃｜PROJECT OHM
+
+《鱗片與種子》同時是自研遊戲技術的第一個長期實驗場。**歐姆計劃**以「研究資料庫（Ohm Archive）／獨立遊戲核心（Ohm Core）／未來的自研引擎（Ohm Engine）」為逐步發展方向；目前仍以 Phaser 維持遊戲開發，不代表已有完整自研引擎。
+
+- [歐姆計劃總規劃](./docs/project-ohm/README.md)
+- [研究來源與可重用模組索引](./docs/project-ohm/REGISTRY_V01.md)
+
+---
+
 ## 🌱 遊戲核心概念 | Game Concept
 玩家將扮演地下生態工程師，透過挖掘、資源管理、環境調節及生物培育，逐步建立一個完整且能持續運作的地下生態系統。
 Players take on the role of an underground eco-engineer, building a sustainable underground ecosystem through excavation, resource management, environmental control, and creature care.
