@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="robots" content="noindex,nofollow">
+<title>鱗片與種子｜訪客存檔轉移工具</title>
+<style>
+:root{color-scheme:dark;font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC",sans-serif;background:#20160f;color:#ffeed0}
+*{box-sizing:border-box}
+body{margin:0;min-height:100dvh;padding:max(22px,env(safe-area-inset-top)) 14px max(30px,env(safe-area-inset-bottom));background:radial-gradient(circle at 45% 0%,#473421,#20160f 65%)}
+main{width:min(620px,100%);margin:auto}
+h1{font-family:Georgia,serif;font-size:clamp(23px,6vw,32px);text-align:center;margin:8px 0}
+h2{font-size:18px;margin:0 0 10px}
+p{line-height:1.65;margin:8px 0}
+small,.muted{color:#dfc5a4}
+.card{border:2px solid #a87842;background:#342319;border-radius:13px;padding:17px;margin:15px 0;box-shadow:0 4px 18px #110a08a8}
+.notice{border-left:4px solid #edc07e;padding-left:11px}
+button,.linkbtn{display:block;width:100%;padding:13px 12px;margin-top:12px;border:1px solid #e8c18b;border-radius:9px;color:#fff0ce;background:#765038;font-size:16px;font-weight:700;text-align:center;text-decoration:none;min-height:48px;cursor:pointer}
+button:disabled{opacity:.5;cursor:not-allowed}
+a{color:#ffd59e}
+input[type=file]{width:100%;font-size:15px;margin:12px 0}
+label.check{display:flex;align-items:flex-start;gap:10px;line-height:1.5;margin:14px 0}
+.check input{margin-top:4px;width:20px;height:20px}
+#status{white-space:pre-wrap;overflow-wrap:anywhere;background:#18110d;border-radius:8px;padding:10px;min-height:50px}
+#status.error{color:#ffb7af}
+#status.success{color:#c8f0bf}
+.hidden{display:none!important}
+footer{text-align:center;padding:18px;color:#d1ba9c;font-size:13px}
+</style>
+</head>
+<body>
+<main>
+<h1>鱗片與種子</h1>
+<p style="text-align:center">訪客存檔跨網站轉移 · V0.1</p>
+<section class="card notice">
+<p><strong>這個工具只在你目前的瀏覽器運作。</strong> 不會把存檔上傳到伺服器，也不會輸出登入權杖、帳號資料或 Supabase 金鑰。</p>
+<p>請先把 JSON 備份存到 iPhone「檔案」App 或其他安全位置，再到新網址匯入。<strong>不要公開分享備份檔。</strong></p>
+</section>
+<section class="card hidden" id="exportPanel">
+<h2>① 舊網站：下載訪客備份</h2>
+<p>只讀取目前舊網址的訪客存檔與舊生態箱資料。若原本沒有訪客存檔，會明確提示，不會憑空建立。</p>
+<button type="button" id="exportBtn">下載訪客存檔 JSON</button>
+<button type="button" id="shareBtn">分享備份到「檔案」App</button>
+<a class="linkbtn" href="https://scales-seeds-web.pages.dev/save-transfer.html">② 已儲存檔案 → 前往新網站匯入</a>
+</section>
+<section class="card hidden" id="importPanel">
+<h2>② 新網站：檢查並匯入備份</h2>
+<p>選擇先前從舊網址下載的 JSON。匯入會先放入<strong>隔離暫存區</strong>，不會立即覆蓋遊戲進度。</p>
+<label for="importFile">選擇備份 JSON 檔</label>
+<input type="file" id="importFile" accept=".json,application/json">
+<button type="button" id="inspectBtn">檢查並暫存這份備份</button>
+<div id="activatePanel" class="hidden">
+<p id="preview"></p>
+<label class="check"><input type="checkbox" id="confirmCheck">我已將原始 JSON 備份另存到安全位置，並同意只在<strong>這個新網址沒有既有存檔</strong>的情況下啟用。</label>
+<button type="button" id="activateBtn" disabled>確認啟用至這個網站的訪客資料</button>
+<button type="button" id="discardBtn">清除待確認的暫存資料（不影響遊戲存檔）</button>
+</div>
+</section>
+<section class="card hidden" id="otherPanel">
+<h2>無法在此網址操作</h2>
+<p>為避免備份誤匯入陌生網站，本工具只允許原本 GitHub Pages 舊網址匯出，以及正式 Cloudflare Pages 新網址匯入。</p>
+</section>
+<section class="card">
+<h2>目前檢查結果</h2>
+<p id="status" role="status" aria-live="polite">正在確認網站…</p>
+<p class="muted"><small>本工具不處理已登入帳號的雲端存檔。帳號雲端同步必須在登入系統另外驗收，不能只靠轉移檔案。</small></p>
+</section>
+<footer>歐姆計劃 · 專為保護玩家現有資料設計</footer>
+</main>
+<script type="module">
+import {
+  TRANSFER_MAX_BYTES, exportGuestTransfer, inspectStagedGuestTransfer,
+  stageGuestTransfer, activateStagedGuestTransfer, discardStagedGuestTransfer
+} from './src/ohm-core/guest-save-transfer.mjs';
+const el = id => document.getElementById(id);
+const oldSite = location.hostname === 'zhangtingwei04-dotcom.github.io'
+  && location.pathname.startsWith('/-underground-eco-engineer/');
+const newSite = location.hostname === 'scales-seeds-web.pages.dev';
+const status = (text,error=false,success=false) => {
+  el('status').textContent = text;
+  el('status').className = error ? 'error' : success ? 'success' : '';
+};
+const summary = info => [
+  info.hasGuestSave ? '訪客主存檔：有' : '訪客主存檔：無',
+  info.hasTerrariumSave ? '舊生態箱資料：有' : '舊生態箱資料：無',
+  '存檔版本：' + (info.guestSaveVersion ?? '未記錄'),
+  '生態箱筆數：' + info.terrariumCount
+].join('\n');
+const name = () => 'scales-seeds-guest-transfer-' + new Date().toISOString().slice(0,10) + '.json';
+function makeBackup() {
+  return exportGuestTransfer(localStorage);
+}
+function downloadText(text) {
+  const url = URL.createObjectURL(new Blob([text], { type:'application/json;charset=utf-8' }));
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = name();
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 30000);
+}
+if (oldSite) {
+  el('exportPanel').classList.remove('hidden');
+  status('目前位於舊網站。請先下載 JSON 並確認檔案確實保存，再打開新網站。');
+  el('exportBtn').addEventListener('click', () => {
+    try {
+      const exported = makeBackup();
+      downloadText(exported.text);
+      status('已請瀏覽器下載備份；請到「檔案」App 確認有看到檔案。\n' + summary(exported.preview), false, true);
+    } catch (error) { status(error.message, true); }
+  });
+  el('shareBtn').addEventListener('click', async () => {
+    try {
+      const exported = makeBackup();
+      const file = new File([exported.text], name(), { type:'application/json' });
+      if (!navigator.share || !navigator.canShare?.({ files:[file] })) {
+        status('Safari 不支援直接分享此檔案，請使用上方的下載按鈕。',true);
+        return;
+      }
+      await navigator.share({ files:[file], title:'鱗片與種子訪客存檔備份' });
+      status('已啟動分享程序。請確認檔案確實已存入指定位置。',false,true);
+    } catch (error) {
+      status(error.name === 'AbortError' ? '已取消分享，舊網站資料完全沒有改動。' : error.message,true);
+    }
+  });
+} else if (newSite) {
+  el('importPanel').classList.remove('hidden');
+  const displayStage = () => {
+    const info = inspectStagedGuestTransfer(localStorage);
+    const panel = el('activatePanel');
+    if (!info) { panel.classList.add('hidden'); return; }
+    panel.classList.remove('hidden');
+    el('preview').textContent = summary(info) + '\n' +
+      (info.activatable ? '目前符合空白儲存區的啟用條件。' : '暫不可啟用：' + info.blockReason);
+    el('confirmCheck').checked = false;
+    el('activateBtn').disabled = true;
+    el('confirmCheck').disabled = !info.activatable;
+    return info;
+  };
+  el('confirmCheck').addEventListener('change', () => {
+    const info = inspectStagedGuestTransfer(localStorage);
+    el('activateBtn').disabled = !el('confirmCheck').checked || !info?.activatable;
+  });
+  el('inspectBtn').addEventListener('click', async () => {
+    const file = el('importFile').files?.[0];
+    if (!file) { status('請先選擇原本下載的 JSON 備份檔。',true); return; }
+    if (file.size > TRANSFER_MAX_BYTES || !file.name.toLowerCase().endsWith('.json')) {
+      status('檔案必須是 2 MiB 以下的 JSON 備份。',true); return;
+    }
+    try {
+      const text = await file.text();
+      const info = stageGuestTransfer(localStorage, text);
+      displayStage();
+      status('檔案已通過檢查並放入隔離暫存，尚未動到正式存檔。\n' + summary(info),false,true);
+    } catch (error) { status(error.message,true); displayStage(); }
+  });
+  el('discardBtn').addEventListener('click', () => {
+    if (!window.confirm('要清除這個網址內尚未啟用的暫存檔嗎？這不會刪除正式遊戲存檔，也不會刪除你保管的 JSON。')) return;
+    try {
+      discardStagedGuestTransfer(localStorage, { confirmed:true });
+      displayStage();
+      status('已清除待確認暫存資料。舊網站與此網站的正式存檔完全沒有改動。',false,true);
+    } catch (error) { status(error.message,true); }
+  });
+  el('activateBtn').addEventListener('click', () => {
+    if (!el('confirmCheck').checked) { status('請先確認並保留原始備份檔。',true); return; }
+    if (!window.confirm('確定只在新網站空白存檔區啟用這份訪客資料？如果存在原有資料，操作會停止，不會覆蓋。')) return;
+    try {
+      const result = activateStagedGuestTransfer(localStorage, { confirmed:true });
+      displayStage();
+      status('已安全啟用 ' + result.keysAdded + ' 種本機資料。請重新開啟遊戲查看；此操作不會同步雲端。',false,true);
+    } catch (error) { status(error.message,true); displayStage(); }
+  });
+  try {
+    const pending = displayStage();
+    status(pending ? '偵測到之前檢查過的備份。請核對內容，必要時先保管原始 JSON，再決定是否啟用。'
+      : '目前位於新網站，請選擇從舊網站下載的 JSON 備份。');
+  } catch (error) { status(error.message,true); }
+} else {
+  el('otherPanel').classList.remove('hidden');
+  status('目前網址不是正式的新舊遊戲站點，已停用資料操作。',true);
+}
+</script>
+</body>
+</html>
