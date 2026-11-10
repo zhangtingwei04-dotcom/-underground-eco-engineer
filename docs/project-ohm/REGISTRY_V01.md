@@ -14,6 +14,7 @@
 | OHM-RES-DESIGN-001 | 遊戲正式設計 | [遊戲主路線圖](../GAME_DESIGN_ROADMAP.md) | 遊戲世界觀／玩法規格不等於科學實證；持續對照實際遊戲版本 |
 | OHM-RES-PLATFORM-001 | 多平台技術 | [跨平台策略](../CROSS_PLATFORM_STRATEGY.md) | 已有長期方向，平台適配與同步仍需逐步實作 |
 | OHM-RES-ENGINE-001 | 開源引擎架構 | [Godot Engine 技術與授權研究](./GODOT_ENGINE_REFERENCE_V01.md) | 已核對官方架構和 MIT 授權；僅做研究參考，未移植程式或更換 Phaser |
+| OHM-RES-ENGINE-002 | 開源引擎比較 | [11 款引擎／框架的功能與授權比較](./OPEN_SOURCE_ENGINE_COMPARISON_V01.md) | 已核對官方原始碼或授權；按技術用途與優先順序分類；尚未下載、移植或實測 |
 
 ## B. 可重用模組登錄
 
