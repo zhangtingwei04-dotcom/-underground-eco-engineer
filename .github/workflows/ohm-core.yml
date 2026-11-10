@@ -24,6 +24,8 @@ on:
       - 'corn-snake-lab-v05.html'
       - 'corn-snake-lab-v06.html'
       - 'terrarium-showcase.html'
+      - 'terrarium-autonomy-lab.html'
+      - 'tests/terrarium-autonomy-lab.test.mjs'
       - 'tests/terrarium-showcase.test.mjs'
       - '.github/workflows/ohm-core.yml'
   pull_request:
@@ -50,6 +52,8 @@ on:
       - 'corn-snake-lab-v05.html'
       - 'corn-snake-lab-v06.html'
       - 'terrarium-showcase.html'
+      - 'terrarium-autonomy-lab.html'
+      - 'tests/terrarium-autonomy-lab.test.mjs'
       - 'tests/terrarium-showcase.test.mjs'
       - '.github/workflows/ohm-core.yml'
   workflow_dispatch:
@@ -86,6 +90,8 @@ jobs:
         run: node tests/offline-catch-up.test.mjs
       - name: Public terrarium B rock-edge route and controls
         run: node tests/terrarium-showcase.test.mjs
+      - name: Autonomous terrarium rock-edge safety and interactive controls
+        run: node tests/terrarium-autonomy-lab.test.mjs
       - name: Reptile motion schema and transition tests
         run: node tests/reptile-motion.test.mjs
       - name: Corn snake appearance descriptors tests
