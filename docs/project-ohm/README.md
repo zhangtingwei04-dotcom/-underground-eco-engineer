@@ -112,7 +112,14 @@
 - 將交通路徑模組、蛇類動態等已通過性能測試的功能作為 Ohm Engine 候選。
 - 渲染器、物理系統、可視化編輯器都延後到有成熟使用需求再實作。
 
-## 8. 研究與實作紀錄入口
+## 8. 工程基礎與實驗室入口
+
+- [工程基礎與採納守則 V0.1](./FOUNDATION_BASELINE_V01.md)：記錄模組契約、登錄規則、效能、安全和逐步採納要求。
+- [歐姆實驗室 V0.1](../../ohm-lab.html)：GitHub Pages 可使用的獨立模組狀態頁（部署後由手機驗證）。
+- `src/ohm-core/module-catalog.mjs`：純 JS 的模組登錄、狀態驗證和篩選；**不自動載入模組**。
+- `tests/module-catalog.test.mjs`：模組 ID、路徑、測試門檻與狀態防呆；CI 於 `.github/workflows/ohm-core.yml` 執行。
+
+## 9. 研究與實作紀錄入口
 
 - [歐姆計劃：資料來源與模組登錄索引](./REGISTRY_V01.md)
 - [歐姆核心架構與安全稽核](../OHM_CORE_ARCHITECTURE_SECURITY_BASELINE.md)
