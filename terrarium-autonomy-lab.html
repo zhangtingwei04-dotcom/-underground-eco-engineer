@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1b2822">
+<meta name="robots" content="noindex,nofollow">
+<title>鱗片與種子｜自主避障實驗 V0.1</title>
+<style>
+  :root{color-scheme:dark;--bg:#17251f;--panel:#29372c;--line:#667454;--ink:#f2e9d4;--muted:#c0c9b9;--warm:#dfbd84}
+  *{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% -30%,#425a46 0,#17251f 60%,#111a16 100%);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Noto Sans TC",sans-serif;min-height:100dvh}
+  main{max-width:1020px;margin:auto;padding:clamp(13px,3vw,30px)}
+  .eyebrow{font-size:12px;letter-spacing:.15em;color:var(--warm);font-weight:750;margin:0 0 3px}
+  h1{font-size:clamp(23px,5.2vw,34px);margin:2px 0 8px;font-weight:770;line-height:1.25}
+  p{color:var(--muted);margin:7px 0 13px}
+  .flag{display:inline-block;font-size:12px;color:#e7cfaa;border:1px solid #927f5f;padding:3px 10px;border-radius:50px;margin:0 0 8px}
+  .stage{position:relative;overflow:hidden;border:clamp(6px,1.4vw,12px) solid #8c6847;border-radius:19px;background:#2f493c;box-shadow:0 2px 0 #c4a377 inset,0 18px 40px #040b08a8}
+  #scene{width:100%;height:auto;display:block;aspect-ratio:16 / 9;background:linear-gradient(#354f41,#6f7655);touch-action:manipulation;cursor:crosshair}
+  .glass{pointer-events:none;position:absolute;inset:0;border:2px solid #bdad82a3;border-radius:8px;background:linear-gradient(112deg,#fff7cf18 0%,transparent 21%,transparent 77%,#e5f1e611 100%)}
+  .fallback{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff5de;font-weight:700;background:#31463d;text-align:center;padding:12px}
+  .fallback.hidden{display:none}
+  .control{margin-top:14px;background:#26372e;border:1px solid #52644d;border-radius:14px;padding:13px 15px;box-shadow:0 6px 16px #08110a33}
+  .buttons{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  button{font:inherit;font-weight:700;background:#e3bf88;color:#2d261d;padding:10px 13px;border-radius:9px;border:1px solid #f4dca9;min-height:43px;cursor:pointer}
+  button.alt{background:#405244;color:#f2e7d2;border-color:#738168}
+  button[aria-pressed="true"]{box-shadow:0 0 0 2px #e3bf8860 inset}
+  button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid #d8eaa4;outline-offset:3px}
+  .slider{display:flex;align-items:center;gap:12px;margin-top:14px}.slider label{white-space:nowrap;font-size:14px;color:#e4d7bc}.slider input{flex:1;min-width:30px;accent-color:var(--warm)}.slider output{font-size:13px;font-variant-numeric:tabular-nums;min-width:45px;text-align:right}
+  .readouts{display:flex;flex-wrap:wrap;gap:8px;margin-top:13px;font-size:13px}.readouts span{padding:5px 9px;background:#1b2d25;border-radius:8px;border:1px solid #52654e}.readouts strong{color:#dcecb6}
+  .notice{margin-top:14px;background:#1f3027;border:1px solid #496048;border-radius:12px;padding:13px 15px;font-size:14px;color:#c9d5bf}
+  .notice strong{color:#efdfbf}a{color:#e9c895;text-underline-offset:4px}
+  .links{display:flex;gap:14px;flex-wrap:wrap;margin-top:16px;font-size:14px}
+  @media(max-width:580px){.control{padding:12px}.buttons button{flex:1 1 auto;font-size:14px}.slider{gap:7px}.slider label{font-size:12px}.readouts{font-size:12px}.stage{border-width:7px}main{padding-bottom:28px}}
+</style>
+</head>
+<body><main>
+  <div class="eyebrow">PROJECT OHM · PUBLIC VISUAL DEMO</div>
+  <h1>生態箱｜自主避障實驗 V0.1</h1>
+  <span class="flag">動態路線 · 自主貼石 · 點地面設定目標</span>
+  <p>用手指點擊生態箱地面，蛇就會根據岩石位置重新找路；也能開啟自主巡遊。此原型保留已確認的 B 式貼邊效果，但不代表真實蛇的感官、認知或運動學。</p>
+  <div class="stage"><canvas id="scene" width="960" height="540" aria-label="蛇在生態箱地面移動、經過石頭與植物的動態展示" role="img"></canvas><div class="glass"></div><div id="fallback" class="fallback">正在準備生態箱畫面…</div></div>
+  <div class="control">
+    <div class="buttons">
+      <button id="play" type="button">暫停</button>
+      <button id="reset" type="button" class="alt">重新播放</button>
+      <button id="wander" type="button" class="alt" aria-pressed="true">自主巡遊：開</button><button id="left" type="button" class="alt">探索左側</button><button id="right" type="button" class="alt">探索右側</button>
+      <button id="plants" type="button" class="alt" aria-pressed="true">前景植物：開</button>
+      <button id="collision" type="button" class="alt" aria-pressed="false">路線輪廓：關</button>
+    </div>
+    <div class="slider"><label for="speed">移動速度</label><input id="speed" type="range" min="22" max="62" step="1" value="42"><output id="speedValue">42 px/s</output></div>
+    <div class="readouts" role="status" aria-live="polite"><span>狀態：<strong id="phase">準備</strong></span><span>目標：<strong id="goal">—</strong></span><span>岩石：<strong id="clearance">檢查中</strong></span><span>最近間距：<strong id="gap">—</strong></span><span>規劃：<strong id="plans">0 次</strong></span></div>
+  </div>
+  <div class="notice"><strong>展示限制</strong>：使用格點 A* 重新計算路線，並根據岩石實際幾何輪廓檢查蛇身安全距離。植物目前只有視覺遮擋，不是碰撞物；本頁不是生物學行為模擬或正式遊戲，也不接玩家帳號、存檔或私人引擎。本頁不要求登入，不讀寫遊戲存檔，也不與資料庫通訊。公開頁面上的展示程式與美術均可被他人查看。</div>
+  <nav class="links"><a href="./terrarium-showcase.html?v=stone-edge-b-1">返回你確認的 B 版</a><a href="./workbench.html">返回工作台</a></nav>
+</main>
+<script>
+(() => {
+  'use strict';
+  const $=id=>document.getElementById(id),canvas=$('scene'),ctx=canvas.getContext('2d',{alpha:false});
+  if(!ctx){$('fallback').textContent='Canvas 無法使用，請改用 Safari。';return;}
+  const W=960,H=540,rock={x:484,y:339,r:69};
+  const rockOutline=[[397,391],[401,344],[438,289],[494,275],[540,304],[564,350],[559,399],[511,421],[445,420]];
+  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),mix=(a,b,t)=>({x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t}),dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+  const smoothing=t=>{t=clamp(t,0,1);return t*t*(3-2*t)};
+  let running=true,front=true,debug=false,auto=true,lastStamp=null,moveSpeed=42,navSeed=189347;
+  let status='準備',goal={x:811,y:408},count=0,rest=0,route=[],routeDistance=0,routeTravel=0,trail=[],totalTravel=0;
+  const MARGIN=19.5,X0=40,Y0=350,G=10,C=89,R=15,N=C*R;
+  const moves=[[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]];
+  function nextRand(){navSeed=(Math.imul(navSeed,1664525)+1013904223)>>>0;return navSeed/4294967296}
+  function stoneGap(p){
+    let d=Infinity;
+    for(let i=0;i<rockOutline.length;i++){
+      const a=rockOutline[i],b=rockOutline[(i+1)%rockOutline.length];
+      d=Math.min(d,pointSegmentDistance(p,{x:a[0],y:a[1]},{x:b[0],y:b[1]}));
+    }
+    return pointInRock(p)?-d:d;
+  }
+  function safePoint(p){return p.x>=X0&&p.x<=920&&p.y>=Y0&&p.y<=490&&stoneGap(p)>=MARGIN}
+  function safeLine(a,b){
+    const n=Math.max(1,Math.ceil(dist(a,b)/3));
+    for(let i=0;i<=n;i++)if(!safePoint(mix(a,b,i/n)))return false;
+    return true;
+  }
+  function gridPos(id){return {x:X0+(id%C)*G,y:Y0+Math.floor(id/C)*G}}
+  function nearest(p){
+    let id=-1,best=Infinity;
+    for(let i=0;i<N;i++){
+      const q=gridPos(i);if(!safePoint(q))continue;
+      const k=(p.x-q.x)**2+(p.y-q.y)**2;
+      if(k<best){best=k;id=i}
+    }
+    return id;
+  }
+  // Fresh A* route per destination; rock polygon is the actual collision shape.
+  function makeRoute(start,target){
+    const request={x:clamp(target.x,45,915),y:clamp(target.y,355,485)};
+    const a=nearest(start),b=nearest(request);if(a<0||b<0)return null;
+    const ending=safePoint(request)&&safeLine(gridPos(b),request)?request:gridPos(b);
+    const usable=new Uint8Array(N);
+    for(let i=0;i<N;i++)usable[i]=safePoint(gridPos(i))?1:0;
+    const cost=new Float64Array(N).fill(Infinity),came=new Int32Array(N).fill(-1),closed=new Uint8Array(N),heap=[];
+    function push(id,weight){
+      let k=heap.length;heap.push([id,weight]);
+      while(k){const p=(k-1)>>1;if(heap[p][1]<=weight)break;heap[k]=heap[p];k=p}
+      heap[k]=[id,weight];
+    }
+    function pop(){
+      const top=heap[0],last=heap.pop();if(!heap.length)return top;
+      let k=0;while(2*k+1<heap.length){
+        let j=2*k+1;if(j+1<heap.length&&heap[j+1][1]<heap[j][1])j++;
+        if(heap[j][1]>=last[1])break;
+        heap[k]=heap[j];k=j;
+      }
+      heap[k]=last;return top;
+    }
+    cost[a]=0;push(a,dist(gridPos(a),gridPos(b)));
+    let arrived=false;
+    while(heap.length){
+      const id=pop()[0];if(closed[id])continue;closed[id]=1;
+      if(id===b){arrived=true;break}
+      const col=id%C,row=(id/C)|0;
+      for(const [dx,dy] of moves){
+        const x=col+dx,y=row+dy;if(x<0||x>=C||y<0||y>=R)continue;
+        const n=y*C+x;if(closed[n]||!usable[n])continue;
+        if(dx&&dy&&(!usable[row*C+x]||!usable[y*C+col]))continue;
+        const score=cost[id]+G*Math.hypot(dx,dy);
+        if(score<cost[n]-1e-8){cost[n]=score;came[n]=id;push(n,score+dist(gridPos(n),gridPos(b)))}
+      }
+    }
+    if(!arrived)return null;
+    const ids=[];for(let id=b;id>=0;id=came[id])ids.push(id);
+    ids.reverse();
+    const raw=[start,...ids.map(gridPos)];
+    if(dist(raw[raw.length-1],ending)>.1)raw.push(ending);
+    if(raw.some((p,i)=>i>0&&!safeLine(raw[i-1],p)))return null;
+    const concise=[raw[0]];
+    for(let i=0;i<raw.length-1;){
+      let j=raw.length-1;
+      while(j>i+1&&!safeLine(raw[i],raw[j]))j--;
+      concise.push(raw[j]);i=j;
+    }
+    const rounded=[concise[0]];
+    for(let i=1;i<concise.length-1;i++){
+      const a=concise[i-1],b=concise[i],c=concise[i+1],la=dist(a,b),lc=dist(b,c);
+      if(la<1||lc<1){rounded.push(b);continue}
+      const trim=Math.min(24,.34*la,.34*lc);
+      const start=mix(b,a,trim/la),end=mix(b,c,trim/lc),arc=[];
+      for(let j=0;j<=9;j++){
+        const t=j/9,u=1-t;
+        arc.push({x:u*u*start.x+2*u*t*b.x+t*t*end.x,y:u*u*start.y+2*u*t*b.y+t*t*end.y});
+      }
+      if(safeLine(rounded[rounded.length-1],arc[0])&&arc.every((p,j)=>safePoint(p)&&(j===0||safeLine(arc[j-1],p))))rounded.push(...arc);
+      else rounded.push(b);
+    }
+    rounded.push(concise[concise.length-1]);
+    const finalPoints=rounded.every((p,i)=>i===0||safeLine(rounded[i-1],p))?rounded:concise;
+    let length=0;const output=finalPoints.map((p,i)=>{
+      if(i)length+=dist(finalPoints[i-1],p);
+      return {...p,d:length};
+    });
+    return {path:output,length,goal:ending};
+  }
+  function readPolyline(points,wanted){
+    let lo=0,hi=points.length-1;
+    if(hi===0)return points[0];
+    wanted=clamp(wanted,points[0].d,points[hi].d);
+    while(hi-lo>1){const m=(hi+lo)>>1;if(points[m].d<=wanted)lo=m;else hi=m}
+    const a=points[lo],b=points[hi],fraction=(wanted-a.d)/(b.d-a.d||1);
+    return mix(a,b,clamp(fraction,0,1));
+  }
+  function currentBody(){
+    const n=78,out=[];
+    for(let i=0;i<=n;i++){
+      const s=i/n,p=readPolyline(trail,totalTravel-s*205);
+      const w=1.8+13.5*clamp((1-s)/.22,0,1)*(.73+.27*clamp(s/.20,0,1));
+      out.push({...p,s,w});
+    }
+    return out;
+  }
+  function navigate(target,manual=false){
+    const plan=makeRoute(trail[trail.length-1],target);count++;
+    if(!plan){status='找不到安全路線';return false}
+    route=plan.path;routeDistance=plan.length;routeTravel=0;goal=plan.goal;rest=0;running=true;
+    if(manual)auto=false;
+    status='重新計算路線';
+    return true;
+  }
+  function nextDestination(){
+    const left=trail[trail.length-1].x<525;
+    return {x:left?690+nextRand()*165:175+nextRand()*195,y:390+nextRand()*72};
+  }
+  function resetAll(){
+    trail=[];totalTravel=0;navSeed=189347;count=0;auto=true;running=true;
+    for(let x=78;x<=324;x+=2){
+      const p={x,y:386+38*smoothing((x-226)/98)};
+      if(trail.length)totalTravel+=dist(trail[trail.length-1],p);
+      trail.push({...p,d:totalTravel});
+    }
+    navigate({x:811,y:408});
+  }
+  function advance(dt){
+    if(!running)return;
+    const left=routeDistance-routeTravel;
+    if(left<=.12){
+      status='抵達／觀察';rest+=dt;
+      if(auto&&rest>1.4)navigate(nextDestination());
+      return;
+    }
+    const easeIn=clamp((routeTravel+9)/35,.16,1),easeOut=clamp(left/40,.21,1);
+    const move=Math.min(left,moveSpeed*easeIn*easeOut*dt);
+    const p=readPolyline(route,routeTravel+move);
+    if(!safeLine(trail[trail.length-1],p)){running=false;status='安全停止：路線過近';return}
+    const oldCount=trail.length,oldDist=totalTravel,oldProgress=routeTravel;
+    routeTravel+=move;
+    const step=dist(trail[trail.length-1],p);
+    if(step>1e-6){totalTravel+=step;trail.push({...p,d:totalTravel})}
+    const body=currentBody();
+    if(clearance(body)<1){
+      trail.length=oldCount;totalTravel=oldDist;routeTravel=oldProgress;
+      running=false;status='安全停止：蛇身碰撞';return;
+    }
+    while(trail.length>3&&trail[1].d<totalTravel-240)trail.shift();
+    const head=body[0],edge=stoneGap(head)-head.w;
+    status=edge<16?'沿石頭邊緣滑行':edge<76?'感知障礙／調整方向':'自主探索前進';
+  }
+  const colors=['#b25c3a','#965038','#a74a38','#b36c48'];
+  let seed=1049;const rng=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296};
+  const spots=Array.from({length:44},(_,i)=>({s:(i+.5)/44,scale:.62+rng()*.45,angle:(rng()-.5)*.38,color:colors[i%colors.length]}));
+  function ellipse(x,y,rx,ry,color,angle=0){ctx.beginPath();ctx.ellipse(x,y,rx,ry,angle,0,2*Math.PI);ctx.fillStyle=color;ctx.fill()}
+  function poly(points,color){ctx.beginPath();for(let i=0;i<points.length;i++){const p=points[i];i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])}ctx.closePath();ctx.fillStyle=color;ctx.fill()}
+  function branch(x,y,lean,shade){ctx.strokeStyle='#31523a';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(x,y);ctx.bezierCurveTo(x+lean*.6,y-35,x+lean*1.15,y-93,x+lean,y-140);ctx.stroke();for(let k=0;k<4;k++){const h=y-30-k*29;ellipse(x+lean*k/5-20,h,23,9,shade,-.45);ellipse(x+lean*k/5+20,h-13,24,9,'#78956b',.4)}}
+  function background(){
+    const sky=ctx.createLinearGradient(0,0,0,H);sky.addColorStop(0,'#233c36');sky.addColorStop(.48,'#65785f');sky.addColorStop(1,'#94744e');ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
+    // Distant rock and moss shapes create depth without moving the camera.
+    poly([[0,72],[85,110],[183,77],[313,128],[452,83],[602,118],[771,70],[960,121],[960,295],[0,295]],'#354d40');
+    poly([[0,194],[120,168],[233,213],[371,179],[512,218],[634,178],[800,216],[960,165],[960,348],[0,348]],'#536b52');
+    let glow=ctx.createRadialGradient(785,90,10,785,90,410);glow.addColorStop(0,'#f8dba25c');glow.addColorStop(1,'#eac78a00');ctx.fillStyle=glow;ctx.fillRect(0,0,W,H);
+    for(let i=0;i<17;i++){const x=(i*87+32)%W,y=282+(i*17)%30;ellipse(x,y,32,11,i%2?'#82956966':'#2d624b77')}
+    for(let i=0;i<8;i++)branch(31+i*127,321, i%2?25:-25,'#5b805c');
+    poly([[0,305],[W,301],[W,H],[0,H]],'#71573b');
+    let dirt=ctx.createLinearGradient(0,337,0,540);dirt.addColorStop(0,'#806846');dirt.addColorStop(1,'#4c3c30');ctx.fillStyle=dirt;ctx.fillRect(0,340,W,200);
+    for(let i=0;i<120;i++){const x=(i*67+13)%960,y=351+(i*43)%185;ellipse(x,y,2+(i%5),1+(i%3),i%3===0?'#b3916488':'#4a392e88')}
+    ellipse(198,314,81,24,'#352f2980');ellipse(193,301,75,20,'#b99a77');ellipse(193,298,67,13,'#688b88');ellipse(192,300,49,7,'#a5b5a085');
+    // Small purple mineral crystals are a decorative test, no fictional lore encoded.
+    poly([[608,324],[615,294],[627,311],[635,280],[648,317],[661,301],[666,328]],'#8c78a6');poly([[621,318],[635,281],[638,315],[648,315]],'#bc9bd0');ellipse(640,335,46,11,'#27352d4f');
+    ctx.font='600 18px system-ui';ctx.fillStyle='#f6edd9';ctx.fillText('生態箱動態觀察 · 技術測試',26,35);
+  }
+  function stone(){ellipse(484,405,99,21,'#26372d79');poly([[397,391],[401,344],[438,289],[494,275],[540,304],[564,350],[559,399],[511,421],[445,420]],'#4f5b50');poly([[416,352],[437,310],[486,288],[514,341],[487,399],[432,398]],'#929681');poly([[522,318],[550,348],[541,392],[501,405]],'#374940');for(let k=0;k<6;k++)ellipse(430+k*23,309+(k%2)*5,14,5,'#78905f')}
+  function normal(body,i){const a=body[Math.max(0,i-1)],b=body[Math.min(body.length-1,i+1)];const dx=a.x-b.x,dy=a.y-b.y,l=Math.hypot(dx,dy)||1;return {tx:dx/l,ty:dy/l,nx:-dy/l,ny:dx/l};}
+  function drawSnake(body){const L=[],R=[];for(let i=0;i<body.length;i++){const b=body[i],v=normal(body,i);L.push([b.x+v.nx*b.w,b.y+v.ny*b.w]);R.push([b.x-v.nx*b.w,b.y-v.ny*b.w]);}
+    poly(L.map(p=>[p[0]+2,p[1]+8]).concat(R.map(p=>[p[0]+2,p[1]+8]).reverse()),'#17251e70');
+    const outline=L.concat(R.reverse());poly(outline,'#d49c5b');
+    ctx.beginPath();outline.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.closePath();ctx.save();ctx.clip();
+    for(const mark of spots){const i=clamp(Math.round(mark.s*(body.length-1)),3,body.length-4),p=body[i],v=normal(body,i);ctx.save();ctx.translate(p.x,p.y);ctx.rotate(Math.atan2(v.ty,v.tx));ellipse(0,0,6.5*mark.scale,p.w*.62,mark.color,mark.angle);ctx.restore()}ctx.restore();ctx.lineWidth=2;ctx.strokeStyle='#6f4c37';ctx.stroke();
+    const h=body[0],v=normal(body,2);ctx.save();ctx.translate(h.x,h.y);ctx.rotate(Math.atan2(v.ty,v.tx));ellipse(3,0,18.5,9.8,'#dca66d');ellipse(8,-6.1,2,2.2,'#231d18');ellipse(8,6.1,2,2.2,'#231d18');ellipse(18,-2,1,1,'#4b3228');ellipse(18,2,1,1,'#4b3228');ctx.restore();
+  }
+  function foliage(){if(!front)return;
+    ellipse(701,467,71,20,'#23352c91');const stems=[[-52,-10],[-39,-54],[-17,-73],[11,-64],[28,-83],[57,-24]];
+    stems.forEach((s,i)=>{const x=701+s[0],y=413+s[1];ctx.strokeStyle='#355c40';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(701,466);ctx.quadraticCurveTo(x+s[0]*.25,y+35,x,y);ctx.stroke();ellipse(x,y+10,16+i%2*3,31,i%2?'#607f52':'#78905d',s[0]*.008);ellipse(x-6,y+4,5,18,'#a9bd8a88',s[0]*.008)});
+    ellipse(701,464,35,12,'#486845');
+  }
+  function pointSegmentDistance(p,a,b){
+    const dx=b.x-a.x,dy=b.y-a.y,t=clamp(((p.x-a.x)*dx+(p.y-a.y)*dy)/(dx*dx+dy*dy||1),0,1);
+    return Math.hypot(p.x-(a.x+dx*t),p.y-(a.y+dy*t));
+  }
+  function signedTurn(a,b,c){return (b.x-a.x)*(c.y-a.y)-(b.y-a.y)*(c.x-a.x)}
+  function linesIntersect(a,b,c,d){
+    const v1=signedTurn(a,b,c),v2=signedTurn(a,b,d),v3=signedTurn(c,d,a),v4=signedTurn(c,d,b);
+    const cross=(v1*v2<0 && v3*v4<0);
+    if(cross)return true;
+    // Also handle endpoint or collinear touches; not all collisions are strict crosses.
+    const on=(p,u,v)=>Math.abs(signedTurn(u,v,p))<1e-8&&
+      p.x>=Math.min(u.x,v.x)-1e-8&&p.x<=Math.max(u.x,v.x)+1e-8&&
+      p.y>=Math.min(u.y,v.y)-1e-8&&p.y<=Math.max(u.y,v.y)+1e-8;
+    return on(c,a,b)||on(d,a,b)||on(a,c,d)||on(b,c,d);
+  }
+  function pointInRock(p){
+    let inside=false;
+    for(let i=0,j=rockOutline.length-1;i<rockOutline.length;j=i++){
+      const a=rockOutline[i],b=rockOutline[j], crosses=(a[1]>p.y)!==(b[1]>p.y);
+      if(crosses&&p.x<(b[0]-a[0])*(p.y-a[1])/(b[1]-a[1])+a[0])inside=!inside;
+    }
+    return inside;
+  }
+  // Return closest signed pixel gap between entire simplified snake skin
+  // and the *painted rock polygon*, not the old unrelated circular approximation.
+  function clearance(body){
+    let min=Infinity;
+    for(let i=0;i<body.length-1;i++){
+      const a=body[i],b=body[i+1],width=Math.max(a.w,b.w);
+      if(pointInRock(a)||pointInRock(b))return -width;
+      for(let j=0;j<rockOutline.length;j++){
+        const u=rockOutline[j],v=rockOutline[(j+1)%rockOutline.length],c={x:u[0],y:u[1]},d={x:v[0],y:v[1]};
+        const nearest=linesIntersect(a,b,c,d)?0:Math.min(
+          pointSegmentDistance(a,c,d),pointSegmentDistance(b,c,d),
+          pointSegmentDistance(c,a,b),pointSegmentDistance(d,a,b));
+        min=Math.min(min,nearest-width);
+      }
+    }
+    return min;
+  }
+
+  function draw(){
+    const body=currentBody(),rockGap=clearance(body);
+    background();stone();
+    if(debug){
+      ctx.save();ctx.lineWidth=2;ctx.strokeStyle='#ead29d';ctx.setLineDash([7,5]);ctx.beginPath();
+      route.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.stroke();
+      ctx.setLineDash([4,4]);ctx.beginPath();
+      rockOutline.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));
+      ctx.closePath();ctx.stroke();ctx.restore();
+    }
+    ctx.save();ctx.strokeStyle='#f0d69b';ctx.fillStyle='#e6c38b';ctx.lineWidth=2;
+    ctx.beginPath();ctx.arc(goal.x,goal.y,12,0,Math.PI*2);ctx.stroke();
+    ctx.beginPath();ctx.arc(goal.x,goal.y,3,0,Math.PI*2);ctx.fill();ctx.restore();
+    drawSnake(body);foliage();
+    $('phase').textContent=status;$('goal').textContent=Math.round(goal.x)+'，'+Math.round(goal.y);
+    $('clearance').textContent=rockGap>=1?'安全':'疑似交疊';
+    $('clearance').style.color=rockGap>=1?'#dcecb6':'#ffb0a0';
+    $('gap').textContent=rockGap.toFixed(1)+' px';
+    $('plans').textContent=count+' 次';$('speedValue').textContent=moveSpeed+' px/s';
+  }
+  function frame(ts){
+    if(lastStamp==null)lastStamp=ts;
+    let dt=clamp((ts-lastStamp)/1000,0,.05);lastStamp=ts;
+    advance(dt);draw();requestAnimationFrame(frame);
+  }
+  $('play').addEventListener('click',()=>{running=!running;$('play').textContent=running?'暫停':'播放'});
+  $('reset').addEventListener('click',()=>{
+    resetAll();$('play').textContent='暫停';$('wander').textContent='自主巡遊：開';
+    $('wander').setAttribute('aria-pressed','true');draw();
+  });
+  $('wander').addEventListener('click',()=>{
+    auto=!auto;$('wander').textContent='自主巡遊：'+(auto?'開':'關');
+    $('wander').setAttribute('aria-pressed',String(auto));draw();
+  });
+  function go(p){
+    if(navigate(p,true))$('play').textContent='暫停';
+    $('wander').textContent='自主巡遊：關';
+    $('wander').setAttribute('aria-pressed','false');draw();
+  }
+  $('left').addEventListener('click',()=>go({x:268,y:423}));
+  $('right').addEventListener('click',()=>go({x:823,y:410}));
+  $('scene').addEventListener('pointerdown',e=>{
+    const r=canvas.getBoundingClientRect();
+    if(r.width>0&&r.height>0)go({x:(e.clientX-r.left)*W/r.width,y:(e.clientY-r.top)*H/r.height});
+  });
+  $('plants').addEventListener('click',()=>{
+    front=!front;$('plants').textContent='前景植物：'+(front?'開':'關');
+    $('plants').setAttribute('aria-pressed',String(front));draw();
+  });
+  $('collision').addEventListener('click',()=>{
+    debug=!debug;$('collision').textContent='路線輪廓：'+(debug?'開':'關');
+    $('collision').setAttribute('aria-pressed',String(debug));draw();
+  });
+  $('speed').addEventListener('input',e=>{moveSpeed=clamp(Number(e.target.value)||42,22,62);draw()});
+  resetAll();draw();$('fallback').classList.add('hidden');requestAnimationFrame(frame);
+})();
+</script>
+</body></html>
