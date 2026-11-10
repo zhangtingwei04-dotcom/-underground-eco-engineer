@@ -23,6 +23,8 @@ on:
       - 'corn-snake-lab.html'
       - 'corn-snake-lab-v05.html'
       - 'corn-snake-lab-v06.html'
+      - 'terrarium-showcase.html'
+      - 'tests/terrarium-showcase.test.mjs'
       - '.github/workflows/ohm-core.yml'
   pull_request:
     paths:
@@ -47,6 +49,8 @@ on:
       - 'corn-snake-lab.html'
       - 'corn-snake-lab-v05.html'
       - 'corn-snake-lab-v06.html'
+      - 'terrarium-showcase.html'
+      - 'tests/terrarium-showcase.test.mjs'
       - '.github/workflows/ohm-core.yml'
   workflow_dispatch:
 permissions:
@@ -80,6 +84,8 @@ jobs:
         run: node tests/daily-time-checkpoints.test.mjs
       - name: Offline catch-up policy tests
         run: node tests/offline-catch-up.test.mjs
+      - name: Public terrarium B rock-edge route and controls
+        run: node tests/terrarium-showcase.test.mjs
       - name: Reptile motion schema and transition tests
         run: node tests/reptile-motion.test.mjs
       - name: Corn snake appearance descriptors tests
