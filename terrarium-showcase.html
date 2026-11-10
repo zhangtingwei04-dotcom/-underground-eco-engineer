@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1b2822">
+<meta name="robots" content="noindex,nofollow">
+<title>鱗片與種子｜生態箱動態展示</title>
+<style>
+  :root{color-scheme:dark;--bg:#17251f;--panel:#29372c;--line:#667454;--ink:#f2e9d4;--muted:#c0c9b9;--warm:#dfbd84}
+  *{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% -30%,#425a46 0,#17251f 60%,#111a16 100%);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Noto Sans TC",sans-serif;min-height:100dvh}
+  main{max-width:1020px;margin:auto;padding:clamp(13px,3vw,30px)}
+  .eyebrow{font-size:12px;letter-spacing:.15em;color:var(--warm);font-weight:750;margin:0 0 3px}
+  h1{font-size:clamp(23px,5.2vw,34px);margin:2px 0 8px;font-weight:770;line-height:1.25}
+  p{color:var(--muted);margin:7px 0 13px}
+  .flag{display:inline-block;font-size:12px;color:#e7cfaa;border:1px solid #927f5f;padding:3px 10px;border-radius:50px;margin:0 0 8px}
+  .stage{position:relative;overflow:hidden;border:clamp(6px,1.4vw,12px) solid #8c6847;border-radius:19px;background:#2f493c;box-shadow:0 2px 0 #c4a377 inset,0 18px 40px #040b08a8}
+  #scene{width:100%;height:auto;display:block;aspect-ratio:16 / 9;background:linear-gradient(#354f41,#6f7655)}
+  .glass{pointer-events:none;position:absolute;inset:0;border:2px solid #bdad82a3;border-radius:8px;background:linear-gradient(112deg,#fff7cf18 0%,transparent 21%,transparent 77%,#e5f1e611 100%)}
+  .fallback{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff5de;font-weight:700;background:#31463d;text-align:center;padding:12px}
+  .fallback.hidden{display:none}
+  .control{margin-top:14px;background:#26372e;border:1px solid #52644d;border-radius:14px;padding:13px 15px;box-shadow:0 6px 16px #08110a33}
+  .buttons{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  button{font:inherit;font-weight:700;background:#e3bf88;color:#2d261d;padding:10px 13px;border-radius:9px;border:1px solid #f4dca9;min-height:43px;cursor:pointer}
+  button.alt{background:#405244;color:#f2e7d2;border-color:#738168}
+  button[aria-pressed="true"]{box-shadow:0 0 0 2px #e3bf8860 inset}
+  button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid #d8eaa4;outline-offset:3px}
+  .slider{display:flex;align-items:center;gap:12px;margin-top:14px}.slider label{white-space:nowrap;font-size:14px;color:#e4d7bc}.slider input{flex:1;min-width:30px;accent-color:var(--warm)}.slider output{font-size:13px;font-variant-numeric:tabular-nums;min-width:45px;text-align:right}
+  .readouts{display:flex;flex-wrap:wrap;gap:8px;margin-top:13px;font-size:13px}.readouts span{padding:5px 9px;background:#1b2d25;border-radius:8px;border:1px solid #52654e}.readouts strong{color:#dcecb6}
+  .notice{margin-top:14px;background:#1f3027;border:1px solid #496048;border-radius:12px;padding:13px 15px;font-size:14px;color:#c9d5bf}
+  .notice strong{color:#efdfbf}a{color:#e9c895;text-underline-offset:4px}
+  .links{display:flex;gap:14px;flex-wrap:wrap;margin-top:16px;font-size:14px}
+  @media(max-width:580px){.control{padding:12px}.buttons button{flex:1 1 auto;font-size:14px}.slider{gap:7px}.slider label{font-size:12px}.readouts{font-size:12px}.stage{border-width:7px}main{padding-bottom:28px}}
+</style>
+</head>
+<body><main>
+  <div class="eyebrow">PROJECT OHM · PUBLIC VISUAL DEMO</div>
+  <h1>生態箱｜動態實驗室</h1>
+  <span class="flag">公開精簡展示 · 不含私人引擎核心</span>
+  <p>一條蛇沿固定路線經過岩石和前景植物。這是用來檢查畫面、起停與遮擋的獨立美術測試，非正式遊戲、非真實蛇類運動學模擬。</p>
+  <div class="stage"><canvas id="scene" width="960" height="540" aria-label="蛇在生態箱地面移動、經過石頭與植物的動態展示" role="img"></canvas><div class="glass"></div><div id="fallback" class="fallback">正在準備生態箱畫面…</div></div>
+  <div class="control">
+    <div class="buttons">
+      <button id="play" type="button">暫停</button>
+      <button id="reset" type="button" class="alt">重新播放</button>
+      <button id="plants" type="button" class="alt" aria-pressed="true">前景植物：開</button>
+      <button id="collision" type="button" class="alt" aria-pressed="false">碰撞範圍：關</button>
+    </div>
+    <div class="slider"><label for="timeline">播放進度</label><input id="timeline" type="range" min="0" max="22" step="0.05" value="0"><output id="time">0.0 秒</output></div>
+    <div class="readouts" role="status" aria-live="polite"><span>動作：<strong id="phase">休息</strong></span><span>岩石：<strong id="clearance">尚未檢查</strong></span><span>前景：<strong id="occlusion">—</strong></span></div>
+  </div>
+  <div class="notice"><strong>展示限制</strong>：路線與場景是固定的；目前沒有自主尋路、可互動飼養管理、真實生物力學或完整 3D 碰撞。本頁不要求登入，不讀寫遊戲存檔，也不與資料庫通訊。公開頁面上的展示程式與美術均可被他人查看。</div>
+  <nav class="links"><a href="./workbench.html">返回開發者工作台</a><a href="./index.html">返回遊戲首頁</a></nav>
+</main>
+<script>
+(() => {
+  'use strict';
+  const $=id=>document.getElementById(id), canvas=$('scene'), ctx=canvas.getContext('2d',{alpha:false});
+  if(!ctx){$('fallback').textContent='此瀏覽器不支援 Canvas，請改用 Safari。';return;}
+  const W=960,H=540,rock={x:484,y:339,r:69};
+  // One self-contained public demonstration. Not imported from the private Ohm core.
+  const anchors=[[55,393],[143,389],[240,390],[324,425],[392,454],[474,462],[558,454],[637,435],[707,414],[804,404],[911,403]];
+  const path=[],clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  function interp(a,b,c,d,t){const s=t*t;return .5*(2*b+(-a+c)*t+(2*a-5*b+4*c-d)*s+(-a+3*b-3*c+d)*s*t)}
+  let length=0;
+  for(let i=0;i<anchors.length-1;i++)for(let j=0;j<24;j++){
+    const t=j/24, a=anchors[Math.max(0,i-1)],b=anchors[i],c=anchors[i+1],d=anchors[Math.min(i+2,anchors.length-1)];
+    const p={x:interp(a[0],b[0],c[0],d[0],t),y:interp(a[1],b[1],c[1],d[1],t)};
+    if(path.length){const q=path[path.length-1];length+=Math.hypot(p.x-q.x,p.y-q.y)}path.push({...p,d:length});
+  }
+  const last=anchors[anchors.length-1];length+=Math.hypot(last[0]-path[path.length-1].x,last[1]-path[path.length-1].y);path.push({x:last[0],y:last[1],d:length});
+  function at(d){d=clamp(d,0,length);let a=0,b=path.length-1;while(b-a>1){const m=(a+b)>>1;if(path[m].d<=d)a=m;else b=m;}const p=path[a],q=path[b],t=q.d===p.d?0:(d-p.d)/(q.d-p.d);return {x:p.x+(q.x-p.x)*t,y:p.y+(q.y-p.y)*t}}
+  const smooth=t=>{const s=clamp(t,0,1);return s*s*s*(s*(s*6-15)+10)};
+  let time=0,running=true,front=true,debug=false,lastTs=null;
+  function currentBody(){const u=smooth((time-1.25)/17.4),head=268+u*510,n=78,body=[];for(let i=0;i<=n;i++){const s=i/n,p=at(head-s*205);const w=1.8+13.5*clamp((1-s)/.22,0,1)*(.73+.27*clamp(s/.20,0,1));body.push({...p,s,w});}return body;}
+  const colors=['#b25c3a','#965038','#a74a38','#b36c48'];
+  let seed=1049;const rng=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296};
+  const spots=Array.from({length:44},(_,i)=>({s:(i+.5)/44,scale:.62+rng()*.45,angle:(rng()-.5)*.38,color:colors[i%colors.length]}));
+  function ellipse(x,y,rx,ry,color,angle=0){ctx.beginPath();ctx.ellipse(x,y,rx,ry,angle,0,2*Math.PI);ctx.fillStyle=color;ctx.fill()}
+  function poly(points,color){ctx.beginPath();for(let i=0;i<points.length;i++){const p=points[i];i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])}ctx.closePath();ctx.fillStyle=color;ctx.fill()}
+  function branch(x,y,lean,shade){ctx.strokeStyle='#31523a';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(x,y);ctx.bezierCurveTo(x+lean*.6,y-35,x+lean*1.15,y-93,x+lean,y-140);ctx.stroke();for(let k=0;k<4;k++){const h=y-30-k*29;ellipse(x+lean*k/5-20,h,23,9,shade,-.45);ellipse(x+lean*k/5+20,h-13,24,9,'#78956b',.4)}}
+  function background(){
+    const sky=ctx.createLinearGradient(0,0,0,H);sky.addColorStop(0,'#233c36');sky.addColorStop(.48,'#65785f');sky.addColorStop(1,'#94744e');ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
+    // Distant rock and moss shapes create depth without moving the camera.
+    poly([[0,72],[85,110],[183,77],[313,128],[452,83],[602,118],[771,70],[960,121],[960,295],[0,295]],'#354d40');
+    poly([[0,194],[120,168],[233,213],[371,179],[512,218],[634,178],[800,216],[960,165],[960,348],[0,348]],'#536b52');
+    let glow=ctx.createRadialGradient(785,90,10,785,90,410);glow.addColorStop(0,'#f8dba25c');glow.addColorStop(1,'#eac78a00');ctx.fillStyle=glow;ctx.fillRect(0,0,W,H);
+    for(let i=0;i<17;i++){const x=(i*87+32)%W,y=282+(i*17)%30;ellipse(x,y,32,11,i%2?'#82956966':'#2d624b77')}
+    for(let i=0;i<8;i++)branch(31+i*127,321, i%2?25:-25,'#5b805c');
+    poly([[0,305],[W,301],[W,H],[0,H]],'#71573b');
+    let dirt=ctx.createLinearGradient(0,337,0,540);dirt.addColorStop(0,'#806846');dirt.addColorStop(1,'#4c3c30');ctx.fillStyle=dirt;ctx.fillRect(0,340,W,200);
+    for(let i=0;i<120;i++){const x=(i*67+13)%960,y=351+(i*43)%185;ellipse(x,y,2+(i%5),1+(i%3),i%3===0?'#b3916488':'#4a392e88')}
+    ellipse(198,314,81,24,'#352f2980');ellipse(193,301,75,20,'#b99a77');ellipse(193,298,67,13,'#688b88');ellipse(192,300,49,7,'#a5b5a085');
+    // Small purple mineral crystals are a decorative test, no fictional lore encoded.
+    poly([[608,324],[615,294],[627,311],[635,280],[648,317],[661,301],[666,328]],'#8c78a6');poly([[621,318],[635,281],[638,315],[648,315]],'#bc9bd0');ellipse(640,335,46,11,'#27352d4f');
+    ctx.font='600 18px system-ui';ctx.fillStyle='#f6edd9';ctx.fillText('生態箱動態觀察 · 技術測試',26,35);
+  }
+  function stone(){ellipse(484,405,99,21,'#26372d79');poly([[397,391],[401,344],[438,289],[494,275],[540,304],[564,350],[559,399],[511,421],[445,420]],'#4f5b50');poly([[416,352],[437,310],[486,288],[514,341],[487,399],[432,398]],'#929681');poly([[522,318],[550,348],[541,392],[501,405]],'#374940');for(let k=0;k<6;k++)ellipse(430+k*23,309+(k%2)*5,14,5,'#78905f')}
+  function normal(body,i){const a=body[Math.max(0,i-1)],b=body[Math.min(body.length-1,i+1)];const dx=a.x-b.x,dy=a.y-b.y,l=Math.hypot(dx,dy)||1;return {tx:dx/l,ty:dy/l,nx:-dy/l,ny:dx/l};}
+  function drawSnake(body){const L=[],R=[];for(let i=0;i<body.length;i++){const b=body[i],v=normal(body,i);L.push([b.x+v.nx*b.w,b.y+v.ny*b.w]);R.push([b.x-v.nx*b.w,b.y-v.ny*b.w]);}
+    poly(L.map(p=>[p[0]+2,p[1]+8]).concat(R.map(p=>[p[0]+2,p[1]+8]).reverse()),'#17251e70');
+    const outline=L.concat(R.reverse());poly(outline,'#d49c5b');
+    ctx.beginPath();outline.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.closePath();ctx.save();ctx.clip();
+    for(const mark of spots){const i=clamp(Math.round(mark.s*(body.length-1)),3,body.length-4),p=body[i],v=normal(body,i);ctx.save();ctx.translate(p.x,p.y);ctx.rotate(Math.atan2(v.ty,v.tx));ellipse(0,0,6.5*mark.scale,p.w*.62,mark.color,mark.angle);ctx.restore()}ctx.restore();ctx.lineWidth=2;ctx.strokeStyle='#6f4c37';ctx.stroke();
+    const h=body[0],v=normal(body,2);ctx.save();ctx.translate(h.x,h.y);ctx.rotate(Math.atan2(v.ty,v.tx));ellipse(3,0,18.5,9.8,'#dca66d');ellipse(8,-6.1,2,2.2,'#231d18');ellipse(8,6.1,2,2.2,'#231d18');ellipse(18,-2,1,1,'#4b3228');ellipse(18,2,1,1,'#4b3228');ctx.restore();
+  }
+  function foliage(){if(!front)return;
+    ellipse(701,467,71,20,'#23352c91');const stems=[[-52,-10],[-39,-54],[-17,-73],[11,-64],[28,-83],[57,-24]];
+    stems.forEach((s,i)=>{const x=701+s[0],y=413+s[1];ctx.strokeStyle='#355c40';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(701,466);ctx.quadraticCurveTo(x+s[0]*.25,y+35,x,y);ctx.stroke();ellipse(x,y+10,16+i%2*3,31,i%2?'#607f52':'#78905d',s[0]*.008);ellipse(x-6,y+4,5,18,'#a9bd8a88',s[0]*.008)});
+    ellipse(701,464,35,12,'#486845');
+  }
+  function clearance(body){let min=Infinity;for(let i=0;i<body.length-1;i++){const a=body[i],b=body[i+1],dx=b.x-a.x,dy=b.y-a.y,t=clamp(((rock.x-a.x)*dx+(rock.y-a.y)*dy)/(dx*dx+dy*dy||1),0,1),x=a.x+dx*t,y=a.y+dy*t;min=Math.min(min,Math.hypot(x-rock.x,y-rock.y)-rock.r-Math.max(a.w,b.w)-5)}return min;}
+  function draw(){const body=currentBody();background();stone();drawSnake(body);foliage();if(debug){ctx.save();ctx.setLineDash([6,6]);ctx.strokeStyle='#e1c888';ctx.lineWidth=2;ctx.beginPath();ctx.arc(rock.x,rock.y,rock.r+19,0,2*Math.PI);ctx.stroke();ctx.strokeStyle='#f0e5b5';ctx.beginPath();ctx.ellipse(701,405,73,75,0,0,2*Math.PI);ctx.stroke();ctx.restore();}
+    const safe=clearance(body)>=0;$('clearance').textContent=safe?'安全':'發現交疊';$('clearance').style.color=safe?'#dcecb6':'#ffb0a0';
+    $('phase').textContent=time<1.25?'休息':time<4?'起步':time<14?'爬行':time<18.65?'減速':'停下';
+    $('occlusion').textContent=front?'局部遮擋開啟':'關閉';$('time').textContent=time.toFixed(1)+' 秒';$('timeline').value=String(time);
+  }
+  function frame(t){if(lastTs==null)lastTs=t;const dt=Math.min((t-lastTs)/1000,.05);lastTs=t;if(running){time=Math.min(22,time+dt);if(time===22){running=false;$('play').textContent='播放';}}draw();requestAnimationFrame(frame)}
+  $('play').addEventListener('click',()=>{if(!running&&time===22)time=0;running=!running;$('play').textContent=running?'暫停':'播放'});
+  $('reset').addEventListener('click',()=>{time=0;running=true;$('play').textContent='暫停';draw()});
+  $('plants').addEventListener('click',()=>{front=!front;$('plants').textContent='前景植物：'+(front?'開':'關');$('plants').setAttribute('aria-pressed',String(front));draw()});
+  $('collision').addEventListener('click',()=>{debug=!debug;$('collision').textContent='碰撞範圍：'+(debug?'開':'關');$('collision').setAttribute('aria-pressed',String(debug));draw()});
+  $('timeline').addEventListener('input',e=>{time=Number(e.target.value);running=false;$('play').textContent='播放';draw()});
+  draw();$('fallback').classList.add('hidden');requestAnimationFrame(frame);
+})();
+</script>
+</body></html>
