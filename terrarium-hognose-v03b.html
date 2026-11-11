@@ -110,8 +110,20 @@
     return p.x>=X0&&p.x<=920&&p.y>=Y0&&p.y<=490&&environmentGap(p)>=MARGIN;
   }
   function safeLine(a,b){
-    const n=Math.max(1,Math.ceil(dist(a,b)/3));
-    for(let i=0;i<=n;i++)if(!safePoint(mix(a,b,i/n)))return false;
+    // Exact segment-to-segment/circle clearance: a 3px sampling grid can
+    // miss a narrow obstacle tangency and halt the snake partway along a route.
+    // The new public art lab keeps V0.2 motion semantics and fails closed.
+    if(!safePoint(a)||!safePoint(b))return false;
+    for(let j=0;j<rockOutline.length;j++){
+      const v=rockOutline[j],w=rockOutline[(j+1)%rockOutline.length];
+      if(segmentDistance(a,b,{x:v[0],y:v[1]},{x:w[0],y:w[1]})<MARGIN-1e-7)return false;
+    }
+    for(const ob of colliders){
+      const c=ob.type==='circle' ?
+        pointSegmentDistance({x:ob.x,y:ob.y},a,b)-ob.r :
+        segmentDistance(a,b,ob.a,ob.b)-ob.r;
+      if(c<MARGIN-1e-7)return false;
+    }
     return true;
   }
   function gridPos(id){return {x:X0+(id%C)*G,y:Y0+Math.floor(id/C)*G}}
