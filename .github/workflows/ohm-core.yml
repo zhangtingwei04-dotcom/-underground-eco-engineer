@@ -27,6 +27,8 @@ on:
       - 'terrarium-autonomy-lab.html'
       - 'terrarium-multi-obstacle-lab.html'
       - 'terrarium-pixel-snake-lab.html'
+      - 'terrarium-hognose-v03b.html'
+      - 'tests/terrarium-hognose-v03b.test.mjs'
       - 'tests/terrarium-pixel-snake-lab.test.mjs'
       - 'tests/terrarium-multi-obstacle-lab.test.mjs'
       - 'tests/terrarium-autonomy-lab.test.mjs'
@@ -59,6 +61,8 @@ on:
       - 'terrarium-autonomy-lab.html'
       - 'terrarium-multi-obstacle-lab.html'
       - 'terrarium-pixel-snake-lab.html'
+      - 'terrarium-hognose-v03b.html'
+      - 'tests/terrarium-hognose-v03b.test.mjs'
       - 'tests/terrarium-pixel-snake-lab.test.mjs'
       - 'tests/terrarium-multi-obstacle-lab.test.mjs'
       - 'tests/terrarium-autonomy-lab.test.mjs'
@@ -104,6 +108,8 @@ jobs:
         run: node tests/terrarium-multi-obstacle-lab.test.mjs
       - name: Pixel snake V0.3 pattern stability and controls
         run: node tests/terrarium-pixel-snake-lab.test.mjs
+      - name: V0.3B western hognose pixel anatomy, safe snout and head zoom
+        run: node tests/terrarium-hognose-v03b.test.mjs
       - name: Reptile motion schema and transition tests
         run: node tests/reptile-motion.test.mjs
       - name: Corn snake appearance descriptors tests
