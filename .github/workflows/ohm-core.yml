@@ -28,6 +28,8 @@ on:
       - 'terrarium-multi-obstacle-lab.html'
       - 'terrarium-pixel-snake-lab.html'
       - 'terrarium-hognose-v03b.html'
+      - 'terrarium-hognose-v03c-review.html'
+      - 'tests/terrarium-hognose-v03c-review.test.mjs'
       - 'tests/terrarium-hognose-v03b.test.mjs'
       - 'tests/terrarium-pixel-snake-lab.test.mjs'
       - 'tests/terrarium-multi-obstacle-lab.test.mjs'
@@ -62,6 +64,8 @@ on:
       - 'terrarium-multi-obstacle-lab.html'
       - 'terrarium-pixel-snake-lab.html'
       - 'terrarium-hognose-v03b.html'
+      - 'terrarium-hognose-v03c-review.html'
+      - 'tests/terrarium-hognose-v03c-review.test.mjs'
       - 'tests/terrarium-hognose-v03b.test.mjs'
       - 'tests/terrarium-pixel-snake-lab.test.mjs'
       - 'tests/terrarium-multi-obstacle-lab.test.mjs'
@@ -110,6 +114,8 @@ jobs:
         run: node tests/terrarium-pixel-snake-lab.test.mjs
       - name: V0.3B western hognose pixel anatomy, safe snout and head zoom
         run: node tests/terrarium-hognose-v03b.test.mjs
+      - name: V0.3C snake proportions, corrected inspector, safe turning and interaction
+        run: node tests/terrarium-hognose-v03c-review.test.mjs
       - name: Reptile motion schema and transition tests
         run: node tests/reptile-motion.test.mjs
       - name: Corn snake appearance descriptors tests
