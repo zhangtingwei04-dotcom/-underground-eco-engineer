@@ -25,6 +25,8 @@ on:
       - 'corn-snake-lab-v06.html'
       - 'terrarium-showcase.html'
       - 'terrarium-autonomy-lab.html'
+      - 'terrarium-multi-obstacle-lab.html'
+      - 'tests/terrarium-multi-obstacle-lab.test.mjs'
       - 'tests/terrarium-autonomy-lab.test.mjs'
       - 'tests/terrarium-showcase.test.mjs'
       - '.github/workflows/ohm-core.yml'
@@ -53,6 +55,8 @@ on:
       - 'corn-snake-lab-v06.html'
       - 'terrarium-showcase.html'
       - 'terrarium-autonomy-lab.html'
+      - 'terrarium-multi-obstacle-lab.html'
+      - 'tests/terrarium-multi-obstacle-lab.test.mjs'
       - 'tests/terrarium-autonomy-lab.test.mjs'
       - 'tests/terrarium-showcase.test.mjs'
       - '.github/workflows/ohm-core.yml'
@@ -92,6 +96,8 @@ jobs:
         run: node tests/terrarium-showcase.test.mjs
       - name: Autonomous terrarium rock-edge safety and interactive controls
         run: node tests/terrarium-autonomy-lab.test.mjs
+      - name: Multi-obstacle terrarium route and shelter controls
+        run: node tests/terrarium-multi-obstacle-lab.test.mjs
       - name: Reptile motion schema and transition tests
         run: node tests/reptile-motion.test.mjs
       - name: Corn snake appearance descriptors tests
