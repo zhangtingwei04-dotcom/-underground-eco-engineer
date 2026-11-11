@@ -519,7 +519,7 @@
     pc.setTransform(1/PIXEL_BLOCK,0,0,1/PIXEL_BLOCK,0,0);
     pc.lineCap='round';pc.lineJoin='round';
     // Physical shadow, filled 3D-ish body and a continuous underside band.
-    traceBody(pc,2&&body,2,5.5);pc.fillStyle='#1b211876';pc.fill();
+    traceBody(pc,body,2,5.5);pc.fillStyle='#1b211876';pc.fill();
     traceBody(pc,body);pc.lineWidth=3;pc.strokeStyle=palette.shadow;pc.stroke();
     pc.fillStyle=palette.base;pc.fill();
     pc.save();traceBody(pc,body);pc.clip();
