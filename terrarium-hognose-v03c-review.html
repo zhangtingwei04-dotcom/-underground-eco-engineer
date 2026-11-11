@@ -48,7 +48,7 @@
     <div class="buttons">
       <button id="play" type="button">暫停</button>
       <button id="reset" type="button" class="alt">重新播放</button>
-      <button id="wander" type="button" class="alt" aria-pressed="true">自主巡遊：開</button><button id="hide" type="button" class="alt">探索躲藏洞</button><button id="branch" type="button" class="alt">探索樹枝</button><button id="plant" type="button" class="alt">探索植物</button><button id="style" type="button" class="alt" aria-pressed="true">外觀：V0.3B 新版</button><button id="individual" type="button" class="alt">配色：橘白參考</button><button id="detail" type="button" class="alt" aria-pressed="true">鱗片：細緻</button><button id="left" type="button" class="alt">探索左側</button><button id="right" type="button" class="alt">探索右側</button>
+      <button id="wander" type="button" class="alt" aria-pressed="true">自主巡遊：開</button><button id="hide" type="button" class="alt">探索躲藏洞</button><button id="branch" type="button" class="alt">探索樹枝</button><button id="plant" type="button" class="alt">探索植物</button><button id="style" type="button" class="alt" aria-pressed="true">外觀：V0.3C 修正版</button><button id="individual" type="button" class="alt">配色：橘白參考</button><button id="detail" type="button" class="alt" aria-pressed="true">鱗片：細緻</button><button id="left" type="button" class="alt">探索左側</button><button id="right" type="button" class="alt">探索右側</button>
       <button id="plants" type="button" class="alt" aria-pressed="true">前景植物：開</button>
       <button id="collision" type="button" class="alt" aria-pressed="false">路線輪廓：關</button>
     </div>
@@ -797,7 +797,7 @@
 
   $('style').addEventListener('click',()=>{
     pixelStyle=!pixelStyle;
-    $('style').textContent='外觀：'+(pixelStyle?'V0.3B 新版':'舊版 V0.3');
+    $('style').textContent='外觀：'+(pixelStyle?'V0.3C 修正版':'舊版 V0.3');
     $('style').setAttribute('aria-pressed',String(pixelStyle));draw();
   });
   $('individual').addEventListener('click',()=>{
