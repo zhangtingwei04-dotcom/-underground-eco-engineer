@@ -93,7 +93,7 @@ export function inspectSnakeTurnSpaceV09g({
   realBodySupportVerified:false,skinApplied:false,saveModified:false
  });
 }
-function hold(state,reason,diagnostic){
+// Return steering originates at the head. A historical curl near the tail\n// is diagnostic only: it must not independently freeze the head's route.\nconst headTurnAtRisk=report=>report.tightWindows.some(w=>w.startLink<=2);\nfunction hold(state,reason,diagnostic){
  return F({
   version:SNAKE_TURN_SPACE_V09G_VERSION,ok:false,
   phase:'turn_space_hold',reason,actorId:state.actorId,
@@ -118,7 +118,7 @@ export function advanceSnakeRouteWithTurnSpaceGuardV09g({
   throw new RangeError('v09g_invalid_source_follower');
  const options={minimumRadiusWorld,significantSweepRadians};
  const before=inspectSnakeTurnSpaceV09g({pose:state.pose,...options});
- if(state.phase==='moving_return'&&before.tightReturnTurnDetected)
+ if(state.phase==='moving_return'&&headTurnAtRisk(before))
   return hold(state,'previous_source_return_turn_too_compact',before);
  const next=advanceSnakeRouteWithSelfGuardV09d({
   state,scene,terrain,seconds
@@ -129,7 +129,7 @@ export function advanceSnakeRouteWithTurnSpaceGuardV09g({
     'source_ended_not_full_body_proof',
    safeNewReturnRouteFound:false});
  const after=inspectSnakeTurnSpaceV09g({pose:next.pose,...options});
- if(next.phase==='moving_return'&&after.tightReturnTurnDetected)
+ if(next.phase==='moving_return'&&headTurnAtRisk(after))
   return hold(state,'next_source_return_turn_too_compact',after);
  return F({...next,
   turnSpaceV09g:'source_step_checked_turn_radius_only',
