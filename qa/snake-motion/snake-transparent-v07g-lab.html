@@ -995,7 +995,8 @@ function draw(){
  document.body.dataset.qaV07vCollarRings=String(
   ghostFrame?.collarRingCount??0);
  document.body.dataset.qaV08cMode=String(correctedDepartureMode);
- document.body.dataset.qaV08cDepartureY=String(handoffSession?.departure.y??0);
+ document.body.dataset.qaV08cDepartureY=String(
+  relaySession?.sourceDeparture?.y??handoffSession?.departure.y??0);
  document.body.dataset.qaV07uMode=String(relayMode);
  document.body.dataset.qaV07uRelay=String(
   relayMode&&relaySession?.version==='0.7U'&&
