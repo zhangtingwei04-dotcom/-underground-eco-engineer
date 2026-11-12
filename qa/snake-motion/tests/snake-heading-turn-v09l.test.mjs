@@ -176,6 +176,69 @@ assert.equal(first.saveModified,false);
 assert.equal(JSON.stringify(state),stateBefore);
 assert.equal(JSON.stringify({scene,terrain,wall}),sceneBefore);
 
+
+// V0.9J optional controller must preserve finite source-frame stepping
+// and safety rest when driven by the new V0.9L heading configuration mode.
+const config={
+ source:state,scene,terrain,routeSelectionMode:'configuration_turn_v09l',
+ replanIntervalFrames:120,previewHorizonFrames:120,
+ maxReturnFrames:480,maxReplans:4,maximumStallWindows:3,
+ minimumHomeProgressPx:5,maximumHeadDistanceToHomePx:260
+};
+let auto=startSnakeReturnAutopilotV09j(config);
+assert.equal(auto.routeSelectionMode,'configuration_turn_v09l');
+const decisions=[];
+for(let i=0;i<510&&auto.phase==='active_return';i++){
+ const old=auto;
+ const next=advanceSnakeReturnAutopilotV09j({
+  state:auto,scene,terrain
+ });
+ assert.equal(next.source.pose.points.length,24);
+ assert.equal(next.fullBodyReturnVerified,false);
+ assert.equal(next.saveModified,false);
+ assert.equal(next.skinApplied,false);
+ assert.ok(next.framesCommitted<=480);
+ assert.ok(next.replansPerformed<=4);
+ if(next.phase==='active_return'){
+  assert.equal(next.source.verifiedFrames,old.source.verifiedFrames+1);
+  assert.equal(next.framesCommitted,old.framesCommitted+1);
+ }else{
+  assert.equal(next.source.verifiedFrames,old.source.verifiedFrames);
+  assert.equal(next.framesCommitted,old.framesCommitted);
+  assert.equal(next.changedSourcePose,false);
+ }
+ if(next.replansPerformed>old.replansPerformed){
+  const latest=next.detourHistory.at(-1);
+  assert.equal(latest.sourceArcCandidates,8);
+  assert.ok(latest.headingPlanStatus);
+  assert.equal(latest.routeSelected,true);
+  assert.ok(Number.isFinite(latest.sourceTurnNeckMismatch));
+  decisions.push({frame:old.source.verifiedFrames,
+   id:latest.selectedId,approved:latest.approved,
+   neckMismatch:latest.sourceTurnNeckMismatch});
+ }
+ auto=next;
+}
+assert.notEqual(auto.phase,'active_return');
+assert.equal(auto.source.verifiedFrames-state.verifiedFrames,
+ auto.framesCommitted);
+assert.strictEqual(advanceSnakeReturnAutopilotV09j({
+ state:auto,scene,terrain
+}),auto);
+assert.equal(auto.fullBodyReturnVerified,false);
+assert.equal(JSON.stringify(state),stateBefore);
+assert.equal(JSON.stringify({scene,terrain,wall}),sceneBefore);
+const autoSummary={
+ committed:auto.framesCommitted,
+ sourceLast:auto.source.verifiedFrames,
+ replans:auto.replansPerformed,
+ terminal:auto.phase,
+ terminalReason:auto.reason,
+ headHome:auto.body.headToHomePx,
+ tailHome:auto.body.tailToHomePx,
+ decisions
+};
+
 const revised=Object.freeze({...scene,revision:scene.revision+1});
 const stale=planSnakeHeadingReturnV09l({
  source:state,scene:revised,terrain,horizonFrames:120
@@ -199,5 +262,6 @@ console.log('PASS V0.9L true 24-joint heading-radius U-turn proposals and V0.9D/
  })),
  commitPhase:first.phase,
  staleStatus:stale.status,
+ autopilot:autoSummary,
  fullBodyReturnVerified:false
 }));
