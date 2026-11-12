@@ -254,11 +254,14 @@ for(let i=0;i<24;i++){
  assert.equal(next.verifiedFrames,current.verifiedFrames+1);
  const aYaw=.06*Math.sin(i*.11);
  const bYaw=.06*Math.sin((i+1)*.11);
+ const aPitch=.012*Math.sin(i*.13);
+ const bPitch=.012*Math.sin((i+1)*.13);
  for(const [k,stage] of stages.entries()){
   const step=inspectSnakeHeadNeckTransitionV09r({
    previousSource:current,nextSource:next,
    scene:realScene,terrain,stageProgress:stage,
-   previousYawRad:aYaw,nextYawRad:bYaw
+   previousYawRad:aYaw,nextYawRad:bYaw,
+   previousPitchRad:aPitch,nextPitchRad:bPitch
   });
   assert.equal(step.ok,true,
    'stage '+stage+' frame '+next.verifiedFrames+
