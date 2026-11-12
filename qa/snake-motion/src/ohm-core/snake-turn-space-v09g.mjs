@@ -93,7 +93,10 @@ export function inspectSnakeTurnSpaceV09g({
   realBodySupportVerified:false,skinApplied:false,saveModified:false
  });
 }
-// Return steering originates at the head. A historical curl near the tail\n// is diagnostic only: it must not independently freeze the head's route.\nconst headTurnAtRisk=report=>report.tightWindows.some(w=>w.startLink<=2);\nfunction hold(state,reason,diagnostic){
+// Return steering originates at the head. A historical curl near the tail
+// is diagnostic only: it must not independently freeze the head's route.
+const headTurnAtRisk=report=>report.tightWindows.some(w=>w.startLink<=2);
+function hold(state,reason,diagnostic){
  return F({
   version:SNAKE_TURN_SPACE_V09G_VERSION,ok:false,
   phase:'turn_space_hold',reason,actorId:state.actorId,
