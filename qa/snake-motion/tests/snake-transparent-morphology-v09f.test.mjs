@@ -12,7 +12,7 @@ function makePose(mode){
  const points=[F({x,y,z:.13})];
  for(let i=1;i<24;i++){
   const theta=mode==='straight'?0:
-   mode==='s_curve'?.28*Math.sin(i*.35):i*.055;
+   mode==='s_curve'?.5*Math.sin(i*.45):i*.055;
   x-=L*Math.cos(theta);y+=L*Math.sin(theta);
   points.push(F({x,y,z:.13}));
  }
@@ -31,7 +31,7 @@ for(const style of ['straight','s_curve','turn']){
  assert.equal(mesh.ok,true);
  assert.equal(mesh.version,'0.9F');
  assert.equal(mesh.bodyRingCount,139);
- assert.equal(mesh.headRingCount,7);
+ assert.equal(mesh.headRingCount,9);
  assert.equal(mesh.radialSegments,12);
  assert.equal(mesh.sourceJointCount,24);
  assert.equal(mesh.sourceTotalLength,2.28);

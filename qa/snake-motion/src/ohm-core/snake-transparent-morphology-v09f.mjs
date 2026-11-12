@@ -28,10 +28,10 @@ const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const smooth=t=>{const v=clamp(t,0,1);return v*v*(3-2*v)};
 const pos=(a,b,u)=>add(mul(a,1-u),mul(b,u));
 const stopTable=F([
- F([0,.080]),F([.025,.077]),F([.09,.092]),
- F([.20,.099]),F([.40,.102]),F([.57,.098]),
- F([.67,.085]),F([.76,.070]),F([.84,.052]),
- F([.92,.032]),F([1,.010])
+ F([0,.053]),F([.025,.054]),F([.09,.063]),
+ F([.20,.069]),F([.40,.071]),F([.57,.070]),
+ F([.67,.064]),F([.76,.052]),F([.84,.038]),
+ F([.92,.023]),F([1,.007])
 ]);
 export const NEUTRAL_SNAKE_MORPHOLOGY_V09F=F({
  id:'neutral_snake_morphology_v09f',
@@ -41,13 +41,15 @@ export const NEUTRAL_SNAKE_MORPHOLOGY_V09F=F({
  bodyWidthStops:stopTable,
  // Long-low nose, defined cranium, slim transition at back of head.
  headRings:F([
-  F([-.055,.071,.063]),
-  F([-.025,.082,.069]),
-  F([0,.104,.076]),
-  F([.045,.110,.079]),
-  F([.090,.080,.065]),
-  F([.140,.047,.044]),
-  F([.178,.018,.022])
+  F([-.055,.053,.048]),
+  F([-.028,.059,.051]),
+  F([0,.074,.057]),
+  F([.040,.083,.060]),
+  F([.080,.079,.057]),
+  F([.115,.070,.050]),
+  F([.155,.052,.041]),
+  F([.182,.035,.029]),
+  F([.198,.014,.015])
  ]),
  tailTarget:'smooth_taper_not_sudden_cone',
  skinApplied:false,scientificDimensionsMeasured:false
@@ -187,7 +189,7 @@ export function buildNeutralSnakeTransparentMorphologyV09f({
   radialSegments:radial,bodyWorldRings:F(body),
   headWorldRings:F(head),bodyProjection,headProjection,
   centerline:F(centerline),radii:F(radii),
-  headWidestRadius:.110,neckRadius:neutralSnakeRadiusV09f(0),
+  headWidestRadius:.083,neckRadius:neutralSnakeRadiusV09f(0),
   midBodyRadius:neutralSnakeRadiusV09f(.4),
   tailTipRadius:neutralSnakeRadiusV09f(1),
   maximumSourceAnchorDrift:maximumAnchorDrift,

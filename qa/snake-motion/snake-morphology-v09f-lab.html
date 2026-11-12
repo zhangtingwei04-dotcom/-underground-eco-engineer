@@ -34,7 +34,7 @@ function poseFor(style){
  const points=[F({x,y,z:.13})];
  for(let i=1;i<24;i++){
   const theta=style==='straight'?0:
-   style==='s_curve'?.28*Math.sin(i*.35):i*.055;
+   style==='s_curve'?.5*Math.sin(i*.45):i*.055;
   x-=L*Math.cos(theta);y+=L*Math.sin(theta);
   points.push(F({x,y,z:.13}));
  }
