@@ -137,11 +137,6 @@ function intersectSegmentRect(a,b,minX,minY,maxX,maxY){
 }
 function capsule2DSegmentDistance(a,b,c,d){
  // Conservative planar segment distance (no 3D over/under-pass).
- if(intersectSegmentRect(a,b,
-  Math.min(c.x,d.x),Math.min(c.y,d.y),
-  Math.max(c.x,d.x),Math.max(c.y,d.y))){
-  // The AABB intersection alone is NOT evidence of segment crossing.
- }
  function distPointSegment(q,u,v){
   const dx=v.x-u.x,dy=v.y-u.y;
   const len=dx*dx+dy*dy;
@@ -267,7 +262,7 @@ export function inspectSnakeGrowthTransitionV09n({
 }={}){
  if(!finite(fromProgress)||!finite(toProgress)||
   fromProgress<0||toProgress>3||
-  toProgress<=fromProgress||toProgress-fromProgress>.20||
+  toProgress<=fromProgress||toProgress-fromProgress>.20+1e-9||
   !finite(additionalPaddingPixels)||
   additionalPaddingPixels<0||additionalPaddingPixels>12)
   throw new RangeError('v09n_unbounded_growth_transition');
