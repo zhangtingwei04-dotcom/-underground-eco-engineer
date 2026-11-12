@@ -152,6 +152,30 @@ assert.equal(faceGround.ok,false);
 assert.equal(faceGround.reason,'triangle_interior_hits_heightfield');
 assert.ok(faceGround.minTriangleSurfaceHeightfieldGapWorld<-.001);
 
+// Positive control for 3D nonlocal surface checking:
+// An intentionally CORRUPTED mesh puts a far section of the body
+// exactly across its head surface. It is not a source-owned animation
+// candidate; the independent diagnostic MUST detect/reject it.
+// No gameplay certification is derived from manually changed vertices.
+const forgedSurfacePositions=neutral.mesh.positions.slice();
+for(let ring=0;ring<2;ring++)
+ for(let segment=0;segment<16;segment++)
+  forgedSurfacePositions[(50+ring)*16+segment]=
+   neutral.mesh.positions[ring*16+segment];
+const selfCrossing=Object.freeze({...neutral,
+ mesh:Object.freeze({...neutral.mesh,
+  positions:Object.freeze(forgedSurfacePositions)})
+});
+const selfResult=inspectSnakeMeshSurfaceV09s({
+ candidate:selfCrossing,scene,terrain
+});
+assert.equal(selfResult.ok,false);
+assert.ok(['nonlocal_triangle_surface_intersection',
+ 'uncertain_nonlocal_triangle_surface_contact'].includes(
+ selfResult.reason));
+assert.ok(selfResult.exactTrianglePairsExamined>=1);
+assert.equal(selfResult.exactContinuous3DSweepCertified,false);
+
 // The full-surface AABB test must hold if a true source object
 // overlaps a moving triangular surface between two valid endpoints.
 const alteredUV=Object.freeze({...neutral,
@@ -321,6 +345,7 @@ assert.throws(()=>inspectSnakeAuthenticatedMeshStepV09s({
 console.log('PASS V0.9S whole-head-body 3216 triangle surface and time-coherence QA on 4 sizes x10 genuine V0.9C/D/G frames '+JSON.stringify({
  staticStages,
  faceInteriorPenetrationCaughtWithoutBadVertices:true,
+ forgedNonlocalMeshSurfaceRejected:true,
  topologyUVMutationRejected:true,
  sourceFramesCheckedByStage:summaries,
  nonlocalFullMeshSurface3DCollisionDiagnostic:true,
