@@ -1,0 +1,80 @@
+name: Public OHM Snake V0.8A QA
+on:
+  push:
+    paths:
+      - 'qa/snake-motion/**'
+      - '.github/workflows/public-snake-qa.yml'
+  pull_request:
+    paths:
+      - 'qa/snake-motion/**'
+      - '.github/workflows/public-snake-qa.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: public-snake-qa-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  snake-motion-unit:
+    name: Snake source-backed regression suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: qa/snake-motion
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Parse mirrored geometry sources and tests
+        run: |
+          set -euo pipefail
+          for source in src/ohm-core/*.mjs tests/snake-*.test.mjs; do
+            node --check "$source"
+          done
+      - name: Execute exact copied V0.7-V0.8A snake unit tests
+        run: |
+          set -euo pipefail
+          for spec in tests/snake-*.test.mjs; do
+            echo "::group::$spec"
+            node "$spec"
+            echo "::endgroup::"
+          done
+
+  snake-chromium:
+    name: Real landscape Chrome screenshot validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    defaults:
+      run:
+        working-directory: qa/snake-motion
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser for real canvas tests
+        id: setup-chrome
+        uses: browser-actions/setup-chrome@v2
+        with:
+          chrome-version: stable
+      - name: Validate 2 landscape viewports and V0.8A alpha-union A/B
+        env:
+          OHM_REQUIRE_CHROME: '1'
+          OHM_CHROME_BIN: ${{ steps.setup-chrome.outputs.chrome-path }}
+          OHM_V07G_CAPTURE_DIR: '.qa-artifacts/v07g'
+        run: |
+          node --check tests/snake-front-glass-v07n-cdp-browser-qa.mjs
+          node tests/snake-front-glass-v07n-cdp-browser-qa.mjs
+      - name: Attach synthetic browser screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: public-snake-v08a-landscape-qa
+          path: qa/snake-motion/.qa-artifacts/v07g/*.png
+          retention-days: 3
+          if-no-files-found: ignore
