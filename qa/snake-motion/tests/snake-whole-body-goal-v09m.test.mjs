@@ -128,10 +128,10 @@ assert.throws(()=>inspectSnakeWholeBodyGoalV09m({
  scene,goalFloor:{x:500,y:200}
 }),RangeError);
 
-const base=planSnakeHeadingReturnV09l({
+const baselineHeadingPlan=planSnakeHeadingReturnV09l({
  source:state,scene,terrain,horizonFrames:120
 });
-assert.equal(base.version,'0.9L');
+assert.equal(baselineHeadingPlan.version,'0.9L');
 const m=planSnakeWholeBodyReturnV09m({
  source:state,scene,terrain,horizonFrames:120
 });
@@ -186,7 +186,7 @@ assert.equal(stale.selectedRoute,null);
 assert.equal(stale.fullBodyReturnVerified,false);
 assert.throws(()=>chooseSnakeWholeBodyReturnV09m({
  source:{...state,verifiedFrames:state.verifiedFrames+1},
- scene,basePlanV09l:base
+ scene,basePlanV09l:baselineHeadingPlan
 }),RangeError);
 
 // Same scenario and exact same budget V0.9L versus opt-in V0.9M.
@@ -278,7 +278,7 @@ console.log('PASS V0.9M all-24-joint goal arrival audit and genuine bounded sour
  headOnlyCounterexample:deceptive.jointInsideCount,
  stationaryAll24Goal2DCandidate:whole.eligible2DCenterline,
  stationaryActualCompletion:whole.fullBodyReturnVerified,
- firstHeadingChoice:base.selectedId,
+ firstHeadingChoice:baselineHeadingPlan.selectedId,
  firstWholeBodyChoice:m.selectedId,
  safeCandidates:m.candidateScores.filter(c=>c.eligible).length,
  sameBudget:{
