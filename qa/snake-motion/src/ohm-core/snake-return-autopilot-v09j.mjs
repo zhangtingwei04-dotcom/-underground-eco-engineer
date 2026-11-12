@@ -109,7 +109,9 @@ export function startSnakeReturnAutopilotV09j({
   stalledWindows:0,
   initialDistanceToHomePx:body.headToHomePx,
   bestDistanceToHomePx:body.headToHomePx,
+  bestTailDistanceToHomePx:body.tailToHomePx,
   baselineReplanDistancePx:body.headToHomePx,
+  baselineReplanTailDistancePx:body.tailToHomePx,
   body,
   chosenDetourId:null,detourHistory:F([]),
   noMotionWhenResting:true,sourceJointsRewritten:false,
@@ -146,10 +148,15 @@ export function advanceSnakeReturnAutopilotV09j({
     'maximum_source_replans_reached');
   const currentDistance=state.body.headToHomePx;
   const gained=state.baselineReplanDistancePx-currentDistance;
-  // A snake can temporarily move away from home to make a wider turn.
-  // Allow a bounded number of non-improving windows, but NEVER forever.
+  const tailGained=state.baselineReplanTailDistancePx-
+   state.body.tailToHomePx;
+  // A turning snake can move its head AWAY while its trailing body
+  // genuinely approaches the goal. Require BOTH head and tail to stall
+  // before declaring a non-improving 160-frame window. Still bound the
+  // overall head range and total frames/replans to prevent endless loops.
   const stalled=state.replansPerformed===0?0:
-   gained<state.minimumHomeProgressPx?
+   gained<state.minimumHomeProgressPx&&
+   tailGained<state.minimumHomeProgressPx?
     state.stalledWindows+1:0;
   if(stalled>=state.maximumStallWindows)
    return stop(state,'resting_no_progress',
@@ -170,6 +177,7 @@ export function advanceSnakeReturnAutopilotV09j({
    headDistancePx:currentDistance,
    tailDistancePx:state.body.tailToHomePx,
    homeImprovementSinceLastReplanPx:gained,
+   tailImprovementSinceLastReplanPx:tailGained,
    stalledWindows:stalled,
    routeSelected:planned.ok});
   const history=F([...state.detourHistory,log]);
@@ -182,6 +190,7 @@ export function advanceSnakeReturnAutopilotV09j({
    detourHistory:history,chosenDetourId:planned.selectedCandidateId,
    replansPerformed:state.replansPerformed+1,
    stepsSinceReplan:0,baselineReplanDistancePx:currentDistance,
+   baselineReplanTailDistancePx:state.body.tailToHomePx,
    stalledWindows:stalled});
  }
  const step=advanceSnakeRouteWithTurnSpaceGuardV09g({
@@ -206,6 +215,8 @@ export function advanceSnakeReturnAutopilotV09j({
   stepsSinceReplan:current.stepsSinceReplan+1,
   bestDistanceToHomePx:Math.min(current.bestDistanceToHomePx,
    body.headToHomePx),
+  bestTailDistanceToHomePx:Math.min(
+   current.bestTailDistanceToHomePx,body.tailToHomePx),
   changedSourcePose:true,
   sourceJointsRewritten:false,
   allowedGameplayMotion:false,
