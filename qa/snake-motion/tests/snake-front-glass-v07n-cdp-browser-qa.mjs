@@ -274,7 +274,8 @@ async function visit(cdp,url,view,debug,probe='off',ghost=false,sculpt=false,nec
       state?.clearanceMin>.10&&
       state?.clearanceOverlap===0&&
       state?.clearanceFlipCount===0&&
-      state?.clearanceMaxBend<.65&&
+      // Bend is checked below as a real assertion; do not poll 100s on failure.
+      Number.isFinite(state?.clearanceMaxBend)&&
       state?.clearancePairs===(probe==='hold'?36:190)))&&
      (!slender||(state?.slender==='true'&&
       state?.slimMid>.65&&state?.slimMid<.8&&
@@ -325,7 +326,9 @@ async function visit(cdp,url,view,debug,probe='off',ghost=false,sculpt=false,nec
   assert.ok(state.clearanceMin>.10);
   assert.equal(state.clearanceOverlap,0);
   assert.equal(state.clearanceFlipCount,0);
-  assert.ok(state.clearanceMaxBend<.65);
+  assert.ok(state.clearanceMaxBend<.65,
+    view.name+' probe='+probe+' measured maximum bend='+state.clearanceMaxBend+
+    ' rad; QA dataset='+JSON.stringify(state));
   assert.equal(state.clearancePairs,probe==='hold'?36:190);
  }
  assert.equal(state.slenderMode,slender?'true':'false',
