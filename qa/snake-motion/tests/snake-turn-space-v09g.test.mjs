@@ -134,6 +134,8 @@ assert.ok(state.verifiedFrames<=530,
 assert.equal(JSON.stringify({scene,terrain,wall}),initialHash);
 console.log('PASS V0.9G: 16-window straight/S/U static, immutable source, guarded live return '+JSON.stringify({
  lastAcceptedSourceFrame:state.verifiedFrames,
+ initialRiskWindows:inspectSnakeTurnSpaceV09g({pose:initial.pose}).tightWindows.map(w=>w.startLink),
+ heldRiskWindows:hold.diagnostic?.tightWindows?.map(w=>w.startLink),
  holdPhase:hold.phase,reason:hold.reason,
  firstRiskFrame,returnSeen
 }));
