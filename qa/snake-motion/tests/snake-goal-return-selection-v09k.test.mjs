@@ -86,9 +86,9 @@ for(const c of trial.candidates){
   assert.equal(c.fullRouteProven,false);
  }
 }
-const head=snakeFloorToTerrariumV07c(state.pose.points[0]);
+const currentHead=snakeFloorToTerrariumV07c(state.pose.points[0]);
 const one=chooseSnakeGoalReturnV09k({
- source:state,scene,planned:trial,visitedHeadFloors:[head]
+ source:state,scene,planned:trial,visitedHeadFloors:[currentHead]
 });
 assert.equal(one.version,'0.9K');
 assert.equal(one.candidateScores.length,5);
@@ -112,7 +112,7 @@ if(one.ok){
  assert.deepEqual(one.selectedRoute,fromV09i.proposedRoute);
  // A historical REVISIT can make a once safe, source-accepted staging
  // unattractive without changing either the real body or scene.
- const history=[...fromV09i.previewHeadSamples,head];
+ const history=[...fromV09i.previewHeadSamples,currentHead];
  const avoided=chooseSnakeGoalReturnV09k({
   source:state,scene,planned:trial,visitedHeadFloors:history
  });
@@ -123,7 +123,7 @@ if(one.ok){
  assert.notEqual(avoided.selectedId,one.selectedId);
 }
 assert.deepEqual(one,chooseSnakeGoalReturnV09k({
- source:state,scene,planned:trial,visitedHeadFloors:[head]
+ source:state,scene,planned:trial,visitedHeadFloors:[currentHead]
 }), 'goal ranking must be deterministic');
 assert.throws(()=>chooseSnakeGoalReturnV09k({
  source:state,scene,planned:{...trial,sourceStartFrame:999}
