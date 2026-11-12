@@ -104,3 +104,35 @@ jobs:
         env:
           OHM_CHROME_BIN: ${{ steps.setup-chrome.outputs.chrome-path }}
         run: node tests/terrarium-pixel-sprites-v03g-browser-qa.mjs
+
+  snake-alpha-hold:
+    name: V0.8A real single-pass alpha A/B in landscape
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    defaults:
+      run:
+        working-directory: qa/snake-motion
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: browser-actions/setup-chrome@v2
+        id: setup-chrome
+        with:
+          chrome-version: stable
+      - name: Confirm held source-safe transparent body before/after RGB
+        env:
+          OHM_CHROME_BIN: ${{ steps.setup-chrome.outputs.chrome-path }}
+          OHM_REQUIRE_CHROME: '1'
+          OHM_V08A_HOLD_ONLY: '1'
+          OHM_V07G_CAPTURE_DIR: '.qa-artifacts/v08a'
+        run: node tests/snake-front-glass-v07n-cdp-browser-qa.mjs
+      - name: Save transparent snake A/B screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: public-snake-v08a-alpha-hold
+          path: qa/snake-motion/.qa-artifacts/v08a/*.png
+          retention-days: 3
+          if-no-files-found: ignore

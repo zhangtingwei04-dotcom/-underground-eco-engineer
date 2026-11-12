@@ -537,6 +537,30 @@ try{
   ];
   let done=0;
   for(const view of views){
+   if(process.env.OHM_V08A_HOLD_ONLY==='1'){
+    const legacy=await visit(cdp,baseUrl+
+      '&qa_v07p=1&qa_v07p_hold=1&qa_v07z=1',
+      view,false,'hold',true,true,true,true,true);
+    const unified=await visit(cdp,baseUrl+
+      '&qa_v07p=1&qa_v07p_hold=1&qa_v08a=1',
+      view,false,'hold',true,true,true,true,true,true);
+    assert.notEqual(unified.glassDigest,legacy.glassDigest,
+      view.name+' single-pass alpha MUST alter actual glass-canvas RGB');
+    assert.equal(unified.state.opacityOnePass,'true');
+    assert.equal(unified.state.opacityPaintPasses,1);
+    const folder=process.env.OHM_V07G_CAPTURE_DIR?
+      path.resolve(root,process.env.OHM_V07G_CAPTURE_DIR):null;
+    if(folder){
+      assert.ok(folder.startsWith(root+path.sep));
+      mkdirSync(folder,{recursive:true});
+      writeFileSync(path.join(folder,view.name+'_v08a_hold_legacy.png'),legacy.png);
+      writeFileSync(path.join(folder,view.name+'_v08a_hold_unified.png'),unified.png);
+    }
+    console.log('PASS V0.8A Chrome HOLD '+view.name+
+      ': verified 1 alpha fill, distinct real canvas RGB and source clearance');
+    done++;
+    continue;
+   }
    const plain=await visit(cdp,baseUrl,view,false);
    const terrain=await visit(cdp,baseUrl+'&qa_v07n=1',view,true);
    const probe=await visit(cdp,baseUrl+'&qa_v07p=1&qa_v07p_hold=1',
