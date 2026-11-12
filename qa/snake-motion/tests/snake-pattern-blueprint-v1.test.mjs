@@ -58,6 +58,12 @@ const b=createSnakePatternBlueprintV1({...input,seed:38472916});
 assert.notEqual(JSON.stringify(a.marks),JSON.stringify(b.marks),
  'different seeds should lead to different marks');
 assert.notEqual(a.patternId,b.patternId);
+const paletteVariation=createSnakePatternBlueprintV1({...input,paletteId:'neutral_gray'});
+assert.notEqual(a.patternId,paletteVariation.patternId,
+ 'pattern identity must include palette selection');
+const countVariation=createSnakePatternBlueprintV1({...input,markCount:23});
+assert.notEqual(a.patternId,countVariation.patternId,
+ 'pattern identity must include mark count');
 const c=createSnakePatternBlueprintV1({...input,speciesId:'western_hognose'});
 assert.notEqual(a.patternId,c.patternId);
 const z=createSnakePatternBlueprintV1({seed:0});
@@ -99,3 +105,11 @@ assert.throws(()=>sampleSnakePatternSurfaceV1(a,{
 }),RangeError);
 assert.throws(()=>circularPatternSurfaceDistanceV1(-.1,.5),RangeError);
 console.log('PASS public pattern V1: deterministic and saved UV blueprint, 13/24+ joint/growth stability, closed version and mutation guards, NO skin');
+
+for(const seed of [0,1,7,42,9181,0xffffffff]){
+ const x=createSnakePatternBlueprintV1({seed,markCount:40});
+ assert.ok(x.marks.every(mark=>mark.v>=0&&mark.v<1),
+  'circular surface seam must never resolve to v=1');
+ assert.equal(serializeSnakePatternBlueprintV1(
+   restoreSnakePatternBlueprintV1(JSON.stringify(x))),JSON.stringify(x));
+}

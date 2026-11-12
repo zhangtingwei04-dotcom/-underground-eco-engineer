@@ -44,7 +44,7 @@ function rng(seed){
   return (x>>>0)/4294967296;};
 }
 const q=n=>Math.round(n*1000000)/1000000;
-const wrap=n=>q(((n%1)+1)%1);
+const wrap=n=>{const v=q(((n%1)+1)%1);return v>=1?0:v;};
 function payload({seed,speciesId,styleId,paletteId,markCount}){
  const selectedSeed=uint32(seed);
  const species=requireOne(speciesId,allowedSpecies,'unknown_species');
@@ -70,7 +70,7 @@ function payload({seed,speciesId,styleId,paletteId,markCount}){
  return {
   version:SNAKE_PATTERN_BLUEPRINT_VERSION,
   generator:SNAKE_PATTERN_GENERATOR,
-  patternId:'pattern-v1-'+hex(selectedSeed)+'-'+hex(hash(species+'|'+style)),
+  patternId:'pattern-v1-'+hex(selectedSeed)+'-'+hex(hash(species+'|'+style+'|'+palette+'|'+markCount)),
   seed:selectedSeed,speciesId:species,styleId:style,paletteId:palette,
   markCount,
   surfaceConvention:'head-to-tail-u__dorsal-seam-v0__ventral-v0_5',

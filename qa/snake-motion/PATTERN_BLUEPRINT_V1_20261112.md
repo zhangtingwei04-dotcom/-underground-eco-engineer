@@ -53,3 +53,8 @@ authorize automatic private integration.
 The skin remains **transparent/unapplied** until natural motion, real skin
 geometry and pixel-art consistency are reviewed. This is a test design
 and data structure; no player-visible snake is changed.
+
+## V1 fixed design clarifications
+- `markCount` is stored explicitly so loading can reproduce the same descriptor count.
+- `patternId` incorporates seed, species, style, palette and count. It identifies the **pattern recipe**, not a globally unique animal. Keep the existing animal record ID as the primary snake identity.
+- The circumference coordinate has canonical seam values `0 <= v < 1`, even under decimal rounding. Future rendering must preserve the orientation convention, particularly when a moving body frame flips.

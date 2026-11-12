@@ -27,3 +27,7 @@ Public experimental `snake-obstacle-lookahead-v08e.mjs` compares hand-authored d
 ## Latest: V0.8F mid-motion safe pause and resume (public only)
 
 `src/ohm-core/snake-dynamic-replan-v08f.mjs` preserves the actual 24-joint moving snake and authoritative V0.7S collision if a source V0.3d rock moves. It checks that the body can safely **remain at its current pose**, previews up to eight authored headings from the existing controller state over a fixed future horizon, and exposes a separate explicit resume function that rejects altered terrain revisions. Tests validate six separate interruption frames, a rock directly inside the body, and prevention of stale-state resume. It is not automatic gameplay navigation. [Engineering details](V08F_PUBLIC_DYNAMIC_REPLAN_20261112.md).
+
+## Separate, reproducible pattern-data experiment (V1)
+
+The public-only [pattern data contract](PATTERN_BLUEPRINT_V1_20261112.md) stores one immutable seed + explicit normalized surface descriptors per snake, independently of temporary skeletal ring count and real species genes. The unit tests cover save/load byte identity, resampling and growth invariance. **No actual skin, color texture or private player save has been changed.**
