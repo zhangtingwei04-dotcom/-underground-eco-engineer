@@ -131,6 +131,61 @@ if(preview.ok){
 assert.equal(moved.saveModified,false);
 assert.equal(JSON.stringify(state),stateBefore);
 assert.equal(JSON.stringify({scene,terrain,wall}),worldBefore);
+
+// Commit exactly one source frame, then replay the SAME selected route
+// through all remaining frames of the preview. A source-backed prediction
+// must match actual V0.9C/V0.9D/G movement, not just declare a safe graph.
+let replaySummary=null;
+if(preview.ok){
+ const selected=preview.candidates.find(c=>c.id===preview.selectedCandidateId);
+ let actual=moved,checkedRealSteps=1;
+ while(checkedRealSteps<160){
+  const next=advanceSnakeRouteWithTurnSpaceGuardV09g({
+   state:actual,scene,terrain,seconds:1/30
+  });
+  assert.equal(next.phase,'moving_return',
+   'preflight approved 160 frames and must replay them on real source');
+  assert.equal(next.verifiedFrames,actual.verifiedFrames+1);
+  assert.equal(next.pose.points.length,24);
+  assert.equal(next.fullBodyReturnVerified,false);
+  assert.equal(next.skinApplied,false);
+  actual=next;
+  checkedRealSteps++;
+ }
+ assert.equal(actual.verifiedFrames,state.verifiedFrames+160);
+ const finalHead=snakeFloorToTerrariumV07c(actual.pose.points[0]);
+ assert.ok(Math.hypot(finalHead.x-selected.lastHeadFloor.x,
+  finalHead.y-selected.lastHeadFloor.y)<1e-7,
+  'real committed source trace must coincide with shadow preview');
+ // Continue beyond the approved horizon only as a diagnostic. A stop
+ // is a valid safety outcome; future motion was NEVER authorized by
+ // the original 160-frame lookahead.
+ let extra=0,ending=actual,reason=null,endingPhase=actual.phase;
+ while(extra<280&&ending.phase==='moving_return'){
+  const next=advanceSnakeRouteWithTurnSpaceGuardV09g({
+   state:ending,scene,terrain,seconds:1/30
+  });
+  if(next.phase==='turn_space_hold'||next.phase==='stopped'||
+      next.phase==='self_clearance_stop'){
+   reason=next.reason;endingPhase=next.phase;break;
+  }
+  if(next.phase==='return_head_arrived'){
+   endingPhase=next.phase;ending=next;break;
+  }
+  assert.equal(next.phase,'moving_return');
+  assert.equal(next.verifiedFrames,ending.verifiedFrames+1);
+  ending=next;extra++;
+ }
+ assert.equal(ending.fullBodyReturnVerified,false);
+ assert.equal(ending.skinApplied,false);
+ replaySummary=F({
+  replayFrames:checkedRealSteps,extraAcceptedFrames:extra,
+  lastRealSourceFrame:ending.verifiedFrames,
+  endingPhase,stopReason:reason,
+  replayHeadFloor:finalHead
+ });
+}
+
 const changed=F({...scene,revision:scene.revision+1});
 const stale=planSnakeBodyDetourV09i({
  state,scene:changed,terrain
@@ -151,5 +206,5 @@ console.log('PASS V0.9I: 5 distinct full-body staging footprints + real 24-joint
   endFrame:x.sourceLastFrame,reason:x.reason,
   endHead:x.lastHeadFloor
  })),
- committed:moved.phase,staleStatus:stale.status
+ committed:moved.phase,replaySummary,staleStatus:stale.status
 }));
