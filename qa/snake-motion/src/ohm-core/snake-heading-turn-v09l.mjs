@@ -145,7 +145,7 @@ export function planSnakeHeadingReturnV09l({
     ?.checkedSourceFrames??0:0,
   sourceJointsChanged:false,
   previewMovedSource:false,
-  2DArcNotPhysicsProof:true,
+  arc2DNotPhysicsProof:true,
   futureFramesNotAuthorized:true,
   allBodyReturnVerified:false,fullBodyReturnVerified:false,
   meshSweepCertified:false,skinApplied:false,saveModified:false
