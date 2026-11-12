@@ -18,7 +18,7 @@ import {inspectSnakeTemporalContinuityV08d}
  from './snake-temporal-continuity-v08d.mjs';
 import {snakeFloorToTerrariumV07c}
  from './snake-terrarium-corridor-v07c.mjs';
-import {pauseAndReplanSnakeV08f}
+import {pauseAndReplanSnakeV08f,resumeReplannedSnakeV08f}
  from './snake-dynamic-replan-v08f.mjs';
 
 export const SNAKE_ROUTE_FOLLOWER_VERSION='0.9C';
@@ -267,5 +267,67 @@ export function probeSnakeRouteChangedSceneV09c({
   safeResumeForOldDestinationAuthorized:false,
   routeRecalculated:false,privateSaveModified:false,
   skinApplied:false,paused
+ });
+}
+
+// A new geometry version never reuses the old graph. Explicitly resume the
+// SAME source relay via V0.8F only after its approved stationary safety
+// probe, then recompute a fresh XY route from the new source head. This
+// grants one safe step, not permission to force completion of the route.
+export function resumeSnakeRouteAfterSceneChangeV09c({
+ state,paused,updatedScene,terrain
+}={}){
+ if(state?.version!==SNAKE_ROUTE_FOLLOWER_VERSION||
+    !['moving_outbound','moving_return'].includes(state.phase)||
+    paused?.version!==SNAKE_ROUTE_FOLLOWER_VERSION||
+    paused.phase!=='paused_scene_probe'||
+    !updatedScene||!terrain)
+  throw new RangeError('v09c_invalid_resume_contract');
+ if(paused.paused?.baseRelayState!==state.relayState||
+    paused.paused?.phase!=='paused'||paused.paused?.ok!==true||
+    state.sceneStamp===stamp(updatedScene,terrain))
+  return staticStop('not_matching_approved_source_pause',{
+   actorId:state.actorId
+  });
+ const restart=resumeReplannedSnakeV08f({
+  paused:paused.paused,scene:updatedScene,terrain
+ });
+ if(!restart.ok||restart.pose?.points?.length!==24)
+  return staticStop('replanned_step_source_rejected',{
+   actorId:state.actorId,reasonDetail:restart.reason
+  });
+ const now=snakeFloorToTerrariumV07c(restart.pose.points[0]);
+ const goal=state.phase==='moving_return'?state.startFloor:state.goalFloor;
+ const route=findSnakeSceneRouteV09b({
+  scene:updatedScene,startFloor:now,goalFloor:goal,
+  expectedRevision:updatedScene.revision,
+  gridPixels:state.gridPixels,
+  bodyClearancePixels:state.bodyClearancePixels
+ });
+ if(route.status!=='SAFE_GRID_BIDIRECTIONAL')
+  return staticStop('new_scene_route_not_reversible',{
+   actorId:state.actorId,graphStatus:route.status
+  });
+ const validated=inspectSnakeTemporalContinuityV08d({
+  previousPose:state.pose,pose:restart.pose,seconds:1/30,
+  visualBendLimit:.65
+ });
+ if(!validated.visualBendAccepted||
+    validated.maxJointStep>.012+1e-9||
+    validated.maxStepTangentRotationRadians>.045+1e-9)
+  return staticStop('replan_first_step_continuity_rejected',{
+   actorId:state.actorId
+  });
+ return frozenState({...state,
+  sceneId:updatedScene.sceneId,sceneRevision:updatedScene.revision,
+  sceneStamp:stamp(updatedScene,terrain),
+  route:F(route.path),returnGraph:F(route.returnPath),
+  relayState:restart.resumeState,pose:restart.pose,
+  verifiedFrames:state.verifiedFrames+1,
+  stepCountAfterStart:state.stepCountAfterStart+1,
+  lastHeadFloor:now,
+  status:'new_scene_replanned_source_24_joint_one_step_verified',
+  playerObservationRecorded:false,saveModified:false,
+  fullBodyReturnVerified:false,gameplayNavigationAuthorized:false
  });
 }
