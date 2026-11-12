@@ -129,11 +129,11 @@ assert.ok(clean.maxJointStep<.03&&clean.maxHeadStep<.02,
  'corrected route must not teleport across frame boundaries');
 
 // A synthetic positional discontinuity must fail closed rather than count as motion.
-const ds=2.28/23;
+const newDs=2.28/23;
 const straight=Object.freeze({
- segmentLength:ds,
+ segmentLength:newDs,
  points:Object.freeze(Array.from({length:24},(_,i)=>Object.freeze({
-   x:i*ds,y:0,z:.135
+   x:i*newDs,y:0,z:.135
  })))
 });
 const jump=Object.freeze({...straight,points:Object.freeze(
