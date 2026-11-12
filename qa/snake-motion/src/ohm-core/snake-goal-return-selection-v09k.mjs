@@ -103,7 +103,7 @@ function rankCandidate(source,scene,c,visited){
   terminalOutwardTrendPx:outwardTrend,
   remaining2DGraphCostPx:route.cost,
   graphStatus:route.status,
-  2DGraphNotCollisionAuthority:true,
+  graph2DNotCollisionAuthority:true,
   sourcePreviewAccepted:true,
   fullBodyReturnVerified:false
  });
@@ -137,7 +137,7 @@ export function chooseSnakeGoalReturnV09k({
   originalSourceJointsChanged:false,
   previewOnlyNoSourceMovement:true,
   sourceV09dV09gStillMandatory:true,
-  2DGraphOnlyNotBodyClearance:true,
+  graph2DOnlyNotBodyClearance:true,
   fullBodyReturnVerified:false,
   meshSweepCertified:false,
   skinApplied:false,saveModified:false
