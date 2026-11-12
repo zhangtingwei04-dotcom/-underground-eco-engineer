@@ -33,6 +33,7 @@ const cases=[
 ];
 const readOnly=Object.freeze({x:.1,y:-.025});
 const results=[];
+let baselineFinalPose=null;
 for(const variant of cases){
  const d=variant.rockDelta;
  const env=createTerrariumSceneGeometryV03d({
@@ -111,6 +112,7 @@ for(const variant of cases){
     result.peakBend=Math.max(result.peakBend,reading.maximumBendRadians);
     result.peakRotation=Math.max(result.peakRotation,
       reading.maxStepTangentRotationRadians);
+    if(variant.name==='rock_baseline'&&i===89)baselineFinalPose=step.pose;
     previous=step.pose;relay=step.nextState;
     result.groundFrames++;
    }
@@ -132,3 +134,19 @@ const accepted=results.filter(x=>x.reason===null&&x.groundFrames===90);
 console.log('V0.8D landscape sweep accepted '+accepted.length+'/'+results.length+
  ' synthetic rock/floor variants; unaccepted cases are NOT certified');
 assert.ok(accepted.every(x=>x.peakBend<=.65));
+
+assert.ok(baselineFinalPose,
+ 'baseline must supply actual 24-joint ending pose for obstruction control');
+const blockedScene=createTerrariumSceneGeometryV03d({
+ sceneId:'v08d_obstruction_negative_control',
+ objects:[
+  {id:'blocking_rock',kind:'rock_overhang',
+   x:600,y:10,width:65,depth:70,height:120,transmissionPermille:0}
+ ]
+});
+const obstruction=inspectSnakeTerrariumPoseV07c(
+ baselineFinalPose,blockedScene
+);
+assert.equal(obstruction.ok,false,
+ 'a newly positioned solid rock in the actual snake path must fail closed');
+console.log('PASS V0.8D obstacle negative control: real source-backed final pose rejected by overlapping rock');
