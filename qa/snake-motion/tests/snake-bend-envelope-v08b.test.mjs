@@ -89,6 +89,8 @@ for(const turn of [0,.04,.08,.12,.16,.20,.24]){
   temporalState:temporal,turnRadians:turn
  });
  let worst={radians:0,index:-1,frame:-1};
+ const initialBend=poseMaximumBend(state.temporalState.v07sState.pose.points);
+ const milestones=[];
  let ending=null,failed=null;
  for(let i=0;i<90;i++){
   const step=advanceSnakeCurvatureRelayV07u(state,{
@@ -96,13 +98,14 @@ for(const turn of [0,.04,.08,.12,.16,.20,.24]){
   });
   if(!step.ok){failed={frame:i,reason:step.reason};break;}
   const current=poseMaximumBend(step.pose.points);
+  if([1,10,25,50,75,90].includes(i+1))milestones.push({frame:i+1,angle:+current.radians.toFixed(6),joint:current.index});
   if(current.radians>worst.radians){
    worst={...current,frame:i+1};
   }
   state=step.nextState;
   ending=step;
  }
- const row={turn,maximumBendRadians:+worst.radians.toFixed(8),
+ const row={turn,initialBendRadians:+initialBend.radians.toFixed(8),initialBendIndex:initialBend.index,milestones,maximumBendRadians:+worst.radians.toFixed(8),
   maximumBendDegrees:+(worst.radians*180/Math.PI).toFixed(4),
   joint:worst.index,frame:worst.frame,
   accepted:!failed,failed,
