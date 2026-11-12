@@ -201,6 +201,8 @@ const expression='(()=>{'+
  'ghostShift:Number(d.qaV07vShellShift),ghostRatio:Number(d.qaV07vHeadRatio),'+
  'ghostScale:Number(d.qaV07vHeadScale),ghostCollar:Number(d.qaV07vCollarRings),'+
  'correctedMode:d.qaV08cMode,'+
+ 'worstFrameBend:Number(d.qaV08cWorstFrameBend),'+
+ 'worstFrameBendFrame:Number(d.qaV08cWorstFrame),'+
  'departureY:Number(d.qaV08cDepartureY),'+
  'relayMode:d.qaV07uMode,relay:d.qaV07uRelay,'+
  'relayTurn:Number(d.qaV07uTurn),relayBend:Number(d.qaV07uFrontBend),'+
@@ -323,6 +325,12 @@ async function visit(cdp,url,view,debug,probe='off',ghost=false,sculpt=false,nec
   view.name+' experimental V0.8C must be explicit');
  if(expectedV08c)assert.equal(state.departureY,-.025,
   view.name+' 3D head departure must point slightly towards front glass');
+ if(expectedV08c){
+  assert.ok(state.worstFrameBend<.65,
+   view.name+' strict ALL-FRAME bend gate failed; peak='+
+   state.worstFrameBend+' at ground frame '+state.worstFrameBendFrame);
+  assert.ok(state.worstFrameBendFrame>0);
+ }
  assert.equal(state.opacityMode,opacity?'true':'false',
    view.name+' V0.8A explicit opt-in');
   if(opacity){assert.equal(state.opacityOnePass,'true');assert.equal(state.opacityPaintPasses,1);}

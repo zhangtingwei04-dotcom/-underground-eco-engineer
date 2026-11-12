@@ -131,6 +131,8 @@ import {inspectSnakeVolumeClearanceV07z}
  from './src/ohm-core/snake-volume-clearance-v07z.mjs';
 import {buildSnakeOpacityUnionV08a}
  from './src/ohm-core/snake-opacity-union-v08a.mjs';
+import {inspectSnakeBendFrameV08c}
+ from './src/ohm-core/snake-bend-monitor-v08c.mjs';
 const C=FRONT_GLASS_CAMERA_V07G;
 const canvas=document.getElementById('stage');
 const ctx=canvas.getContext('2d',{alpha:false});
@@ -672,7 +674,7 @@ function drawContinuousTransparentRig(frame,showNodes){
  }
  ctx.restore();
 }
-let state,neckState,lastGroundYaw,shown,currentPose,currentHead,frameNum,qaPassed,qaFailed,playing=true,nodes=false,terrainVisible=false,wallMode=false,wallSession=null,handoffMode=false,handoffSession=null,handoffFrames=0,headLedMode=false,headLedSession=null,correctedDepartureMode=false,relayMode=false,relaySession=null,lastRelayFrame=null,ghostMode=false,sculptMode=false,neckFollowMode=false,slenderMode=false,clearanceMode=false,unifiedAlphaMode=false,stop=false,acc=0;
+let state,neckState,lastGroundYaw,shown,currentPose,currentHead,frameNum,qaPassed,qaFailed,playing=true,nodes=false,terrainVisible=false,wallMode=false,wallSession=null,handoffMode=false,handoffSession=null,handoffFrames=0,headLedMode=false,headLedSession=null,correctedDepartureMode=false,relayMode=false,relaySession=null,lastRelayFrame=null,worstRelayBend=0,worstRelayBendFrame=-1,ghostMode=false,sculptMode=false,neckFollowMode=false,slenderMode=false,clearanceMode=false,unifiedAlphaMode=false,stop=false,acc=0;
 function reset(){
  if(!slenderMode||!clearanceMode)unifiedAlphaMode=false;
  by('opacityUnion').setAttribute('aria-pressed',String(unifiedAlphaMode));
@@ -680,6 +682,7 @@ function reset(){
  neckState=null;lastGroundYaw=null;shown=null;currentPose=null;currentHead=null;frameNum=0;
  qaPassed=0;qaFailed=0;stop=false;acc=0;playing=true;
  handoffSession=null;handoffFrames=0;headLedSession=null;relaySession=null;lastRelayFrame=null;
+ worstRelayBend=0;worstRelayBendFrame=-1;
  previousNeckFollow=null;previousNeckFrameNum=-1;neckFollowFrame=null;
  previousSlender=null;previousSlenderFrameNum=-1;slenderFrame=null;
  clearanceFrame=null;opacityFrame=null;
@@ -745,7 +748,14 @@ function runStep(advance=true){
     headLedMode?step.nextState.v07sState:step.nextState;
    if(headLedMode)headLedSession=relayMode?
     step.nextState.temporalState:step.nextState;
-   if(relayMode){relaySession=step.nextState;lastRelayFrame=step;}
+   if(relayMode){
+    const bend=inspectSnakeBendFrameV08c({pose:step.pose});
+    if(bend.maximumRadians>worstRelayBend){
+      worstRelayBend=bend.maximumRadians;
+      worstRelayBendFrame=step.frames;
+    }
+    relaySession=step.nextState;lastRelayFrame=step;
+   }
    handoffFrames++;
    shown=projected;currentPose=step.pose;currentHead=step.head;
    qaPassed++;frameNum++;return;
@@ -995,6 +1005,8 @@ function draw(){
  document.body.dataset.qaV07vCollarRings=String(
   ghostFrame?.collarRingCount??0);
  document.body.dataset.qaV08cMode=String(correctedDepartureMode);
+ document.body.dataset.qaV08cWorstFrameBend=String(worstRelayBend);
+ document.body.dataset.qaV08cWorstFrame=String(worstRelayBendFrame);
  document.body.dataset.qaV08cDepartureY=String(
   relaySession?.sourceDeparture?.y??handoffSession?.departure.y??0);
  document.body.dataset.qaV07uMode=String(relayMode);
