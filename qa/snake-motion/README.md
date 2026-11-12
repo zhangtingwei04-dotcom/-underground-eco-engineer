@@ -31,3 +31,7 @@ Public experimental `snake-obstacle-lookahead-v08e.mjs` compares hand-authored d
 ## Separate, reproducible pattern-data experiment (V1)
 
 The public-only [pattern data contract](PATTERN_BLUEPRINT_V1_20261112.md) stores one immutable seed + explicit normalized surface descriptors per snake, independently of temporary skeletal ring count and real species genes. The unit tests cover save/load byte identity, resampling and growth invariance. **No actual skin, color texture or private player save has been changed.**
+
+## Pattern V1.1 — source-anchored but **still unpainted**
+
+The public-only [V1.1 pattern surface adapter](PATTERN_SURFACE_BIND_V11_20261112.md) places a V1 seed-once blueprint onto the **actual existing V0.7Q or V0.7Y collision-sampled surface triangles** using fixed longitudinal/circumference UV. Unit QA includes 95 wall frames, 13→24 resegmentation, 90 ground turning frames and synthetic growth; no painted skin or private integration. [Evidence-gated species pattern research](PATTERN_SPECIES_EVIDENCE_20261112.md) is kept separately; corn snake research is stronger than currently verified western hognose commercial morph genetics.

@@ -16,6 +16,13 @@ Experimental animal motion, transparent render, terrarium appearance, geometry a
 4. **Promote deliberately.** Copy only the reviewed affected modules/tests using a new private integration commit (never change private history or ingest the public repo wholesale). Record the public source SHA and QA evidence in the private project memory. Add private-only adapters for saves/auth/NPCs and run focused integration checks; avoid mass CI loops on the exhausted private monthly budget.
 5. **Rollback or rework publicly.** If a candidate fails private integration, preserve the last stable private implementation, fix the synthetic repro in public, then re-qualify it. Do not automatically promote public `main` on every push.
 
+## Current promotion gate — Pattern V1.1 UV attachment (2026-11-12)
+
+- Public pattern V1 (seed/immutable descriptors) and V1.1 (exact barycentric sampling of **existing** V0.7Q ghost and V0.7Y slim candidate triangles) were added as read-only experimental data modules, not actual snake skin.
+- Actual 95 raised / 90 grounded moving-frame source-backed unit test passed, including 13→24 handoff. GitHub Actions [43224419365](https://github.com/zhangtingwei04-dotcom/-underground-eco-engineer/actions/runs/43224419365) 5/5 jobs green; the real Chrome jobs cover existing transparent skeleton and ecology only, **not a new pixel-skin shader**.
+- Species gene/morph validity research is preliminary and segregated from V1's neutral pseudo-random mark generator: [evidence report](PATTERN_SPECIES_EVIDENCE_20261112.md).
+- **No promotion of pattern, surface mapping, private save schema or skin yet.** Require species-validated art models, visual animation and deliberate private integration review.
+
 ## Current promotion gate — V0.8F mid-motion source-safe stop/replan (2026-11-12)
 
 - Public V0.8F introduces **explicit safe pause and finite authored-heading replan while already moving**, preserving the SAME 24 source joints, existing velocity/acceleration clock, source collision and real V0.3d revision.

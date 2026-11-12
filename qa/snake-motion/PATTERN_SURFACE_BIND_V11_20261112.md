@@ -50,3 +50,11 @@ phenotype/pattern identity, avoid changing source collisions or saves
 without explicit private integration review.
 
 **All work public-only; no private player save or original art copied.**
+
+## V1.1 actual moving-pose regression (2026-11-12)
+
+- `tests/snake-pattern-surface-live-v11.test.mjs` maps exactly the same neutral UV mark identity on **95 actual V0.7P raised / lowering source frames**, performs the **13-to-24 joint source-preserving handoff**, and then follows **90 actual V0.7U corrected turning steps** (91 24-joint bind calls including initial handoff).
+- Actual maximum per-frame mark displacement on the moving V0.7Q surface: **0.0118211 world units** in wall motion and **0.0035947 world units** after grounded turn. Source 13→24 handoff maximum mark displacement was **0.0104966 world units**. These are physical motion / resampling changes, not new random seeds.
+- This test used an unchanged pattern recipe throughout, preserved original source constraints and did not paint a single pixel of skin.
+- GitHub Actions [43224419365](https://github.com/zhangtingwei04-dotcom/-underground-eco-engineer/actions/runs/43224419365): **5/5 jobs successful**, includes this moving-pose test and unchanged earlier Chrome QA. The new pattern adapter is not yet demonstrated as a rendered pixel skin.
+- See [species evidence and limits](PATTERN_SPECIES_EVIDENCE_20261112.md) before assigning real species-specific pattern/genes.
