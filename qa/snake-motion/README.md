@@ -11,3 +11,7 @@ This is a deliberately **isolated, synthetic QA mirror** of selected source-back
 - No CI is authorized to fetch the private repository. The checkout token is read-only and has no private-repo permissions.
 
 The view/screenshot checks are engineering diagnostics rather than release or collision certification. In particular, apparent 2D overlap is not equivalent to 3D contact.
+
+## Public-first staging
+
+Experimental fixes are tested here first; they **do not automatically update** private gameplay source. See [Promotion policy](PUBLIC_FIRST_PROMOTION.md). Full promotion requires strict moving-snake Chrome QA and human review of actual render captures. A failed strict quality gate must remain visible.
