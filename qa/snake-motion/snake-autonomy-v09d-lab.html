@@ -64,6 +64,9 @@ const scene=createTerrariumSceneGeometryV03d({
 });
 const terrain=F({groundZ:0,rock:null,perch:null});
 const samples=[];
+const params=new URLSearchParams(location.search);
+const unsafeDiagnosticMode=params.get('unsafe')==='1';
+let safeLastIndex=0,firstUnsafeFrame=null;
 let timer=null,frameIndex=0;
 function rgba(c,a){return 'rgba('+c+','+a+')'}
 function rect(x,y,w,h,fill){
@@ -157,7 +160,8 @@ function hashCanvas(){
  return {hash:h,pixels:diff};
 }
 function show(index){
- frameIndex=Math.max(0,Math.min(samples.length-1,index));
+ frameIndex=Math.max(0,Math.min(
+  unsafeDiagnosticMode?samples.length-1:safeLastIndex,index));
  const sample=samples[frameIndex];
  drawScene();drawSnake(sample.pose,sample.diagnostic);
  const audit=hashCanvas(),q=sample.diagnostic;
@@ -174,13 +178,20 @@ function show(index){
  document.body.dataset.qaPixels=String(audit.pixels);
  document.body.dataset.qaHash=String(audit.hash);
  document.body.dataset.qaPhase=sample.phase;
+ document.body.dataset.qaSafeMode=String(!unsafeDiagnosticMode);
+ document.body.dataset.qaSafeStop=String(firstUnsafeFrame??-1);
+ $('scope').textContent=unsafeDiagnosticMode?
+  '工程診斷模式：紅色為疑似自身接觸，不得視為合格動畫':
+  '安全預覽：已在第一個疑似接觸影格之前停止';
 }
 function stop(){if(timer!==null){clearInterval(timer);timer=null}
  $('toggle').textContent='播放'}
 function play(){
  stop();$('toggle').textContent='暫停';
  timer=setInterval(()=>{
-  if(frameIndex>=samples.length-1){stop();return}
+  if(frameIndex>=(unsafeDiagnosticMode?samples.length-1:safeLastIndex)){
+   stop();return
+  }
   show(frameIndex+1)
  },33);
 }
@@ -230,11 +241,18 @@ try{
  }
  if(s.phase!=='return_head_arrived'||s.verifiedFrames<600)
   throw Error('source_head_never_safely_returned');
- $('timeline').max=String(samples.length-1);
- const desired=Number(new URLSearchParams(location.search).get('frame'));
+ const firstUnsafeIndex=samples.findIndex(v=>
+  !v.diagnostic.candidateClearanceAccepted);
+ safeLastIndex=firstUnsafeIndex<0?samples.length-1:
+  Math.max(0,firstUnsafeIndex-1);
+ firstUnsafeFrame=firstUnsafeIndex<0?null:samples[firstUnsafeIndex].frame;
+ $('timeline').max=String(unsafeDiagnosticMode?samples.length-1:safeLastIndex);
+ const desired=Number(params.get('frame'));
  const idx=Number.isFinite(desired)?samples.findIndex(s=>s.frame>=desired):0;
  show(idx>=0?idx:samples.length-1);
  window.ohmQaV09d={frames:samples.length,sourceVerifiedFrames:s.verifiedFrames,
+  unsafeDiagnosticMode,firstUnsafeFrame,
+  safeLastFrame:samples[safeLastIndex].frame,
   initialHead:head,finalHead:snakeFloorToTerrariumV07c(s.pose.points[0]),
   candidateOverlapFrames:samples.filter(s=>
    s.diagnostic.candidateOverlapCount>0).length,
