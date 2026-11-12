@@ -188,6 +188,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Install CJK glyphs for actual Traditional Chinese QA captures
+        run: sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
       - name: Install Chrome
         id: setup-chrome
         uses: browser-actions/setup-chrome@v2
