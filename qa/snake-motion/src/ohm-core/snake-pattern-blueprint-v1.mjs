@@ -72,6 +72,7 @@ function payload({seed,speciesId,styleId,paletteId,markCount}){
   generator:SNAKE_PATTERN_GENERATOR,
   patternId:'pattern-v1-'+hex(selectedSeed)+'-'+hex(hash(species+'|'+style)),
   seed:selectedSeed,speciesId:species,styleId:style,paletteId:palette,
+  markCount,
   surfaceConvention:'head-to-tail-u__dorsal-seam-v0__ventral-v0_5',
   marks:F(marks)
  };
@@ -82,7 +83,7 @@ function seal(p){
 }
 function assertBlueprint(b){
  const keys=['version','generator','patternId','seed','speciesId',
-  'styleId','paletteId','surfaceConvention','marks','integrityChecksum'];
+  'styleId','paletteId','markCount','surfaceConvention','marks','integrityChecksum'];
  if(!exact(b,keys)||b.version!==SNAKE_PATTERN_BLUEPRINT_VERSION||
   b.generator!==SNAKE_PATTERN_GENERATOR)
   fail('unsupported_blueprint_version_or_shape');
