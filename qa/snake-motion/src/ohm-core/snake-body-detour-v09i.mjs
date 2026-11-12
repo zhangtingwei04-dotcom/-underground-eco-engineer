@@ -143,12 +143,14 @@ function sourceCheckedCustomPaths(state,scene,stagingCandidates){
     ids.has(item.id)||
     !Array.isArray(item.staging)||item.staging.length!==2||
     item.staging.some(q=>!q||!finite(q.x)||!finite(q.y)||
-      q.x<0||q.x>1000||q.y<0||q.y>400))
+      q.x< -300||q.x>1300||q.y< -300||q.y>700))
    throw new RangeError('v09i_invalid_custom_staging');
   ids.add(item.id);
   const [first,second]=item.staging.map(q=>p(q.x,q.y));
   const staging=F([head,first,second]);
   const clear=staging.slice(1).every((stop,i)=>
+   // Generated arc points outside the 1000x400 floor are rejected
+   // by scene geometry, not misreported as malformed source data.
    d(staging[i],stop)>10&&
    boundsAndSceneClear(staging[i],stop,scene,24)&&
    awayFromNonlocalBody(staging[i],stop,state));
