@@ -347,7 +347,16 @@ export function inspectSnakeSizeTerrainTransitionV09p({
     b.candidate.points[i+1],t);
    for(let k=0;k<=8;k++){
     const q=mix(l,r,k/8);
-    const gap=q.z-radius-
+    // The provisional body envelope linearly tapers between adjacent
+    // radii; a constant maximum along the whole segment would falsely
+    // report ground penetration at a narrow tail section.
+    const fraction=k/8;
+    const localRadius=(1-fraction)*
+     Math.max(a.candidate.radiiWorldUnits[i],
+      b.candidate.radiiWorldUnits[i])+
+     fraction*Math.max(a.candidate.radiiWorldUnits[i+1],
+      b.candidate.radiiWorldUnits[i+1]);
+    const gap=q.z-localRadius-
      sampleSnakeTerrain(q.x,q.y,terrain).z;
     minimumGap=Math.min(minimumGap,gap);
     samples++;
