@@ -19,3 +19,7 @@ Experimental fixes are tested here first; they **do not automatically update** p
 ## Latest validated public experiment (V0.8C)
 
 The opt-in corrected ground-departure pose `?qa_v07g=1&qa_v07u=1&qa_v08c=1&qa_v08a=1` passed 36 real Chrome images and the strict max bend tracked **across all simulated relay frames** on [run 43211645328](https://github.com/zhangtingwei04-dotcom/-underground-eco-engineer/actions/runs/43211645328). This does **not** promote it to the private game; see [test limitations and exact evidence](V08C_PUBLIC_QA_REPORT_20261112.md).
+
+## Latest: source-verified obstacle lookahead (V0.8E)
+
+Public experimental `snake-obstacle-lookahead-v08e.mjs` compares hand-authored departure candidates over 90 real source-backed simulation frames. If a tiny solid rock blocks the preferred route, regression tests demonstrate a safe alternative; when all candidates are blocked it selects nothing. A changed scene revision invalidates stale previews. See [V0.8E report](V08E_PUBLIC_OBSTACLE_LOOKAHEAD_20261112.md). **Not full autonomous navigation and not integrated in the private game.**

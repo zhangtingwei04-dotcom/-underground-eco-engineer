@@ -16,6 +16,12 @@ Experimental animal motion, transparent render, terrarium appearance, geometry a
 4. **Promote deliberately.** Copy only the reviewed affected modules/tests using a new private integration commit (never change private history or ingest the public repo wholesale). Record the public source SHA and QA evidence in the private project memory. Add private-only adapters for saves/auth/NPCs and run focused integration checks; avoid mass CI loops on the exhausted private monthly budget.
 5. **Rollback or rework publicly.** If a candidate fails private integration, preserve the last stable private implementation, fix the synthetic repro in public, then re-qualify it. Do not automatically promote public `main` on every push.
 
+## Current promotion gate — V0.8E obstacle lookahead (2026-11-12)
+
+- New [V0.8E public experiment](V08E_PUBLIC_OBSTACLE_LOOKAHEAD_20261112.md) preflights ordered authored directions with the source collision/head/ground and 0.65 rad visual gates for 90 frames. It has demonstrably selected an actual alternative around small rocks and correctly stopped on a fully obstructed route.
+- Public Actions [43216016337](https://github.com/zhangtingwei04-dotcom/-underground-eco-engineer/actions/runs/43216016337) all five jobs green. It also verifies the previous full 36-image and 14-frame landscape Chrome suites.
+- **Promotion blocked:** no runtime mid-motion obstacle stop/replan and no general natural pathfinding, full animation review or species-specific validation. All new V0.8E work remains public-only.
+
 ## Current promotion gate — V0.8C update (2026-11-12)
 
 - Public candidate `qa_v08c=1` selectively changes **synthetic relay-mode authored ground departure** from `(0.1,+0.025)` to `(0.1,-0.025)`. The V0.7U baseline is unchanged without opt-in. This is scenario geometry tuning, NOT a general movement algorithm rewrite.
