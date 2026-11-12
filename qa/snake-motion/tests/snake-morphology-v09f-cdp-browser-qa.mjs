@@ -112,7 +112,7 @@ if(bin)try{
   let data=null;
   for(let i=0;i<150;i++){
    const v=await protocol.send('Runtime.evaluate',{
-    expression:'(()=>({status:document.body.dataset.qaV09f,'+
+    expression:'(()=>({status:document.body?.dataset?.qaV09f??null,'+
      'ready:document.readyState,qa:window.ohmQaV09f??null}))()',
     returnByValue:true
    });
