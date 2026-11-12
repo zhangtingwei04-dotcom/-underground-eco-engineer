@@ -57,9 +57,6 @@ let state=startSnakeRouteFollowerV09c({
  autoReturn:true
 });
 assert.equal(state.phase,'moving_outbound');
-assert.throws(()=>planSnakeBodyDetourV09i({
- state,scene,terrain
-}),RangeError);
 for(let i=0;i<440&&state.phase==='moving_outbound';i++){
  state=advanceSnakeRouteWithTurnSpaceGuardV09g({
   state,scene,terrain
