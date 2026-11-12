@@ -104,7 +104,11 @@ function checkCandidate(candidate,scene,terrain,pad,samplesPerLink){
   for(let k=0;k<=samplesPerLink;k++){
    const t=k/samplesPerLink,q=mix(a,b,t);
    const ground=sampleSnakeTerrain(q.x,q.y,terrain).z;
-   const gap=q.z-radius-ground;
+   // V0.9N exposes variable-radius joints. For the provisional
+   // centerline envelope, interpolate radius on each link instead of
+   // forcing a thick neighbor's full radius onto the thin tail.
+   const atRadius=radii[i]*(1-t)+radii[i+1]*t;
+   const gap=q.z-atRadius-ground;
    sceneSamples++;
    if(gap<minGround){minGround=gap;
     worstGround=F({link:i,fraction:t});}
@@ -172,20 +176,9 @@ export function solveSnakeSizeTerrainContactV09p({
  let points=original,passes=0,reason=null,maximumXYDrift=0;
  for(let pass=0;pass<maxPasses;pass++){
   passes++;
-  const required=new Array(24).fill(-Infinity);
-  for(let i=0;i<23;i++){
-   const a=points[i],b=points[i+1];
-   const radius=Math.max(radii[i],radii[i+1]);
-   let peak=-Infinity;
-   for(let k=0;k<=samplesPerLink;k++){
-    const q=mix(a,b,k/samplesPerLink);
-    peak=Math.max(peak,
-     sampleSnakeTerrain(q.x,q.y,terrain).z);
-   }
-   const target=peak+radius+marginWorld;
-   required[i]=Math.max(required[i],target);
-   required[i+1]=Math.max(required[i+1],target);
-  }
+  const required=points.map((q,i)=>
+   sampleSnakeTerrain(q.x,q.y,terrain).z+
+   radii[i]+marginWorld);
   // Preserve authored lifts ONLY if clearly intentional (> .025);
   // don't inherit old adult centerline height for a smaller juvenile.
   for(let i=0;i<24;i++){
@@ -194,6 +187,26 @@ export function solveSnakeSizeTerrainContactV09p({
    const authoredLift=src.z-.13-canonicalTerrain;
    if(authoredLift>.025)required[i]+=authoredLift;
   }
+  // Sample the whole link, not only nodes. If a rounded hill rises
+  // above the linearly interpolated radius envelope, conservatively
+  // raise both ends just enough to clear that section. This avoids
+  // the old blanket max-radius floor forcing a thin tail to hover.
+  const additionalLift=new Array(24).fill(0);
+  for(let i=0;i<23;i++){
+   const a=points[i],b=points[i+1];
+   let need=0;
+   for(let k=0;k<=samplesPerLink;k++){
+    const t=k/samplesPerLink,q=mix(a,b,t);
+    const ground=sampleSnakeTerrain(q.x,q.y,terrain).z;
+    const r=(1-t)*radii[i]+t*radii[i+1];
+    const wanted=ground+r+marginWorld;
+    const current=(1-t)*required[i]+t*required[i+1];
+    need=Math.max(need,wanted-current);
+   }
+   additionalLift[i]=Math.max(additionalLift[i],need);
+   additionalLift[i+1]=Math.max(additionalLift[i+1],need);
+  }
+  for(let i=0;i<24;i++)required[i]+=additionalLift[i];
   const candidate=[F({x:original[0].x,y:original[0].y,
    z:required[0]})];
   for(let i=0;i<23;i++){
