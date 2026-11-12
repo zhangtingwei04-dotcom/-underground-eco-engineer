@@ -167,7 +167,7 @@ function shadowPreview(source,candidate,scene,terrain,horizonFrames,seconds){
   return F({...candidate,accepted:false,reason:'staging_geometry_blocked',
    checkedSourceFrames:0,sourceLastFrame:source.verifiedFrames,
    lastHeadFloor:null,lastTailFloor:null,previewHeadSamples:F([]),
-   fullRouteProven:false});
+   previewTerminalPose:null,fullRouteProven:false});
  let state=F({...source,route:candidate.proposedRoute,
   // Different staging routes must actually affect desired steering;
   // do not force the inherited V0.9C interior-turn sign.
@@ -216,6 +216,9 @@ function shadowPreview(source,candidate,scene,terrain,horizonFrames,seconds){
   sourceLastFrame:state.verifiedFrames,
   lastHeadFloor:finalHead,lastTailFloor:finalTail,
   previewHeadSamples:F(headSamples),
+  // Read-only canonical source output, NOT a produced/committed new body.
+  // V0.9M audits all 24 joints in the same authenticated shadow.
+  previewTerminalPose:state.pose,
   headDistanceToHome:finalHead?d(finalHead,source.startFloor):Infinity,
   minCapsuleGap:minimumGap,
   fullRouteProven:false,meshSweepCertified:false,
