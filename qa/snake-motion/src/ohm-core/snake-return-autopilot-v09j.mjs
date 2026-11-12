@@ -22,6 +22,8 @@ import {planSnakeBodyDetourV09i}
  from './snake-body-detour-v09i.mjs';
 import {chooseSnakeGoalReturnV09k}
  from './snake-goal-return-selection-v09k.mjs';
+import {planSnakeHeadingReturnV09l}
+ from './snake-heading-turn-v09l.mjs';
 
 export const SNAKE_RETURN_AUTOPILOT_V09J_VERSION='0.9J';
 const F=Object.freeze;
@@ -78,7 +80,8 @@ function validateConfig({
   maximumHeadDistanceToHomePx<100||
   maximumHeadDistanceToHomePx>600||
   !finite(seconds)||seconds<=0||seconds>.05||
-  !['legacy_nearest_head','goal_revisit_v09k'].includes(routeSelectionMode))
+  !['legacy_nearest_head','goal_revisit_v09k',
+    'configuration_turn_v09l'].includes(routeSelectionMode))
   throw new RangeError('v09j_invalid_controller_source_or_config');
 }
 export function startSnakeReturnAutopilotV09j({
@@ -170,22 +173,32 @@ export function advanceSnakeReturnAutopilotV09j({
   if(currentDistance>state.maximumHeadDistanceToHomePx)
    return stop(state,'resting_far_from_home',
     'head_moved_beyond_bounded_return_radius');
-  const planned=planSnakeBodyDetourV09i({
-   state:state.source,scene,terrain,
-   horizonFrames:state.previewHorizonFrames,
-   seconds:state.seconds
-  });
-  // V0.9K is opt-in: score only source-verified V0.9I candidates
-  // against the original source-owned goal graph and REAL visited head
-  // locations. Legacy V0.9J remains unchanged for A/B regression.
+  // V0.9L also uses the same current original source pose. The heading
+  // arcs are candidate STAGING only, never a second animal body.
   const visited=F([...state.visitedHeadFloors,
    state.body.head].slice(-20));
-  const ranked=state.routeSelectionMode==='goal_revisit_v09k'?
-   chooseSnakeGoalReturnV09k({source:state.source,scene,planned,
-    visitedHeadFloors:visited}):null;
-  const selectedId=ranked?ranked.selectedId:planned.selectedCandidateId;
-  const selectedRoute=ranked?ranked.selectedRoute:planned.selectedRoute;
-  const selectionOk=ranked?ranked.ok:planned.ok;
+  const configuration=state.routeSelectionMode==='configuration_turn_v09l'?
+   planSnakeHeadingReturnV09l({
+    source:state.source,scene,terrain,visitedHeadFloors:visited,
+    horizonFrames:state.previewHorizonFrames,seconds:state.seconds
+   }):null;
+  const planned=configuration?configuration.plannedV09i:
+   planSnakeBodyDetourV09i({
+    state:state.source,scene,terrain,
+    horizonFrames:state.previewHorizonFrames,
+    seconds:state.seconds
+   });
+  const ranked=configuration?configuration.rankedV09k:
+   state.routeSelectionMode==='goal_revisit_v09k'?
+    chooseSnakeGoalReturnV09k({
+     source:state.source,scene,planned,visitedHeadFloors:visited
+    }):null;
+  const selectedId=configuration?configuration.selectedId:
+   ranked?ranked.selectedId:planned.selectedCandidateId;
+  const selectedRoute=configuration?configuration.selectedRoute:
+   ranked?ranked.selectedRoute:planned.selectedRoute;
+  const selectionOk=configuration?configuration.ok:
+   ranked?ranked.ok:planned.ok;
   const log=F({sourceFrame:state.source.verifiedFrames,
    selectedId,
    attempted:planned.candidates.length,
@@ -197,11 +210,14 @@ export function advanceSnakeReturnAutopilotV09j({
    stalledWindows:stalled,
    routeSelected:selectionOk,
    goalRankStatus:ranked?.status??null,
-   goalRankedCandidates:ranked?.candidateScores??null});
+   goalRankedCandidates:ranked?.candidateScores??null,
+   headingPlanStatus:configuration?.status??null,
+   sourceArcCandidates:configuration?.candidates.length??null,
+   sourceTurnNeckMismatch:configuration?.neckMismatchRadians??null});
   const history=F([...state.detourHistory,log]);
   if(!selectionOk)
    return stop({...state,detourHistory:history},
-    'resting_no_safe_detour',ranked?.status??planned.status);
+    'resting_no_safe_detour',configuration?.status??ranked?.status??planned.status);
   current=F({...state,
    source:F({...state.source,route:selectedRoute,
     returnTurnCommitted:false}),
