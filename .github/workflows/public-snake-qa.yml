@@ -211,3 +211,38 @@ jobs:
           path: qa/snake-motion/.qa-artifacts/v09d/*.png
           retention-days: 7
           if-no-files-found: warn
+
+  snake-v09f-static-morphology:
+    name: V0.9F real Chrome static transparent morphology in two landscapes
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    defaults:
+      run:
+        working-directory: qa/snake-motion
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install CJK fonts for static morphology labels
+        run: sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
+      - name: Install Chrome
+        id: chrome
+        uses: browser-actions/setup-chrome@v2
+        with:
+          chrome-version: stable
+      - name: Review static silhouette, head/neck, smooth trunk, tail, immutable source in Chrome
+        env:
+          OHM_CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+          OHM_REQUIRE_CHROME: '1'
+        run: |
+          node --check tests/snake-morphology-v09f-cdp-browser-qa.mjs
+          node tests/snake-morphology-v09f-cdp-browser-qa.mjs
+      - name: Save morphology visual QA screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: public-snake-v09f-static-morphology
+          path: qa/snake-motion/.qa-artifacts/v09f-static/*.png
+          retention-days: 7
+          if-no-files-found: warn
