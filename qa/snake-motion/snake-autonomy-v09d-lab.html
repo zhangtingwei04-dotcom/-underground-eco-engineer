@@ -46,6 +46,8 @@ import {inspectSnakeSelfClearanceV09d}
  from './src/ohm-core/snake-self-clearance-v09d.mjs';
 import {snakeSlimFactorV07y}
  from './src/ohm-core/snake-slender-volume-v07y.mjs';
+import {buildNeutralSnakeTransparentMorphologyV09f}
+ from './src/ohm-core/snake-transparent-morphology-v09f.mjs';
 import {projectSnakeFrontGlassPointV07g}
  from './src/ohm-core/snake-front-glass-projection-v07g.mjs';
 
@@ -66,6 +68,7 @@ const terrain=F({groundZ:0,rock:null,perch:null});
 const samples=[];
 const params=new URLSearchParams(location.search);
 const unsafeDiagnosticMode=params.get('unsafe')==='1';
+const morphologyMode=params.get('morph')==='1';
 let safeLastIndex=0,firstUnsafeFrame=null;
 let timer=null,frameIndex=0;
 function rgba(c,a){return 'rgba('+c+','+a+')'}
@@ -121,7 +124,52 @@ function strokePath(a,b,w,col){
  ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);
  ctx.strokeStyle=col;ctx.lineWidth=w;ctx.lineCap='round';ctx.stroke();
 }
+function traceProfile(points){
+ if(!points?.length)return;
+ ctx.moveTo(points[0].x,points[0].y);
+ for(let i=1;i<points.length;i++)ctx.lineTo(points[i].x,points[i].y);
+ ctx.closePath();
+}
+function drawSnakeMorphologyV09f(pose,diag){
+ const model=buildNeutralSnakeTransparentMorphologyV09f({pose});
+ // Shared display silhouette is filled ONCE. Head and body do not cause
+ // overlapping alpha layers; the official 24-joint physics is unchanged.
+ ctx.beginPath();
+ traceProfile(model.bodyProjection.outline);
+ traceProfile(model.headProjection.outline);
+ ctx.fillStyle='rgba(139,229,207,.42)';
+ ctx.fill('nonzero');
+ const centers=model.bodyProjection.centers2d;
+ ctx.beginPath();ctx.moveTo(centers[0].x,centers[0].y);
+ for(let i=1;i<centers.length;i++)ctx.lineTo(centers[i].x,centers[i].y);
+ ctx.strokeStyle='rgba(237,252,242,.40)';
+ ctx.lineWidth=1;ctx.stroke();
+ if(diag.candidateOverlaps.length){
+  const points=pose.points.map(p=>projectSnakeFrontGlassPointV07g(p));
+  for(const pair of diag.candidateOverlaps.slice(0,8)){
+   const a=points[pair.boneA],b=points[pair.boneB];
+   strokePath(a,b,2,'rgba(255,128,91,.65)');
+  }
+ }
+ ctx.fillStyle='rgba(231,251,235,.95)';ctx.font='17px system-ui';
+ ctx.fillText('V0.9F 纖細透明蛇 · 24節來源骨架未更動',76,86);
+ ctx.fillStyle='#bad8c9';ctx.font='14px system-ui';
+ ctx.fillText('新透明候選輪廓：未完成新網格碰撞與正式美術驗收',76,116);
+ window.ohmMorphDynamicV09f=Object.freeze({
+  version:model.version,sourceJointCount:model.sourceJointCount,
+  maximumSourceAnchorDrift:model.maximumSourceAnchorDrift,
+  headRingCount:model.headRingCount,bodyRingCount:model.bodyRingCount,
+  tailTipRatio:model.tailTipRadius/model.midBodyRadius,
+  skinApplied:model.skinApplied,
+  sourceMeshCollisionCertified:model.sourceSceneCollisionForNewMeshCertified,
+  playerVisibleGameArtApproved:model.playerVisibleGameArtApproved
+ });
+}
 function drawSnake(pose,diag){
+ if(morphologyMode){
+  drawSnakeMorphologyV09f(pose,diag);return;
+ }
+
  const points=pose.points.map(p=>projectSnakeFrontGlassPointV07g(p));
  for(let i=0;i<points.length-1;i++){
   const radiusScale=snakeSlimFactorV07y((i+.5)/23);
@@ -178,6 +226,7 @@ function show(index){
  document.body.dataset.qaPixels=String(audit.pixels);
  document.body.dataset.qaHash=String(audit.hash);
  document.body.dataset.qaPhase=sample.phase;
+ document.body.dataset.qaMorph=String(morphologyMode);
  document.body.dataset.qaSafeMode=String(!unsafeDiagnosticMode);
  document.body.dataset.qaSafeStop=String(firstUnsafeFrame??-1);
  $('scope').textContent=unsafeDiagnosticMode?
