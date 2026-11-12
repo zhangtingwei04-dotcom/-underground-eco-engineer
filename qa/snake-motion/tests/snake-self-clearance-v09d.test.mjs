@@ -126,6 +126,17 @@ for(let i=0;i<650;i++){
 }
 assert.equal(current.phase,'return_head_arrived');
 assert.ok(current.verifiedFrames>=600);
+assert.ok(gated,'strict V0.9D must stop known self-overlap before release');
+assert.equal(gated.reason,'next_source_self_clearance_rejected');
+assert.equal(gated.previousState.pose.points.length,24);
+assert.equal(inspectSnakeSelfClearanceV09d({
+ pose:gated.previousState.pose
+}).candidateClearanceAccepted,true,
+ 'held source pose is the last accepted safe candidate before rejected step');
+assert.equal(gated.diagnostic.candidateClearanceAccepted,false,
+ 'the candidate next frame itself must have shown a proximity hazard');
+assert.equal(gated.skinApplied,false);
+assert.equal(gated.saveModified,false);
 assert.equal(current.fullBodyReturnVerified,false);
 assert.ok(Number.isFinite(minGap));
 assert.ok(startDiagnostic.checkedNonlocalPairs===190);
