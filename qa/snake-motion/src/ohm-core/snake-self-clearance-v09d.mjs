@@ -20,7 +20,7 @@ const dot=(a,b)=>a.x*b.x+a.y*b.y+a.z*b.z;
 const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y,a.z-b.z);
 const clip=(x,a,b)=>Math.max(a,Math.min(b,x));
 const radians=(a,b,c)=>{
- const u=vec(a,b),v=vec(c,b),x=Math.hypot(u.x,u.y,u.z),
+ const u=vec(b,a),v=vec(c,b),x=Math.hypot(u.x,u.y,u.z),
   y=Math.hypot(v.x,v.y,v.z);
  if(x<1e-9||y<1e-9)throw new RangeError('v09d_degenerate_joint_angle');
  return Math.acos(clip(dot(u,v)/(x*y),-1,1));
