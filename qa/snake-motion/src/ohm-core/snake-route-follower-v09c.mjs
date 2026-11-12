@@ -27,7 +27,7 @@ const finite=x=>typeof x==='number'&&Number.isFinite(x);
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 const angleDelta=(a,b)=>Math.atan2(Math.sin(a-b),Math.cos(a-b));
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
-const MAX_TURN_PER_FRAME=.016;
+const MAX_TURN_PER_FRAME=.01;
 const TOLERANCE_PIXELS=9;
 const norm=v=>Math.hypot(v.x,v.y);
 const stamp=(scene,terrain)=>JSON.stringify({
@@ -176,7 +176,7 @@ export function advanceSnakeRouteFollowerV09c({
    status:'return_route_xy_recomputed_inward_turn_source_check_required'});
  }
  const target=followPoint(state.route,now,30);
- if(!target||target.nearestPathDistancePixels>65)
+ if(!target||target.nearestPathDistancePixels>(state.phase==='moving_return'?95:65))
   return staticStop('physical_head_drifted_from_route',{
    actorId:state.actorId,drift:target?.nearestPathDistancePixels??null,
    previousState:state});
