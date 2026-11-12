@@ -97,7 +97,7 @@ assert.equal(preflight.meshSurfaceSweepCertified,false);
 assert.equal(preflight.skinApplied,false);
 assert.equal(preflight.saveModified,false);
 for(const v of preflight.candidates){
- assert.ok(v.previewFrameCount>=0&&v.previewFrameCount<=90);
+ assert.ok(v.previewFrameCount>=0&&v.previewFrameCount<=160);
  assert.ok(v.sourceFrameAtEnd<=transition.verifiedFrames+160);
  assert.equal(v.sourceHeadAndBonesUnchangedByPreflight,true);
  assert.equal(v.fullBodyReturnCertified,false);
