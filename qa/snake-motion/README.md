@@ -15,3 +15,7 @@ The view/screenshot checks are engineering diagnostics rather than release or co
 ## Public-first staging
 
 Experimental fixes are tested here first; they **do not automatically update** private gameplay source. See [Promotion policy](PUBLIC_FIRST_PROMOTION.md). Full promotion requires strict moving-snake Chrome QA and human review of actual render captures. A failed strict quality gate must remain visible.
+
+## Latest validated public experiment (V0.8C)
+
+The opt-in corrected ground-departure pose `?qa_v07g=1&qa_v07u=1&qa_v08c=1&qa_v08a=1` passed 36 real Chrome images and the strict max bend tracked **across all simulated relay frames** on [run 43211645328](https://github.com/zhangtingwei04-dotcom/-underground-eco-engineer/actions/runs/43211645328). This does **not** promote it to the private game; see [test limitations and exact evidence](V08C_PUBLIC_QA_REPORT_20261112.md).

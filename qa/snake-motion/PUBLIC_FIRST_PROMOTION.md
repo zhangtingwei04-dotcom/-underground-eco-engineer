@@ -16,12 +16,14 @@ Experimental animal motion, transparent render, terrarium appearance, geometry a
 4. **Promote deliberately.** Copy only the reviewed affected modules/tests using a new private integration commit (never change private history or ingest the public repo wholesale). Record the public source SHA and QA evidence in the private project memory. Add private-only adapters for saves/auth/NPCs and run focused integration checks; avoid mass CI loops on the exhausted private monthly budget.
 5. **Rollback or rework publicly.** If a candidate fails private integration, preserve the last stable private implementation, fix the synthetic repro in public, then re-qualify it. Do not automatically promote public `main` on every push.
 
-## Current promotion gate
+## Current promotion gate — V0.8C update (2026-11-12)
 
-- V0.7Y slender translucent rig, V0.7Z clearance and V0.8A single-pass alpha are under QA.
-- Source-backed unit suite, pixel terrarium Chromium and V0.8A held-pose Chrome A/B passed in the public run [43208050027](https://github.com/zhangtingwei04-dotcom/-underground-eco-engineer/actions/runs/43208050027).
-- **BLOCKED:** Strict real moving-snake Chrome QA reported local 3D bend **0.737558 rad**, above the existing visual threshold **0.65 rad**. This is a quality defect, not a reason to raise the threshold. Full two-landscape-mode QA (36 PNGs) is not accepted.
-- **No promotion of unqualified public changes** into private `main`. Previously committed V0.8A private experiments are historical baseline, not evidence that new public iterations passed.
+- Public candidate `qa_v08c=1` selectively changes **synthetic relay-mode authored ground departure** from `(0.1,+0.025)` to `(0.1,-0.025)`. The V0.7U baseline is unchanged without opt-in. This is scenario geometry tuning, NOT a general movement algorithm rewrite.
+- Diagnostic V0.8B measured initial max bend `0.517618` rad, then the old baseline 90-step peak `0.971659` rad at head-side joint 1 with steering `0.24`. V0.8C with the opt-in route measured a 90-step peak `0.632991` rad. The **0.65 rad quality threshold was never relaxed**.
+- Public Actions [43211645328](https://github.com/zhangtingwei04-dotcom/-underground-eco-engineer/actions/runs/43211645328) at public commit `5b268f5ce702b9678f5033abbb1206e2325254ed`: **all four jobs passed** — snake+terrarium Node regression, 5-zone real Chrome, V0.8A one-pass transparency A/B, and strict full 36-image Chrome two-landscape QA.
+- The full Chrome QA now monitors **peak 3D source-bone bend across every relay frame**, rather than final pose alone, and rejects a candidate that exceeded 0.65 rad even if the last frame recovers.
+- An independent review of extracted 1440×900 and 932×480 screenshots confirmed the engineering skeleton/terrarium was rendered and transparent; it does not establish artist-approved final quality or temporal smoothness.
+- **Promotion still withheld.** One experimental vector / scene is not general movement robustness. Before private integration: evaluate frame-by-frame animation (not only final screenshots), multiple body orientations/near-wall situations, head motion versus anatomy, and other terrains; verify exact source and tests on the selected public commit. Preserve private main until these are done.
 
 ## Security, copyright and operational cautions
 
