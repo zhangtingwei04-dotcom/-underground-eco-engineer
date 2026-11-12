@@ -1,0 +1,2887 @@
+<!doctype html>
+<html lang="zh-Hant"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#182b24">
+<title>鱗片與種子｜生態場景 V0.3g 像素素材與手機五區操作</title>
+<style>
+:root{color-scheme:dark;--bg:#11221c;--pane:#233a30;--pane2:#1d3229;--line:#64765b;--ink:#f1e8d1;--sub:#c2ccbd;--gold:#f0ce88;--ok:#9ecc9d}
+*{box-sizing:border-box}body{margin:0;color:var(--ink);background:linear-gradient(180deg,#21382d,#11211b 290px);font:15px/1.5 system-ui,-apple-system,"Noto Sans TC","PingFang TC",sans-serif}
+main{margin:0 auto;max-width:1040px;padding:12px max(10px,env(safe-area-inset-right)) calc(30px + env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left))}
+header,section{margin:11px 0;padding:15px;border:1px solid var(--line);border-radius:16px;background:var(--pane);box-shadow:0 4px 15px #07100b26}
+header{background:linear-gradient(130deg,#456045,#274239 70%);border-color:#8d9273}
+.eyebrow{color:var(--gold);font-weight:750;letter-spacing:.12em;font-size:11px}
+h1{font-size:clamp(25px,5vw,37px);line-height:1.25;margin:6px 0 10px}
+h2{font-size:19px;margin:0 0 10px}
+p{color:var(--sub);margin:8px 0}
+.small{font-size:12px}
+.topline{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.clock{font-weight:750;color:var(--gold);font-variant-numeric:tabular-nums}
+.actions{display:flex;flex-wrap:wrap;gap:7px}
+button{font:inherit;min-height:44px;cursor:pointer;touch-action:manipulation}
+.action{padding:9px 12px;border:1px solid #ecd39c;border-radius:10px;background:#e0bd82;color:#22372b;font-weight:750}
+.action.alt{border-color:#799986;background:#375c4a;color:#f5ebd8}
+.action[aria-pressed="true"]{background:#e3d6ad;border-color:#f2e2ac;color:#20382c}
+.action:focus-visible,canvas:focus-visible{outline:3px solid #ffe4ab;outline-offset:3px}
+.view-switch{display:flex;gap:7px;margin:10px 0}
+.view-switch button{flex:1}
+.viewport{padding:8px;background:#132a22;border:1px solid #728267;border-radius:12px}
+canvas{display:block;width:100%;height:auto;aspect-ratio:8/5;border-radius:8px;border:3px solid #9d825b;touch-action:none;background:#162d26;cursor:crosshair;image-rendering:pixelated}
+.legend{display:flex;flex-wrap:wrap;gap:10px;margin:9px 0 3px;color:#dfd9c5;font-size:12px}
+.zone-dock{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px;margin:10px 0 6px}
+.zone-dock button{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:2px;min-width:0;min-height:62px;border:1px solid #6e896e;border-radius:9px;background:#1d3c31;color:#eae7cc;padding:7px 2px;font-size:clamp(11px,2.5vw,14px);font-weight:700;overflow:hidden}
+.zone-dock button[aria-pressed="true"]{background:#bda36c;color:#1a2b23;border-color:#f7df9e}
+.zone-dock output{font-size:13px;line-height:1.2;font-variant-numeric:tabular-nums;font-weight:800}
+.zone-dock .zone-sub{font-size:10px;line-height:1.2;opacity:.78}
+@media(max-width:430px){.zone-dock{gap:3px}.zone-dock button{font-size:11px;min-height:64px}.zone-dock output{font-size:12px}.zone-dock .zone-sub{font-size:9px}}
+.pixel-note{font-size:12px;color:#bcd0bd;border-left:3px solid #e4c589;padding-left:10px;margin-top:10px}
+.touch-hint{font-size:12px;color:#e7d4a8;font-weight:650}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.swatch{width:11px;height:11px;border:1px solid #ded8bd;border-radius:3px;display:inline-block}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:10px 0}
+.stat{text-align:center;background:var(--pane2);border:1px solid #55705a;border-radius:9px;padding:9px 5px}
+.stat small{display:block;color:#becfc1;font-size:11px}
+.stat strong{font-size:clamp(14px,3vw,20px);font-variant-numeric:tabular-nums}
+.editor{border-top:1px solid #61745c;padding-top:12px;margin-top:12px}
+.note{font-size:13px;color:#dce5d0;padding:10px;border-radius:8px;border-left:3px solid var(--gold);background:#182f26;margin-top:11px}
+.controls{margin:7px 0 10px}
+footer{font-size:12px;color:#b1c3b4;margin-top:16px}
+@media(max-width:560px){main{padding:7px 7px calc(27px + env(safe-area-inset-bottom))}header,section{padding:11px}
+ .viewport{padding:3px}canvas{border-width:2px}
+ .action{flex:1 1 auto;padding:10px 7px;font-size:13px}.stat{padding:7px 3px}.stat small{font-size:10px}}
+
+/* Landscape-first working layout: single geometry / ecology state, two UI columns. */
+@media (min-width:700px) and (orientation:landscape){
+ main{max-width:1500px;display:grid;grid-template-columns:minmax(0,1.45fr) minmax(320px,1fr);gap:10px;align-items:start;padding-top:8px}
+ header{grid-column:1 / -1;margin:0;padding:10px 16px}
+ header h1{margin:2px 0 4px;font-size:clamp(20px,2.7vw,30px)}
+ header p{margin:4px 0}
+ section{margin:0;min-width:0}
+ section:nth-of-type(1){grid-column:1;grid-row:2 / span 2}
+ section:nth-of-type(2){grid-column:2;grid-row:2}
+ section:nth-of-type(3){grid-column:2;grid-row:3}
+ footer{grid-column:1 / -1;margin:0}
+ .stats{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .zone-dock button{min-height:54px}
+}
+@media (min-width:700px) and (orientation:landscape) and (max-height:540px){
+ header{padding:6px 12px}
+ header p{font-size:11px;line-height:1.3}
+ section{padding:9px}
+ .view-switch{margin:4px 0}
+ .zone-dock{margin:5px 0}
+ .zone-dock button{min-height:46px}
+ .legend{margin:4px 0}
+ .touch-hint{margin:3px 0}
+}
+
+/* ECO-V03H: visual-only observe/edit split; no second biology model. */
+#labRoot[data-mode="observe"] section[aria-label="物件與植物資料"],
+#labRoot[data-mode="observe"] section[aria-label="模擬時間與資料守恆"]{display:none}
+.zone-summary{font-size:13px;color:#f3e5c4;background:#17352b;border:1px solid #6a8b71;
+ border-radius:9px;padding:8px 10px;margin:5px 0;overflow-wrap:anywhere}
+.mode-switch .action[aria-pressed="true"]{border-color:#f2dc9e;background:#e2d0a5;color:#20372c}
+@media (min-width:700px) and (orientation:landscape){
+ #labRoot[data-mode="observe"]{grid-template-columns:minmax(0,1fr)}
+ #labRoot[data-mode="observe"] #sceneSection{grid-column:1 / -1;grid-row:2}
+ #labRoot[data-mode="observe"] #sceneSection .viewport{max-width:1150px;margin-inline:auto}
+}
+@media (min-width:700px) and (orientation:landscape) and (max-height:540px){
+ /* Tiny landscape screens keep the short heading, with long caveats in the footer. */
+ #labRoot header p{display:none}
+ #labRoot{grid-template-columns:minmax(0,1fr);gap:6px}
+ #labRoot #sceneSection{grid-column:1;grid-row:2;display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(175px,30%);gap:5px 8px;align-items:start}
+ #labRoot section[aria-label="物件與植物資料"]{grid-column:1;grid-row:3}
+ #labRoot section[aria-label="模擬時間與資料守恆"]{grid-column:1;grid-row:4}
+ #sceneSection>.topline{grid-column:1 / -1}
+ #sceneSection>.view-switch{grid-column:2;margin:0}
+ #sceneSection>.viewport{grid-column:1;grid-row:2 / span 4;min-width:0}
+ #sceneSection canvas{width:min(100%,500px);margin-inline:auto}
+ #sceneSection>.zone-dock{grid-column:2;grid-row:5;
+  grid-template-columns:repeat(2,minmax(0,1fr));margin:0}
+ #sceneSection>.zone-dock button{min-height:44px;padding:3px 2px;font-size:11px}
+ #sceneSection>.zone-summary,
+ #sceneSection>.legend,
+ #sceneSection>.pixel-note,
+ #sceneSection>.touch-hint{grid-column:1 / -1;margin:1px 0}
+ #labRoot[data-mode="observe"] #sceneSection{grid-row:2}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style></head><body><main id="labRoot" data-mode="edit">
+<header>
+<div class="eyebrow">PROJECT OHM · ECOLOGICAL ENGINE · V0.3g</div>
+<h1>生態箱：地下像素生態試驗場</h1>
+<p>岩石裂紋、苔蘚團、蕨葉與燈具現在有不同的原創像素輪廓。手機可直接選五個生態區；物件的遮光、植物光照和畫面位置仍取自同一份世界資料。</p>
+<p class="small">V0.3g 為可驗證的像素素材與響應式介面試作，不是最終美術、真實 3D 陰影、PPFD 或物種照護建議。</p>
+</header>
+<section id="sceneSection" aria-label="俯視與斜角場景渲染測試">
+ <div class="topline"><h2>生態箱場景</h2><span id="clock" class="clock">第 1 日 00:00</span></div>
+ <div class="view-switch" role="group" aria-label="畫面視角">
+  <button class="action alt" type="button" id="oblique" aria-pressed="true">斜角 2.5D</button>
+  <button class="action alt" type="button" id="top" aria-pressed="false">俯視</button>
+ </div>
+ <div class="view-switch" role="group" aria-label="畫面質感與效能">
+  <button class="action alt" type="button" id="detailNormal" aria-pressed="true">標準像素細節</button>
+  <button class="action alt" type="button" id="detailLow" aria-pressed="false">省電細節</button>
+ </div>
+ <div class="view-switch mode-switch" role="group" aria-label="生態箱操作模式">
+  <button class="action alt" type="button" id="observeMode" aria-pressed="false">觀察模式（唯讀）</button>
+  <button class="action alt" type="button" id="editMode" aria-pressed="true">編輯模式</button>
+ </div>
+ <div class="viewport">
+  <canvas id="stage" width="960" height="600" tabindex="0" aria-label="可點選或拖動岩石、植物冠層及燈具的五區生態箱"></canvas>
+ </div>
+ <nav class="zone-dock" id="zoneDock" aria-label="可直接點選的五個生態區">
+  <button type="button" id="zonePick0" aria-pressed="false"><span>熱區</span><output id="zoneLight0">—</output><span class="zone-sub">光照</span></button>
+  <button type="button" id="zonePick1" aria-pressed="false"><span>冷區</span><output id="zoneLight1">—</output><span class="zone-sub">光照</span></button>
+  <button type="button" id="zonePick2" aria-pressed="false"><span>水盆</span><output id="zoneLight2">—</output><span class="zone-sub">光照</span></button>
+  <button type="button" id="zonePick3" aria-pressed="true"><span>遮蔽</span><output id="zoneLight3">—</output><span class="zone-sub">光照</span></button>
+  <button type="button" id="zonePick4" aria-pressed="false"><span>土坡</span><output id="zoneLight4">—</output><span class="zone-sub">光照</span></button>
+ </nav>
+ <div class="zone-summary" id="zoneSummary" role="status" aria-live="polite">五區數值由生態核心提供</div>
+ <div class="legend">
+  <span><i class="swatch" style="background:#9b8060"></i>岩石</span>
+  <span><i class="swatch" style="background:#527c51"></i>植物冠層</span>
+  <span><i class="swatch" style="background:#829b99"></i>遮光網</span>
+  <span><i class="swatch" style="background:#eacc78"></i>植物有效光</span>
+ </div>
+ <p class="pixel-note">像素素材由原始世界物件和植物覆蓋生成；洞穴背景只是裝飾。小螢幕可用上方五區選單閱讀光照值，標準／省電模式都不更動生態計算。</p>
+ <p class="touch-hint" id="touchHint">輕點選取，長按並拖動位置；若物件重疊，連續輕點同一處可切換選取。也可使用下方按鈕操作。</p>
+</section>
+<section aria-label="物件與植物資料">
+ <div class="topline"><h2 id="selectedTitle">選取場景物件</h2><span id="selectionHint" class="small">—</span></div>
+ <div class="stats">
+  <div class="stat"><small>植物原始光</small><strong id="rawLight">—</strong></div>
+  <div class="stat"><small>遮蔽後光照</small><strong id="actualLight">—</strong></div>
+  <div class="stat"><small>透光比例</small><strong id="transmission">—</strong></div>
+  <div class="stat"><small>植物活動</small><strong id="activity">—</strong></div>
+  <div class="stat"><small>植物覆蓋</small><strong id="cover">—</strong></div>
+  <div class="stat"><small>土壤濕潤</small><strong id="soil">—</strong></div>
+ </div>
+ <p id="position" class="small">請選擇物件</p>
+ <div class="editor">
+  <h2>放置場景物件</h2>
+  <div class="actions" id="placeControls"></div>
+ </div>
+ <div class="editor">
+  <h2>移動與調整</h2>
+  <div class="actions" id="moveControls"></div>
+ </div>
+ <div class="editor">
+  <h2>光源與生態事件</h2>
+  <div class="actions" id="eventControls"></div>
+ </div>
+ <div id="message" class="note" role="status" aria-live="polite">已載入原型場景</div>
+</section>
+<section aria-label="模擬時間與資料守恆">
+ <h2>時間與生態驗證</h2>
+ <div class="actions">
+  <button class="action" id="step60" type="button">+1 小時</button>
+  <button class="action" id="step240" type="button">+4 小時</button>
+  <button class="action alt" id="play" type="button" aria-pressed="false">自動推進</button>
+  <button class="action alt" id="reset" type="button">重設</button>
+ </div>
+ <div class="stats">
+  <div class="stat"><small>場景物件</small><strong id="objectCount">—</strong></div>
+  <div class="stat"><small>有機物總量</small><strong id="organicCount">—</strong></div>
+  <div class="stat"><small>來源事件</small><strong id="eventCount">—</strong></div>
+ </div>
+ <div id="ledgerStatus" class="note">核對中……</div>
+ <p class="small">物件移動只會更新幾何遮蔽。水量與有機物仍有各自的唯一來源；落葉輸入不等於玩家親眼觀察。</p>
+</section>
+<footer>私人 V0.3g 視覺工程原型｜單檔離線，沒有帳戶、網路或存檔寫入。真機 Safari 視覺、性能與正式美術仍待驗收。</footer>
+</main>
+<script type="module">
+// Nine canonical OHM modules: fixed ecology, 2.5D world, pixel silhouettes.
+const {createTerrariumMicroclimate,isValidTerrariumMicroclimate,advanceTerrariumMicroclimate,changeTerrariumMicroclimateControls,projectTerrariumMicroclimateSoilMoisture,inspectTerrariumMicroclimate,buildTerrariumMicroclimateActionSnapshot}=(function(){
+/**
+ * Project OHM — Terrarium local microclimate V0.1.
+ *
+ * A deterministic, CPU-bounded, engine-independent 2D cell prototype.
+ * Game tuning coefficients are NOT thermal physics, actual humidity/water
+ * conservation, husbandry thresholds, physiology or disease diagnoses.
+ * Units: temperatureC (degrees C as game state), relativeHumidity (0..1),
+ * substrateMoisture (0..1), waterLevel (0..1), all other controls (0..1).
+ *
+ * Independent minute ticks: render FPS never controls the ecology clock.
+ * No Date, RNG, storage, network, Phaser, or writes to player saves.
+ */
+const TERRARIUM_MICROCLIMATE_VERSION='0.1';
+const TYPES=Object.freeze([
+  'hide','warm_area','cool_area','water','loose_substrate',
+  'branch','covered_area','open_area'
+]);
+const ID=/^[a-z][a-z0-9_-]{0,63}$/;
+const ENV_CLASS=new Set(['normal','too_dry','too_damp','unknown']);
+const KEYS=Object.freeze([
+  'heater','cooler','shade','ventilation','substrateRetention',
+  'substrateMoisture','waterLevel'
+]);
+const num=x=>typeof x==='number'&&Number.isFinite(x);
+const unit=x=>num(x)&&x>=0&&x<=1;
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+const rnd=x=>Number(x.toFixed(7));
+const owns=(o,k)=>Object.prototype.hasOwnProperty.call(o,k);
+const obj=o=>o&&typeof o==='object'&&!Array.isArray(o);
+const fail=why=>{throw new RangeError(why);};
+const frozen=o=>Object.freeze(o);
+const DEFAULT=Object.freeze({
+  heater:0,cooler:0,shade:0,ventilation:.35,
+  substrateRetention:.5,substrateMoisture:.15,waterLevel:0
+});
+const sampleDefaults=Object.freeze({temperatureC:24,relativeHumidity:.50});
+const allowedFlags=new Set([
+  'hasCover','diggable','branchStable','waterReachable',
+  'thermalService','qualityFlag'
+]);
+function controls(input){
+  if(!obj(input)||Object.keys(input).some(k=>!KEYS.includes(k)))fail('unknown_microclimate_control');
+  for(const v of Object.values(input))if(!unit(v))fail('invalid_microclimate_control');
+  return input;
+}
+function checkAmbient(a){
+  if(!obj(a)||!num(a.temperatureC)||a.temperatureC<0||a.temperatureC>50||
+     !unit(a.relativeHumidity))fail('invalid_microclimate_ambient');
+}
+function checkSites(sites,cellCount){
+  if(!Array.isArray(sites)||sites.length>256)fail('invalid_microclimate_sites');
+  const seen=new Set();
+  for(const s of sites){
+    if(!obj(s)||typeof s.id!=='string'||!ID.test(s.id)||seen.has(s.id)||
+       !TYPES.includes(s.kind)||!Number.isInteger(s.cellIndex)||
+       s.cellIndex<0||s.cellIndex>=cellCount||
+       typeof s.safe!=='boolean'||typeof s.reachable!=='boolean'||
+       !unit(s.distanceCost)||!obj(s.flags)||
+       Object.entries(s.flags).some(([k,v])=>!allowedFlags.has(k)||typeof v!=='boolean')||
+       s.microclimateClass!==undefined&&!ENV_CLASS.has(s.microclimateClass))
+      fail('invalid_microclimate_site');
+    seen.add(s.id);
+  }
+}
+/** Validator accepts JSON roundtrips but rejects malformed/tampered states. */
+function isValidTerrariumMicroclimate(state){
+  try{
+    if(!obj(state)||state.schemaVersion!==1||
+       !Number.isInteger(state.columns)||state.columns<1||state.columns>12||
+       !Number.isInteger(state.rows)||state.rows<1||state.rows>12||
+       !Number.isSafeInteger(state.revision)||state.revision<0||state.revision>1e7||
+       !Number.isSafeInteger(state.minute)||state.minute<0||state.minute>1e7)
+      return false;
+    checkAmbient(state.ambient);
+    const size=state.rows*state.columns;
+    if(!Array.isArray(state.cells)||state.cells.length!==size)return false;
+    for(let i=0;i<size;i++){
+      const c=state.cells[i];
+      if(!obj(c)||c.id!=='cell_'+(i%state.columns)+'_'+Math.floor(i/state.columns)||
+         c.x!==i%state.columns||c.y!==Math.floor(i/state.columns)||
+         !num(c.temperatureC)||c.temperatureC<0||c.temperatureC>60||
+         !unit(c.relativeHumidity))return false;
+      controls(Object.fromEntries(KEYS.map(k=>[k,c[k]])));
+    }
+    checkSites(state.sites,size);
+    return true;
+  }catch{return false;}
+}
+function freezeCell(c){return frozen(c)}
+function freezeSite(s){return frozen({...s,flags:frozen({...s.flags})})}
+function freezeState(s){return frozen({...s,ambient:frozen({...s.ambient}),
+  cells:frozen(s.cells.map(freezeCell)),
+  sites:frozen(s.sites.map(freezeSite))})}
+
+/** Every site must explicitly supply assessed safe/reachable flags.
+ * No humidity/temperature number will be called biologically 'safe'.
+ */
+function createTerrariumMicroclimate({
+  columns=5,rows=1,ambient=sampleDefaults,
+  cellOverrides=[],sites=[]
+}={}){
+  if(!Number.isInteger(columns)||columns<1||columns>12||
+     !Number.isInteger(rows)||rows<1||rows>12||
+     !Array.isArray(cellOverrides)||cellOverrides.length>columns*rows)
+    fail('invalid_microclimate_grid');
+  checkAmbient(ambient);
+  const count=columns*rows;
+  const cells=Array.from({length:count},(_,i)=>({
+    id:'cell_'+(i%columns)+'_'+Math.floor(i/columns),
+    x:i%columns,y:Math.floor(i/columns),
+    temperatureC:ambient.temperatureC,
+    relativeHumidity:ambient.relativeHumidity,...DEFAULT
+  }));
+  const touched=new Set();
+  for(const override of cellOverrides){
+    if(!obj(override)||!Number.isInteger(override.x)||!Number.isInteger(override.y)||
+       override.x<0||override.x>=columns||override.y<0||override.y>=rows)
+      fail('invalid_microclimate_cell');
+    const at=override.y*columns+override.x;
+    if(touched.has(at))fail('duplicate_microclimate_cell');
+    touched.add(at);
+    const fields={...override};delete fields.x;delete fields.y;
+    controls(fields);
+    Object.assign(cells[at],fields);
+  }
+  checkSites(sites,count);
+  const state=freezeState({
+    schemaVersion:1,revision:0,minute:0,columns,rows,
+    ambient:{temperatureC:ambient.temperatureC,
+      relativeHumidity:ambient.relativeHumidity},
+    cells,sites
+  });
+  if(!isValidTerrariumMicroclimate(state))fail('microclimate_creation_failed');
+  return state;
+}
+function neighbors(s,i){
+  const {rows,columns}=s,x=i%columns,y=Math.floor(i/columns);
+  const out=[];
+  if(x>0)out.push(i-1);
+  if(x<columns-1)out.push(i+1);
+  if(y>0)out.push(i-columns);
+  if(y<rows-1)out.push(i+columns);
+  return out;
+}
+function tick(s,externalMoistureByCell=null){
+  const cells=s.cells.map((c,i)=>{
+    // In a coupled V0.2b tick, layered substrate is the sole source
+    // of root-zone water. The legacy moisture decay must NOT run again.
+    const inputMoisture=externalMoistureByCell===null?
+      c.substrateMoisture:externalMoistureByCell[i];
+    const n=neighbors(s,i).map(k=>s.cells[k]);
+    const mean=(key)=>n.length?n.reduce((a,b)=>a+b[key],0)/n.length:c[key];
+    const temp=c.temperatureC+
+      .12*(mean('temperatureC')-c.temperatureC)+
+      (.025+.014*c.ventilation)*(s.ambient.temperatureC-c.temperatureC)+
+      .24*c.heater-.18*c.cooler-.017*c.shade;
+    // These humidity values are normalised game *indicators*, not
+    // simulated absolute atmospheric water masses.
+    const rh=c.relativeHumidity+
+      .11*(mean('relativeHumidity')-c.relativeHumidity)+
+      (.024+.02*c.ventilation)*(s.ambient.relativeHumidity-c.relativeHumidity)+
+      .007*c.waterLevel+.0025*inputMoisture-.002*c.heater;
+    const moisture=externalMoistureByCell===null?
+      clamp(c.substrateMoisture-
+        .0007*(1-.55*c.substrateRetention)*(1-.35*c.shade),0,1):
+      inputMoisture;
+    const water=clamp(c.waterLevel-.00032*(1+.45*c.heater),0,1);
+    return {...c,
+      temperatureC:rnd(clamp(temp,0,60)),
+      relativeHumidity:rnd(clamp(rh,0,1)),
+      substrateMoisture:rnd(moisture),
+      waterLevel:rnd(water)
+    };
+  });
+  return freezeState({...s,revision:s.revision+1,minute:s.minute+1,cells});
+}
+/** Fixed one-minute settlement: A+B minutes equals A, then B minutes. */
+function advanceTerrariumMicroclimate(state,{
+  minutes=1,externalMoistureByCell=null
+}={}){
+  if(!isValidTerrariumMicroclimate(state)||!Number.isInteger(minutes)||
+     minutes<1||minutes>240||state.minute+minutes>1e7||
+     state.revision+minutes>1e7)
+    fail('invalid_microclimate_advance');
+  if(externalMoistureByCell!==null){
+    if(minutes!==1||!Array.isArray(externalMoistureByCell)||
+       externalMoistureByCell.length!==state.cells.length||
+       externalMoistureByCell.some(v=>!unit(v)))
+      fail('invalid_external_soil_moisture');
+  }
+  let s=state;
+  for(let t=0;t<minutes;t++)s=tick(s,externalMoistureByCell);
+  return s;
+}
+/**
+ * Event/initialization projection for V0.2b. The coupled state owns soil
+ * water and this returns only a derived moisture *view* for V0.1.
+ * Does not change the game clock or touch water-balance ledger.
+ */
+function projectTerrariumMicroclimateSoilMoisture(state,ratios){
+  if(!isValidTerrariumMicroclimate(state)||state.revision>=1e7||
+     !Array.isArray(ratios)||ratios.length!==state.cells.length||
+     ratios.some(v=>!unit(v)))fail('invalid_soil_moisture_projection');
+  const cells=state.cells.map((c,i)=>({...c,substrateMoisture:ratios[i]}));
+  return freezeState({...state,revision:state.revision+1,cells});
+}
+/** Apply player/scene equipment or moisture events without changing time. */
+function changeTerrariumMicroclimateControls(state,{cellId,changes}={}){
+  if(!isValidTerrariumMicroclimate(state)||typeof cellId!=='string'||
+     !obj(changes)||Object.keys(changes).length===0||
+     state.revision>=1e7)fail('invalid_microclimate_change');
+  controls(changes);
+  const at=state.cells.findIndex(c=>c.id===cellId);
+  if(at<0)fail('microclimate_cell_not_found');
+  const cells=state.cells.map((c,i)=>i===at?{...c,...changes}:c);
+  return freezeState({...state,revision:state.revision+1,cells});
+}
+/** Return a detached, immutable read-only cell view; never a welfare report. */
+function inspectTerrariumMicroclimate(state){
+  if(!isValidTerrariumMicroclimate(state))fail('invalid_microclimate_state');
+  return frozen({
+    version:TERRARIUM_MICROCLIMATE_VERSION,
+    revision:state.revision,minute:state.minute,
+    grid:frozen({columns:state.columns,rows:state.rows}),
+    cells:frozen(state.cells.map(c=>frozen({
+      id:c.id,x:c.x,y:c.y,temperatureC:c.temperatureC,
+      relativeHumidity:c.relativeHumidity,
+      substrateMoisture:c.substrateMoisture,waterLevel:c.waterLevel
+    }))),
+    status:'relative_game_microclimate_no_animal_suitability_inferred'
+  });
+}
+/**
+ * Bridge to buildSnakeActionInputFromEcology. Every site explicitly
+ * receives externally assessed safety/path access. Flags are independent:
+ * a warm area with an OFF heater is not a working heat service; water bowl
+ * availability also needs an accessible water source, not proximity alone.
+ * Humidity cannot automatically diagnose disease or judge microclimate.
+ */
+function buildTerrariumMicroclimateActionSnapshot(state){
+  if(!isValidTerrariumMicroclimate(state))fail('invalid_microclimate_state');
+  const sites=state.sites.map(s=>{
+    const c=state.cells[s.cellIndex],f=s.flags;
+    const conditions={
+      qualityFlag:f.qualityFlag??false,
+      microclimate:s.microclimateClass??'unknown'
+    };
+    if(s.kind==='hide'||s.kind==='covered_area')
+      conditions.hasCover=f.hasCover===true;
+    if(s.kind==='water')
+      conditions.hasWater=f.waterReachable===true&&c.waterLevel>0;
+    if(s.kind==='loose_substrate')
+      conditions.diggable=f.diggable===true;
+    if(s.kind==='branch')
+      conditions.branchStable=f.branchStable===true;
+    if(s.kind==='warm_area')
+      conditions.thermalService=f.thermalService===true&&c.heater>0;
+    if(s.kind==='cool_area')
+      conditions.thermalService=f.thermalService===true&&c.cooler>0;
+    return frozen({id:s.id,kind:s.kind,safe:s.safe,
+      reachable:s.reachable,distanceCost:s.distanceCost,
+      conditions:frozen(conditions)});
+  });
+  return frozen({revision:state.revision,sites:frozen(sites)});
+}
+
+return {createTerrariumMicroclimate,isValidTerrariumMicroclimate,advanceTerrariumMicroclimate,changeTerrariumMicroclimateControls,projectTerrariumMicroclimateSoilMoisture,inspectTerrariumMicroclimate,buildTerrariumMicroclimateActionSnapshot};
+})();
+
+const {createTerrariumSubstrateWater,isValidTerrariumSubstrateWater,advanceTerrariumSubstrateWater,applyTerrariumSubstrateWaterEvent,inspectTerrariumSubstrateWater}=(function(){
+/**
+ * Project OHM — layered terrarium substrate water V0.2.
+ *
+ * Three storage layers per zone: surface litter/moss, root/substrate soil,
+ * and an artificial drainage reservoir. A mesh sits between root and drain
+ * (permeability switch, NOT another water tank). Water moves by deterministic,
+ * integer, bounded game rules, never real-world litres or soil hydraulic data.
+ *
+ * Strict ledger: initial + added = current + evaporated + drained + overflow.
+ * No disease, welfare, humidity or temperature inference. No save or network I/O.
+ */
+const TERRARIUM_SUBSTRATE_WATER_VERSION='0.2';
+const num=x=>Number.isSafeInteger(x)&&x>=0;
+const range=(x,lo,hi)=>Number.isSafeInteger(x)&&x>=lo&&x<=hi;
+const isObj=x=>x!==null&&typeof x==='object'&&!Array.isArray(x)&&
+  (Object.getPrototypeOf(x)===Object.prototype||Object.getPrototypeOf(x)===null);
+const own=(o,k)=>Object.prototype.hasOwnProperty.call(o,k);
+const fail=s=>{throw new RangeError(s)};
+const cap=(v,top)=>Math.min(top,Math.max(0,v));
+const frac=(x,c)=>x/c;
+const keys=Object.freeze([
+ 'surfaceCapacityUnits','rootCapacityUnits','drainageCapacityUnits',
+ 'surfaceWaterUnits','rootWaterUnits','drainageWaterUnits',
+ 'infiltrationPermille','percolationPermille','wickingPermille',
+ 'evaporationPermille','lateralPermille','outletPermille',
+ 'meshOpen','outletOpen'
+]);
+const RATE_NAMES=Object.freeze([
+ 'infiltrationPermille','percolationPermille','wickingPermille',
+ 'evaporationPermille','lateralPermille','outletPermille'
+]);
+const SUBSTRATE_TEST_DEFAULT=Object.freeze({
+ surfaceCapacityUnits:1000,rootCapacityUnits:3200,drainageCapacityUnits:2600,
+ surfaceWaterUnits:180,rootWaterUnits:920,drainageWaterUnits:0,
+ infiltrationPermille:160,percolationPermille:45,wickingPermille:10,
+ evaporationPermille:18,lateralPermille:20,outletPermille:40,
+ meshOpen:true,outletOpen:false
+});
+function checkProfile(o){
+ if(!isObj(o)||Object.keys(o).some(k=>!keys.includes(k)))fail('invalid_substrate_profile');
+ const p={...SUBSTRATE_TEST_DEFAULT,...o};
+ for(const k of ['surfaceCapacityUnits','rootCapacityUnits','drainageCapacityUnits'])
+  if(!range(p[k],100,100000))fail('invalid_substrate_capacity');
+ for(const [key,storage] of [
+  ['surfaceWaterUnits','surfaceCapacityUnits'],
+  ['rootWaterUnits','rootCapacityUnits'],
+  ['drainageWaterUnits','drainageCapacityUnits']
+ ])if(!range(p[key],0,p[storage]))fail('invalid_substrate_initial_water');
+ for(const k of RATE_NAMES)if(!range(p[k],0,1000))fail('invalid_substrate_rate');
+ if(typeof p.meshOpen!=='boolean'||typeof p.outletOpen!=='boolean')
+  fail('invalid_substrate_equipment');
+ return p;
+}
+const currentTotal=zones=>zones.reduce((sum,z)=>
+ sum+z.surface.waterUnits+z.root.waterUnits+z.drainage.waterUnits,0);
+const layer=(capacityUnits,waterUnits)=>Object.freeze({capacityUnits,waterUnits});
+const zoneFreeze=z=>Object.freeze({
+  id:z.id,
+  surface:layer(z.surface.capacityUnits,z.surface.waterUnits),
+  root:layer(z.root.capacityUnits,z.root.waterUnits),
+  drainage:layer(z.drainage.capacityUnits,z.drainage.waterUnits),
+  meshOpen:z.meshOpen,outletOpen:z.outletOpen,
+  rates:Object.freeze({...z.rates})
+});
+const freezeState=s=>Object.freeze({...s,
+ zones:Object.freeze(s.zones.map(zoneFreeze)),
+ ledger:Object.freeze({...s.ledger})
+});
+function packZone(i,p){
+ return {
+  id:'zone_'+i,
+  surface:{capacityUnits:p.surfaceCapacityUnits,waterUnits:p.surfaceWaterUnits},
+  root:{capacityUnits:p.rootCapacityUnits,waterUnits:p.rootWaterUnits},
+  drainage:{capacityUnits:p.drainageCapacityUnits,waterUnits:p.drainageWaterUnits},
+  meshOpen:p.meshOpen,outletOpen:p.outletOpen,
+  rates:Object.fromEntries(RATE_NAMES.map(k=>[k,p[k]]))
+ };
+}
+function isValidTerrariumSubstrateWater(s){
+ try{
+  if(!isObj(s)||s.schemaVersion!==2||
+    s.version!==TERRARIUM_SUBSTRATE_WATER_VERSION||
+    !range(s.minute,0,10000000)||!range(s.revision,0,10000000)||
+    !Array.isArray(s.zones)||s.zones.length<1||s.zones.length>12||
+    !isObj(s.ledger))return false;
+  const ledger=s.ledger;
+  if(!['initialUnits','addedUnits','evaporatedUnits','drainedUnits','overflowUnits']
+    .every(k=>range(ledger[k],0,1000000000))||
+    Object.keys(ledger).length!==5)return false;
+  for(let i=0;i<s.zones.length;i++){
+    const z=s.zones[i];
+    if(!isObj(z)||z.id!=='zone_'+i||
+      !isObj(z.surface)||!isObj(z.root)||!isObj(z.drainage)||
+      typeof z.meshOpen!=='boolean'||typeof z.outletOpen!=='boolean'||
+      !isObj(z.rates)||Object.keys(z.rates).length!==RATE_NAMES.length||
+      !RATE_NAMES.every(k=>own(z.rates,k)&&range(z.rates[k],0,1000)))
+      return false;
+    for(const l of [z.surface,z.root,z.drainage])
+      if(!range(l.capacityUnits,100,100000)||
+        !range(l.waterUnits,0,l.capacityUnits)||
+        Object.keys(l).length!==2)return false;
+  }
+  return ledger.initialUnits+ledger.addedUnits===
+    currentTotal(s.zones)+ledger.evaporatedUnits+
+    ledger.drainedUnits+ledger.overflowUnits;
+ }catch{return false;}
+}
+/** Optional overrides form a list of complete per-zone parameters (defaults
+ * fill missing fields). Neither screens nor bottom layers hold unlimited water.
+ */
+function createTerrariumSubstrateWater({zones=Array.from({length:5},()=>({}))}={}){
+ if(!Array.isArray(zones)||zones.length<1||zones.length>12)
+  fail('invalid_substrate_zone_count');
+ const records=zones.map((input,i)=>packZone(i,checkProfile(input)));
+ const s=freezeState({
+  schemaVersion:2,version:TERRARIUM_SUBSTRATE_WATER_VERSION,
+  minute:0,revision:0,zones:records,
+  ledger:{
+   initialUnits:currentTotal(records),addedUnits:0,
+   evaporatedUnits:0,drainedUnits:0,overflowUnits:0
+  }
+ });
+ if(!isValidTerrariumSubstrateWater(s))fail('invalid_new_substrate');
+ return s;
+}
+const transfer=(source,dest,requested)=>{
+ const n=cap(requested,Math.min(source.waterUnits,
+  dest.capacityUnits-dest.waterUnits));
+ source.waterUnits-=n;dest.waterUnits+=n;return n;
+};
+const emptyZone=z=>({
+ ...z,
+ surface:{...z.surface},root:{...z.root},drainage:{...z.drainage},
+ rates:{...z.rates}
+});
+function step(s){
+ const zones=s.zones.map(emptyZone),ledger={...s.ledger};
+ for(const z of zones){
+  const {surface,root,drainage,rates:r}=z;
+  const evaporation=Math.min(surface.waterUnits,
+    Math.floor(surface.waterUnits*r.evaporationPermille/1000));
+  surface.waterUnits-=evaporation;ledger.evaporatedUnits+=evaporation;
+  transfer(surface,root,
+    Math.floor(surface.waterUnits*r.infiltrationPermille/1000));
+  if(z.meshOpen)
+    transfer(root,drainage,
+      Math.floor(root.waterUnits*r.percolationPermille/1000));
+  // Capillary return is conditional on drier upper material. It is a
+  // visual game heuristic, not a model of matric potential.
+  if(frac(surface.waterUnits,surface.capacityUnits) <
+      frac(root.waterUnits,root.capacityUnits)*.55)
+    transfer(root,surface,Math.floor(root.waterUnits*r.wickingPermille/1000));
+  if(z.outletOpen){
+    const drain=Math.floor(drainage.waterUnits*r.outletPermille/1000);
+    drainage.waterUnits-=drain;ledger.drainedUnits+=drain;
+  }
+ }
+ // Adjacent root zones exchange storage units, one pair at a time.
+ // Fixed left-to-right order is deterministic; no physical permeability
+ // claim is made. Flow is capacity-limited, never generated or destroyed.
+ for(let i=0;i<zones.length-1;i++){
+  const left=zones[i],right=zones[i+1];
+  const difference=frac(left.root.waterUnits,left.root.capacityUnits)-
+    frac(right.root.waterUnits,right.root.capacityUnits);
+  if(Math.abs(difference)<1e-12)continue;
+  const donor=difference>0?left:right;
+  const receiver=difference>0?right:left;
+  const rate=Math.min(left.rates.lateralPermille,
+    right.rates.lateralPermille);
+  const proposed=Math.floor(Math.abs(difference)*
+    Math.min(donor.root.capacityUnits,receiver.root.capacityUnits)*rate/1000);
+  transfer(donor.root,receiver.root,proposed);
+ }
+ return freezeState({...s,minute:s.minute+1,revision:s.revision+1,
+  zones,ledger});
+}
+/** Time progresses by whole GAME minutes, not rendering FPS. 240 max per call. */
+function advanceTerrariumSubstrateWater(s,{minutes=1}={}){
+ if(!isValidTerrariumSubstrateWater(s)||
+   !range(minutes,1,240)||s.minute+minutes>10000000||
+   s.revision+minutes>10000000)fail('invalid_substrate_time_step');
+ let state=s;
+ for(let i=0;i<minutes;i++)state=step(state);
+ return state;
+}
+/** Inputs are waterUnits (abstract integers), not millilitres. */
+function applyTerrariumSubstrateWaterEvent(s,event){
+ if(!isValidTerrariumSubstrateWater(s)||s.revision>=10000000||
+   !isObj(event)||typeof event.zoneId!=='string')fail('invalid_substrate_event');
+ const i=s.zones.findIndex(z=>z.id===event.zoneId);
+ if(i<0)fail('unknown_substrate_zone');
+ const zones=s.zones.map(emptyZone),z=zones[i],ledger={...s.ledger};
+ if(event.type==='mist'||event.type==='water'){
+  if(!range(event.amountUnits,1,5000)||
+    Object.keys(event).some(k=>!['type','zoneId','amountUnits'].includes(k)))
+    fail('invalid_substrate_water_amount');
+  const accepted=Math.min(event.amountUnits,
+    z.surface.capacityUnits-z.surface.waterUnits);
+  z.surface.waterUnits+=accepted;
+  ledger.addedUnits+=event.amountUnits;
+  ledger.overflowUnits+=event.amountUnits-accepted;
+ }else if(event.type==='drain'){
+  if(!range(event.amountUnits,1,5000)||
+    Object.keys(event).some(k=>!['type','zoneId','amountUnits'].includes(k)))
+    fail('invalid_substrate_drain_amount');
+  const drained=Math.min(z.drainage.waterUnits,event.amountUnits);
+  z.drainage.waterUnits-=drained;
+  ledger.drainedUnits+=drained;
+ }else if(event.type==='mesh'||event.type==='outlet'){
+  if(typeof event.open!=='boolean'||
+    Object.keys(event).some(k=>!['type','zoneId','open'].includes(k)))
+    fail('invalid_substrate_switch');
+  if(event.type==='mesh')z.meshOpen=event.open;
+  else z.outletOpen=event.open;
+ }else fail('unknown_substrate_event');
+ const next=freezeState({...s,revision:s.revision+1,zones,ledger});
+ if(!isValidTerrariumSubstrateWater(next))fail('invalid_substrate_event_result');
+ return next;
+}
+/** Readout only; does not classify snake health or plants. */
+function inspectTerrariumSubstrateWater(s){
+ if(!isValidTerrariumSubstrateWater(s))fail('invalid_substrate_state');
+ return Object.freeze({
+  version:s.version,minute:s.minute,revision:s.revision,
+  units:'abstract_integer_water_storage_units_not_ml',
+  totalUnits:currentTotal(s.zones),
+  ledger:Object.freeze({...s.ledger}),
+  zones:Object.freeze(s.zones.map(z=>Object.freeze({
+   id:z.id,meshOpen:z.meshOpen,outletOpen:z.outletOpen,
+   layers:Object.freeze(['surface','root','drainage'].map(k=>
+    Object.freeze({kind:k,waterUnits:z[k].waterUnits,
+      capacityUnits:z[k].capacityUnits,
+      saturation:z[k].waterUnits/z[k].capacityUnits})))
+  }))),
+  status:'mass_accounted_game_water_layers_not_actual_hydrology'
+ });
+}
+/**
+ * This is a READ-ONLY proposal for V0.1's cell substrate moisture field.
+ * Do not apply on every tick while V0.1 also evaporates substrate moisture:
+ * first establish a single owner/clock, then integrate via versioned adapter.
+ */
+function buildSubstrateToMicroclimateDraft(s,climate){
+ if(!isValidTerrariumSubstrateWater(s)||!climate||
+  !Array.isArray(climate.cells)||climate.cells.length!==s.zones.length)
+  fail('incompatible_substrate_climate_grid');
+ const changes=s.zones.map((z,i)=>Object.freeze({
+  cellId:climate.cells[i].id,
+  changes:Object.freeze({
+   substrateMoisture:Number((z.root.waterUnits/z.root.capacityUnits).toFixed(7))
+  })
+ }));
+ if(changes.some(x=>typeof x.cellId!=='string'||!/^cell_\d+_\d+$/.test(x.cellId)))
+  fail('invalid_climate_cell_id');
+ return Object.freeze({version:'0.2-draft',sourceRevision:s.revision,
+  changes:Object.freeze(changes),
+  policy:'read_only_proposal_do_not_double_update_v01_moisture'
+ });
+}
+
+return {createTerrariumSubstrateWater,isValidTerrariumSubstrateWater,advanceTerrariumSubstrateWater,applyTerrariumSubstrateWaterEvent,inspectTerrariumSubstrateWater};
+})();
+
+const {createCoupledTerrariumEcology,isValidCoupledTerrariumEcology,advanceCoupledTerrariumEcology,applyCoupledTerrariumEcologyEvent,inspectCoupledTerrariumEcology,buildCoupledTerrariumEcologyActionSnapshot}=(function(){
+/**
+ * Project OHM — V0.2b unified microclimate + substrate water clock.
+ *
+ * SOLE SOIL-WATER OWNER: V0.2 layer storage + integer ledger.
+ * V0.1 substrateMoisture is a READ-ONLY, one-way root-saturation projection;
+ * its legacy game-side moisture decay is disabled for coupled ticks.
+ *
+ * Separate resource: V0.1 waterLevel is the WATER BOWL indicator, never the
+ * V0.2 soil ledger. Neither model is physically calibrated husbandry advice.
+ *
+ * This is an isolated immutable simulation slice; no persistence, transport
+ * or actual saved-player migration.
+ */
+const TERRARIUM_ECOLOGY_COUPLED_VERSION='0.2b';
+const fail=s=>{throw new RangeError(s)};
+const finiteInt=x=>Number.isSafeInteger(x)&&x>=0&&x<=10000000;
+const obj=o=>o!==null&&typeof o==='object'&&!Array.isArray(o);
+const legalKeys=(o,keys)=>obj(o)&&Object.keys(o).every(k=>keys.includes(k));
+const round=x=>Number(x.toFixed(7));
+const freeze=o=>Object.freeze(o);
+const ratio=z=>round(z.root.waterUnits/z.root.capacityUnits);
+const ratios=substrate=>substrate.zones.map(ratio);
+const unchanged=(a,b)=>a.every((x,i)=>x===b[i]);
+
+function ensureCompatible(climate,substrate){
+  if(!isValidTerrariumMicroclimate(climate)||
+     !isValidTerrariumSubstrateWater(substrate)||
+     climate.rows!==1||climate.columns!==substrate.zones.length||
+     climate.minute!==substrate.minute)
+    fail('incompatible_coupled_ecology_clocks_or_grid');
+}
+const encapsulate=(climate,substrate,revision)=>freeze({
+  schemaVersion:3,
+  version:TERRARIUM_ECOLOGY_COUPLED_VERSION,
+  ownership:'layered_substrate_root',
+  minute:climate.minute,
+  revision,
+  microclimate:climate,
+  substrate
+});
+
+function isValidCoupledTerrariumEcology(state){
+  try{
+    if(!obj(state)||state.schemaVersion!==3||
+       state.version!==TERRARIUM_ECOLOGY_COUPLED_VERSION||
+       state.ownership!=='layered_substrate_root'||
+       !finiteInt(state.minute)||!finiteInt(state.revision))
+      return false;
+    ensureCompatible(state.microclimate,state.substrate);
+    return state.minute===state.microclimate.minute &&
+      unchanged(state.microclimate.cells.map(c=>c.substrateMoisture),
+        ratios(state.substrate));
+  }catch{return false;}
+}
+
+/** Create a fresh prototype or compose two existing, aligned, VALID states.
+ * Initial imported V0.1 moisture is discarded in favour of V0.2 root data.
+ * The caller must not silently migrate actual saves via this function.
+ */
+function createCoupledTerrariumEcology({
+  microclimate=null,substrate=null,
+  microclimateOptions={},substrateOptions={}
+}={}){
+  if(!legalKeys(microclimateOptions,
+     ['columns','rows','ambient','cellOverrides','sites'])||
+     !legalKeys(substrateOptions,['zones']))
+    fail('invalid_coupled_creation_options');
+  const c=microclimate??createTerrariumMicroclimate(microclimateOptions);
+  const w=substrate??createTerrariumSubstrateWater(substrateOptions);
+  ensureCompatible(c,w);
+  const projected=projectTerrariumMicroclimateSoilMoisture(c,ratios(w));
+  const state=encapsulate(projected,w,0);
+  if(!isValidCoupledTerrariumEcology(state))fail('invalid_new_coupled_ecology');
+  return state;
+}
+
+/**
+ * Exact 1-minute lockstep. Each tick updates V0.2 water once FIRST, then
+ * feeds V0.2 root saturation into V0.1 temperature/humidity for that minute.
+ * V0.1 legacy soil evaporation is bypassed (no duplicate water deduction).
+ * Split 27+33 and one 60-minute call must produce identical state.
+ */
+function advanceCoupledTerrariumEcology(state,{minutes=1}={}){
+  if(!isValidCoupledTerrariumEcology(state)||
+     !Number.isInteger(minutes)||minutes<1||minutes>240||
+     state.minute+minutes>10000000||state.revision+minutes>10000000)
+    fail('invalid_coupled_ecology_advance');
+  let c=state.microclimate,w=state.substrate;
+  for(let i=0;i<minutes;i++){
+    w=advanceTerrariumSubstrateWater(w,{minutes:1});
+    c=advanceTerrariumMicroclimate(c,{
+      minutes:1,externalMoistureByCell:ratios(w)
+    });
+  }
+  const next=encapsulate(c,w,state.revision+minutes);
+  if(!isValidCoupledTerrariumEcology(next))
+    fail('invalid_coupled_ecology_advance_result');
+  return next;
+}
+
+/**
+ * Event authority is explicit. Substrate water actions can only touch V0.2
+ * water and equipment, then update the V0.1 derived soil view.
+ * V0.1 control updates MAY change an independent bowl's waterLevel, but
+ * cannot write substrateMoisture (or water retention) behind V0.2's back.
+ */
+function applyCoupledTerrariumEcologyEvent(state,event){
+  if(!isValidCoupledTerrariumEcology(state)||state.revision>=10000000||
+     !obj(event)||typeof event.channel!=='string')
+    fail('invalid_coupled_ecology_event');
+  let c=state.microclimate,w=state.substrate;
+  if(event.channel==='substrate'){
+    if(!legalKeys(event,['channel','event'])||!obj(event.event))
+      fail('invalid_coupled_substrate_event');
+    w=applyTerrariumSubstrateWaterEvent(w,event.event);
+    c=projectTerrariumMicroclimateSoilMoisture(c,ratios(w));
+  }else if(event.channel==='microclimate'){
+    if(!legalKeys(event,['channel','cellId','changes'])||
+       typeof event.cellId!=='string'||
+       !obj(event.changes)||Object.keys(event.changes).length===0||
+       Object.keys(event.changes).some(k=>
+         ['substrateMoisture','substrateRetention'].includes(k)))
+      fail('coupled_soil_water_owned_by_substrate');
+    c=changeTerrariumMicroclimateControls(c,{
+      cellId:event.cellId,changes:event.changes
+    });
+  }else fail('unknown_coupled_ecology_channel');
+  const next=encapsulate(c,w,state.revision+1);
+  if(!isValidCoupledTerrariumEcology(next))
+    fail('invalid_coupled_ecology_event_result');
+  return next;
+}
+
+/** Read-only, detached engineering status. No animal safety inference. */
+function inspectCoupledTerrariumEcology(state){
+  if(!isValidCoupledTerrariumEcology(state))
+    fail('invalid_coupled_ecology_state');
+  const climate=inspectTerrariumMicroclimate(state.microclimate);
+  const soil=inspectTerrariumSubstrateWater(state.substrate);
+  return freeze({
+    version:TERRARIUM_ECOLOGY_COUPLED_VERSION,
+    revision:state.revision,
+    minute:state.minute,
+    moistureAuthority:'substrate_root_water_units',
+    climate,soil,
+    soilMoistureDerivedFromRoot:true,
+    bowlPolicy:'separate_water_resource_not_in_soil_ledger',
+    status:'engineering_coupling_not_a_validated_hydrology_or_welfare_model'
+  });
+}
+
+/** Snake-site availability remains exactly the existing V0.1 contract.
+ * Soil moisture does not imply an animal can dig or that water was consumed.
+ */
+function buildCoupledTerrariumEcologyActionSnapshot(state){
+  if(!isValidCoupledTerrariumEcology(state))
+    fail('invalid_coupled_ecology_state');
+  const snapshot=buildTerrariumMicroclimateActionSnapshot(state.microclimate);
+  return freeze({...snapshot,revision:state.revision,
+    couplingVersion:TERRARIUM_ECOLOGY_COUPLED_VERSION});
+}
+
+return {createCoupledTerrariumEcology,isValidCoupledTerrariumEcology,advanceCoupledTerrariumEcology,applyCoupledTerrariumEcologyEvent,inspectCoupledTerrariumEcology,buildCoupledTerrariumEcologyActionSnapshot};
+})();
+
+const {createTerrariumBiotaV03,isValidTerrariumBiotaV03,advanceTerrariumBiotaV03,applyTerrariumBiotaV03Event,inspectTerrariumBiotaV03,buildTerrariumBiotaV03ActionSnapshot}=(function(){
+/**
+ * Scales & Seeds / OHM ECO V0.3a — plant patches and bounded detritus pools.
+ *
+ * Every zone reads the SAME verified V0.2b clock and water authority.
+ * Plants (moss/fern) and decomposers are abstract GROUP/appearance indices,
+ * never organisms, species-level models, measured growth rates or husbandry.
+ *
+ * Organic accounting (independent of soil water):
+ *   initial litter/fragmented/mineral proxies + added litter
+ *   === litter + fragmented + mineral proxies.
+ * No organic matter appears from plant COVER or from "fungal growth".
+ * Mineral proxy never automatically becomes new plant biomass.
+ *
+ * Default integer game coefficients have NO real-world unit calibration.
+ * No network, saves, player data, Phaser or wall-clock reads.
+ */
+const TERRARIUM_BIOTA_V03_VERSION='0.3a';
+const TYPES=['none','moss','fern'];
+const GROUPS=['fungi','springtails','isopods'];
+const MAX=1000000000;
+const fail=x=>{throw new RangeError(x)};
+const integer=(v,max=MAX)=>Number.isSafeInteger(v)&&v>=0&&v<=max;
+const obj=o=>o!==null&&typeof o==='object'&&!Array.isArray(o);
+const only=(o,keys)=>obj(o)&&Object.keys(o).every(k=>keys.includes(k));
+const clamp=(v,lo,hi)=>Math.min(hi,Math.max(lo,v));
+const f=Object.freeze;
+const defaults=f({
+  plantKind:'none',plantCoverUnits:0,lightUnits:500,
+  litterUnits:0,fragmentedUnits:0,mineralUnits:0,
+  fungiIndex:350,springtailIndex:180,isopodIndex:100
+});
+const optionKeys=Object.keys(defaults);
+function parseZone(o,i){
+  if(!only(o,optionKeys))fail('invalid_biota_zone_config');
+  const v={...defaults,...o};
+  if(!TYPES.includes(v.plantKind)||
+     !integer(v.plantCoverUnits,1000)||
+     (v.plantKind==='none'&&v.plantCoverUnits!==0)||
+     !integer(v.lightUnits,1000)||
+     !integer(v.litterUnits,1000000)||
+     !integer(v.fragmentedUnits,1000000)||
+     !integer(v.mineralUnits,1000000)||
+     !GROUPS.every(g=>integer(v[g==='fungi'?'fungiIndex':g==='springtails'?'springtailIndex':'isopodIndex'],1000)))
+    fail('invalid_biota_zone_config_values');
+  return f({
+    id:'zone_'+i,
+    plant:f({kind:v.plantKind,coverUnits:v.plantCoverUnits,
+      conditionUnits:750,lightUnits:v.lightUnits}),
+    litterUnits:v.litterUnits,fragmentedUnits:v.fragmentedUnits,
+    mineralUnits:v.mineralUnits,
+    decomposers:f({fungiIndex:v.fungiIndex,
+      springtailIndex:v.springtailIndex,isopodIndex:v.isopodIndex})
+  });
+}
+const amount=z=>z.litterUnits+z.fragmentedUnits+z.mineralUnits;
+const total=zones=>zones.reduce((n,z)=>n+amount(z),0);
+const cloneZone=z=>({
+ ...z,plant:{...z.plant},decomposers:{...z.decomposers}
+});
+const freezeZone=z=>f({...z,plant:f({...z.plant}),
+  decomposers:f({...z.decomposers})});
+const envelope=(coupled,zones,ledger,revision)=>f({
+  schemaVersion:4,version:TERRARIUM_BIOTA_V03_VERSION,
+  minute:coupled.minute,revision,environment:coupled,
+  zones:f(zones.map(freezeZone)),ledger:f({...ledger})
+});
+function isValidTerrariumBiotaV03(state){
+  try{
+    if(!obj(state)||state.schemaVersion!==4||
+       state.version!==TERRARIUM_BIOTA_V03_VERSION||
+       !integer(state.minute,10000000)||
+       !integer(state.revision,10000000)||
+       !isValidCoupledTerrariumEcology(state.environment)||
+       state.minute!==state.environment.minute||
+       !Array.isArray(state.zones)||
+       state.zones.length!==state.environment.substrate.zones.length||
+       !only(state.ledger,['initialUnits','addedUnits'])||
+       Object.keys(state.ledger).length!==2||
+       !integer(state.ledger.initialUnits)||
+       !integer(state.ledger.addedUnits))
+      return false;
+    for(let i=0;i<state.zones.length;i++){
+      const z=state.zones[i];
+      if(!obj(z)||z.id!=='zone_'+i||!obj(z.plant)||
+         !TYPES.includes(z.plant.kind)||
+         !integer(z.plant.coverUnits,1000)||
+         (z.plant.kind==='none'&&z.plant.coverUnits!==0)||
+         !integer(z.plant.conditionUnits,1000)||
+         !integer(z.plant.lightUnits,1000)||
+         !integer(z.litterUnits)||!integer(z.fragmentedUnits)||
+         !integer(z.mineralUnits)||!obj(z.decomposers)||
+         !GROUPS.every(g=>integer(z.decomposers[
+          g==='fungi'?'fungiIndex':g==='springtails'?'springtailIndex':'isopodIndex'
+         ],1000)))
+        return false;
+    }
+    return state.ledger.initialUnits+state.ledger.addedUnits===
+      total(state.zones);
+  }catch{return false;}
+}
+
+function createTerrariumBiotaV03({
+  environment=null,environmentOptions={},zoneConfigs=null
+}={}){
+  if(!only(environmentOptions,
+    ['microclimate','substrate','microclimateOptions','substrateOptions']))
+    fail('invalid_biota_environment_options');
+  const env=environment??createCoupledTerrariumEcology(environmentOptions);
+  if(!isValidCoupledTerrariumEcology(env))fail('invalid_biota_environment');
+  const n=env.substrate.zones.length;
+  if(zoneConfigs!==null&&(!Array.isArray(zoneConfigs)||
+     zoneConfigs.length!==n))fail('invalid_biota_zone_count');
+  const zones=Array.from({length:n},(_,i)=>
+    parseZone(zoneConfigs===null?{}:zoneConfigs[i],i));
+  const state=envelope(env,zones,{initialUnits:total(zones),addedUnits:0},0);
+  if(!isValidTerrariumBiotaV03(state))fail('invalid_biota_initial_state');
+  return state;
+}
+const conditions=(env,z,i)=>{
+  const climate=env.microclimate.cells[i];
+  const substrate=env.substrate.zones[i];
+  const root=substrate.root.waterUnits/substrate.root.capacityUnits;
+  const surface=substrate.surface.waterUnits/substrate.surface.capacityUnits;
+  const temperature=climate.temperatureC;
+  // Heuristic only: moss has a surface-wetness proxy while ferns use root
+  // moisture. No conversion to true tissue water potential or plant health.
+  const moisture=z.plant.kind==='moss'
+    ?Math.max(surface,climate.relativeHumidity*.45)
+    :root;
+  const light=z.plant.lightUnits/1000;
+  const tolerableGameTemp=temperature>=12&&temperature<=35;
+  const wetness=moisture>=.18&&moisture<=.92;
+  const photosynthesisCandidate=z.plant.kind!=='none'&&
+    light>=.22&&tolerableGameTemp&&wetness;
+  const microbialActivity=temperature>=8&&temperature<=40?
+    clamp((root+.7*surface)/1.7,0,1):0;
+  return {moisture,root,surface,light,temperature,
+    photosynthesisCandidate,microbialActivity};
+};
+function hourlyZone(env,z,i){
+  const next=cloneZone(z),sig=conditions(env,z,i);
+  const p=next.plant;
+  // Display cover & condition are NOT biomass or quantified growth.
+  if(p.kind!=='none'){
+    if(sig.photosynthesisCandidate){
+      p.conditionUnits=clamp(p.conditionUnits+2,0,1000);
+      p.coverUnits=clamp(p.coverUnits+(p.conditionUnits>350?2:0),0,1000);
+    }else{
+      const stressed=sig.light<.04||sig.moisture<.05||
+        sig.temperature<7||sig.temperature>39;
+      if(stressed)p.conditionUnits=clamp(p.conditionUnits-2,0,1000);
+      // A moss patch is not declared dead from dryness; many taxa recover.
+      if(stressed&&p.conditionUnits<200)
+        p.coverUnits=clamp(p.coverUnits-1,0,1000);
+    }
+  }
+  const {decomposers:d}=next;
+  // Presence indices are bounded proxies, NOT individuals or births/deaths.
+  if(sig.microbialActivity>.20&&next.litterUnits>0)
+    d.fungiIndex=clamp(d.fungiIndex+1,0,1000);
+  else if(sig.microbialActivity<.10)
+    d.fungiIndex=clamp(d.fungiIndex-1,0,1000);
+  if(sig.microbialActivity>.18&&next.fragmentedUnits>0)
+    d.springtailIndex=clamp(d.springtailIndex+1,0,1000);
+  if(sig.microbialActivity<.09)
+    d.springtailIndex=clamp(d.springtailIndex-1,0,1000);
+  if(sig.microbialActivity>.20&&next.litterUnits>20)
+    d.isopodIndex=clamp(d.isopodIndex+1,0,1000);
+  if(sig.microbialActivity<.09)
+    d.isopodIndex=clamp(d.isopodIndex-1,0,1000);
+  const active=sig.microbialActivity;
+  // ABSTRACT organic-pool transfers. Fungi/microbes represent decomposition,
+  // fauna influence fragmentation. No "free nutrients" from empty substrate.
+  const shred=Math.min(next.litterUnits,Math.floor(
+    next.litterUnits*(d.fungiIndex+d.springtailIndex*.18+
+      d.isopodIndex*.30)*active/100000
+  ));
+  next.litterUnits-=shred;
+  next.fragmentedUnits+=shred;
+  const mineral=Math.min(next.fragmentedUnits,Math.floor(
+    next.fragmentedUnits*(d.fungiIndex+.15*d.springtailIndex)*
+    active/130000
+  ));
+  next.fragmentedUnits-=mineral;
+  next.mineralUnits+=mineral;
+  return next;
+}
+/** 60-game-minute group update; full environment still advances each minute.
+ * For split calls, the group update always occurs on minute % 60 === 0.
+ */
+function advanceTerrariumBiotaV03(state,{minutes=1}={}){
+  if(!isValidTerrariumBiotaV03(state)||
+     !Number.isInteger(minutes)||minutes<1||minutes>240||
+     state.minute+minutes>10000000||
+     state.revision+minutes>10000000)
+    fail('invalid_biota_minutes');
+  let env=state.environment,zones=state.zones;
+  for(let i=0;i<minutes;i++){
+    env=advanceCoupledTerrariumEcology(env,{minutes:1});
+    if(env.minute%60===0)
+      zones=zones.map((z,j)=>hourlyZone(env,z,j));
+  }
+  const next=envelope(env,zones,state.ledger,state.revision+minutes);
+  if(!isValidTerrariumBiotaV03(next))fail('biota_step_failed');
+  return next;
+}
+/** Environment events are delegated to V0.2b; NO soil writes here.
+ * Biota events explicitly add external organic material or change indices.
+ */
+function applyTerrariumBiotaV03Event(state,event){
+  if(!isValidTerrariumBiotaV03(state)||state.revision>=10000000||
+     !obj(event))fail('invalid_biota_event');
+  let env=state.environment,ledger={...state.ledger};
+  const zones=state.zones.map(cloneZone);
+  if(event.channel==='environment'){
+    if(!only(event,['channel','event'])||!obj(event.event))
+      fail('invalid_biota_environment_event');
+    env=applyCoupledTerrariumEcologyEvent(env,event.event);
+  }else if(event.channel==='biota'){
+    if(typeof event.zoneId!=='string')fail('invalid_biota_zone_id');
+    const z=zones.find(x=>x.id===event.zoneId);
+    if(!z)fail('unknown_biota_zone');
+    if(event.type==='leaf_litter'){
+      if(!only(event,['channel','zoneId','type','amountUnits'])||
+         !integer(event.amountUnits,5000)||event.amountUnits<1||
+         ledger.addedUnits+event.amountUnits>MAX||
+         z.litterUnits+event.amountUnits>MAX)
+        fail('invalid_litter_event');
+      z.litterUnits+=event.amountUnits;
+      ledger.addedUnits+=event.amountUnits;
+    }else if(event.type==='plant_patch'){
+      if(!only(event,['channel','zoneId','type','plantKind','coverUnits'])||
+         !TYPES.includes(event.plantKind)||
+         !integer(event.coverUnits,1000)||
+         (event.plantKind==='none'&&event.coverUnits!==0))
+        fail('invalid_plant_patch');
+      z.plant.kind=event.plantKind;
+      z.plant.coverUnits=event.coverUnits;
+      z.plant.conditionUnits=750;
+      // Changing cover is a visual placement event, not material production.
+    }else if(event.type==='light'){
+      if(!only(event,['channel','zoneId','type','lightUnits'])||
+         !integer(event.lightUnits,1000))fail('invalid_light_event');
+      z.plant.lightUnits=event.lightUnits;
+    }else if(event.type==='decomposer_index'){
+      if(!only(event,['channel','zoneId','type','group','indexUnits'])||
+         !GROUPS.includes(event.group)||
+         !integer(event.indexUnits,1000))fail('invalid_decomposer_event');
+      const key=event.group==='fungi'?'fungiIndex':
+        event.group==='springtails'?'springtailIndex':'isopodIndex';
+      z.decomposers[key]=event.indexUnits;
+    }else fail('unknown_biota_event');
+  }else fail('unknown_biota_channel');
+  const next=envelope(env,zones,ledger,state.revision+1);
+  if(!isValidTerrariumBiotaV03(next))fail('invalid_biota_event_result');
+  return next;
+}
+
+function inspectTerrariumBiotaV03(state){
+  if(!isValidTerrariumBiotaV03(state))fail('invalid_biota_snapshot');
+  return f({
+    version:TERRARIUM_BIOTA_V03_VERSION,
+    minute:state.minute,revision:state.revision,
+    environment:inspectCoupledTerrariumEcology(state.environment),
+    organicLedger:f({...state.ledger,currentUnits:total(state.zones)}),
+    zones:f(state.zones.map((z,i)=>{
+      const signals=conditions(state.environment,z,i);
+      return f({
+        id:z.id,
+        plant:f({...z.plant}),
+        plantActivity:z.plant.kind==='none'?'no_patch':
+          signals.photosynthesisCandidate?'favourable_candidate':
+          signals.light<.22?'light_limited_candidate':
+          'water_or_temperature_limited_candidate',
+        decomposers:f({...z.decomposers}),
+        litterUnits:z.litterUnits,
+        fragmentedUnits:z.fragmentedUnits,mineralUnits:z.mineralUnits,
+        signals:f({
+          lightIndex:z.plant.lightUnits,
+          surfaceMoistureIndex:Number(signals.surface.toFixed(5)),
+          rootMoistureIndex:Number(signals.root.toFixed(5)),
+          temperatureC:signals.temperature
+        })
+      });
+    })),
+    evidenceStatus:'qualitative_ecological_relations_numeric_game_heuristics_only',
+    organicUnits:'abstract_conserved_pool_units_not_real_carbon_or_nutrients'
+  });
+}
+/** Existing snake sites still come from actual V0.2b ecology, not from
+ * plant growth indices or an invented animal observation.
+ */
+function buildTerrariumBiotaV03ActionSnapshot(state){
+  if(!isValidTerrariumBiotaV03(state))
+    fail('invalid_biota_action_snapshot');
+  return buildCoupledTerrariumEcologyActionSnapshot(state.environment);
+}
+
+return {createTerrariumBiotaV03,isValidTerrariumBiotaV03,advanceTerrariumBiotaV03,applyTerrariumBiotaV03Event,inspectTerrariumBiotaV03,buildTerrariumBiotaV03ActionSnapshot};
+})();
+
+const {createTerrariumEcologyLightV03b,isValidTerrariumEcologyLightV03b,advanceTerrariumEcologyLightV03b,applyTerrariumEcologyLightV03bEvent,setTerrariumEcologyLightTransmissionV03b,inspectTerrariumEcologyLightV03b,buildTerrariumEcologyLightV03bActionSnapshot}=(function(){
+/**
+ * OHM ECO V0.3b: deterministic plant taxon references, local light schedules,
+ * and explicitly sourced organic input. Isolated engineering prototype.
+ *
+ * V0.3a owns plant/decomposer and organic ledger; V0.2b owns water/time.
+ * THIS adapter is the sole owner of V0.3a's lightUnits while coupled.
+ * Light intensities, distances and growth coefficients are fictional game
+ * indices, not PPFD/DLI, horticultural advice, safety or real photosynthesis.
+ */
+const TERRARIUM_ECOLOGY_LIGHT_V03B_VERSION='0.3b';
+const fail=m=>{throw new RangeError(m)};
+const obj=x=>x!==null&&typeof x==='object'&&!Array.isArray(x);
+const keys=(x,allowed)=>obj(x)&&Object.keys(x).every(k=>allowed.includes(k));
+const int=(v,max)=>Number.isSafeInteger(v)&&v>=0&&v<=max;
+const freeze=Object.freeze;
+const uid=x=>typeof x==='string'&&/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$/.test(x);
+const kind=['artificial_led','daylight_proxy'];
+const sources=['player_placement','simulated_event','research_staff'];
+const patchKinds=['moss','fern'];
+const taxonData=[
+ {id:'moss_polytrichum_commune',plantKind:'moss',
+   scientificName:'Polytrichum commune Hedw.',
+   taxonomyUrl:'https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id=3213',
+   evidence:'taxonomy_name_only'},
+ {id:'fern_nephrolepis_exaltata',plantKind:'fern',
+   scientificName:'Nephrolepis exaltata (L.) Schott',
+   taxonomyUrl:'https://powo.science.kew.org/taxon/17160830-1',
+   evidence:'taxonomy_name_only'}
+];
+const OHM_PLANT_TAXON_REFERENCES_V03B=freeze(taxonData.map(x=>
+ freeze({...x,husbandry:'not_evaluated',snakeCoHousing:'not_evaluated',
+   modelCoefficients:'generic_morphotype_game_heuristic_only'})));
+const byId=new Map(OHM_PLANT_TAXON_REFERENCES_V03B.map(x=>[x.id,x]));
+const normFixture=x=>{
+ if(!keys(x,['id','type','zoneIndex','strengthUnits','spreadZones',
+             'heightUnits','startMinute','durationMinutes'])||
+    !uid(x.id)||!kind.includes(x.type)||
+    !int(x.zoneIndex,11)||!int(x.strengthUnits,1000)||
+    !int(x.spreadZones,11)||!int(x.heightUnits,1000)||
+    !int(x.startMinute,1439)||!int(x.durationMinutes,1440)||
+    x.durationMinutes===0)fail('invalid_light_fixture');
+ return freeze({...x});
+};
+const validFixtures=(list,count)=>{
+ if(!Array.isArray(list)||list.length>12)return false;
+ const ids=new Set();
+ return list.every(x=>{
+  let y;
+  try{y=normFixture(x)}catch{return false}
+  if(ids.has(y.id)||y.zoneIndex>=count)return false;
+  ids.add(y.id);return true;
+ });
+};
+const validTransmission=(a,count)=>Array.isArray(a)&&a.length===count&&
+ a.every(x=>int(x,1000));
+const fullTransmission=count=>Array(count).fill(1000);
+const inWindow=(f,minute)=>{
+ const offset=((minute%1440)-f.startMinute+1440)%1440;
+ return offset<f.durationMinutes;
+};
+function illumination(fixtures,minute,count,transmission){
+ return Array.from({length:count},(_,i)=>{
+  let units=0;
+  for(const lamp of fixtures){
+   if(!inWindow(lamp,minute))continue;
+   const d=Math.abs(i-lamp.zoneIndex);
+   if(d>lamp.spreadZones)continue;
+   // Distance and height are schematic attenuation, not measured lux/PPFD.
+   const spread=(lamp.spreadZones+1-d)/(lamp.spreadZones+1);
+   units+=Math.floor(lamp.strengthUnits*spread*
+     (1000/(1000+lamp.heightUnits)));
+  }
+  return Math.floor(Math.min(1000,units)*transmission[i]/1000);
+ });
+}
+const validSpecies=(refs,zones)=>{
+ if(!Array.isArray(refs)||refs.length!==zones.length)return false;
+ return refs.every((id,i)=>id===null||
+  (byId.has(id)&&byId.get(id).plantKind===zones[i].plant.kind));
+};
+const validReceipt=(v,count)=>{
+ return keys(v,['eventId','minute','zoneId','amountUnits','source',
+                'classification'])&&
+ uid(v.eventId)&&int(v.minute,10000000)&&
+ typeof v.zoneId==='string'&&
+ /^zone_(\d{1,2})$/.test(v.zoneId)&&
+ Number(v.zoneId.slice(5))<count&&
+ int(v.amountUnits,5000)&&v.amountUnits>0&&
+ keys(v.source,['kind','referenceId'])&&sources.includes(v.source.kind)&&
+ uid(v.source.referenceId)&&
+ v.classification==='in_game_event_not_observation';
+};
+const envelope=(biota,fixtures,species,receipts,revision,transmission)=>freeze({
+ schemaVersion:5,version:TERRARIUM_ECOLOGY_LIGHT_V03B_VERSION,
+ minute:biota.minute,revision,biota,
+ fixtures:freeze(fixtures.map(x=>freeze({...x}))),
+ transmissionByZone:freeze([...transmission]),
+ speciesByZone:freeze([...species]),
+ receipts:freeze(receipts.map(x=>freeze({...x,source:freeze({...x.source})})))
+});
+function alignLight(biota,fixtures,targetMinute,transmission){
+ const light=illumination(fixtures,targetMinute,biota.zones.length,
+   transmission);
+ for(let i=0;i<light.length;i++){
+  if(biota.zones[i].plant.lightUnits===light[i])continue;
+  biota=applyTerrariumBiotaV03Event(biota,{channel:'biota',
+    zoneId:'zone_'+i,type:'light',lightUnits:light[i]});
+ }
+ return biota;
+}
+function isValidTerrariumEcologyLightV03b(s){
+ try{
+  if(!obj(s)||s.schemaVersion!==5||
+     s.version!==TERRARIUM_ECOLOGY_LIGHT_V03B_VERSION||
+     !int(s.minute,10000000)||!int(s.revision,10000000)||
+     !isValidTerrariumBiotaV03(s.biota)||s.minute!==s.biota.minute||
+     !validFixtures(s.fixtures,s.biota.zones.length)||
+     !validTransmission(s.transmissionByZone,s.biota.zones.length)||
+     !validSpecies(s.speciesByZone,s.biota.zones)||
+     !Array.isArray(s.receipts)||s.receipts.length>128||
+     !s.receipts.every(x=>validReceipt(x,s.biota.zones.length))||
+     new Set(s.receipts.map(x=>x.eventId)).size!==s.receipts.length||
+     s.receipts.some(x=>x.minute>s.minute))
+    return false;
+  const light=illumination(s.fixtures,s.minute,s.biota.zones.length,
+    s.transmissionByZone);
+  return light.every((v,i)=>v===s.biota.zones[i].plant.lightUnits);
+ }catch{return false}
+}
+/** Reference names provide verified taxonomic spelling ONLY. Neither taxon is
+ * automatically selected for terrarium co-housing or real species parameters.
+ */
+function createTerrariumEcologyLightV03b({
+ biota=null,biotaOptions={},fixtures=[],speciesByZone=null,
+ transmissionByZone=null
+}={}){
+ if(!keys(biotaOptions,['environment','environmentOptions','zoneConfigs']))
+  fail('invalid_light_creation_options');
+ let raw=biota??createTerrariumBiotaV03(biotaOptions);
+ if(!isValidTerrariumBiotaV03(raw)||
+    !validFixtures(fixtures,raw.zones.length))
+  fail('invalid_light_environment_or_fixtures');
+ const species=speciesByZone===null?
+  Array(raw.zones.length).fill(null):speciesByZone;
+ const transmission=transmissionByZone===null?
+  fullTransmission(raw.zones.length):transmissionByZone;
+ if(!validTransmission(transmission,raw.zones.length))
+  fail('invalid_light_transmission');
+ if(!validSpecies(species,raw.zones))fail('invalid_plant_taxon_references');
+ raw=alignLight(raw,fixtures,raw.minute,transmission);
+ const out=envelope(raw,fixtures,species,[],0,transmission);
+ if(!isValidTerrariumEcologyLightV03b(out))fail('invalid_v03b_created');
+ return out;
+}
+/** Apply the future minute's lighting BEFORE the shared hourly biota update.
+ * Thus an on/off boundary on hour H is honored by the Hth hourly tick.
+ * Chunk sizes and repeated calls are numerically identical.
+ */
+function advanceTerrariumEcologyLightV03b(state,{minutes=1}={}){
+ if(!isValidTerrariumEcologyLightV03b(state)||
+    !Number.isInteger(minutes)||minutes<1||minutes>240||
+    state.minute+minutes>10000000||state.revision+minutes>10000000)
+  fail('invalid_v03b_minutes');
+ let biota=state.biota;
+ for(let i=0;i<minutes;i++){
+  biota=alignLight(biota,state.fixtures,biota.minute+1,
+      state.transmissionByZone);
+  biota=advanceTerrariumBiotaV03(biota,{minutes:1});
+ }
+ const out=envelope(biota,state.fixtures,state.speciesByZone,
+   state.receipts,state.revision+minutes,state.transmissionByZone);
+ if(!isValidTerrariumEcologyLightV03b(out))fail('invalid_v03b_step');
+ return out;
+}
+/** Light fixtures are the only authority for lightUnits in this adapter.
+ * Organic events require explicit provenance; NEVER imply eyewitness
+ * observations. A scheduled event is still an unverified IN-GAME event.
+ */
+function applyTerrariumEcologyLightV03bEvent(state,e){
+ if(!isValidTerrariumEcologyLightV03b(state)||
+    state.revision>=10000000||!obj(e)||
+    typeof e.channel!=='string')fail('invalid_v03b_event');
+ let b=state.biota,fixtures=state.fixtures,species=state.speciesByZone,
+     receipts=state.receipts;
+ if(e.channel==='fixture'){
+  if(e.type==='upsert'){
+   if(!keys(e,['channel','type','fixture']))fail('invalid_fixture_event');
+   const target=normFixture(e.fixture);
+   if(target.zoneIndex>=b.zones.length)fail('invalid_fixture_zone');
+   fixtures=fixtures.filter(x=>x.id!==target.id).concat([target]);
+  }else if(e.type==='remove'){
+   if(!keys(e,['channel','type','id'])||!uid(e.id)||
+      !fixtures.some(x=>x.id===e.id))fail('invalid_fixture_removal');
+   fixtures=fixtures.filter(x=>x.id!==e.id);
+  }else fail('unknown_fixture_event');
+  if(!validFixtures(fixtures,b.zones.length))fail('too_many_or_bad_fixtures');
+  b=alignLight(b,fixtures,b.minute,state.transmissionByZone);
+ }else if(e.channel==='plant_species'){
+  if(!keys(e,['channel','zoneId','speciesId'])||
+     typeof e.zoneId!=='string')fail('invalid_plant_species_event');
+  const idx=b.zones.findIndex(x=>x.id===e.zoneId);
+  if(idx<0||e.speciesId!==null&&!byId.has(e.speciesId))
+    fail('unknown_plant_species');
+  if(e.speciesId!==null&&
+     byId.get(e.speciesId).plantKind!==b.zones[idx].plant.kind)
+    fail('species_morphotype_mismatch');
+  species=species.slice();species[idx]=e.speciesId;
+ }else if(e.channel==='organic'){
+  if(!keys(e,['channel','type','eventId','minute','zoneId',
+              'amountUnits','source'])||
+      e.type!=='litter_input'||e.minute!==state.minute||
+      receipts.length>=128||
+      receipts.some(x=>x.eventId===e.eventId))
+    fail('invalid_or_duplicate_litter_provenance');
+  const receipt={eventId:e.eventId,minute:e.minute,
+    zoneId:e.zoneId,amountUnits:e.amountUnits,source:e.source,
+    classification:'in_game_event_not_observation'};
+  if(!validReceipt(receipt,b.zones.length))
+    fail('invalid_litter_source');
+  b=applyTerrariumBiotaV03Event(b,{channel:'biota',
+    type:'leaf_litter',zoneId:e.zoneId,amountUnits:e.amountUnits});
+  receipts=receipts.concat([receipt]);
+ }else if(e.channel==='biota'){
+  if(!keys(e,['channel','event'])||!obj(e.event)||
+     e.event.channel!=='biota'||
+     ['light','leaf_litter'].includes(e.event.type))
+    fail('biota_event_bypasses_v03b_authority');
+  b=applyTerrariumBiotaV03Event(b,e.event);
+  if(e.event.type==='plant_patch'){
+   const idx=b.zones.findIndex(x=>x.id===e.event.zoneId);
+   if(idx>=0&&species[idx]!==null&&
+      byId.get(species[idx]).plantKind!==b.zones[idx].plant.kind){
+    species=species.slice();species[idx]=null;
+   }
+  }
+ }else if(e.channel==='environment'){
+  if(!keys(e,['channel','event'])||!obj(e.event)||
+     e.event.channel!=='environment')
+    fail('invalid_v03b_environment_event');
+  b=applyTerrariumBiotaV03Event(b,e.event);
+ }else fail('unknown_v03b_event_channel');
+ const out=envelope(b,fixtures,species,receipts,state.revision+1,
+   state.transmissionByZone);
+ if(!isValidTerrariumEcologyLightV03b(out))fail('invalid_v03b_event_result');
+ return out;
+}
+/**
+ * V0.3c compatible, opt-in scene transmission projection.
+ * This is a single-owner extension; V0.3b defaults to 1000 (unshaded).
+ * Updates only the SAME canonical lightUnits authority, never soil water.
+ */
+function setTerrariumEcologyLightTransmissionV03b(state,
+  transmissionByZone){
+ if(!isValidTerrariumEcologyLightV03b(state)||
+    state.revision>=10000000||
+    !validTransmission(transmissionByZone,state.biota.zones.length))
+   fail('invalid_scene_light_transmission');
+ const biota=alignLight(state.biota,state.fixtures,state.minute,
+   transmissionByZone);
+ const out=envelope(biota,state.fixtures,state.speciesByZone,
+   state.receipts,state.revision+1,transmissionByZone);
+ if(!isValidTerrariumEcologyLightV03b(out))
+   fail('invalid_scene_light_result');
+ return out;
+}
+function inspectTerrariumEcologyLightV03b(state){
+ if(!isValidTerrariumEcologyLightV03b(state))
+  fail('invalid_v03b_snapshot');
+ const base=inspectTerrariumBiotaV03(state.biota);
+ const light=illumination(state.fixtures,state.minute,
+    state.biota.zones.length,state.transmissionByZone);
+ return freeze({
+  version:TERRARIUM_ECOLOGY_LIGHT_V03B_VERSION,
+  minute:state.minute,revision:state.revision,
+  lightUnitsByZone:freeze(light),
+  unshadedLightUnitsByZone:freeze(illumination(state.fixtures,
+    state.minute,state.biota.zones.length,
+    fullTransmission(state.biota.zones.length))),
+  transmissionByZone:freeze([...state.transmissionByZone]),
+  lamps:freeze(state.fixtures.map(x=>freeze({...x,
+    on:inWindow(x,state.minute)}))),
+  plants:freeze(state.speciesByZone.map(id=>
+    id===null?null:byId.get(id))),
+  biota:base,events:freeze(state.receipts.map(x=>freeze({
+    ...x,source:freeze({...x.source})
+  }))),
+  lightStatus:'game_proxy_not_PPFD_or_DLI',
+  speciesStatus:'taxonomic_reference_not_welfare_validated',
+  observationStatus:'no_eyewitness_claims'
+ });
+}
+function buildTerrariumEcologyLightV03bActionSnapshot(state){
+ if(!isValidTerrariumEcologyLightV03b(state))fail('invalid_v03b_actions');
+ return buildTerrariumBiotaV03ActionSnapshot(state.biota);
+}
+
+return {createTerrariumEcologyLightV03b,isValidTerrariumEcologyLightV03b,advanceTerrariumEcologyLightV03b,applyTerrariumEcologyLightV03bEvent,setTerrariumEcologyLightTransmissionV03b,inspectTerrariumEcologyLightV03b,buildTerrariumEcologyLightV03bActionSnapshot};
+})();
+
+const {createTerrariumSceneGeometryV03d,isValidTerrariumSceneGeometryV03d,advanceTerrariumSceneGeometryV03d,applyTerrariumSceneGeometryV03dEvent,calculateTerrariumGeometryTransmissionV03d,inspectTerrariumSceneGeometryV03d,buildTerrariumSceneGeometryV03dActionSnapshot}=(function(){
+/**
+ * Project OHM ECO V0.3d — bounded 2.5D scene-object geometry adapter.
+ *
+ * Converts scene-owned rectangle footprints, height and movable light mounts
+ * into a FIVE-SAMPLE per-zone transmission mask. A simple 3D ray-vs-AABB
+ * visibility test provides geometric shade; NOT photometric accuracy,
+ * diffuse light, physical ray tracing of meshes, heat, UVB or husbandry.
+ *
+ * V0.3b remains the SINGLE authority for effective plant lightUnits, V0.3a
+ * owns organic pools and V0.2b owns moisture and the game clock.
+ *
+ * Never modifies a formal player save, Phaser, storage or browser globals.
+ */
+const TERRARIUM_SCENE_GEOMETRY_V03D_VERSION='0.3d';
+const W=1000,H=400,MAX_OBJECTS=12,MAX_MOUNTS=12;
+const fail=k=>{throw new RangeError(k)};
+const F=Object.freeze;
+const obj=x=>x!==null&&typeof x==='object'&&!Array.isArray(x);
+const exact=(x,k)=>obj(x)&&Object.keys(x).every(n=>k.includes(n));
+const num=(n,lo,hi)=>typeof n==='number'&&Number.isFinite(n)&&n>=lo&&n<=hi;
+const integer=(n,hi)=>Number.isSafeInteger(n)&&n>=0&&n<=hi;
+const id=x=>typeof x==='string'&&/^[a-z0-9][a-z0-9_-]{0,63}$/i.test(x);
+const kinds=['rock_overhang','canopy','screen'];
+const same=(x,y)=>x.length===y.length&&x.every((n,i)=>n===y[i]);
+
+const boxKeys=['id','kind','x','y','width','depth','height','transmissionPermille'];
+function normalizeBox(v){
+ if(!exact(v,boxKeys)||boxKeys.some(k=>!(k in v))||
+    !id(v.id)||!kinds.includes(v.kind)||
+    !integer(v.x,W)||!integer(v.y,H)||
+    !integer(v.width,W)||v.width<1||
+    !integer(v.depth,H)||v.depth<1||
+    !integer(v.height,1000)||v.height<1||
+    !integer(v.transmissionPermille,1000)||
+    v.x+v.width>W||v.y+v.depth>H)
+   fail('invalid_scene_box');
+ return F({...v});
+}
+function normalizeZone(z){
+ if(!exact(z,['id','x','y','width','depth'])||
+    ['id','x','y','width','depth'].some(k=>!(k in z))||
+    !id(z.id)||!integer(z.x,W)||!integer(z.y,H)||
+    !integer(z.width,W)||z.width<1||
+    !integer(z.depth,H)||z.depth<1||
+    z.x+z.width>W||z.y+z.depth>H)fail('invalid_scene_zone');
+ return F({...z});
+}
+function normalizeMount(m){
+ if(!exact(m,['fixtureId','x','y','height'])||
+    ['fixtureId','x','y','height'].some(k=>!(k in m))||
+    !id(m.fixtureId)||!integer(m.x,W)||
+    !integer(m.y,H)||!integer(m.height,2000)||m.height<1)
+   fail('invalid_scene_light_mount');
+ return F({...m});
+}
+function validUnique(items,n,parse,max){
+ if(!Array.isArray(items)||items.length>max)return false;
+ const ids=new Set();
+ try{
+  for(const item of items){
+   const x=parse(item);
+   const key=x.fixtureId??x.id;
+   if(ids.has(key))return false;
+   ids.add(key);
+  }
+  return items.length===n||n===null;
+ }catch{return false}
+}
+const defaults=n=>Array.from({length:n},(_,i)=>{
+ const x=Math.floor(i*W/n),end=Math.floor((i+1)*W/n);
+ return F({id:'zone_'+i,x,y:0,width:end-x,depth:H});
+});
+function validGeometry(zones,objects,mounts,light){
+ const n=light.biota.zones.length;
+ if(!validUnique(zones,n,normalizeZone,12)||
+    !zones.every((z,i)=>z.id==='zone_'+i)||
+    !validUnique(objects,null,normalizeBox,MAX_OBJECTS)||
+    !validUnique(mounts,null,normalizeMount,MAX_MOUNTS))
+   return false;
+ return mounts.every(m=>light.fixtures.some(f=>f.id===m.fixtureId));
+}
+const active=(f,minute)=>{
+ const d=((minute%1440)-f.startMinute+1440)%1440;
+ return d<f.durationMinutes;
+};
+function fixtureContribution(f,i,minute){
+ if(!active(f,minute))return 0;
+ const d=Math.abs(i-f.zoneIndex);
+ if(d>f.spreadZones)return 0;
+ return Math.floor(f.strengthUnits*(f.spreadZones+1-d)/
+  (f.spreadZones+1)*(1000/(1000+f.heightUnits)));
+}
+function defaultMount(light,zones,fixture){
+ const zone=zones[fixture.zoneIndex];
+ return {fixtureId:fixture.id,
+  x:zone.x+Math.floor(zone.width/2),
+  y:zone.y+Math.floor(zone.depth/2),
+  height:800};
+}
+/** Deterministic segment-vs-box intersection: light at (x,y,z) to
+ * vegetation sample at (x,y,0). Occluders are vertical AABB prisms.
+ * This is a local geometry PROXY, not shadows cast onto render pixels.
+ */
+function blocked(start,point,box){
+ let lo=0,hi=1;
+ for(const [origin,delta,min,max] of [
+  [start.x,point.x-start.x,box.x,box.x+box.width],
+  [start.y,point.y-start.y,box.y,box.y+box.depth],
+  [start.height,-start.height,0,box.height]
+ ]){
+  if(Math.abs(delta)<1e-10){
+   if(origin<min||origin>max)return false;
+  }else{
+   let t0=(min-origin)/delta,t1=(max-origin)/delta;
+   if(t0>t1)[t0,t1]=[t1,t0];
+   lo=Math.max(lo,t0);hi=Math.min(hi,t1);
+   if(lo>hi)return false;
+  }
+ }
+ return lo<=1&&hi>=0;
+}
+/** 5 scene-space sample points per zone. Area coverage & soft shadows
+ * are APPROXIMATED by sample count, not physically integrated rays.
+ */
+function samples(zone){
+ const {x,y,width:w,depth:d}=zone;
+ return [
+  {x:x+w/2,y:y+d/2},
+  {x:x+w/4,y:y+d/4},
+  {x:x+3*w/4,y:y+d/4},
+  {x:x+w/4,y:y+3*d/4},
+  {x:x+3*w/4,y:y+3*d/4}
+ ];
+}
+/** A scene can contain multiple lights. Each fixture is sampled
+ * independently, then its V0.3b-schematic contribution is combined.
+ * The result is projected back as ONE shared V0.3b transmission mask.
+ * The final 0..1000 mask is approximate, especially if lamps saturate.
+ */
+function calculateTerrariumGeometryTransmissionV03d({
+ base,zones,objects=[],mounts=[],minute=null
+}={}){
+ if(!isValidTerrariumEcologyLightV03b(base)||
+    !validGeometry(zones,objects,mounts,base)||
+    (minute!==null&&(!integer(minute,10000000))))
+   fail('invalid_geometry_projection');
+ const m=minute===null?base.minute:minute;
+ const mountById=new Map(mounts.map(x=>[x.fixtureId,x]));
+ return F(zones.map((zone,i)=>{
+  let raw=0,post=0;
+  const points=samples(zone);
+  for(const fixture of base.fixtures){
+   const units=fixtureContribution(fixture,i,m);
+   if(units===0)continue;
+   const light=mountById.get(fixture.id)??defaultMount(base,zones,fixture);
+   raw+=units;
+   let through=0;
+   for(const point of points){
+    let trans=1000;
+    for(const box of objects){
+     if(blocked(light,point,box))
+      trans=Math.floor(trans*box.transmissionPermille/1000);
+    }
+    through+=trans;
+   }
+   post+=units*through/(points.length*1000);
+  }
+  return raw===0?1000:Math.max(0,Math.min(1000,
+    Math.floor(1000*post/raw)));
+ }));
+}
+const wrap=(base,zones,objects,mounts,sceneId,revision)=>F({
+ schemaVersion:7,version:TERRARIUM_SCENE_GEOMETRY_V03D_VERSION,
+ minute:base.minute,revision,sceneId,base,
+ zones:F(zones.map(z=>F({...z}))),
+ objects:F(objects.map(o=>F({...o}))),
+ mounts:F(mounts.map(m=>F({...m})))
+});
+function applyMask(base,zones,objects,mounts,minute){
+ const transmission=calculateTerrariumGeometryTransmissionV03d({
+  base,zones,objects,mounts,minute
+ });
+ return same(base.transmissionByZone,transmission)?base:
+  setTerrariumEcologyLightTransmissionV03b(base,transmission);
+}
+function isValidTerrariumSceneGeometryV03d(s){
+ try{
+  if(!obj(s)||s.schemaVersion!==7||
+     s.version!==TERRARIUM_SCENE_GEOMETRY_V03D_VERSION||
+     !integer(s.minute,10000000)||!integer(s.revision,10000000)||
+     !id(s.sceneId)||!isValidTerrariumEcologyLightV03b(s.base)||
+     s.minute!==s.base.minute||
+     !validGeometry(s.zones,s.objects,s.mounts,s.base))
+    return false;
+  return same(s.base.transmissionByZone,
+    calculateTerrariumGeometryTransmissionV03d({
+     base:s.base,zones:s.zones,objects:s.objects,mounts:s.mounts
+    }));
+ }catch{return false}
+}
+/** V0.3d composes V0.3b directly, rather than stacking the older V0.3c
+ * one-dimensional occluders as a second source of truth. */
+function createTerrariumSceneGeometryV03d({
+ base=null,baseOptions={},sceneId='terrarium_scene',
+ zones=null,objects=[],mounts=[]
+}={}){
+ if(!exact(baseOptions,['biota','biotaOptions','fixtures','speciesByZone',
+                        'transmissionByZone']))
+  fail('invalid_scene_geometry_options');
+ let b=base??createTerrariumEcologyLightV03b(baseOptions);
+ if(!isValidTerrariumEcologyLightV03b(b)||!id(sceneId))fail('invalid_scene_base');
+ const layouts=zones===null?defaults(b.biota.zones.length):zones;
+ if(!validGeometry(layouts,objects,mounts,b))
+  fail('invalid_scene_geometry');
+ b=applyMask(b,layouts,objects,mounts,b.minute);
+ const out=wrap(b,layouts,objects,mounts,sceneId,0);
+ if(!isValidTerrariumSceneGeometryV03d(out))fail('scene_create_failed');
+ return out;
+}
+/** The fixture schedule and moving objects are sampled at each game-minute
+ * boundary, before the V0.3a hourly plant tick. 27+33 == 60.
+ */
+function advanceTerrariumSceneGeometryV03d(s,{minutes=1}={}){
+ if(!isValidTerrariumSceneGeometryV03d(s)||
+    !Number.isInteger(minutes)||minutes<1||minutes>240||
+    s.minute+minutes>10000000||s.revision+minutes>10000000)
+  fail('invalid_scene_geometry_minutes');
+ let base=s.base;
+ for(let i=0;i<minutes;i++){
+  base=applyMask(base,s.zones,s.objects,s.mounts,base.minute+1);
+  base=advanceTerrariumEcologyLightV03b(base,{minutes:1});
+ }
+ const out=wrap(base,s.zones,s.objects,s.mounts,s.sceneId,
+   s.revision+minutes);
+ if(!isValidTerrariumSceneGeometryV03d(out))
+  fail('scene_step_failed');
+ return out;
+}
+/** All scene positions have a single owner: V0.3d objects/zones/mounts.
+ * V0.3b base events still validate litter source and unique light ownership.
+ * Every change to scene geometry reprojects the same plant light values.
+ */
+function applyTerrariumSceneGeometryV03dEvent(s,e){
+ if(!isValidTerrariumSceneGeometryV03d(s)||
+    s.revision>=10000000||!obj(e)||typeof e.channel!=='string')
+  fail('invalid_scene_geometry_event');
+ let b=s.base,zones=s.zones,objects=s.objects,mounts=s.mounts;
+ if(e.channel==='object'){
+  if(e.type==='upsert'){
+   if(!exact(e,['channel','type','object']))fail('invalid_object_write');
+   const x=normalizeBox(e.object);
+   objects=objects.filter(o=>o.id!==x.id).concat([x]);
+  }else if(e.type==='remove'){
+   if(!exact(e,['channel','type','id'])||!id(e.id)||
+      !objects.some(o=>o.id===e.id))fail('invalid_object_remove');
+   objects=objects.filter(o=>o.id!==e.id);
+  }else fail('unknown_object_event');
+ }else if(e.channel==='zone'){
+  if(!exact(e,['channel','type','zone'])||e.type!=='update')
+   fail('invalid_zone_event');
+  const x=normalizeZone(e.zone);
+  if(!zones.some(z=>z.id===x.id))fail('unknown_zone');
+  zones=zones.map(z=>z.id===x.id?x:z);
+ }else if(e.channel==='mount'){
+  if(e.type==='upsert'){
+   if(!exact(e,['channel','type','mount']))fail('invalid_mount_write');
+   const x=normalizeMount(e.mount);
+   mounts=mounts.filter(m=>m.fixtureId!==x.fixtureId).concat([x]);
+  }else if(e.type==='remove'){
+   if(!exact(e,['channel','type','fixtureId'])||
+      !id(e.fixtureId)||!mounts.some(m=>m.fixtureId===e.fixtureId))
+    fail('invalid_mount_remove');
+   mounts=mounts.filter(m=>m.fixtureId!==e.fixtureId);
+  }else fail('unknown_mount_event');
+ }else if(e.channel==='base'){
+  if(!exact(e,['channel','event'])||!obj(e.event))
+   fail('invalid_scene_base_event');
+  b=applyTerrariumEcologyLightV03bEvent(b,e.event);
+  // Removing a fixture must remove now-orphaned custom mounts.
+  mounts=mounts.filter(m=>b.fixtures.some(f=>f.id===m.fixtureId));
+ }else fail('unknown_geometry_channel');
+ if(!validGeometry(zones,objects,mounts,b))
+  fail('invalid_geometry_event_result');
+ b=applyMask(b,zones,objects,mounts,b.minute);
+ const out=wrap(b,zones,objects,mounts,s.sceneId,s.revision+1);
+ if(!isValidTerrariumSceneGeometryV03d(out))
+  fail('invalid_geometry_event_result');
+ return out;
+}
+function inspectTerrariumSceneGeometryV03d(s){
+ if(!isValidTerrariumSceneGeometryV03d(s))
+  fail('invalid_scene_geometry_inspection');
+ const v=inspectTerrariumEcologyLightV03b(s.base);
+ return F({
+  version:TERRARIUM_SCENE_GEOMETRY_V03D_VERSION,
+  minute:s.minute,sceneId:s.sceneId,revision:s.revision,
+  bounds:F({width:W,depth:H,heightUnits:2000}),
+  zones:F(s.zones.map(z=>F({...z}))),
+  objects:F(s.objects.map(o=>F({...o}))),
+  mounts:F(s.mounts.map(m=>F({...m}))),
+  rawLightUnitsByZone:v.unshadedLightUnitsByZone,
+  actualLightUnitsByZone:v.lightUnitsByZone,
+  transmissionByZone:v.transmissionByZone,
+  biota:v.biota,lamps:v.lamps,organicReceipts:v.events,
+  modelStatus:'bounded_2_5d_five_sample_aabb_ray_visibility_game_proxy',
+  scienceStatus:'not_PPFD_DLI_lux_UVB_or_species_welfare_evidence'
+ });
+}
+function buildTerrariumSceneGeometryV03dActionSnapshot(s){
+ if(!isValidTerrariumSceneGeometryV03d(s))
+  fail('invalid_scene_geometry_action_snapshot');
+ return buildTerrariumEcologyLightV03bActionSnapshot(s.base);
+}
+
+return {createTerrariumSceneGeometryV03d,isValidTerrariumSceneGeometryV03d,advanceTerrariumSceneGeometryV03d,applyTerrariumSceneGeometryV03dEvent,calculateTerrariumGeometryTransmissionV03d,inspectTerrariumSceneGeometryV03d,buildTerrariumSceneGeometryV03dActionSnapshot};
+})();
+
+const {createTerrariumRenderCameraV03e,isValidTerrariumRenderCameraV03e,projectTerrariumWorldPointV03e,projectTerrariumSceneForRenderV03e,terrariumScreenDeltaToWorldV03e,terrariumScreenPointToGroundV03e,hitTestTerrariumRenderV03e,moveTerrariumSceneObjectByScreenDeltaV03e,moveTerrariumLightByScreenDeltaV03e}=(function(){
+/**
+ * OHM ECO V0.3e: portable scene -> renderer coordinate contract.
+ *
+ * Visual pixels NEVER own world positions. Only V0.3d owns objects, zones,
+ * mounts and ecology. This module projects that state into deterministic
+ * top-down or schematic 2.5D polygons and maps pointer drag back to the
+ * existing validated V0.3d event API.
+ *
+ * Pure JS: no Canvas, Phaser, DOM, WebGL, clock, storage or network calls.
+ * NOT a full 3D camera, pixel art, ray-traced shadows or plant physiology.
+ */
+const TERRARIUM_SCENE_RENDER_V03E_VERSION='0.3e';
+const F=Object.freeze;
+const bad=(name)=>{throw new RangeError(name)};
+const finite=(x)=>typeof x==='number'&&Number.isFinite(x);
+const int=(x,low,high)=>Number.isSafeInteger(x)&&x>=low&&x<=high;
+const obj=x=>x!==null&&typeof x==='object'&&!Array.isArray(x);
+const exact=(x,keys)=>obj(x)&&Object.keys(x).every(k=>keys.includes(k));
+const kinds=['top','oblique'];
+const freezePts=points=>F(points.map(p=>F(p)));
+const clamp=(x,a,b)=>Math.min(b,Math.max(a,x));
+
+function createTerrariumRenderCameraV03e({
+ view='oblique',width=900,height=540,padding=25
+}={}){
+ if(!kinds.includes(view)||!int(width,240,2000)||
+    !int(height,180,1200)||!int(padding,0,80)||
+    width-2*padding<100||height-2*padding<100)
+   bad('invalid_renderer_camera');
+ return F({view,width,height,padding,
+  worldWidth:1000,worldDepth:400,
+  renderer:'schematic_affine_2_5d_or_orthographic_top'});
+}
+function axes(camera){
+ if(!isValidTerrariumRenderCameraV03e(camera))bad('invalid_camera');
+ const {view,width:w,height:h,padding:p}=camera;
+ if(view==='top')return {
+  ox:p,oy:p,
+  ax:(w-2*p)/1000,ay:0,bx:0,by:(h-2*p)/400,zScale:0
+ };
+ return {
+  ox:w/2,oy:h*.61,
+  ax:(w-2*p)*.70/1000,ay:(h-2*p)*.13/1000,
+  bx:(w-2*p)*.20/400,by:(h-2*p)*.32/400,
+  zScale:(h-2*p)*.36/1000
+ };
+}
+function isValidTerrariumRenderCameraV03e(c){
+ return exact(c,['view','width','height','padding',
+   'worldWidth','worldDepth','renderer'])&&
+ kinds.includes(c.view)&&int(c.width,240,2000)&&
+ int(c.height,180,1200)&&int(c.padding,0,80)&&
+ c.width-2*c.padding>=100&&c.height-2*c.padding>=100&&
+ c.worldWidth===1000&&c.worldDepth===400&&
+ c.renderer==='schematic_affine_2_5d_or_orthographic_top';
+}
+function project(camera,x,y,z){
+ const a=axes(camera);
+ if(!finite(x)||!finite(y)||!finite(z))bad('invalid_world_point');
+ const px=camera.view==='top'?x:x-500;
+ const py=camera.view==='top'?y:y-200;
+ return F({x:a.ox+a.ax*px+a.bx*py,
+  y:a.oy+a.ay*px+a.by*py-a.zScale*z});
+}
+function projectTerrariumWorldPointV03e(camera,{x,y,z=0}={}){
+ if(!finite(x)||!finite(y)||!finite(z)||
+    x<0||x>1000||y<0||y>400||z<0||z>2000)
+   bad('invalid_world_point');
+ return project(camera,x,y,z);
+}
+/** Delta inverse stays stable when dragging a roof or elevated object:
+ * the drag changes the world FOOTPRINT, preserving the original z.
+ */
+function terrariumScreenDeltaToWorldV03e(camera,{dx,dy}={}){
+ const a=axes(camera);
+ if(!finite(dx)||!finite(dy))bad('invalid_pointer_delta');
+ const det=a.ax*a.by-a.ay*a.bx;
+ if(Math.abs(det)<1e-10)bad('degenerate_camera');
+ return F({dx:(dx*a.by-dy*a.bx)/det,
+  dy:(dy*a.ax-dx*a.ay)/det});
+}
+function terrariumScreenPointToGroundV03e(camera,{x,y}={}){
+ const a=axes(camera);
+ if(!finite(x)||!finite(y))bad('invalid_pointer_point');
+ const dx=x-a.ox,dy=y-a.oy;
+ const world=terrariumScreenDeltaToWorldV03e(camera,{dx,dy});
+ return F({x:world.dx+(camera.view==='top'?0:500),
+  y:world.dy+(camera.view==='top'?0:200)});
+}
+const boxCorners=(x,y,width,depth,z,camera)=>freezePts([
+ project(camera,x,y,z),
+ project(camera,x+width,y,z),
+ project(camera,x+width,y+depth,z),
+ project(camera,x,y+depth,z)
+]);
+function projectedObject(o,camera){
+ const ground=boxCorners(o.x,o.y,o.width,o.depth,0,camera);
+ const roof=boxCorners(o.x,o.y,o.width,o.depth,o.height,camera);
+ const faces=camera.view==='top'?F([]):F([
+  F({side:'right',polygon:freezePts([ground[1],ground[2],roof[2],roof[1]])}),
+  F({side:'front',polygon:freezePts([ground[2],ground[3],roof[3],roof[2]])})
+ ]);
+ return F({
+  id:o.id,kind:o.kind,
+  world:F({...o}),
+  floor:ground,roof,faces,
+  depthKey:o.y+o.depth/2,
+  height:o.height,transmissionPermille:o.transmissionPermille
+ });
+}
+function fromScene(scene,camera){
+ if(!isValidTerrariumSceneGeometryV03d(scene)||
+    !isValidTerrariumRenderCameraV03e(camera))
+   bad('invalid_render_scene');
+ const inspection=inspectTerrariumSceneGeometryV03d(scene);
+ const zones=F(inspection.zones.map((z,i)=>F({
+  id:z.id,world:F({...z}),
+  polygon:boxCorners(z.x,z.y,z.width,z.depth,0,camera),
+  plantKind:inspection.biota.zones[i].plant.kind,
+  plantCoverUnits:inspection.biota.zones[i].plant.coverUnits,
+  plantActivity:inspection.biota.zones[i].plantActivity,
+  rootMoistureIndex:inspection.biota.zones[i].signals.rootMoistureIndex,
+  rawLightUnits:inspection.rawLightUnitsByZone[i],
+  actualLightUnits:inspection.actualLightUnitsByZone[i],
+  transmissionPermille:inspection.transmissionByZone[i]
+ })));
+ const objects=F(inspection.objects.map(o=>
+  projectedObject(o,camera)).sort((a,b)=>a.depthKey-b.depthKey||
+   a.id.localeCompare(b.id)));
+ const mounts=F(inspection.mounts.map(m=>F({
+  fixtureId:m.fixtureId,world:F({...m}),
+  base:project(camera,m.x,m.y,0),
+  light:project(camera,m.x,m.y,m.height)
+ })));
+ return F({
+  version:TERRARIUM_SCENE_RENDER_V03E_VERSION,
+  camera,sceneId:scene.sceneId,
+  minute:inspection.minute,revision:inspection.revision,
+  bounds:inspection.bounds,
+  zones,objects,mounts,
+  organicReceipts:inspection.organicReceipts.length,
+  organicLedger:inspection.biota.organicLedger,
+  sceneModel:inspection.modelStatus,
+  visualStatus:'render_projection_not_anatomic_photometric_or_3d_mesh'
+ });
+}
+function projectTerrariumSceneForRenderV03e(scene,{
+ camera=createTerrariumRenderCameraV03e()
+}={}){
+ return fromScene(scene,camera);
+}
+function pointInPolygon(point,polygon){
+ let inside=false;
+ for(let i=0,j=polygon.length-1;i<polygon.length;j=i++){
+  const a=polygon[i],b=polygon[j];
+  const cross=(a.x-b.x)*(point.y-b.y)-
+    (a.y-b.y)*(point.x-b.x);
+  if(Math.abs(cross)<1e-8&&
+     point.x>=Math.min(a.x,b.x)-1e-8&&
+     point.x<=Math.max(a.x,b.x)+1e-8&&
+     point.y>=Math.min(a.y,b.y)-1e-8&&
+     point.y<=Math.max(a.y,b.y)+1e-8)return true;
+  const hit=(a.y>point.y)!==(b.y>point.y)&&
+    point.x<(b.x-a.x)*(point.y-a.y)/(b.y-a.y)+a.x;
+  if(hit)inside=!inside;
+ }
+ return inside;
+}
+function hitTestTerrariumRenderV03e(frame,{x,y,hitRadius=15}={}){
+ if(!obj(frame)||frame.version!==TERRARIUM_SCENE_RENDER_V03E_VERSION||
+    !isValidTerrariumRenderCameraV03e(frame.camera)||
+    !finite(x)||!finite(y)||!finite(hitRadius)||
+    hitRadius<0||hitRadius>100||
+    !Array.isArray(frame.objects)||!Array.isArray(frame.zones)||
+    !Array.isArray(frame.mounts))bad('invalid_renderer_hit_test');
+ for(let i=frame.mounts.length-1;i>=0;i--){
+  const m=frame.mounts[i];
+  if(Math.hypot(x-m.light.x,y-m.light.y)<=hitRadius)
+   return F({type:'mount',id:m.fixtureId});
+ }
+ for(let i=frame.objects.length-1;i>=0;i--){
+  const o=frame.objects[i];
+  if(pointInPolygon({x,y},o.roof)||
+     o.faces.some(face=>pointInPolygon({x,y},face.polygon)))
+   return F({type:'object',id:o.id});
+ }
+ for(let i=0;i<frame.zones.length;i++){
+  if(pointInPolygon({x,y},frame.zones[i].polygon))
+   return F({type:'zone',id:frame.zones[i].id});
+ }
+ return null;
+}
+function moveTerrariumSceneObjectByScreenDeltaV03e(scene,{
+ id,dx,dy,camera
+}={}){
+ if(!isValidTerrariumSceneGeometryV03d(scene)||
+    !isValidTerrariumRenderCameraV03e(camera)||
+    typeof id!=='string')bad('invalid_scene_drag');
+ const object=scene.objects.find(o=>o.id===id);
+ if(!object)bad('unknown_scene_object');
+ const delta=terrariumScreenDeltaToWorldV03e(camera,{dx,dy});
+ const x=clamp(Math.round(object.x+delta.dx),0,1000-object.width);
+ const y=clamp(Math.round(object.y+delta.dy),0,400-object.depth);
+ if(x===object.x&&y===object.y)return scene;
+ return applyTerrariumSceneGeometryV03dEvent(scene,{
+  channel:'object',type:'upsert',object:{...object,x,y}
+ });
+}
+function moveTerrariumLightByScreenDeltaV03e(scene,{
+ fixtureId,dx,dy,camera
+}={}){
+ if(!isValidTerrariumSceneGeometryV03d(scene)||
+    !isValidTerrariumRenderCameraV03e(camera)||
+    typeof fixtureId!=='string')bad('invalid_light_drag');
+ const mount=scene.mounts.find(x=>x.fixtureId===fixtureId);
+ if(!mount)bad('unknown_light_mount');
+ const delta=terrariumScreenDeltaToWorldV03e(camera,{dx,dy});
+ const x=clamp(Math.round(mount.x+delta.dx),0,1000);
+ const y=clamp(Math.round(mount.y+delta.dy),0,400);
+ if(x===mount.x&&y===mount.y)return scene;
+ return applyTerrariumSceneGeometryV03dEvent(scene,{
+  channel:'mount',type:'upsert',mount:{...mount,x,y}
+ });
+}
+
+return {createTerrariumRenderCameraV03e,isValidTerrariumRenderCameraV03e,projectTerrariumWorldPointV03e,projectTerrariumSceneForRenderV03e,terrariumScreenDeltaToWorldV03e,terrariumScreenPointToGroundV03e,hitTestTerrariumRenderV03e,moveTerrariumSceneObjectByScreenDeltaV03e,moveTerrariumLightByScreenDeltaV03e};
+})();
+
+const {buildTerrariumPixelVisualV03f,listTerrariumTouchTargetsV03f,resolveTerrariumTouchSelectionV03f}=(function(){
+/**
+ * Project Ohm ECO V0.3f: deterministic pixel-style render decals and
+ * touch-target arbitration for the V0.3e scene projection.
+ *
+ * Cosmetic only: it MUST NOT create ecological events, photosynthesis,
+ * animal behaviour, plant measurements or its own world positions.
+ * The same V0.3d/V0.3e immutable snapshot drives art and selection.
+ */
+const TERRARIUM_PIXEL_VISUAL_V03F_VERSION='0.3f';
+const F=Object.freeze;
+const err=m=>{throw new RangeError(m)};
+const finite=v=>typeof v==='number'&&Number.isFinite(v);
+const record=x=>x!==null&&typeof x==='object'&&!Array.isArray(x);
+const validPoint=p=>record(p)&&finite(p.x)&&finite(p.y);
+const snap=(x,size)=>Math.round(x/size)*size;
+const idHash=(s)=>{
+ let h=2166136261;
+ for(let i=0;i<s.length;i++){
+  h=Math.imul(h^s.charCodeAt(i),16777619);
+ }
+ return h>>>0;
+};
+const random=(seed,index)=>{
+ let v=(seed+Math.imul(index+1,2654435761))>>>0;
+ v=Math.imul(v^(v>>>16),2246822519)>>>0;
+ v=Math.imul(v^(v>>>13),3266489917)>>>0;
+ return ((v^(v>>>16))>>>0)/4294967296;
+};
+const interp=(q,u,v)=>({
+ x:(1-u)*(1-v)*q[0].x+u*(1-v)*q[1].x+
+    u*v*q[2].x+(1-u)*v*q[3].x,
+ y:(1-u)*(1-v)*q[0].y+u*(1-v)*q[1].y+
+    u*v*q[2].y+(1-u)*v*q[3].y
+});
+const colors=F({
+ rock:F(['#55473b','#806e56','#b0a07a','#e0cb95']),
+ canopy:F(['#244b38','#477c51','#7eaa6b','#b5ce83']),
+ screen:F(['#486963','#73918b','#a9c0b0']),
+ moss:F(['#426e50','#6c9d65','#a0c685','#c9dda2']),
+ fern:F(['#386a4d','#5a9565','#9dc586','#c7dba2']),
+ gravel:F(['#536a61','#789288','#a2aa96']),
+ shade:F(['#213b32','#304a38','#59704c']),
+ light:F(['#a58a58','#c5ae70','#f0d998'])
+});
+const isFrame=f=>record(f)&&f.version==='0.3e'&&
+ Array.isArray(f.zones)&&Array.isArray(f.objects)&&
+ Array.isArray(f.mounts)&&record(f.camera)&&
+ ['top','oblique'].includes(f.camera.view);
+const tile=(p,size,fill,shape='square')=>F({
+ x:snap(p.x,size),y:snap(p.y,size),
+ width:size,height:size,fill,shape
+});
+const stable=(items)=>F(items.map(x=>F(x)));
+function drawTexture(poly,n,seed,palette,size,kind){
+ const out=[];
+ for(let i=0;i<n;i++){
+  const u=.12+random(seed,i*3)*.76;
+  const v=.12+random(seed,i*3+1)*.76;
+  const p=interp(poly,u,v);
+  const shade=random(seed,i*3+2);
+  const swatch=palette[Math.min(palette.length-1,
+    Math.floor(shade*palette.length))];
+  out.push(tile(p,size,swatch,kind));
+ }
+ return stable(out);
+}
+/**
+ * Per-zone and per-object pixel-stamped art references. Geometry and
+ * plant counts are authoritative read-only snapshots; random noise is seeded
+ * by stable IDs and never stored back into ecological state.
+ *
+ * Returns small rectangle stamps to paint ON TOP of existing projected
+ * land and object polygons; does not pretend to be sprites or real foliage.
+ */
+function buildTerrariumPixelVisualV03f(frame,{
+ pixelSize=6,detail='normal',palette='woodland'
+}={}){
+ if(!isFrame(frame)||!Number.isInteger(pixelSize)||
+    pixelSize<3||pixelSize>16||
+    !['low','normal'].includes(detail)||
+    palette!=='woodland')err('invalid_pixel_visual');
+ const scale=detail==='low'?.52:1;
+ const zones=frame.zones.map(z=>{
+  const cover=z.plantCoverUnits;
+  if(!Number.isInteger(cover)||cover<0||cover>1000)
+   err('invalid_pixel_plant_cover');
+  const kind=z.plantKind==='fern'?'fern':
+    z.plantKind==='moss'?'moss':'gravel';
+  const count=kind==='gravel'?Math.round(5*scale):
+    cover===0?0:Math.round((6+cover/50)*scale);
+  const p=colors[kind];
+  const stamps=drawTexture(z.polygon,count,
+    idHash(z.id+':'+kind),p,pixelSize,'ground');
+  return F({id:z.id,plantKind:z.plantKind,
+    actualLightUnits:z.actualLightUnits,
+    stamps});
+ });
+ const objects=frame.objects.map(o=>{
+  const paletteName=o.kind==='rock_overhang'?'rock':
+    o.kind==='canopy'?'canopy':'screen';
+  const stamps=drawTexture(o.roof,Math.round(20*scale),
+    idHash(o.id+':'+o.kind),colors[paletteName],
+    pixelSize,'object');
+  return F({id:o.id,kind:o.kind,stamps});
+ });
+ return F({version:TERRARIUM_PIXEL_VISUAL_V03F_VERSION,
+  pixelSize,detail,palette,
+  zones:F(zones),objects:F(objects),
+  visualDisclaimer:'hand-authored_pixel_style_decals_not_measured_ecology'});
+}
+function polygonContains(p,poly){
+ let inside=false;
+ for(let i=0,j=poly.length-1;i<poly.length;j=i++){
+  const a=poly[i],b=poly[j];
+  if(((a.y>p.y)!==(b.y>p.y))&&
+    p.x<(b.x-a.x)*(p.y-a.y)/(b.y-a.y)+a.x)inside=!inside;
+ }
+ return inside;
+}
+function center(poly){
+ return poly.reduce((s,p)=>({
+  x:s.x+p.x/poly.length,y:s.y+p.y/poly.length
+ }),{x:0,y:0});
+}
+function dist(p,q){return Math.hypot(p.x-q.x,p.y-q.y)}
+function candidate(type,id,priority,near=0){
+ return F({type,id,priority,distance:near});
+}
+/**
+ * Large finger target: 24 canvas units for a lamp, 22 for a small object
+ * roof centre. Exact polygon hits still win over this assist.
+ * Zones only appear if no object/light hits: no background stealing taps.
+ */
+function listTerrariumTouchTargetsV03f(frame,{
+ x,y,radius=24
+}={}){
+ if(!isFrame(frame)||!finite(x)||!finite(y)||
+    !finite(radius)||radius<0||radius>80)
+   err('invalid_touch_targets');
+ const p={x,y},choices=[];
+ const exact=hitTestTerrariumRenderV03e(frame,{x,y,hitRadius:0});
+ for(const m of frame.mounts){
+  const d=dist(p,m.light);
+  if(d<=radius)
+   choices.push(candidate('mount',m.fixtureId,d<=10?0:2,d));
+ }
+ for(const o of frame.objects){
+  const roof=polygonContains(p,o.roof);
+  const faces=o.faces.some(face=>polygonContains(p,face.polygon));
+  const d=dist(p,center(o.roof));
+  if(roof||faces||d<=Math.min(22,radius))
+   choices.push(candidate('object',o.id,
+     roof||faces?1:3,d));
+ }
+ if(exact&&exact.type!=='zone'&&
+    !choices.some(c=>c.type===exact.type&&c.id===exact.id))
+  choices.push(candidate(exact.type,exact.id,0,0));
+ // The ordering remains stable even when multiple selectable objects
+ // overlap and are moved or re-created in a different insertion order.
+ choices.sort((a,b)=>a.priority-b.priority||
+   a.distance-b.distance||
+   (a.type+':'+a.id).localeCompare(b.type+':'+b.id));
+ if(choices.length===0){
+  const zone=hitTestTerrariumRenderV03e(frame,{x,y,hitRadius:0});
+  if(zone&&zone.type==='zone')choices.push(
+    candidate('zone',zone.id,4,0));
+ }
+ return stable(choices.map(({type,id})=>F({type,id})));
+}
+/** Repeated taps at the same location cycle through overlapping selections.
+ * The UI owns recent taps only for interaction; no save schema changes.
+ */
+function resolveTerrariumTouchSelectionV03f(frame,{
+ x,y,selected=null,previousTap=null,cycleDistance=16,
+ radius=24
+}={}){
+ if(!finite(cycleDistance)||cycleDistance<0||cycleDistance>50||
+    (previousTap!==null&&!validPoint(previousTap))||
+    (selected!==null&&(!record(selected)||
+       !['object','mount','zone'].includes(selected.type)||
+       typeof selected.id!=='string')))
+  err('invalid_touch_selection');
+ const options=listTerrariumTouchTargetsV03f(frame,{x,y,radius});
+ if(!options.length)return F({selected:null,options,cycled:false});
+ let index=0,cycled=false;
+ const near=previousTap!==null&&
+  dist(previousTap,{x,y})<=cycleDistance;
+ if(near&&selected&&options.length>1){
+  const match=options.findIndex(c=>c.type===selected.type&&
+    c.id===selected.id);
+  if(match>=0){index=(match+1)%options.length;cycled=true;}
+ }
+ return F({selected:options[index],options,cycled});
+}
+
+return {buildTerrariumPixelVisualV03f,listTerrariumTouchTargetsV03f,resolveTerrariumTouchSelectionV03f};
+})();
+
+const {buildTerrariumPixelSpritesV03g}=(function(){
+/**
+ * Project OHM ECO V0.3g — tiny original pixel-sprite silhouettes.
+ *
+ * VISUAL ONLY. Sprite pixels are derived from the verified, immutable V0.3e
+ * render frame; V0.3d still owns every world position. A pixel symbol must
+ * never imply a species sighting, growth event, terrarium care advice,
+ * physical shadow or resource. Free of DOM/Canvas/Phaser/storage/network.
+ *
+ * The 7-15 cell templates are provisional original placeholder artwork,
+ * NOT production-ready anatomical/species artwork.
+ */
+const TERRARIUM_PIXEL_SPRITES_V03G_VERSION='0.3g';
+const freeze=Object.freeze;
+const fail=x=>{throw new RangeError(x)};
+const object=x=>x!==null&&typeof x==='object'&&!Array.isArray(x);
+const finite=x=>typeof x==='number'&&Number.isFinite(x);
+const palettes=freeze({
+ moss:freeze({g:'#557f4b',G:'#88ad69',H:'#b2cb82',d:'#38543f'}),
+ fern:freeze({g:'#477550',G:'#7eb06a',H:'#bbd08c',s:'#917b58'}),
+ rock:freeze({d:'#493f37',r:'#79654e',R:'#ad9272',h:'#dac09a'}),
+ canopy:freeze({d:'#31523b',g:'#4e8151',G:'#89b26b',H:'#bed28a'}),
+ screen:freeze({d:'#566a67',r:'#8ba8a0',h:'#c4d6c1'}),
+ lamp:freeze({o:'#a4814e',g:'#efd08b',G:'#d6b871',H:'#fff0b1'})
+});
+const patterns=freeze({
+ moss:freeze([
+ '...g...g...','..gGg.gGg..','.gGGGgGGGg.','gGGHGGHGGGg',
+ '.gGGGGGGGg.','..ggGGGgg..','...ddddd...'
+ ]),
+ fern:freeze([
+ '.......G.......','......GHG......','....G..s..G....','...GHG.s.GHG...',
+ '..G..G.s.G..G..','.GHG.G.s.G.GHG.',
+ '.....G.s.G.....','...GHG.s.GHG...','......GsG......',
+ '.......s.......','.......s.......'
+ ]),
+ rock:freeze([
+ '...dddddd....','..drrrrRRdd..','.drrRRRhhRRd.','drrRRRhhRrrrd',
+ 'drrrRrrRRrrrd','ddRrrRrrRrrdd','..ddrrrrddd..'
+ ]),
+ canopy:freeze([
+ '...gg...gg...','..gGGg.gGGg..','.gGGHGgGGHGg.',
+ 'gGGHGGGGHGGGg','gGGGGGGGGGGGg','.gGGGGGGGGGg.','..ggdGGGdgg..',
+ '....ddddd....'
+ ]),
+ screen:freeze([
+ 'drdrdrdrdrd','r.d.r.d.r.d','drdrdrdrdrd','r.d.r.d.r.d',
+ 'drdrdrdrdrd','r.d.r.d.r.d','drdrdrdrdrd'
+ ]),
+ lamp:freeze([
+ '....g....','g...g...g','.g.GHG.g.','..GHHHG..',
+ 'ggHHHHHgg','..GHHHG..','.g.GHG.g.','g...g...g','....g....'
+ ])
+});
+function validateTemplates(){
+ for(const [type,rows] of Object.entries(patterns)){
+  const width=rows[0].length;
+  if(!width||width>18||rows.length>18||rows.some(row=>row.length!==width))
+   fail('sprite_template_shape_'+type);
+  for(const row of rows){
+   for(const ch of row)if(ch!=='.'&&!(ch in palettes[type]))
+    fail('sprite_palette_'+type);
+  }
+ }
+}
+validateTemplates();
+const center=poly=>{
+ if(!Array.isArray(poly)||poly.length!==4||
+    poly.some(p=>!object(p)||!finite(p.x)||!finite(p.y)))
+  fail('invalid_sprite_quad');
+ return freeze(poly.reduce((sum,p)=>({x:sum.x+p.x/4,y:sum.y+p.y/4}),
+  {x:0,y:0}));
+};
+function tileSprite(kind,point,size,detail){
+ if(!patterns[kind]||!finite(point.x)||!finite(point.y))
+  fail('invalid_sprite_anchor');
+ const rows=patterns[kind],w=rows[0].length,h=rows.length;
+ const x0=Math.round(point.x-size*w/2),y0=Math.round(point.y-size*h/2);
+ const output=[];
+ for(let y=0;y<h;y++){
+  for(let x=0;x<w;x++){
+   const ch=rows[y][x];
+   if(ch==='.')continue;
+   // Decimate decorative cells only, without moving the sprite or
+   // altering the underlying species and world geometry.
+   if(detail==='low'&&((x+y)%4===0 ||
+     ((ch==='H'||ch==='h')&&(x+y)%2===0)))continue;
+   output.push(freeze({
+    x:x0+x*size,y:y0+y*size,width:size,height:size,
+    fill:palettes[kind][ch]
+   }));
+  }
+ }
+ return freeze(output);
+}
+/**
+ * Body silhouettes follow the frame's zone, object and fixture geometry.
+ * Zones with 0 plant cover never render living plants.
+ */
+function buildTerrariumPixelSpritesV03g(frame,{
+ detail='normal',tileSize=5
+}={}){
+ if(!object(frame)||frame.version!=='0.3e'||
+    !Array.isArray(frame.zones)||!Array.isArray(frame.objects)||
+    !Array.isArray(frame.mounts)||
+    !['top','oblique'].includes(frame.camera?.view)||
+    !['low','normal'].includes(detail)||
+    !Number.isSafeInteger(tileSize)||tileSize<3||tileSize>9)
+  fail('invalid_pixel_sprite_frame');
+ const zones=frame.zones.map(z=>{
+  if(typeof z.id!=='string'||!Number.isInteger(z.plantCoverUnits)||
+     z.plantCoverUnits<0||z.plantCoverUnits>1000)
+   fail('invalid_sprite_plant_zone');
+  const kind=z.plantCoverUnits===0?null:
+   z.plantKind==='fern'?'fern':z.plantKind==='moss'?'moss':null;
+  const c=center(z.polygon);
+  const anchor=freeze({x:c.x,y:c.y-15});
+  const tiles=kind?tileSprite(kind,anchor,tileSize,detail):freeze([]);
+  return freeze({id:z.id,kind,anchor,tiles});
+ });
+ const objects=frame.objects.map(o=>{
+  if(typeof o.id!=='string')fail('invalid_sprite_object_id');
+  const kind=o.kind==='rock_overhang'?'rock':
+   o.kind==='canopy'?'canopy':o.kind==='screen'?'screen':null;
+  if(!kind)fail('invalid_sprite_object_kind');
+  const c=center(o.roof);
+  // Smaller object symbols stay visually close to the actual roof quad.
+  const size=Math.max(3,tileSize-1);
+  return freeze({id:o.id,kind,anchor:c,
+   tiles:tileSprite(kind,c,size,detail)});
+ });
+ const mounts=frame.mounts.map(m=>{
+  if(typeof m.fixtureId!=='string'||!object(m.light)||
+     !finite(m.light.x)||!finite(m.light.y))
+   fail('invalid_sprite_mount');
+  const anchor=freeze({x:m.light.x,y:m.light.y});
+  return freeze({id:m.fixtureId,kind:'lamp',anchor,
+   tiles:tileSprite('lamp',anchor,Math.max(3,tileSize-1),detail)});
+ });
+ return freeze({
+  version:TERRARIUM_PIXEL_SPRITES_V03G_VERSION,detail,tileSize,
+  zones:freeze(zones),objects:freeze(objects),mounts:freeze(mounts),
+  artStatus:'provisional_original_pixel_silhouettes_not_anatomy_or_observation'
+ });
+}
+
+return {buildTerrariumPixelSpritesV03g};
+})();
+
+const by=id=>document.getElementById(id);
+const labRoot=by('labRoot');
+const stage=by('stage');
+const ctx=stage.getContext('2d');
+if(!ctx)throw new Error('2D Canvas unsupported');
+const width=960,height=600;
+const kinds={rock_overhang:'岩石',canopy:'樹冠',screen:'遮光網'};
+const names=['熱區','冷區','水盆','遮蔽區','土坡'];
+const acts={no_patch:'無植物',favourable_candidate:'條件可用',
+ light_limited_candidate:'光照不足',
+ water_or_temperature_limited_candidate:'水／溫度受限'};
+const initial=()=>({
+ sceneId:'ohm_v03e_habitat',
+ baseOptions:{
+  biotaOptions:{
+   environmentOptions:{
+    microclimateOptions:{columns:5,rows:1,
+     ambient:{temperatureC:24,relativeHumidity:.52},
+     cellOverrides:[{x:0,y:0,heater:1},{x:2,y:0,waterLevel:.9},
+      {x:3,y:0,shade:.6}]},
+    substrateOptions:{zones:[
+     {surfaceWaterUnits:120,rootWaterUnits:600},
+     {surfaceWaterUnits:310,rootWaterUnits:1000},
+     {surfaceWaterUnits:450,rootWaterUnits:1400},
+     {surfaceWaterUnits:640,rootWaterUnits:1600,percolationPermille:0,lateralPermille:0},
+     {surfaceWaterUnits:680,rootWaterUnits:1600,percolationPermille:0,lateralPermille:0}
+    ]}
+   },
+   zoneConfigs:[
+    {plantKind:'moss',plantCoverUnits:140,litterUnits:250},
+    {plantKind:'fern',plantCoverUnits:230,litterUnits:450},
+    {plantKind:'none',plantCoverUnits:0,litterUnits:160},
+    {plantKind:'moss',plantCoverUnits:250,litterUnits:900},
+    {plantKind:'fern',plantCoverUnits:330,litterUnits:600}
+   ]
+  },
+  fixtures:[{id:'daylight',type:'daylight_proxy',
+   zoneIndex:2,strengthUnits:950,spreadZones:4,heightUnits:0,
+   startMinute:0,durationMinutes:1440}]
+ },
+ mounts:[{fixtureId:'daylight',x:500,y:200,height:800}],
+ objects:[
+  {id:'stone_01',kind:'rock_overhang',x:570,y:120,width:60,
+   depth:160,height:500,transmissionPermille:0},
+  {id:'canopy_01',kind:'canopy',x:80,y:80,width:125,
+   depth:100,height:270,transmissionPermille:600}
+ ]
+});
+let scene=createTerrariumSceneGeometryV03d(initial());
+let camera=createTerrariumRenderCameraV03e({view:'oblique',width,height,padding:30});
+let picked={type:'object',id:'stone_01'},chosenZone=3,seq=0,playing=false,timer=null,frame=null,pointer=null;
+let pixelDetail='normal',lastTap=null,gestureBlocked=false,uiMode='edit';
+const pct=x=>Math.round(x*100)+'%';
+const fmt=x=>x.toLocaleString('en-US');
+const zoneNumber=id=>Number(id.slice(5));
+const findObject=()=>scene.objects.find(o=>o.id===picked?.id);
+const findMount=()=>scene.mounts.find(m=>m.fixtureId===picked?.id);
+const stop=()=>{playing=false;if(timer!==null)clearInterval(timer);timer=null;};
+function info(text){by('message').textContent=text}
+function act(event,msg){
+ if(uiMode==='observe'){info('觀察模式不修改生態狀態；請先切回編輯模式');return;}
+ try{scene=applyTerrariumSceneGeometryV03dEvent(scene,event);info(msg);render();}
+ catch(e){info('操作無效：'+String(e.message));}
+}
+function button(where,label,onClick,alt=false){
+ const b=document.createElement('button');
+ b.type='button';b.className='action'+(alt?' alt':'');
+ b.textContent=label;b.addEventListener('click',onClick);by(where).appendChild(b);
+}
+
+function moveWorld(dx,dy){
+ if(uiMode==='observe')return;
+ if(picked?.type==='object'){
+  const o=findObject();if(!o)return;
+  act({channel:'object',type:'upsert',object:{...o,
+   x:Math.max(0,Math.min(1000-o.width,o.x+dx)),
+   y:Math.max(0,Math.min(400-o.depth,o.y+dy))}},
+   '已更新原始場景座標及植物遮蔽');
+ }else if(picked?.type==='mount'){
+  const m=findMount();if(!m)return;
+  act({channel:'mount',type:'upsert',mount:{...m,
+   x:Math.max(0,Math.min(1000,m.x+dx)),
+   y:Math.max(0,Math.min(400,m.y+dy))}},
+   '已移動燈具及重新計算場景遮光');
+ }
+}
+function place(kind){
+ if(uiMode==='observe')return;
+ const z=scene.zones[chosenZone];
+ const id='placed_'+chosenZone;
+ const object={id,kind,x:Math.min(1000-90,z.x+Math.floor(z.width/2)-45),
+  y:135,width:90,depth:115,height:kind==='rock_overhang'?430:310,
+  transmissionPermille:kind==='rock_overhang'?0:kind==='canopy'?550:700};
+ try{
+  scene=applyTerrariumSceneGeometryV03dEvent(scene,{
+   channel:'object',type:'upsert',object});
+  picked={type:'object',id};info('新場景物件已放置，可拖曳或移動');render();
+ }catch(e){info('放置失敗：'+String(e.message));}
+}
+function layoutControls(){
+ for(const key of ['placeControls','moveControls','eventControls'])
+  by(key).replaceChildren();
+ button('placeControls','放置岩石',()=>place('rock_overhang'));
+ button('placeControls','放置冠層',()=>place('canopy'),true);
+ button('placeControls','放置遮光網',()=>place('screen'),true);
+ if(picked?.type==='object'||picked?.type==='mount'){
+  button('moveControls','左移',()=>moveWorld(-50,0));
+  button('moveControls','右移',()=>moveWorld(50,0));
+  button('moveControls','往上',()=>moveWorld(0,-40),true);
+  button('moveControls','往下',()=>moveWorld(0,40),true);
+ }
+ if(picked?.type==='object'&&findObject()){
+  button('moveControls','提高',()=>{
+   const o=findObject();
+   act({channel:'object',type:'upsert',object:{...o,
+    height:Math.min(1000,o.height+100)}},'已調高物件，重新計算幾何遮蔽');
+  },true);
+  button('moveControls','降低',()=>{
+   const o=findObject();
+   act({channel:'object',type:'upsert',object:{...o,
+    height:Math.max(1,o.height-100)}},'已降低物件，重新計算幾何遮蔽');
+  },true);
+  button('moveControls','移除物件',()=>{
+   const id=picked.id;
+   act({channel:'object',type:'remove',id},'已移除場景物件；未改動土壤及有機物');
+   if(!scene.objects.some(o=>o.id===id)){picked=null;render();}
+  },true);
+ }
+ button('eventControls','選取燈具',()=>{
+  picked={type:'mount',id:'daylight'};info('已選取燈具，可以在畫面上拖曳');render();
+ },true);
+ button('eventControls','加入落葉 +500',()=>{
+  if(uiMode==='observe')return;
+  seq++;
+  act({channel:'base',event:{channel:'organic',type:'litter_input',
+   eventId:'leaf_'+seq,minute:scene.minute,zoneId:'zone_'+chosenZone,
+   amountUnits:500,source:{kind:'player_placement',
+    referenceId:'event_'+seq}}},'已登記加入落葉；此紀錄不等於玩家親眼觀察');
+ });
+ button('eventControls','噴霧 +450',()=>act({
+  channel:'base',event:{channel:'environment',event:{
+   channel:'environment',event:{channel:'substrate',event:{
+    type:'mist',zoneId:'zone_'+chosenZone,amountUnits:450}}}}
+ },'已增加底材水量；不會憑空生成有機物'),true);
+}
+function poly(points,color,outline='#00000030',width=2){
+ ctx.beginPath();ctx.moveTo(points[0].x,points[0].y);
+ points.slice(1).forEach(p=>ctx.lineTo(p.x,p.y));
+ ctx.closePath();ctx.fillStyle=color;ctx.fill();
+ if(outline){ctx.strokeStyle=outline;ctx.lineWidth=width;ctx.stroke();}
+}
+function textAt(text,x,y,size=15,color='#f7e6bd',align='center'){
+ ctx.fillStyle=color;ctx.font='700 '+size+'px system-ui, sans-serif';
+ ctx.textAlign=align;ctx.textBaseline='middle';ctx.fillText(text,x,y);
+}
+function center(poly){
+ return poly.reduce((v,p)=>({x:v.x+p.x/poly.length,
+  y:v.y+p.y/poly.length}),{x:0,y:0});
+}
+function plantGlyph(zone){
+ const p=center(zone.polygon);
+ if(zone.plantKind==='none'||zone.plantCoverUnits===0)return;
+ const fern=zone.plantKind==='fern';
+ const stems=Math.min(fern?5:7,Math.max(1,Math.ceil(zone.plantCoverUnits/75)));
+ for(let i=0;i<stems;i++){
+  const x=Math.round((p.x+(i-(stems-1)/2)*11)/6)*6;
+  const y=Math.round(p.y/6)*6;
+  ctx.fillStyle=fern?'#4d805b':'#66945e';
+  ctx.fillRect(x,y-6,6,18);
+  ctx.fillStyle=fern?'#92c087':'#afc780';
+  ctx.fillRect(x-6,y-18-(i%2)*6,18,6);
+  if(fern)ctx.fillRect(x+6,y-12,6,6);
+ }
+}
+/** Read-only pixel stamps are derived from the SAME V0.3e frame used by
+ * touch picking. Pixel display coordinates never become world positions. */
+function drawStamps(stamps){
+ for(const t of stamps){
+  ctx.fillStyle=t.fill;
+  ctx.fillRect(t.x,t.y,t.width,t.height);
+ }
+}
+/** Silhouette atlas uses exactly the same V0.3e frame.
+ * No sprite becomes a biological actor or an editable world position. */
+function drawSilhouette(tiles){
+ for(const t of tiles){
+  ctx.fillStyle=t.fill;ctx.fillRect(t.x,t.y,t.width,t.height);
+ }
+}
+/** Decorative cave backdrop is presentation-only. It is not inserted
+ * as a plant, obstacle or mineral into the ecology state or observations. */
+function drawCaveBackdrop(){
+ const low=pixelDetail==='low',s=low?24:12;
+ ctx.fillStyle='#182f29';ctx.fillRect(0,0,width,height);
+ // Stone layers on the back wall and the ceiling use a deterministic grid.
+ for(let x=0;x<width;x+=s){
+  const y=Math.round((80+12*Math.sin(x/77)+
+   19*Math.sin(x/31)+9*Math.sin(x/13))/s)*s;
+  ctx.fillStyle=x%72<36?'#1d322b':'#263b30';
+  ctx.fillRect(x,0,s,Math.max(s,y));
+  if(x%(s*5)===0){
+   ctx.fillStyle='#354537';
+   ctx.fillRect(x+2,Math.max(s,y),s,low?12:24);
+  }
+ }
+ for(let row=0;row<6;row++){
+  for(let col=0;col<Math.floor(width/(s*2));col++){
+   const hash=(Math.imul(row+11,1103515245)^
+    Math.imul(col+31,12345))>>>0;
+   if(hash%5>1)continue;
+   ctx.fillStyle=hash%3===0?'#405345':'#334c3e';
+   ctx.fillRect(col*s*2+(row%2)*s,
+    92+row*20,s*(hash%2+1),low?6:8);
+  }
+ }
+ // A distant, masonry-like enclosure back panel and soil cross-section.
+ ctx.fillStyle='#263d31';ctx.fillRect(34,210,892,332);
+ ctx.fillStyle='#5a5840';ctx.fillRect(34,214,892,8);
+ ctx.fillStyle='#394d37';ctx.fillRect(38,222,884,289);
+ ctx.fillStyle='#6d573d';ctx.fillRect(30,511,900,13);
+ ctx.fillStyle='#413b2f';ctx.fillRect(30,524,900,34);
+ ctx.fillStyle='#241f1b';ctx.fillRect(30,558,900,24);
+ for(let i=0;i<(low?28:65);i++){
+  const x=36+((i*173+37)%868);
+  const y=527+((i*47+19)%49);
+  ctx.fillStyle=i%3===0?'#987b51':'#645440';
+  ctx.fillRect(x,y,s*(i%2+1),low?6:8);
+ }
+ // Layered stone windows and subtle mineral seams distinguish the
+ // underground setting without inventing organisms or animal actions.
+ for(const [x,y,shade] of [
+  [100,155,'#627963'],[176,180,'#9e8762'],
+  [752,141,'#6d8268'],[814,185,'#b1a077'],
+  [455,173,'#71886b']
+ ]){
+  ctx.fillStyle='#172c24';ctx.fillRect(x-12,y-11,42,27);
+  ctx.fillStyle=shade;ctx.fillRect(x,y,20,7);
+  ctx.fillStyle='#c1ae78';ctx.fillRect(x+12,y+7,8,8);
+ }
+}
+function draw(){
+ frame=projectTerrariumSceneForRenderV03e(scene,{camera});
+ const art=buildTerrariumPixelVisualV03f(frame,{
+  pixelSize:8,detail:pixelDetail});
+ const sprites=buildTerrariumPixelSpritesV03g(frame,{
+  detail:pixelDetail,tileSize:6});
+ const wideCanvas=stage.getBoundingClientRect().width>=620;
+ ctx.imageSmoothingEnabled=false;
+ ctx.clearRect(0,0,width,height);
+ drawCaveBackdrop();
+ // A restrained scenic grid is a DISPLAY decoration only.
+ for(let n=0;n<10;n++){
+  const a=projectTerrariumWorldPointV03e(camera,{x:n*100,y:0,z:0});
+  const b=projectTerrariumWorldPointV03e(camera,{x:n*100,y:400,z:0});
+  ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);
+  ctx.strokeStyle='#b2c1aa18';ctx.lineWidth=1;ctx.stroke();
+ }
+ frame.zones.forEach((z,i)=>{
+  const shade=z.actualLightUnits/1000;
+  const ground=ctx.createLinearGradient(0,70,0,500);
+  if(i===2){ground.addColorStop(0,'#496d71');ground.addColorStop(1,'#254c53');}
+  else{ground.addColorStop(0,shade>.4?'#526f46':'#334b3d');
+   ground.addColorStop(1,shade>.4?'#314a35':'#253a31');}
+  poly(z.polygon,ground,'#a4ba8e33',1.3);
+  drawStamps(art.zones[i].stamps);
+  drawSilhouette(sprites.zones[i].tiles);
+  const c=center(z.polygon);
+  if(wideCanvas){
+   textAt(names[i],c.x,c.y+48,19,'#efe7c8');
+   textAt(pct(shade),c.x,c.y+74,17,'#f6ce7d');
+  }
+  if(i===chosenZone){
+   poly(z.polygon,'#f3df9430','#ffdf94',2);
+  }
+ });
+ frame.objects.forEach(o=>{
+  const theme=o.kind==='rock_overhang'?
+   ['#796655','#a28c70','#564738']:
+   o.kind==='canopy'?['#3c653f','#648d54','#274b39']:
+   ['#718a83','#9bb2a9','#435a57'];
+  poly(o.floor,'#13281b44','');
+  o.faces.forEach((f,i)=>poly(f.polygon,
+   i===0?theme[2]:theme[0],'#253427d0',1.5));
+  poly(o.roof,theme[1],o.id===picked?.id?'#fce1a5':'#dbc9a279',
+   o.id===picked?.id?4:1.5);
+  drawStamps(art.objects.find(x=>x.id===o.id).stamps);
+  drawSilhouette(sprites.objects.find(x=>x.id===o.id).tiles);
+  const c=center(o.roof);
+  if(wideCanvas)textAt(String(o.height),c.x,c.y+36,15,'#fff1cf');
+ });
+ frame.mounts.forEach(m=>{
+  ctx.beginPath();ctx.moveTo(m.base.x,m.base.y);
+  ctx.lineTo(m.light.x,m.light.y);ctx.lineWidth=3;
+  ctx.strokeStyle='#e5ca855c';ctx.stroke();
+  ctx.beginPath();ctx.arc(m.light.x,m.light.y,19,0,Math.PI*2);
+  ctx.fillStyle=m.fixtureId===picked?.id?'#ffdb81':'#dec37b';
+  ctx.fill();ctx.lineWidth=2;ctx.strokeStyle='#fff6d3';ctx.stroke();
+  drawSilhouette(sprites.mounts.find(x=>x.id===m.fixtureId).tiles);
+ });
+ textAt(camera.view==='top'?'俯視 · 像素試作':'斜角 2.5D · 像素試作',
+  22,28,21,'#e8dfc2','left');
+}
+function render(){
+ if(!isValidTerrariumSceneGeometryV03d(scene))
+  throw new Error('Scene authority mismatch');
+ draw();
+ const z=frame.zones[chosenZone];
+ const o=findObject(),lamp=findMount();
+ by('selectedTitle').textContent=o?'編輯物件：'+o.id:
+  lamp?'編輯燈具：'+lamp.fixtureId:'棲地區域：'+names[chosenZone];
+ by('selectionHint').textContent='選取區：'+names[chosenZone];
+ by('position').textContent=o?
+  '世界座標：X '+o.x+'／Y '+o.y+'｜寬 '+o.width+
+  '／深 '+o.depth+'／高 '+o.height:
+  lamp?'燈具世界座標 X '+lamp.x+'／Y '+lamp.y+
+   '／高度 '+lamp.height:
+  '輕點物件／燈具以編輯，或使用放置按鈕';
+ frame.zones.forEach((unit,i)=>{
+  by('zonePick'+i).setAttribute('aria-pressed',String(i===chosenZone));
+  by('zoneLight'+i).textContent=pct(unit.actualLightUnits/1000);
+ });
+ by('rawLight').textContent=pct(z.rawLightUnits/1000);
+ by('actualLight').textContent=pct(z.actualLightUnits/1000);
+ by('transmission').textContent=pct(z.transmissionPermille/1000);
+ by('activity').textContent=acts[z.plantActivity]??'未判定';
+ by('cover').textContent=pct(z.plantCoverUnits/1000);
+ by('soil').textContent=pct(z.rootMoistureIndex);
+ by('zoneSummary').textContent=names[chosenZone]+
+  '｜有效光 '+pct(z.actualLightUnits/1000)+
+  '｜根部濕潤 '+pct(z.rootMoistureIndex)+
+  '｜植物覆蓋 '+pct(z.plantCoverUnits/1000);
+ by('clock').textContent='第 '+(Math.floor(scene.minute/1440)+1)+
+  ' 日 '+String(Math.floor((scene.minute%1440)/60)).padStart(2,'0')+
+  ':'+String(scene.minute%60).padStart(2,'0');
+ by('objectCount').textContent=String(scene.objects.length);
+ by('organicCount').textContent=fmt(frame.organicLedger.currentUnits);
+ by('eventCount').textContent=String(frame.organicReceipts);
+ const l=scene.base.biota.environment.substrate.ledger;
+ const stored=scene.base.biota.environment.substrate.zones.reduce((n,x)=>
+  n+x.surface.waterUnits+x.root.waterUnits+x.drainage.waterUnits,0);
+ const org=frame.organicLedger;
+ by('ledgerStatus').textContent=
+  org.initialUnits+org.addedUnits===org.currentUnits&&
+  l.initialUnits+l.addedUnits===stored+l.evaporatedUnits+
+   l.drainedUnits+l.overflowUnits?
+  '水分與有機物帳目吻合 ✓｜畫面與生態共用幾何座標':
+  '警告：水量或有機物不守恆';
+ for(const view of ['top','oblique'])
+  by(view).setAttribute('aria-pressed',String(camera.view===view));
+ by('detailNormal').setAttribute('aria-pressed',String(pixelDetail==='normal'));
+ by('detailLow').setAttribute('aria-pressed',String(pixelDetail==='low'));
+ by('play').setAttribute('aria-pressed',String(playing));
+ by('play').textContent=playing?'暫停自動推進':'自動推進';
+ layoutControls();
+}
+function pointerCoords(e){
+ const bounds=stage.getBoundingClientRect();
+ return {x:(e.clientX-bounds.left)*width/bounds.width,
+  y:(e.clientY-bounds.top)*height/bounds.height};
+}
+function chooseSelection(hit){
+ if(!hit){picked=null;return}
+ if(hit.type==='zone'){
+  chosenZone=zoneNumber(hit.id);picked=null;
+ }else if(hit.type==='object'){
+  picked=hit;const object=scene.objects.find(x=>x.id===hit.id);
+  if(object){
+   const middle=object.x+object.width/2;
+   const match=scene.zones.findIndex(z=>middle>=z.x&&middle<=z.x+z.width);
+   if(match>=0)chosenZone=match;
+  }
+ }else picked=hit;
+}
+/** Touch hit tolerance is specified in CSS pixels, scaled into the
+ * fixed 960-unit Canvas backing coordinates for small phone screens. */
+function fingerRadius(){
+ const box=stage.getBoundingClientRect();
+ return Math.min(80,Math.max(24,Math.round(24*width/box.width)));
+}
+stage.addEventListener('pointerdown',e=>{
+ if(e.preventDefault)e.preventDefault();
+ if(pointer){pointer=null;gestureBlocked=true;return;}
+ if(gestureBlocked)return;
+ const p=pointerCoords(e);
+ const options=listTerrariumTouchTargetsV03f(frame,{
+  ...p,radius:fingerRadius()});
+ pointer={id:e.pointerId,point:p,
+  clientX:e.clientX,clientY:e.clientY,
+  target:options[0]??null};
+ if(stage.setPointerCapture)stage.setPointerCapture(e.pointerId);
+});
+stage.addEventListener('pointerup',e=>{
+ if(gestureBlocked){gestureBlocked=false;pointer=null;return;}
+ if(!pointer||pointer.id!==e.pointerId)return;
+ const finish=pointerCoords(e),start=pointer.point;
+ const dx=finish.x-start.x,dy=finish.y-start.y;
+ const cssMovement=Math.hypot(e.clientX-pointer.clientX,
+  e.clientY-pointer.clientY);
+ const target=pointer.target;pointer=null;
+ if(stage.releasePointerCapture)stage.releasePointerCapture(e.pointerId);
+ // Do not confuse an involuntary 8px mobile wiggle with drag.
+ if(cssMovement>12&&target&&target.type!=='zone'&&uiMode==='edit'){
+  chooseSelection(target);
+  try{
+   if(target.type==='object')
+    scene=moveTerrariumSceneObjectByScreenDeltaV03e(scene,{
+     id:target.id,dx,dy,camera});
+   else if(target.type==='mount')
+    scene=moveTerrariumLightByScreenDeltaV03e(scene,{
+     fixtureId:target.id,dx,dy,camera});
+   lastTap=null;
+   info('已拖曳物件並更新植物光照，畫面與世界座標同步');
+  }catch(err){info('拖曳無效：'+String(err.message));}
+ }else if(cssMovement<=12){
+  const result=resolveTerrariumTouchSelectionV03f(frame,{
+   ...finish,selected:picked,previousTap:lastTap,
+   radius:fingerRadius()});
+  chooseSelection(result.selected);
+  lastTap=finish;
+  info(result.cycled?'已切換重疊物件：'+result.selected.id:
+   result.selected?'已選取：'+result.selected.id:'已取消選取');
+ }
+ render();
+});
+stage.addEventListener('pointercancel',()=>{
+ pointer=null;gestureBlocked=false;lastTap=null;render();
+});
+stage.addEventListener('keydown',e=>{
+ if(uiMode==='observe'||!picked||!['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key))return;
+ if(e.preventDefault)e.preventDefault();
+ const d={ArrowUp:[0,-10],ArrowDown:[0,10],
+  ArrowLeft:[-10,0],ArrowRight:[10,0]}[e.key];
+ moveWorld(d[0],d[1]);
+});
+function setUiMode(mode){
+ if(mode!=='observe'&&mode!=='edit')return;
+ if(mode==='observe')stop();
+ uiMode=mode;pointer=null;lastTap=null;gestureBlocked=false;
+ labRoot.setAttribute('data-mode',mode);
+ by('observeMode').setAttribute('aria-pressed',String(mode==='observe'));
+ by('editMode').setAttribute('aria-pressed',String(mode==='edit'));
+ info(mode==='observe'?'目前是唯讀觀察：輕點物件與五區，不會修改場景或推進時間':
+  '目前是編輯模式：可調整物件、環境事件及模擬時間');
+ render();
+}
+by('observeMode').addEventListener('click',()=>setUiMode('observe'));
+by('editMode').addEventListener('click',()=>setUiMode('edit'));
+function selectView(view){
+ camera=createTerrariumRenderCameraV03e({
+  view,width,height,padding:30});
+ info('已改變畫面投影，場景座標與生態狀態維持不變');
+ render();
+}
+for(let i=0;i<5;i++){
+ by('zonePick'+i).addEventListener('click',()=>{
+  chosenZone=i;picked=null;lastTap=null;
+  info('已選擇 '+names[i]+'，光照與土壤數值來自同一份生態模型');
+  render();
+ });
+}
+by('top').addEventListener('click',()=>{lastTap=null;selectView('top')});
+by('oblique').addEventListener('click',()=>{lastTap=null;selectView('oblique')});
+by('detailNormal').addEventListener('click',()=>{
+ pixelDetail='normal';info('已切換標準像素細節，生態資料不變');render();
+});
+by('detailLow').addEventListener('click',()=>{
+ pixelDetail='low';info('已減少像素紋理數量，生態資料不變');render();
+});
+function advance(minutes){
+ if(uiMode==='observe')return;
+ try{
+  scene=advanceTerrariumSceneGeometryV03d(scene,{minutes});
+  info('已以同一生態分鐘推進 '+minutes+' 分鐘');render();
+ }catch(err){stop();info('時間結算失敗：'+String(err.message));}
+}
+by('step60').addEventListener('click',()=>{stop();advance(60)});
+by('step240').addEventListener('click',()=>{stop();advance(240)});
+by('play').addEventListener('click',()=>{
+ if(uiMode==='observe')return;
+ if(playing){stop();render();return}
+ playing=true;timer=setInterval(()=>advance(60),900);render();
+});
+by('reset').addEventListener('click',()=>{
+ if(uiMode==='observe')return;
+ stop();scene=createTerrariumSceneGeometryV03d(initial());
+ picked={type:'object',id:'stone_01'};chosenZone=3;seq=0;lastTap=null;pointer=null;gestureBlocked=false;
+ info('已還原原始場景、燈具與生態時間');render();
+});
+document.addEventListener('visibilitychange',()=>{
+ if(document.hidden&&playing){stop();render();}
+});
+render();
+</script></body></html>

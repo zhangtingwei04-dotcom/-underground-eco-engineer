@@ -1,4 +1,4 @@
-name: Public OHM Snake V0.8A QA
+name: Public OHM Snake and Terrarium QA
 on:
   push:
     paths:
@@ -78,3 +78,29 @@ jobs:
           path: qa/snake-motion/.qa-artifacts/v07g/*.png
           retention-days: 3
           if-no-files-found: ignore
+
+  terrarium-chromium:
+    name: Five-zone terrarium pixel Canvas verification
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: qa/snake-motion
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check generated synthetic terrarium lab matches canonical modules
+        run: |
+          node tools/build-terrarium-pixel-sprites-v03g-lab.mjs --check
+          node tests/terrarium-pixel-sprites-v03g-lab.test.mjs
+      - name: Install Chrome
+        id: setup-chrome
+        uses: browser-actions/setup-chrome@v2
+        with:
+          chrome-version: stable
+      - name: Three-viewport real Canvas responsive QA
+        env:
+          OHM_CHROME_BIN: ${{ steps.setup-chrome.outputs.chrome-path }}
+        run: node tests/terrarium-pixel-sprites-v03g-browser-qa.mjs

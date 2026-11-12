@@ -1,0 +1,690 @@
+<!doctype html>
+<html lang="zh-Hant"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#182b24">
+<title>鱗片與種子｜生態場景 V0.3g 像素素材與手機五區操作</title>
+<style>
+:root{color-scheme:dark;--bg:#11221c;--pane:#233a30;--pane2:#1d3229;--line:#64765b;--ink:#f1e8d1;--sub:#c2ccbd;--gold:#f0ce88;--ok:#9ecc9d}
+*{box-sizing:border-box}body{margin:0;color:var(--ink);background:linear-gradient(180deg,#21382d,#11211b 290px);font:15px/1.5 system-ui,-apple-system,"Noto Sans TC","PingFang TC",sans-serif}
+main{margin:0 auto;max-width:1040px;padding:12px max(10px,env(safe-area-inset-right)) calc(30px + env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left))}
+header,section{margin:11px 0;padding:15px;border:1px solid var(--line);border-radius:16px;background:var(--pane);box-shadow:0 4px 15px #07100b26}
+header{background:linear-gradient(130deg,#456045,#274239 70%);border-color:#8d9273}
+.eyebrow{color:var(--gold);font-weight:750;letter-spacing:.12em;font-size:11px}
+h1{font-size:clamp(25px,5vw,37px);line-height:1.25;margin:6px 0 10px}
+h2{font-size:19px;margin:0 0 10px}
+p{color:var(--sub);margin:8px 0}
+.small{font-size:12px}
+.topline{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.clock{font-weight:750;color:var(--gold);font-variant-numeric:tabular-nums}
+.actions{display:flex;flex-wrap:wrap;gap:7px}
+button{font:inherit;min-height:44px;cursor:pointer;touch-action:manipulation}
+.action{padding:9px 12px;border:1px solid #ecd39c;border-radius:10px;background:#e0bd82;color:#22372b;font-weight:750}
+.action.alt{border-color:#799986;background:#375c4a;color:#f5ebd8}
+.action[aria-pressed="true"]{background:#e3d6ad;border-color:#f2e2ac;color:#20382c}
+.action:focus-visible,canvas:focus-visible{outline:3px solid #ffe4ab;outline-offset:3px}
+.view-switch{display:flex;gap:7px;margin:10px 0}
+.view-switch button{flex:1}
+.viewport{padding:8px;background:#132a22;border:1px solid #728267;border-radius:12px}
+canvas{display:block;width:100%;height:auto;aspect-ratio:8/5;border-radius:8px;border:3px solid #9d825b;touch-action:none;background:#162d26;cursor:crosshair;image-rendering:pixelated}
+.legend{display:flex;flex-wrap:wrap;gap:10px;margin:9px 0 3px;color:#dfd9c5;font-size:12px}
+.zone-dock{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px;margin:10px 0 6px}
+.zone-dock button{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:2px;min-width:0;min-height:62px;border:1px solid #6e896e;border-radius:9px;background:#1d3c31;color:#eae7cc;padding:7px 2px;font-size:clamp(11px,2.5vw,14px);font-weight:700;overflow:hidden}
+.zone-dock button[aria-pressed="true"]{background:#bda36c;color:#1a2b23;border-color:#f7df9e}
+.zone-dock output{font-size:13px;line-height:1.2;font-variant-numeric:tabular-nums;font-weight:800}
+.zone-dock .zone-sub{font-size:10px;line-height:1.2;opacity:.78}
+@media(max-width:430px){.zone-dock{gap:3px}.zone-dock button{font-size:11px;min-height:64px}.zone-dock output{font-size:12px}.zone-dock .zone-sub{font-size:9px}}
+.pixel-note{font-size:12px;color:#bcd0bd;border-left:3px solid #e4c589;padding-left:10px;margin-top:10px}
+.touch-hint{font-size:12px;color:#e7d4a8;font-weight:650}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.swatch{width:11px;height:11px;border:1px solid #ded8bd;border-radius:3px;display:inline-block}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:10px 0}
+.stat{text-align:center;background:var(--pane2);border:1px solid #55705a;border-radius:9px;padding:9px 5px}
+.stat small{display:block;color:#becfc1;font-size:11px}
+.stat strong{font-size:clamp(14px,3vw,20px);font-variant-numeric:tabular-nums}
+.editor{border-top:1px solid #61745c;padding-top:12px;margin-top:12px}
+.note{font-size:13px;color:#dce5d0;padding:10px;border-radius:8px;border-left:3px solid var(--gold);background:#182f26;margin-top:11px}
+.controls{margin:7px 0 10px}
+footer{font-size:12px;color:#b1c3b4;margin-top:16px}
+@media(max-width:560px){main{padding:7px 7px calc(27px + env(safe-area-inset-bottom))}header,section{padding:11px}
+ .viewport{padding:3px}canvas{border-width:2px}
+ .action{flex:1 1 auto;padding:10px 7px;font-size:13px}.stat{padding:7px 3px}.stat small{font-size:10px}}
+
+/* Landscape-first working layout: single geometry / ecology state, two UI columns. */
+@media (min-width:700px) and (orientation:landscape){
+ main{max-width:1500px;display:grid;grid-template-columns:minmax(0,1.45fr) minmax(320px,1fr);gap:10px;align-items:start;padding-top:8px}
+ header{grid-column:1 / -1;margin:0;padding:10px 16px}
+ header h1{margin:2px 0 4px;font-size:clamp(20px,2.7vw,30px)}
+ header p{margin:4px 0}
+ section{margin:0;min-width:0}
+ section:nth-of-type(1){grid-column:1;grid-row:2 / span 2}
+ section:nth-of-type(2){grid-column:2;grid-row:2}
+ section:nth-of-type(3){grid-column:2;grid-row:3}
+ footer{grid-column:1 / -1;margin:0}
+ .stats{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .zone-dock button{min-height:54px}
+}
+@media (min-width:700px) and (orientation:landscape) and (max-height:540px){
+ header{padding:6px 12px}
+ header p{font-size:11px;line-height:1.3}
+ section{padding:9px}
+ .view-switch{margin:4px 0}
+ .zone-dock{margin:5px 0}
+ .zone-dock button{min-height:46px}
+ .legend{margin:4px 0}
+ .touch-hint{margin:3px 0}
+}
+
+/* ECO-V03H: visual-only observe/edit split; no second biology model. */
+#labRoot[data-mode="observe"] section[aria-label="物件與植物資料"],
+#labRoot[data-mode="observe"] section[aria-label="模擬時間與資料守恆"]{display:none}
+.zone-summary{font-size:13px;color:#f3e5c4;background:#17352b;border:1px solid #6a8b71;
+ border-radius:9px;padding:8px 10px;margin:5px 0;overflow-wrap:anywhere}
+.mode-switch .action[aria-pressed="true"]{border-color:#f2dc9e;background:#e2d0a5;color:#20372c}
+@media (min-width:700px) and (orientation:landscape){
+ #labRoot[data-mode="observe"]{grid-template-columns:minmax(0,1fr)}
+ #labRoot[data-mode="observe"] #sceneSection{grid-column:1 / -1;grid-row:2}
+ #labRoot[data-mode="observe"] #sceneSection .viewport{max-width:1150px;margin-inline:auto}
+}
+@media (min-width:700px) and (orientation:landscape) and (max-height:540px){
+ /* Tiny landscape screens keep the short heading, with long caveats in the footer. */
+ #labRoot header p{display:none}
+ #labRoot{grid-template-columns:minmax(0,1fr);gap:6px}
+ #labRoot #sceneSection{grid-column:1;grid-row:2;display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(175px,30%);gap:5px 8px;align-items:start}
+ #labRoot section[aria-label="物件與植物資料"]{grid-column:1;grid-row:3}
+ #labRoot section[aria-label="模擬時間與資料守恆"]{grid-column:1;grid-row:4}
+ #sceneSection>.topline{grid-column:1 / -1}
+ #sceneSection>.view-switch{grid-column:2;margin:0}
+ #sceneSection>.viewport{grid-column:1;grid-row:2 / span 4;min-width:0}
+ #sceneSection canvas{width:min(100%,500px);margin-inline:auto}
+ #sceneSection>.zone-dock{grid-column:2;grid-row:5;
+  grid-template-columns:repeat(2,minmax(0,1fr));margin:0}
+ #sceneSection>.zone-dock button{min-height:44px;padding:3px 2px;font-size:11px}
+ #sceneSection>.zone-summary,
+ #sceneSection>.legend,
+ #sceneSection>.pixel-note,
+ #sceneSection>.touch-hint{grid-column:1 / -1;margin:1px 0}
+ #labRoot[data-mode="observe"] #sceneSection{grid-row:2}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style></head><body><main id="labRoot" data-mode="edit">
+<header>
+<div class="eyebrow">PROJECT OHM · ECOLOGICAL ENGINE · V0.3g</div>
+<h1>生態箱：地下像素生態試驗場</h1>
+<p>岩石裂紋、苔蘚團、蕨葉與燈具現在有不同的原創像素輪廓。手機可直接選五個生態區；物件的遮光、植物光照和畫面位置仍取自同一份世界資料。</p>
+<p class="small">V0.3g 為可驗證的像素素材與響應式介面試作，不是最終美術、真實 3D 陰影、PPFD 或物種照護建議。</p>
+</header>
+<section id="sceneSection" aria-label="俯視與斜角場景渲染測試">
+ <div class="topline"><h2>生態箱場景</h2><span id="clock" class="clock">第 1 日 00:00</span></div>
+ <div class="view-switch" role="group" aria-label="畫面視角">
+  <button class="action alt" type="button" id="oblique" aria-pressed="true">斜角 2.5D</button>
+  <button class="action alt" type="button" id="top" aria-pressed="false">俯視</button>
+ </div>
+ <div class="view-switch" role="group" aria-label="畫面質感與效能">
+  <button class="action alt" type="button" id="detailNormal" aria-pressed="true">標準像素細節</button>
+  <button class="action alt" type="button" id="detailLow" aria-pressed="false">省電細節</button>
+ </div>
+ <div class="view-switch mode-switch" role="group" aria-label="生態箱操作模式">
+  <button class="action alt" type="button" id="observeMode" aria-pressed="false">觀察模式（唯讀）</button>
+  <button class="action alt" type="button" id="editMode" aria-pressed="true">編輯模式</button>
+ </div>
+ <div class="viewport">
+  <canvas id="stage" width="960" height="600" tabindex="0" aria-label="可點選或拖動岩石、植物冠層及燈具的五區生態箱"></canvas>
+ </div>
+ <nav class="zone-dock" id="zoneDock" aria-label="可直接點選的五個生態區">
+  <button type="button" id="zonePick0" aria-pressed="false"><span>熱區</span><output id="zoneLight0">—</output><span class="zone-sub">光照</span></button>
+  <button type="button" id="zonePick1" aria-pressed="false"><span>冷區</span><output id="zoneLight1">—</output><span class="zone-sub">光照</span></button>
+  <button type="button" id="zonePick2" aria-pressed="false"><span>水盆</span><output id="zoneLight2">—</output><span class="zone-sub">光照</span></button>
+  <button type="button" id="zonePick3" aria-pressed="true"><span>遮蔽</span><output id="zoneLight3">—</output><span class="zone-sub">光照</span></button>
+  <button type="button" id="zonePick4" aria-pressed="false"><span>土坡</span><output id="zoneLight4">—</output><span class="zone-sub">光照</span></button>
+ </nav>
+ <div class="zone-summary" id="zoneSummary" role="status" aria-live="polite">五區數值由生態核心提供</div>
+ <div class="legend">
+  <span><i class="swatch" style="background:#9b8060"></i>岩石</span>
+  <span><i class="swatch" style="background:#527c51"></i>植物冠層</span>
+  <span><i class="swatch" style="background:#829b99"></i>遮光網</span>
+  <span><i class="swatch" style="background:#eacc78"></i>植物有效光</span>
+ </div>
+ <p class="pixel-note">像素素材由原始世界物件和植物覆蓋生成；洞穴背景只是裝飾。小螢幕可用上方五區選單閱讀光照值，標準／省電模式都不更動生態計算。</p>
+ <p class="touch-hint" id="touchHint">輕點選取，長按並拖動位置；若物件重疊，連續輕點同一處可切換選取。也可使用下方按鈕操作。</p>
+</section>
+<section aria-label="物件與植物資料">
+ <div class="topline"><h2 id="selectedTitle">選取場景物件</h2><span id="selectionHint" class="small">—</span></div>
+ <div class="stats">
+  <div class="stat"><small>植物原始光</small><strong id="rawLight">—</strong></div>
+  <div class="stat"><small>遮蔽後光照</small><strong id="actualLight">—</strong></div>
+  <div class="stat"><small>透光比例</small><strong id="transmission">—</strong></div>
+  <div class="stat"><small>植物活動</small><strong id="activity">—</strong></div>
+  <div class="stat"><small>植物覆蓋</small><strong id="cover">—</strong></div>
+  <div class="stat"><small>土壤濕潤</small><strong id="soil">—</strong></div>
+ </div>
+ <p id="position" class="small">請選擇物件</p>
+ <div class="editor">
+  <h2>放置場景物件</h2>
+  <div class="actions" id="placeControls"></div>
+ </div>
+ <div class="editor">
+  <h2>移動與調整</h2>
+  <div class="actions" id="moveControls"></div>
+ </div>
+ <div class="editor">
+  <h2>光源與生態事件</h2>
+  <div class="actions" id="eventControls"></div>
+ </div>
+ <div id="message" class="note" role="status" aria-live="polite">已載入原型場景</div>
+</section>
+<section aria-label="模擬時間與資料守恆">
+ <h2>時間與生態驗證</h2>
+ <div class="actions">
+  <button class="action" id="step60" type="button">+1 小時</button>
+  <button class="action" id="step240" type="button">+4 小時</button>
+  <button class="action alt" id="play" type="button" aria-pressed="false">自動推進</button>
+  <button class="action alt" id="reset" type="button">重設</button>
+ </div>
+ <div class="stats">
+  <div class="stat"><small>場景物件</small><strong id="objectCount">—</strong></div>
+  <div class="stat"><small>有機物總量</small><strong id="organicCount">—</strong></div>
+  <div class="stat"><small>來源事件</small><strong id="eventCount">—</strong></div>
+ </div>
+ <div id="ledgerStatus" class="note">核對中……</div>
+ <p class="small">物件移動只會更新幾何遮蔽。水量與有機物仍有各自的唯一來源；落葉輸入不等於玩家親眼觀察。</p>
+</section>
+<footer>私人 V0.3g 視覺工程原型｜單檔離線，沒有帳戶、網路或存檔寫入。真機 Safari 視覺、性能與正式美術仍待驗收。</footer>
+</main>
+<script type="module">
+/*__OHM_V03G_CORE_BUNDLE__*/
+const by=id=>document.getElementById(id);
+const labRoot=by('labRoot');
+const stage=by('stage');
+const ctx=stage.getContext('2d');
+if(!ctx)throw new Error('2D Canvas unsupported');
+const width=960,height=600;
+const kinds={rock_overhang:'岩石',canopy:'樹冠',screen:'遮光網'};
+const names=['熱區','冷區','水盆','遮蔽區','土坡'];
+const acts={no_patch:'無植物',favourable_candidate:'條件可用',
+ light_limited_candidate:'光照不足',
+ water_or_temperature_limited_candidate:'水／溫度受限'};
+const initial=()=>({
+ sceneId:'ohm_v03e_habitat',
+ baseOptions:{
+  biotaOptions:{
+   environmentOptions:{
+    microclimateOptions:{columns:5,rows:1,
+     ambient:{temperatureC:24,relativeHumidity:.52},
+     cellOverrides:[{x:0,y:0,heater:1},{x:2,y:0,waterLevel:.9},
+      {x:3,y:0,shade:.6}]},
+    substrateOptions:{zones:[
+     {surfaceWaterUnits:120,rootWaterUnits:600},
+     {surfaceWaterUnits:310,rootWaterUnits:1000},
+     {surfaceWaterUnits:450,rootWaterUnits:1400},
+     {surfaceWaterUnits:640,rootWaterUnits:1600,percolationPermille:0,lateralPermille:0},
+     {surfaceWaterUnits:680,rootWaterUnits:1600,percolationPermille:0,lateralPermille:0}
+    ]}
+   },
+   zoneConfigs:[
+    {plantKind:'moss',plantCoverUnits:140,litterUnits:250},
+    {plantKind:'fern',plantCoverUnits:230,litterUnits:450},
+    {plantKind:'none',plantCoverUnits:0,litterUnits:160},
+    {plantKind:'moss',plantCoverUnits:250,litterUnits:900},
+    {plantKind:'fern',plantCoverUnits:330,litterUnits:600}
+   ]
+  },
+  fixtures:[{id:'daylight',type:'daylight_proxy',
+   zoneIndex:2,strengthUnits:950,spreadZones:4,heightUnits:0,
+   startMinute:0,durationMinutes:1440}]
+ },
+ mounts:[{fixtureId:'daylight',x:500,y:200,height:800}],
+ objects:[
+  {id:'stone_01',kind:'rock_overhang',x:570,y:120,width:60,
+   depth:160,height:500,transmissionPermille:0},
+  {id:'canopy_01',kind:'canopy',x:80,y:80,width:125,
+   depth:100,height:270,transmissionPermille:600}
+ ]
+});
+let scene=createTerrariumSceneGeometryV03d(initial());
+let camera=createTerrariumRenderCameraV03e({view:'oblique',width,height,padding:30});
+let picked={type:'object',id:'stone_01'},chosenZone=3,seq=0,playing=false,timer=null,frame=null,pointer=null;
+let pixelDetail='normal',lastTap=null,gestureBlocked=false,uiMode='edit';
+const pct=x=>Math.round(x*100)+'%';
+const fmt=x=>x.toLocaleString('en-US');
+const zoneNumber=id=>Number(id.slice(5));
+const findObject=()=>scene.objects.find(o=>o.id===picked?.id);
+const findMount=()=>scene.mounts.find(m=>m.fixtureId===picked?.id);
+const stop=()=>{playing=false;if(timer!==null)clearInterval(timer);timer=null;};
+function info(text){by('message').textContent=text}
+function act(event,msg){
+ if(uiMode==='observe'){info('觀察模式不修改生態狀態；請先切回編輯模式');return;}
+ try{scene=applyTerrariumSceneGeometryV03dEvent(scene,event);info(msg);render();}
+ catch(e){info('操作無效：'+String(e.message));}
+}
+function button(where,label,onClick,alt=false){
+ const b=document.createElement('button');
+ b.type='button';b.className='action'+(alt?' alt':'');
+ b.textContent=label;b.addEventListener('click',onClick);by(where).appendChild(b);
+}
+
+function moveWorld(dx,dy){
+ if(uiMode==='observe')return;
+ if(picked?.type==='object'){
+  const o=findObject();if(!o)return;
+  act({channel:'object',type:'upsert',object:{...o,
+   x:Math.max(0,Math.min(1000-o.width,o.x+dx)),
+   y:Math.max(0,Math.min(400-o.depth,o.y+dy))}},
+   '已更新原始場景座標及植物遮蔽');
+ }else if(picked?.type==='mount'){
+  const m=findMount();if(!m)return;
+  act({channel:'mount',type:'upsert',mount:{...m,
+   x:Math.max(0,Math.min(1000,m.x+dx)),
+   y:Math.max(0,Math.min(400,m.y+dy))}},
+   '已移動燈具及重新計算場景遮光');
+ }
+}
+function place(kind){
+ if(uiMode==='observe')return;
+ const z=scene.zones[chosenZone];
+ const id='placed_'+chosenZone;
+ const object={id,kind,x:Math.min(1000-90,z.x+Math.floor(z.width/2)-45),
+  y:135,width:90,depth:115,height:kind==='rock_overhang'?430:310,
+  transmissionPermille:kind==='rock_overhang'?0:kind==='canopy'?550:700};
+ try{
+  scene=applyTerrariumSceneGeometryV03dEvent(scene,{
+   channel:'object',type:'upsert',object});
+  picked={type:'object',id};info('新場景物件已放置，可拖曳或移動');render();
+ }catch(e){info('放置失敗：'+String(e.message));}
+}
+function layoutControls(){
+ for(const key of ['placeControls','moveControls','eventControls'])
+  by(key).replaceChildren();
+ button('placeControls','放置岩石',()=>place('rock_overhang'));
+ button('placeControls','放置冠層',()=>place('canopy'),true);
+ button('placeControls','放置遮光網',()=>place('screen'),true);
+ if(picked?.type==='object'||picked?.type==='mount'){
+  button('moveControls','左移',()=>moveWorld(-50,0));
+  button('moveControls','右移',()=>moveWorld(50,0));
+  button('moveControls','往上',()=>moveWorld(0,-40),true);
+  button('moveControls','往下',()=>moveWorld(0,40),true);
+ }
+ if(picked?.type==='object'&&findObject()){
+  button('moveControls','提高',()=>{
+   const o=findObject();
+   act({channel:'object',type:'upsert',object:{...o,
+    height:Math.min(1000,o.height+100)}},'已調高物件，重新計算幾何遮蔽');
+  },true);
+  button('moveControls','降低',()=>{
+   const o=findObject();
+   act({channel:'object',type:'upsert',object:{...o,
+    height:Math.max(1,o.height-100)}},'已降低物件，重新計算幾何遮蔽');
+  },true);
+  button('moveControls','移除物件',()=>{
+   const id=picked.id;
+   act({channel:'object',type:'remove',id},'已移除場景物件；未改動土壤及有機物');
+   if(!scene.objects.some(o=>o.id===id)){picked=null;render();}
+  },true);
+ }
+ button('eventControls','選取燈具',()=>{
+  picked={type:'mount',id:'daylight'};info('已選取燈具，可以在畫面上拖曳');render();
+ },true);
+ button('eventControls','加入落葉 +500',()=>{
+  if(uiMode==='observe')return;
+  seq++;
+  act({channel:'base',event:{channel:'organic',type:'litter_input',
+   eventId:'leaf_'+seq,minute:scene.minute,zoneId:'zone_'+chosenZone,
+   amountUnits:500,source:{kind:'player_placement',
+    referenceId:'event_'+seq}}},'已登記加入落葉；此紀錄不等於玩家親眼觀察');
+ });
+ button('eventControls','噴霧 +450',()=>act({
+  channel:'base',event:{channel:'environment',event:{
+   channel:'environment',event:{channel:'substrate',event:{
+    type:'mist',zoneId:'zone_'+chosenZone,amountUnits:450}}}}
+ },'已增加底材水量；不會憑空生成有機物'),true);
+}
+function poly(points,color,outline='#00000030',width=2){
+ ctx.beginPath();ctx.moveTo(points[0].x,points[0].y);
+ points.slice(1).forEach(p=>ctx.lineTo(p.x,p.y));
+ ctx.closePath();ctx.fillStyle=color;ctx.fill();
+ if(outline){ctx.strokeStyle=outline;ctx.lineWidth=width;ctx.stroke();}
+}
+function textAt(text,x,y,size=15,color='#f7e6bd',align='center'){
+ ctx.fillStyle=color;ctx.font='700 '+size+'px system-ui, sans-serif';
+ ctx.textAlign=align;ctx.textBaseline='middle';ctx.fillText(text,x,y);
+}
+function center(poly){
+ return poly.reduce((v,p)=>({x:v.x+p.x/poly.length,
+  y:v.y+p.y/poly.length}),{x:0,y:0});
+}
+function plantGlyph(zone){
+ const p=center(zone.polygon);
+ if(zone.plantKind==='none'||zone.plantCoverUnits===0)return;
+ const fern=zone.plantKind==='fern';
+ const stems=Math.min(fern?5:7,Math.max(1,Math.ceil(zone.plantCoverUnits/75)));
+ for(let i=0;i<stems;i++){
+  const x=Math.round((p.x+(i-(stems-1)/2)*11)/6)*6;
+  const y=Math.round(p.y/6)*6;
+  ctx.fillStyle=fern?'#4d805b':'#66945e';
+  ctx.fillRect(x,y-6,6,18);
+  ctx.fillStyle=fern?'#92c087':'#afc780';
+  ctx.fillRect(x-6,y-18-(i%2)*6,18,6);
+  if(fern)ctx.fillRect(x+6,y-12,6,6);
+ }
+}
+/** Read-only pixel stamps are derived from the SAME V0.3e frame used by
+ * touch picking. Pixel display coordinates never become world positions. */
+function drawStamps(stamps){
+ for(const t of stamps){
+  ctx.fillStyle=t.fill;
+  ctx.fillRect(t.x,t.y,t.width,t.height);
+ }
+}
+/** Silhouette atlas uses exactly the same V0.3e frame.
+ * No sprite becomes a biological actor or an editable world position. */
+function drawSilhouette(tiles){
+ for(const t of tiles){
+  ctx.fillStyle=t.fill;ctx.fillRect(t.x,t.y,t.width,t.height);
+ }
+}
+/** Decorative cave backdrop is presentation-only. It is not inserted
+ * as a plant, obstacle or mineral into the ecology state or observations. */
+function drawCaveBackdrop(){
+ const low=pixelDetail==='low',s=low?24:12;
+ ctx.fillStyle='#182f29';ctx.fillRect(0,0,width,height);
+ // Stone layers on the back wall and the ceiling use a deterministic grid.
+ for(let x=0;x<width;x+=s){
+  const y=Math.round((80+12*Math.sin(x/77)+
+   19*Math.sin(x/31)+9*Math.sin(x/13))/s)*s;
+  ctx.fillStyle=x%72<36?'#1d322b':'#263b30';
+  ctx.fillRect(x,0,s,Math.max(s,y));
+  if(x%(s*5)===0){
+   ctx.fillStyle='#354537';
+   ctx.fillRect(x+2,Math.max(s,y),s,low?12:24);
+  }
+ }
+ for(let row=0;row<6;row++){
+  for(let col=0;col<Math.floor(width/(s*2));col++){
+   const hash=(Math.imul(row+11,1103515245)^
+    Math.imul(col+31,12345))>>>0;
+   if(hash%5>1)continue;
+   ctx.fillStyle=hash%3===0?'#405345':'#334c3e';
+   ctx.fillRect(col*s*2+(row%2)*s,
+    92+row*20,s*(hash%2+1),low?6:8);
+  }
+ }
+ // A distant, masonry-like enclosure back panel and soil cross-section.
+ ctx.fillStyle='#263d31';ctx.fillRect(34,210,892,332);
+ ctx.fillStyle='#5a5840';ctx.fillRect(34,214,892,8);
+ ctx.fillStyle='#394d37';ctx.fillRect(38,222,884,289);
+ ctx.fillStyle='#6d573d';ctx.fillRect(30,511,900,13);
+ ctx.fillStyle='#413b2f';ctx.fillRect(30,524,900,34);
+ ctx.fillStyle='#241f1b';ctx.fillRect(30,558,900,24);
+ for(let i=0;i<(low?28:65);i++){
+  const x=36+((i*173+37)%868);
+  const y=527+((i*47+19)%49);
+  ctx.fillStyle=i%3===0?'#987b51':'#645440';
+  ctx.fillRect(x,y,s*(i%2+1),low?6:8);
+ }
+ // Layered stone windows and subtle mineral seams distinguish the
+ // underground setting without inventing organisms or animal actions.
+ for(const [x,y,shade] of [
+  [100,155,'#627963'],[176,180,'#9e8762'],
+  [752,141,'#6d8268'],[814,185,'#b1a077'],
+  [455,173,'#71886b']
+ ]){
+  ctx.fillStyle='#172c24';ctx.fillRect(x-12,y-11,42,27);
+  ctx.fillStyle=shade;ctx.fillRect(x,y,20,7);
+  ctx.fillStyle='#c1ae78';ctx.fillRect(x+12,y+7,8,8);
+ }
+}
+function draw(){
+ frame=projectTerrariumSceneForRenderV03e(scene,{camera});
+ const art=buildTerrariumPixelVisualV03f(frame,{
+  pixelSize:8,detail:pixelDetail});
+ const sprites=buildTerrariumPixelSpritesV03g(frame,{
+  detail:pixelDetail,tileSize:6});
+ const wideCanvas=stage.getBoundingClientRect().width>=620;
+ ctx.imageSmoothingEnabled=false;
+ ctx.clearRect(0,0,width,height);
+ drawCaveBackdrop();
+ // A restrained scenic grid is a DISPLAY decoration only.
+ for(let n=0;n<10;n++){
+  const a=projectTerrariumWorldPointV03e(camera,{x:n*100,y:0,z:0});
+  const b=projectTerrariumWorldPointV03e(camera,{x:n*100,y:400,z:0});
+  ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);
+  ctx.strokeStyle='#b2c1aa18';ctx.lineWidth=1;ctx.stroke();
+ }
+ frame.zones.forEach((z,i)=>{
+  const shade=z.actualLightUnits/1000;
+  const ground=ctx.createLinearGradient(0,70,0,500);
+  if(i===2){ground.addColorStop(0,'#496d71');ground.addColorStop(1,'#254c53');}
+  else{ground.addColorStop(0,shade>.4?'#526f46':'#334b3d');
+   ground.addColorStop(1,shade>.4?'#314a35':'#253a31');}
+  poly(z.polygon,ground,'#a4ba8e33',1.3);
+  drawStamps(art.zones[i].stamps);
+  drawSilhouette(sprites.zones[i].tiles);
+  const c=center(z.polygon);
+  if(wideCanvas){
+   textAt(names[i],c.x,c.y+48,19,'#efe7c8');
+   textAt(pct(shade),c.x,c.y+74,17,'#f6ce7d');
+  }
+  if(i===chosenZone){
+   poly(z.polygon,'#f3df9430','#ffdf94',2);
+  }
+ });
+ frame.objects.forEach(o=>{
+  const theme=o.kind==='rock_overhang'?
+   ['#796655','#a28c70','#564738']:
+   o.kind==='canopy'?['#3c653f','#648d54','#274b39']:
+   ['#718a83','#9bb2a9','#435a57'];
+  poly(o.floor,'#13281b44','');
+  o.faces.forEach((f,i)=>poly(f.polygon,
+   i===0?theme[2]:theme[0],'#253427d0',1.5));
+  poly(o.roof,theme[1],o.id===picked?.id?'#fce1a5':'#dbc9a279',
+   o.id===picked?.id?4:1.5);
+  drawStamps(art.objects.find(x=>x.id===o.id).stamps);
+  drawSilhouette(sprites.objects.find(x=>x.id===o.id).tiles);
+  const c=center(o.roof);
+  if(wideCanvas)textAt(String(o.height),c.x,c.y+36,15,'#fff1cf');
+ });
+ frame.mounts.forEach(m=>{
+  ctx.beginPath();ctx.moveTo(m.base.x,m.base.y);
+  ctx.lineTo(m.light.x,m.light.y);ctx.lineWidth=3;
+  ctx.strokeStyle='#e5ca855c';ctx.stroke();
+  ctx.beginPath();ctx.arc(m.light.x,m.light.y,19,0,Math.PI*2);
+  ctx.fillStyle=m.fixtureId===picked?.id?'#ffdb81':'#dec37b';
+  ctx.fill();ctx.lineWidth=2;ctx.strokeStyle='#fff6d3';ctx.stroke();
+  drawSilhouette(sprites.mounts.find(x=>x.id===m.fixtureId).tiles);
+ });
+ textAt(camera.view==='top'?'俯視 · 像素試作':'斜角 2.5D · 像素試作',
+  22,28,21,'#e8dfc2','left');
+}
+function render(){
+ if(!isValidTerrariumSceneGeometryV03d(scene))
+  throw new Error('Scene authority mismatch');
+ draw();
+ const z=frame.zones[chosenZone];
+ const o=findObject(),lamp=findMount();
+ by('selectedTitle').textContent=o?'編輯物件：'+o.id:
+  lamp?'編輯燈具：'+lamp.fixtureId:'棲地區域：'+names[chosenZone];
+ by('selectionHint').textContent='選取區：'+names[chosenZone];
+ by('position').textContent=o?
+  '世界座標：X '+o.x+'／Y '+o.y+'｜寬 '+o.width+
+  '／深 '+o.depth+'／高 '+o.height:
+  lamp?'燈具世界座標 X '+lamp.x+'／Y '+lamp.y+
+   '／高度 '+lamp.height:
+  '輕點物件／燈具以編輯，或使用放置按鈕';
+ frame.zones.forEach((unit,i)=>{
+  by('zonePick'+i).setAttribute('aria-pressed',String(i===chosenZone));
+  by('zoneLight'+i).textContent=pct(unit.actualLightUnits/1000);
+ });
+ by('rawLight').textContent=pct(z.rawLightUnits/1000);
+ by('actualLight').textContent=pct(z.actualLightUnits/1000);
+ by('transmission').textContent=pct(z.transmissionPermille/1000);
+ by('activity').textContent=acts[z.plantActivity]??'未判定';
+ by('cover').textContent=pct(z.plantCoverUnits/1000);
+ by('soil').textContent=pct(z.rootMoistureIndex);
+ by('zoneSummary').textContent=names[chosenZone]+
+  '｜有效光 '+pct(z.actualLightUnits/1000)+
+  '｜根部濕潤 '+pct(z.rootMoistureIndex)+
+  '｜植物覆蓋 '+pct(z.plantCoverUnits/1000);
+ by('clock').textContent='第 '+(Math.floor(scene.minute/1440)+1)+
+  ' 日 '+String(Math.floor((scene.minute%1440)/60)).padStart(2,'0')+
+  ':'+String(scene.minute%60).padStart(2,'0');
+ by('objectCount').textContent=String(scene.objects.length);
+ by('organicCount').textContent=fmt(frame.organicLedger.currentUnits);
+ by('eventCount').textContent=String(frame.organicReceipts);
+ const l=scene.base.biota.environment.substrate.ledger;
+ const stored=scene.base.biota.environment.substrate.zones.reduce((n,x)=>
+  n+x.surface.waterUnits+x.root.waterUnits+x.drainage.waterUnits,0);
+ const org=frame.organicLedger;
+ by('ledgerStatus').textContent=
+  org.initialUnits+org.addedUnits===org.currentUnits&&
+  l.initialUnits+l.addedUnits===stored+l.evaporatedUnits+
+   l.drainedUnits+l.overflowUnits?
+  '水分與有機物帳目吻合 ✓｜畫面與生態共用幾何座標':
+  '警告：水量或有機物不守恆';
+ for(const view of ['top','oblique'])
+  by(view).setAttribute('aria-pressed',String(camera.view===view));
+ by('detailNormal').setAttribute('aria-pressed',String(pixelDetail==='normal'));
+ by('detailLow').setAttribute('aria-pressed',String(pixelDetail==='low'));
+ by('play').setAttribute('aria-pressed',String(playing));
+ by('play').textContent=playing?'暫停自動推進':'自動推進';
+ layoutControls();
+}
+function pointerCoords(e){
+ const bounds=stage.getBoundingClientRect();
+ return {x:(e.clientX-bounds.left)*width/bounds.width,
+  y:(e.clientY-bounds.top)*height/bounds.height};
+}
+function chooseSelection(hit){
+ if(!hit){picked=null;return}
+ if(hit.type==='zone'){
+  chosenZone=zoneNumber(hit.id);picked=null;
+ }else if(hit.type==='object'){
+  picked=hit;const object=scene.objects.find(x=>x.id===hit.id);
+  if(object){
+   const middle=object.x+object.width/2;
+   const match=scene.zones.findIndex(z=>middle>=z.x&&middle<=z.x+z.width);
+   if(match>=0)chosenZone=match;
+  }
+ }else picked=hit;
+}
+/** Touch hit tolerance is specified in CSS pixels, scaled into the
+ * fixed 960-unit Canvas backing coordinates for small phone screens. */
+function fingerRadius(){
+ const box=stage.getBoundingClientRect();
+ return Math.min(80,Math.max(24,Math.round(24*width/box.width)));
+}
+stage.addEventListener('pointerdown',e=>{
+ if(e.preventDefault)e.preventDefault();
+ if(pointer){pointer=null;gestureBlocked=true;return;}
+ if(gestureBlocked)return;
+ const p=pointerCoords(e);
+ const options=listTerrariumTouchTargetsV03f(frame,{
+  ...p,radius:fingerRadius()});
+ pointer={id:e.pointerId,point:p,
+  clientX:e.clientX,clientY:e.clientY,
+  target:options[0]??null};
+ if(stage.setPointerCapture)stage.setPointerCapture(e.pointerId);
+});
+stage.addEventListener('pointerup',e=>{
+ if(gestureBlocked){gestureBlocked=false;pointer=null;return;}
+ if(!pointer||pointer.id!==e.pointerId)return;
+ const finish=pointerCoords(e),start=pointer.point;
+ const dx=finish.x-start.x,dy=finish.y-start.y;
+ const cssMovement=Math.hypot(e.clientX-pointer.clientX,
+  e.clientY-pointer.clientY);
+ const target=pointer.target;pointer=null;
+ if(stage.releasePointerCapture)stage.releasePointerCapture(e.pointerId);
+ // Do not confuse an involuntary 8px mobile wiggle with drag.
+ if(cssMovement>12&&target&&target.type!=='zone'&&uiMode==='edit'){
+  chooseSelection(target);
+  try{
+   if(target.type==='object')
+    scene=moveTerrariumSceneObjectByScreenDeltaV03e(scene,{
+     id:target.id,dx,dy,camera});
+   else if(target.type==='mount')
+    scene=moveTerrariumLightByScreenDeltaV03e(scene,{
+     fixtureId:target.id,dx,dy,camera});
+   lastTap=null;
+   info('已拖曳物件並更新植物光照，畫面與世界座標同步');
+  }catch(err){info('拖曳無效：'+String(err.message));}
+ }else if(cssMovement<=12){
+  const result=resolveTerrariumTouchSelectionV03f(frame,{
+   ...finish,selected:picked,previousTap:lastTap,
+   radius:fingerRadius()});
+  chooseSelection(result.selected);
+  lastTap=finish;
+  info(result.cycled?'已切換重疊物件：'+result.selected.id:
+   result.selected?'已選取：'+result.selected.id:'已取消選取');
+ }
+ render();
+});
+stage.addEventListener('pointercancel',()=>{
+ pointer=null;gestureBlocked=false;lastTap=null;render();
+});
+stage.addEventListener('keydown',e=>{
+ if(uiMode==='observe'||!picked||!['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key))return;
+ if(e.preventDefault)e.preventDefault();
+ const d={ArrowUp:[0,-10],ArrowDown:[0,10],
+  ArrowLeft:[-10,0],ArrowRight:[10,0]}[e.key];
+ moveWorld(d[0],d[1]);
+});
+function setUiMode(mode){
+ if(mode!=='observe'&&mode!=='edit')return;
+ if(mode==='observe')stop();
+ uiMode=mode;pointer=null;lastTap=null;gestureBlocked=false;
+ labRoot.setAttribute('data-mode',mode);
+ by('observeMode').setAttribute('aria-pressed',String(mode==='observe'));
+ by('editMode').setAttribute('aria-pressed',String(mode==='edit'));
+ info(mode==='observe'?'目前是唯讀觀察：輕點物件與五區，不會修改場景或推進時間':
+  '目前是編輯模式：可調整物件、環境事件及模擬時間');
+ render();
+}
+by('observeMode').addEventListener('click',()=>setUiMode('observe'));
+by('editMode').addEventListener('click',()=>setUiMode('edit'));
+function selectView(view){
+ camera=createTerrariumRenderCameraV03e({
+  view,width,height,padding:30});
+ info('已改變畫面投影，場景座標與生態狀態維持不變');
+ render();
+}
+for(let i=0;i<5;i++){
+ by('zonePick'+i).addEventListener('click',()=>{
+  chosenZone=i;picked=null;lastTap=null;
+  info('已選擇 '+names[i]+'，光照與土壤數值來自同一份生態模型');
+  render();
+ });
+}
+by('top').addEventListener('click',()=>{lastTap=null;selectView('top')});
+by('oblique').addEventListener('click',()=>{lastTap=null;selectView('oblique')});
+by('detailNormal').addEventListener('click',()=>{
+ pixelDetail='normal';info('已切換標準像素細節，生態資料不變');render();
+});
+by('detailLow').addEventListener('click',()=>{
+ pixelDetail='low';info('已減少像素紋理數量，生態資料不變');render();
+});
+function advance(minutes){
+ if(uiMode==='observe')return;
+ try{
+  scene=advanceTerrariumSceneGeometryV03d(scene,{minutes});
+  info('已以同一生態分鐘推進 '+minutes+' 分鐘');render();
+ }catch(err){stop();info('時間結算失敗：'+String(err.message));}
+}
+by('step60').addEventListener('click',()=>{stop();advance(60)});
+by('step240').addEventListener('click',()=>{stop();advance(240)});
+by('play').addEventListener('click',()=>{
+ if(uiMode==='observe')return;
+ if(playing){stop();render();return}
+ playing=true;timer=setInterval(()=>advance(60),900);render();
+});
+by('reset').addEventListener('click',()=>{
+ if(uiMode==='observe')return;
+ stop();scene=createTerrariumSceneGeometryV03d(initial());
+ picked={type:'object',id:'stone_01'};chosenZone=3;seq=0;lastTap=null;pointer=null;gestureBlocked=false;
+ info('已還原原始場景、燈具與生態時間');render();
+});
+document.addEventListener('visibilitychange',()=>{
+ if(document.hidden&&playing){stop();render();}
+});
+render();
+</script></body></html>
