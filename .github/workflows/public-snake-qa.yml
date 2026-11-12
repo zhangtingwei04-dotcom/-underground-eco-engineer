@@ -142,3 +142,36 @@ jobs:
           path: qa/snake-motion/.qa-artifacts/v08a/*.png
           retention-days: 3
           if-no-files-found: ignore
+
+  snake-frame-sequence:
+    name: V0.8D real intermediate-frame Chrome motion QA
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: qa/snake-motion
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Chrome
+        id: setup-chrome
+        uses: browser-actions/setup-chrome@v2
+        with:
+          chrome-version: stable
+      - name: Verify frame-by-frame head and canvas continuity in two landscape viewports
+        env:
+          OHM_REQUIRE_CHROME: '1'
+          OHM_CHROME_BIN: ${{ steps.setup-chrome.outputs.chrome-path }}
+          OHM_V08D_SEQUENCE_ONLY: '1'
+          OHM_V08D_CAPTURE_DIR: '.qa-artifacts/v08d'
+        run: node tests/snake-front-glass-v07n-cdp-browser-qa.mjs
+      - name: Keep intermediate engineering frames for visual review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: public-snake-v08d-intermediate-landscape
+          path: qa/snake-motion/.qa-artifacts/v08d/*.png
+          retention-days: 3
+          if-no-files-found: warn

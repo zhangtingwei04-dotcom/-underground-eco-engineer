@@ -864,6 +864,9 @@ function draw(){
  // Machine-readable real-browser QA; no hidden animation truth claim.
  document.body.dataset.qaV07g=qaFailed?'fail':'pass';
  document.body.dataset.qaV07gFrames=String(qaPassed);
+ document.body.dataset.qaV08dHeadX=String(currentPose?.points?.[0]?.x??NaN);
+ document.body.dataset.qaV08dHeadY=String(currentPose?.points?.[0]?.y??NaN);
+ document.body.dataset.qaV08dHeadZ=String(currentPose?.points?.[0]?.z??NaN);
  document.body.dataset.qaV07gTransparent=shown?'true':'false';
  document.body.dataset.qaV07gCamera='front_glass';
  document.body.dataset.qaV08aMode=String(unifiedAlphaMode);
@@ -1438,9 +1441,15 @@ if(new URLSearchParams(location.search).has('qa_v07g')){
  // an actual CANVAS pixel-difference gate; changing the button's CSS is
  // NOT evidence of a visible terrain overlay.
  const wantsTerrain=testParams.has('qa_v07n');
- const qaSteps=handoffMode?175:(
+ const requestedFrame=testParams.has('qa_v08d_frame')?
+  Number(testParams.get('qa_v08d_frame')):null;
+ if(requestedFrame!==null&&(!Number.isInteger(requestedFrame)||
+   requestedFrame<1||requestedFrame>175||
+   !relayMode||!correctedDepartureMode))
+  throw Error('v08d_frame_capture_requires_valid_public_opt_in');
+ const qaSteps=requestedFrame??(handoffMode?175:(
   wallMode&&testParams.has('qa_v07p_hold')?40:180
- );
+ ));
  for(let i=0;i<qaSteps&&!stop;i++)runStep(true);
  playing=false;
  terrainVisible=false;

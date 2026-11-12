@@ -164,6 +164,8 @@ const expression='(()=>{'+
  'const d=document.body?.dataset;if(!d)return null;'+
  'return {'+
  'status:d.qaV07g,frames:Number(d.qaV07gFrames),'+
+ 'headX:Number(d.qaV08dHeadX),headY:Number(d.qaV08dHeadY),'+
+ 'headZ:Number(d.qaV08dHeadZ),'+
  'transparent:d.qaV07gTransparent,camera:d.qaV07gCamera,'+
  'probeMode:d.qaV07pMode,probeRenderable:d.qaV07pRenderable,'+
  'probePhase:d.qaV07pPhase,probePitch:Number(d.qaV07pPitch),'+
@@ -551,7 +553,102 @@ try{
    {name:'short_phone_landscape',w:932,h:480}
   ];
   let done=0;
+  const temporalSeries=process.env.OHM_V08D_SEQUENCE_ONLY==='1';
+  const frameSamples=[40,93,105,120,140,160,175];
+  const acrossViewHeads=new Map();
   for(const view of views){
+   if(temporalSeries){
+    const folder=process.env.OHM_V08D_CAPTURE_DIR?
+      path.resolve(root,process.env.OHM_V08D_CAPTURE_DIR):null;
+    if(folder){
+      assert.ok(folder.startsWith(root+path.sep),
+        'V0.8D capture folder must stay inside checkout');
+      mkdirSync(folder,{recursive:true});
+    }
+    let last=null,changed=0;
+    const trace=[];
+    for(const frame of frameSamples){
+      await cdp.send('Emulation.setDeviceMetricsOverride',{
+        width:view.w,height:view.h,deviceScaleFactor:1,mobile:false
+      });
+      const url=baseUrl+'&qa_v07u=1&qa_v08c=1&qa_v08a=1'+
+        '&qa_v08d_frame='+frame;
+      const nav=await cdp.send('Page.navigate',{url},45000);
+      if(nav.errorText)throw Error('V0.8D Chrome navigation '+nav.errorText);
+      let state=null;
+      for(let attempts=0;attempts<160;attempts++){
+        state=await evalState(cdp);
+        if(state?.status==='fail')
+          throw Error('V0.8D scene failed at frame '+frame+' '+JSON.stringify(state));
+        if(state?.status==='pass'&&state.frames>=frame&&
+          state.ready==='complete'&&state.transparent==='true')break;
+        await sleep(100);
+      }
+      assert.ok(state?.status==='pass'&&state.frames>=frame,
+        view.name+' V0.8D frame='+frame+' incomplete '+JSON.stringify(state));
+      assert.equal(state.correctedMode,'true',
+        'V0.8D must always opt into corrected departure');
+      assert.equal(state.opacityMode,'true',
+        'V0.8D must use identical transparent alpha render mode');
+      const head={x:state.headX,y:state.headY,z:state.headZ};
+      assert.ok(Object.values(head).every(Number.isFinite));
+      if(frame>105){
+        assert.equal(state.opacityOnePass,'true');
+        assert.ok(state.worstFrameBend<.65,
+          view.name+' cumulative source bend exceeded 0.65 rad at '+frame);
+        assert.equal(state.departureY,-.025,
+          'V0.8D must retain original authored departure for validation');
+      }
+      const proof=await cdp.send('Runtime.evaluate',{
+        expression:'(()=>{const c=document.getElementById("stage");'+
+         'if(!c)return null;const a=c.getContext("2d").'+
+         'getImageData(80,185,1280,585).data;'+
+         'let h=2166136261;for(let i=0;i<a.length;i+=4){'+
+         'h=Math.imul(h^a[i],16777619);'+
+         'h=Math.imul(h^a[i+1],16777619);'+
+         'h=Math.imul(h^a[i+2],16777619);}'+
+         'return(h>>>0).toString(16);})()',
+        returnByValue:true
+      },30000);
+      if(proof.exceptionDetails)
+        throw Error('V0.8D real canvas RGB sample failed');
+      const digest=proof.result?.value;
+      assert.ok(typeof digest==='string'&&digest.length>0);
+      if(last&&frame>105){
+        assert.notEqual(digest,last.digest,
+          view.name+' V0.8D real terrarium canvas must change across movement');
+        changed++;
+        if(last.frame>105){
+          const jump=Math.hypot(head.x-last.head.x,
+            head.y-last.head.y,head.z-last.head.z);
+          assert.ok(jump<(frame-last.frame)*.004+.012,
+            view.name+' V0.8D head jump '+jump+' at '+frame);
+        }
+      }
+      const shot=await cdp.send('Page.captureScreenshot',{
+        format:'png',fromSurface:true,captureBeyondViewport:false
+      },60000);
+      const png=Buffer.from(shot.data,'base64');
+      assertPng(png,view);
+      if(folder)writeFileSync(path.join(folder,
+        view.name+'_frame_'+String(frame).padStart(3,'0')+'.png'),png);
+      const prevHead=acrossViewHeads.get(frame);
+      if(prevHead)assert.ok(Math.hypot(
+         head.x-prevHead.x,head.y-prevHead.y,head.z-prevHead.z)<1e-8,
+         'same synthetic 3D head must be viewport independent');
+      else acrossViewHeads.set(frame,head);
+      trace.push({frame,head,digest,bend:state.worstFrameBend,
+        screenshotBytes:png.length});
+      last={frame,head,digest};
+    }
+    assert.equal(trace.length,7);
+    assert.ok(changed>=3,'at least three sampled motion frames must paint different RGB');
+    console.log('PASS V0.8D real Chrome frame series '+
+      view.name+' '+JSON.stringify(trace));
+    done++;
+    continue;
+   }
+
    if(process.env.OHM_V08A_HOLD_ONLY==='1'){
     const legacy=await visit(cdp,baseUrl+
       '&qa_v07p=1&qa_v07p_hold=1&qa_v07z=1',
@@ -752,7 +849,9 @@ try{
    done++;
   }
   assert.equal(done,2);
-  console.log('PASS V0.7N/P/S/T/U/V/W/X/Y/Z + V0.8A: one Chrome session, 36 real landscape PNGs '+
+  if(temporalSeries)console.log('PASS V0.8D: 14 actual Chrome landscape frames; '+
+    'read-only head XYZ, cumulative source bend and canvas RGB continuity');
+  else console.log('PASS V0.7N/P/S/T/U/V/W/X/Y/Z + V0.8A: one Chrome session, 36 real landscape PNGs '+
    '(baseline 6 plus V0.7V/V0.7W/V0.7X/V0.7Y/V0.7Z overlays per viewport), '+
    'real 3D versus camera-only overlap diagnostics without new collision authority or skin');
  }
