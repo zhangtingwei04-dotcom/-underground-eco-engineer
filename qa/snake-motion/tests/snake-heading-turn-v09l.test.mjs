@@ -239,6 +239,60 @@ const autoSummary={
  decisions
 };
 
+
+// Fair A/B: V0.9K goal-graph selector on the identical original 24-joint
+// return state, scene, 120-frame horizon and 480-frame/4-replan budget.
+let oldPolicy=startSnakeReturnAutopilotV09j({
+ ...config,routeSelectionMode:'goal_revisit_v09k'
+});
+for(let i=0;i<510&&oldPolicy.phase==='active_return';i++){
+ const before=oldPolicy;
+ const after=advanceSnakeReturnAutopilotV09j({
+  state:oldPolicy,scene,terrain
+ });
+ assert.equal(after.fullBodyReturnVerified,false);
+ assert.equal(after.skinApplied,false);
+ assert.equal(after.saveModified,false);
+ if(after.phase==='active_return'){
+  assert.equal(after.source.verifiedFrames,
+   before.source.verifiedFrames+1);
+ }else{
+  assert.equal(after.source.verifiedFrames,
+   before.source.verifiedFrames);
+ }
+ oldPolicy=after;
+}
+assert.notEqual(oldPolicy.phase,'active_return');
+assert.equal(oldPolicy.source.verifiedFrames-state.verifiedFrames,
+ oldPolicy.framesCommitted);
+assert.ok(oldPolicy.framesCommitted<=480);
+assert.strictEqual(advanceSnakeReturnAutopilotV09j({
+ state:oldPolicy,scene,terrain
+}),oldPolicy);
+const sameBudgetComparison=Object.freeze({
+ sourceFrameStart:state.verifiedFrames,
+ budgetFrames:480,
+ budgetReplans:4,
+ legacy: Object.freeze({
+  mode:'goal_revisit_v09k',
+  committed:oldPolicy.framesCommitted,
+  terminal:oldPolicy.phase,
+  headHomePx:oldPolicy.body.headToHomePx,
+  tailHomePx:oldPolicy.body.tailToHomePx,
+  completeReturn:false
+ }),
+ headingArcs: Object.freeze({
+  mode:'configuration_turn_v09l',
+  committed:auto.framesCommitted,
+  terminal:auto.phase,
+  headHomePx:auto.body.headToHomePx,
+  tailHomePx:auto.body.tailToHomePx,
+  completeReturn:false
+ })
+});
+assert.equal(JSON.stringify(state),stateBefore);
+assert.equal(JSON.stringify({scene,terrain,wall}),sceneBefore);
+
 const revised=Object.freeze({...scene,revision:scene.revision+1});
 const stale=planSnakeHeadingReturnV09l({
  source:state,scene:revised,terrain,horizonFrames:120
@@ -263,5 +317,6 @@ console.log('PASS V0.9L true 24-joint heading-radius U-turn proposals and V0.9D/
  commitPhase:first.phase,
  staleStatus:stale.status,
  autopilot:autoSummary,
+ sameBudgetComparison,
  fullBodyReturnVerified:false
 }));
