@@ -125,6 +125,41 @@ function candidatePaths(state,scene){
  }
  return F(candidates);
 }
+/**
+ * Strict source-owned custom staging route input. This is used by the
+ * optional V0.9L heading/curvature candidates. The caller may suggest
+ * ONLY two XY staging points, NEVER a pose, source collider, or a new goal.
+ * The same V0.3d scene/body proxy and 24-joint V0.9D/G authority apply.
+ */
+function sourceCheckedCustomPaths(state,scene,stagingCandidates){
+ if(!Array.isArray(stagingCandidates)||
+  stagingCandidates.length<1||stagingCandidates.length>8)
+  throw new RangeError('v09i_invalid_custom_staging_count');
+ const head=snakeFloorToTerrariumV07c(state.pose.points[0]);
+ const ids=new Set();
+ return F(stagingCandidates.map(item=>{
+  if(typeof item?.id!=='string'||
+    !/^[a-z][a-z0-9_-]{0,39}$/.test(item.id)||
+    ids.has(item.id)||
+    !Array.isArray(item.staging)||item.staging.length!==2||
+    item.staging.some(q=>!q||!finite(q.x)||!finite(q.y)||
+      q.x<0||q.x>1000||q.y<0||q.y>400))
+   throw new RangeError('v09i_invalid_custom_staging');
+  ids.add(item.id);
+  const [first,second]=item.staging.map(q=>p(q.x,q.y));
+  const staging=F([head,first,second]);
+  const clear=staging.slice(1).every((stop,i)=>
+   d(staging[i],stop)>10&&
+   boundsAndSceneClear(staging[i],stop,scene,24)&&
+   awayFromNonlocalBody(staging[i],stop,state));
+  return F({id:item.id,stageWaypoints:staging,
+   proposedRoute:F([head,first,second,state.startFloor]),
+   stagingGeometryClear:clear,
+   stagingSceneAndBodyProxiesOnly:true,
+   candidateFrom:'v09l_source_heading_geometry'
+  });
+ }));
+}
 function shadowPreview(source,candidate,scene,terrain,horizonFrames,seconds){
  if(!candidate.stagingGeometryClear)
   return F({...candidate,accepted:false,reason:'staging_geometry_blocked',
@@ -198,7 +233,8 @@ function baseResult(state,candidates,reason){
  });
 }
 export function planSnakeBodyDetourV09i({
- state,scene,terrain,horizonFrames=160,seconds=1/30
+ state,scene,terrain,horizonFrames=160,seconds=1/30,
+ stagingCandidates=null
 }={}){
  isValidState(state,scene,terrain,horizonFrames,seconds);
  // Fail closed if caller's scene or terrain diverges from original V0.9C.
@@ -210,7 +246,8 @@ export function planSnakeBodyDetourV09i({
  const original=inspectSnakeSelfClearanceV09d({pose:state.pose});
  if(!original.candidateClearanceAccepted)
   return baseResult(state,[],'original_body_not_clear');
- const paths=candidatePaths(state,scene);
+ const paths=stagingCandidates===null?candidatePaths(state,scene):
+  sourceCheckedCustomPaths(state,scene,stagingCandidates);
  const results=paths.map(candidate=>shadowPreview(
   state,candidate,scene,terrain,horizonFrames,seconds));
  const accepted=results.filter(v=>v.accepted);
