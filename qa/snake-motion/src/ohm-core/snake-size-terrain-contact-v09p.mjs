@@ -173,7 +173,8 @@ export function solveSnakeSizeTerrainContactV09p({
  });
  const original=growth.points,links=growth.boneLengths,
   radii=growth.radiiWorldUnits;
- let points=original,passes=0,reason=null,maximumXYDrift=0;
+ let points=original,passes=0,reason=null,maximumXYDrift=0,
+  converged=false;
  for(let pass=0;pass<maxPasses;pass++){
   passes++;
   const required=points.map((q,i)=>
@@ -228,15 +229,18 @@ export function solveSnakeSizeTerrainContactV09p({
   maximumXYDrift=Math.max(...candidate.map((q,i)=>
    xyDist(q,original[i])));
   if(maximumXYDrift>maximumJointXYDriftWorld){
-   reason='regrrounding_exceeds_same_pose_xy_drift';break;
+   reason='regrounding_exceeds_same_pose_xy_drift';break;
   }
   const maxZChange=Math.max(...candidate.map((q,i)=>
    Math.abs(q.z-points[i].z)));
   const maxXYChange=Math.max(...candidate.map((q,i)=>
    xyDist(q,points[i])));
   points=F(candidate);
-  if(maxZChange<.0000003&&maxXYChange<.0000003)break;
+  if(maxZChange<.0000003&&maxXYChange<.0000003){
+   converged=true;break;
+  }
  }
+ if(!reason&&!converged)reason='ground_contact_solver_did_not_converge';
  const solved=F({...growth,points,
   floorPoints:F(points.map(q=>F(floor(q))))});
  const checked=checkCandidate(solved,scene,terrain,
@@ -252,7 +256,8 @@ export function solveSnakeSizeTerrainContactV09p({
   stageProgress,lifeStage:growth.lifeStage,
   candidate:solved,sourceLengthWorld:growth.lengthWorldUnits,
   sourceJointCount:24,sourceLinkCount:23,
-  passes,maximumXYDriftWorld:maximumXYDrift,
+  passes,solverConverged:converged,
+  maximumXYDriftWorld:maximumXYDrift,
   unchangedSourceHeadXY:true,
   diagnostics:checked,
   candidateOnly:true,originalSourceUnmodified:true,
