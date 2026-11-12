@@ -40,7 +40,9 @@ function trial({state,scene,terrain,seconds,horizonFrames,sign}){
  let candidate=F({...state,returnTurnSign:sign});
  const startFrame=state.verifiedFrames;
  let steps=0,minimumCapsuleGap=Infinity,reason=null;
+ let initialHead=null;
  let outcome='horizon_preview_clear',lastHead=null;
+ initialHead=snakeFloorToTerrariumV07c(state.pose.points[0]);
  while(steps<horizonFrames){
   const next=advanceSnakeRouteWithTurnSpaceGuardV09g({
    state:candidate,scene,terrain,seconds
@@ -89,6 +91,8 @@ function trial({state,scene,terrain,seconds,horizonFrames,sign}){
   headDistanceToStartPixels:lastHead?
    dist(lastHead,state.startFloor):Infinity,
   minimumSourceCapsuleGap:minimumCapsuleGap,
+  previewEndHeadFloor:lastHead?F({x:lastHead.x,y:lastHead.y}):null,
+  previewHeadDisplacementPixels:lastHead?dist(lastHead,initialHead):0,
   sourceHeadAndBonesUnchangedByPreflight:true,
   meshSurfaceSweepCertified:false,
   fullBodyReturnCertified:false
@@ -101,7 +105,7 @@ function trial({state,scene,terrain,seconds,horizonFrames,sign}){
  * No previewed frame is committed by this function.
  */
 export function preflightSnakeReturnSpaceV09h({
- state,scene,terrain,seconds=1/30,horizonFrames=90
+ state,scene,terrain,seconds=1/30,horizonFrames=160
 }={}){
  valid(state,scene,terrain,horizonFrames,seconds);
  const before=inspectSnakeSelfClearanceV09d({pose:state.pose});
@@ -122,11 +126,24 @@ export function preflightSnakeReturnSpaceV09h({
    Number(b.sign===state.returnTurnSign)-
    Number(a.sign===state.returnTurnSign));
  const winner=approved[0]??null;
+ const eligible=candidates.filter(x=>x.safeForOneCandidateStep);
+ const separated=eligible.length===2&&
+  eligible[0].previewEndHeadFloor&&eligible[1].previewEndHeadFloor&&
+  dist(eligible[0].previewEndHeadFloor,
+   eligible[1].previewEndHeadFloor)>=4;
+ const distinctSteeringProven=Boolean(separated);
  return F({
   version:SNAKE_RETURN_SPACE_PREFLIGHT_V09H_VERSION,
   ok:winner!==null,
   status:winner?'source_horizon_preview_clear':'no_verified_turn_space',
   selectedSign:winner?.sign??null,
+  distinctSteeringProven, 
+  // Merely changing a sign field is not evidence that the source
+  // controller actually selected a different path.
+  comparedHeadSeparationPixels:eligible.length===2&&
+   eligible.every(x=>x.previewEndHeadFloor)?
+   dist(eligible[0].previewEndHeadFloor,
+    eligible[1].previewEndHeadFloor):null,
   candidates,previewHorizonFrames:horizonFrames,
   sourceFrameAtStart:state.verifiedFrames,
   sourceJointsUnchanged:true,sourceHeadColliderUnchanged:true,
@@ -144,7 +161,7 @@ export function preflightSnakeReturnSpaceV09h({
  * If both signs fail: HOLD. No sign or frame is forged.
  */
 export function advanceSnakeReturnWithPreflightV09h({
- state,scene,terrain,seconds=1/30,horizonFrames=90
+ state,scene,terrain,seconds=1/30,horizonFrames=160
 }={}){
  const preview=preflightSnakeReturnSpaceV09h({
   state,scene,terrain,seconds,horizonFrames
