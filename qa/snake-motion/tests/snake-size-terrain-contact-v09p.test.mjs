@@ -70,6 +70,7 @@ for(const stage of [0,1,2,3]){
  assert.equal(result.version,'0.9P');
  assert.equal(result.ok,true,'flat-floor size solver '+stage+
   ' reason='+result.reason);
+ assert.equal(result.solverConverged,true);
  assert.equal(result.sourceJointCount,24);
  assert.equal(result.sourceLinkCount,23);
  assert.equal(result.originalSourceUnmodified,true);
