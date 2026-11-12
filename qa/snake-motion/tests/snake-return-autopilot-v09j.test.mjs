@@ -108,8 +108,11 @@ assert.strictEqual(advanceSnakeReturnAutopilotV09j({
 // accepted tick is one true, unchanged-source V0.9C/V0.9D/G frame.
 let ctrl=initial;
 const trace=[],sourceFrameVisits=new Set([ctrl.source.verifiedFrames]);
+let realCheckpoint1280=null;
 for(let tick=0;tick<1300&&ctrl.phase==='active_return';tick++){
  const before=ctrl;
+ if(before.source.verifiedFrames===1280)
+  realCheckpoint1280=before;
  const next=advanceSnakeReturnAutopilotV09j({
   state:ctrl,scene,terrain
  });
@@ -174,6 +177,16 @@ assert.equal(JSON.stringify({scene,terrain,wall}),sceneHash);
 assert.ok(ctrl.replansPerformed>=1);
 assert.equal(ctrl.detourHistory[0].selectedId,'arc_left',
  'source-first staging must match verified V0.9I trace');
+// Test the strict stall branch from a REAL accepted source pose at 1280.
+assert.ok(realCheckpoint1280);
+const strictStall=advanceSnakeReturnAutopilotV09j({
+ state:F({...realCheckpoint1280,maximumStallWindows:1}),
+ scene,terrain
+});
+assert.equal(strictStall.phase,'resting_no_progress');
+assert.equal(strictStall.source.verifiedFrames,1280);
+assert.equal(strictStall.changedSourcePose,false);
+assert.equal(strictStall.saveModified,false);
 
 // A separate bounded budget must stop without moving extra frames.
 let short=startSnakeReturnAutopilotV09j({
@@ -203,5 +216,6 @@ console.log('PASS V0.9J bounded autonomous source return: real 24-joint continuo
  headOnlyArrivalVerified:ctrl.headOnlyArrivalVerified,
  fullBodyReturnVerified:ctrl.fullBodyReturnVerified,
  decisionTrace:trace,
- limited:short.phase
+ limited:short.phase,
+ strictStall:strictStall.phase
 }));
