@@ -131,7 +131,7 @@ if(bin)try{
     width:viewport.w,height:viewport.h,deviceScaleFactor:1,mobile:false
    });
    const url='http://127.0.0.1:'+server.address().port+'/'+filename+
-    '?frame='+frame;
+    '?unsafe=1&frame='+frame;
    const nav=await cdp.send('Page.navigate',{url},45000);
    if(nav.errorText)throw Error(nav.errorText);
    let result=null;
@@ -142,7 +142,8 @@ if(bin)try{
       'bones:Number(d.qaBones),pixels:Number(d.qaPixels),'+
       'hash:d.qaHash,overlap:Number(d.qaOverlap),'+
       'sourceFrames:Number(d.qaVerifiedFrames),'+
-      'phase:d.qaPhase,ready:document.readyState,'+
+      'phase:d.qaPhase,safeMode:d.qaSafeMode,'+
+      'safeStop:Number(d.qaSafeStop),ready:document.readyState,'+
       'error:document.getElementById("status")?.textContent,'+
       'sourceWindow:window.ohmQaV09d??null'+
       '};})()',returnByValue:true
@@ -157,6 +158,8 @@ if(bin)try{
    }
    assert.equal(result?.status,'pass',viewport.name+' incomplete');
    assert.equal(result.frame,frame);
+   assert.equal(result.safeMode,'false',
+    'the full suspect trace must be opt-in for engineering diagnostics');
    assert.equal(result.bones,24);
    assert.equal(result.sourceFrames,692);
    assert.ok(Number.isInteger(result.pixels)&&result.pixels>100);
@@ -182,9 +185,51 @@ if(bin)try{
   }
   assert.equal(new Set(traces.map(x=>x.hash)).size,frameSamples.length,
    viewport.name+' actual head/body scene must change across source frames');
+  // Default preview intentionally refuses to display any source frame
+  // after the first candidate self-contact rejection. Verify this guard
+  // from the ACTUAL real Chrome drawing, not only a unit-test string.
+  const guardedUrl='http://127.0.0.1:'+server.address().port+
+   '/'+filename+'?frame=692';
+  const safeNavigation=await cdp.send('Page.navigate',{
+   url:guardedUrl
+  },45000);
+  if(safeNavigation.errorText)throw Error(safeNavigation.errorText);
+  let safe=null;
+  for(let n=0;n<200;n++){
+   const v=await cdp.send('Runtime.evaluate',{
+    expression:'(()=>{const d=document.body.dataset;return {'+
+     'status:d.qaV09d,frame:Number(d.qaFrame),'+
+     'overlap:Number(d.qaOverlap),safeMode:d.qaSafeMode,'+
+     'safeStop:Number(d.qaSafeStop),'+
+     'ready:document.readyState};})()',
+    returnByValue:true
+   },45000);
+   if(v.exceptionDetails)throw Error('safe mode browser JS exception');
+   safe=v.result?.value;
+   if(safe?.status==='fail')throw Error('safe mode source failed');
+   if(safe?.status==='pass'&&safe.ready==='complete')break;
+   await sleep(100);
+  }
+  assert.equal(safe?.status,'pass');
+  assert.equal(safe.safeMode,'true');
+  assert.ok(safe.safeStop>60&&safe.safeStop<692,
+   'first suspect overlap must be detected during real return');
+  assert.ok(safe.frame<safe.safeStop,
+   'default preview must stop *before* first suspect contact frame');
+  assert.equal(safe.overlap,0,
+   'unapproved red overlapping pose cannot be the default preview');
+  const safeCapture=await cdp.send('Page.captureScreenshot',{
+   format:'png',fromSurface:true,captureBeyondViewport:false
+  },60000);
+  const safePng=Buffer.from(safeCapture.data,'base64');
+  assert.equal(safePng.readUInt32BE(16),viewport.w);
+  assert.equal(safePng.readUInt32BE(20),viewport.h);
+  writeFileSync(path.join(out,viewport.name+'_safe_guard.png'),safePng);
+  console.log('PASS V0.9D safe preview '+viewport.name+
+   ' '+JSON.stringify(safe));
   console.log('PASS V0.9D real Chrome '+viewport.name+' '+JSON.stringify(traces));
  }
- console.log('PASS V0.9D: 8 source-driven Chrome captures, 2 landscape viewports, 24 bone 692 verified source frames and no skin; self-overlap is diagnostic, not physics certification');
+ console.log('PASS V0.9D: 8 opt-in diagnostic and 2 safe-default Chrome captures, 2 landscape viewports, 24 bone 692 source frames and strict pre-overlap preview stop; self-overlap is diagnostic, not physics certification');
 }finally{
  if(cdp)cdp.ws.close();
  if(browser&&browser.exitCode===null){
