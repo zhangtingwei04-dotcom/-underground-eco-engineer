@@ -16,6 +16,13 @@ Experimental animal motion, transparent render, terrarium appearance, geometry a
 4. **Promote deliberately.** Copy only the reviewed affected modules/tests using a new private integration commit (never change private history or ingest the public repo wholesale). Record the public source SHA and QA evidence in the private project memory. Add private-only adapters for saves/auth/NPCs and run focused integration checks; avoid mass CI loops on the exhausted private monthly budget.
 5. **Rollback or rework publicly.** If a candidate fails private integration, preserve the last stable private implementation, fix the synthetic repro in public, then re-qualify it. Do not automatically promote public `main` on every push.
 
+## Current promotion gate — V0.8F mid-motion source-safe stop/replan (2026-11-12)
+
+- Public V0.8F introduces **explicit safe pause and finite authored-heading replan while already moving**, preserving the SAME 24 source joints, existing velocity/acceleration clock, source collision and real V0.3d revision.
+- Tested first rock appearance at **6 moving timestamps: 10 / 20 / 30 / 40 / 50 / 60 frames**. Earlier entry may keep the corrected direction; later entries select the cautious or narrow direction; no teleport or resetting the 24-joint chain. An in-body rock triggers emergency stop with **no falsely renderable pose**; a stale scene/terrain forbids resume.
+- [V0.8F report](V08F_PUBLIC_DYNAMIC_REPLAN_20261112.md), public Actions [43217943680](https://github.com/zhangtingwei04-dotcom/-underground-eco-engineer/actions/runs/43217943680) already **5/5 jobs passed** before the added no-route negative control.
+- **Still not authorized for private promotion**: the V0.8F change is validated in source-backed Node simulation. Existing Chrome jobs exercise the previous transparent V0.8A and V0.8C/D visual paths; they do **not yet render a live mid-motion rock-insertion V0.8F scene**. No truly autonomous choice generation, no swept mesh self-collision or biological movement proof.
+
 ## Current promotion gate — V0.8E obstacle lookahead (2026-11-12)
 
 - New [V0.8E public experiment](V08E_PUBLIC_OBSTACLE_LOOKAHEAD_20261112.md) preflights ordered authored directions with the source collision/head/ground and 0.65 rad visual gates for 90 frames. It has demonstrably selected an actual alternative around small rocks and correctly stopped on a fully obstructed route.

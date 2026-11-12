@@ -153,6 +153,26 @@ if(paused.ok){
  assert.ok(/source_pose_now_blocked|no_source_safe_candidate/.test(paused.reason));
  assert.equal(paused.resumeState,null);
 }
+// Even when the current 24-joint pose is safe to remain stationary,
+// there may be ZERO candidate movements safe for the 60-frame horizon.
+const noAlternative=pauseAndReplanSnakeV08f({
+ relayState:relay,scene:changed,terrain,candidates:[choices[0]]
+});
+assert.equal(noAlternative.ok,false);
+assert.equal(noAlternative.reason,'no_source_safe_candidate');
+assert.equal(noAlternative.phase,'paused_no_route');
+assert.equal(noAlternative.selected,null);
+assert.equal(noAlternative.resumeState,null);
+assert.ok(noAlternative.pose?.points?.length===24,
+ 'safe stationary pose stays intact when all departure options fail');
+const forbiddenResume=resumeReplannedSnakeV08f({
+ paused:noAlternative,scene:changed,terrain
+});
+assert.equal(forbiddenResume.ok,false);
+assert.equal(forbiddenResume.pose,null);
+assert.equal(forbiddenResume.resumeState,null);
+console.log('PASS V0.8F no-safe-alternative causes stationary hold, not a fake resumed path');
+
 const movedAgain=applyTerrariumSceneGeometryV03dEvent(changed,{
  channel:'object',type:'upsert',object:{
   id:'new_obstacle',kind:'rock_overhang',

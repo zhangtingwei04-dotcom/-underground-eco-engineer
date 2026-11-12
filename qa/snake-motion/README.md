@@ -23,3 +23,7 @@ The opt-in corrected ground-departure pose `?qa_v07g=1&qa_v07u=1&qa_v08c=1&qa_v0
 ## Latest: source-verified obstacle lookahead (V0.8E)
 
 Public experimental `snake-obstacle-lookahead-v08e.mjs` compares hand-authored departure candidates over 90 real source-backed simulation frames. If a tiny solid rock blocks the preferred route, regression tests demonstrate a safe alternative; when all candidates are blocked it selects nothing. A changed scene revision invalidates stale previews. See [V0.8E report](V08E_PUBLIC_OBSTACLE_LOOKAHEAD_20261112.md). **Not full autonomous navigation and not integrated in the private game.**
+
+## Latest: V0.8F mid-motion safe pause and resume (public only)
+
+`src/ohm-core/snake-dynamic-replan-v08f.mjs` preserves the actual 24-joint moving snake and authoritative V0.7S collision if a source V0.3d rock moves. It checks that the body can safely **remain at its current pose**, previews up to eight authored headings from the existing controller state over a fixed future horizon, and exposes a separate explicit resume function that rejects altered terrain revisions. Tests validate six separate interruption frames, a rock directly inside the body, and prevention of stale-state resume. It is not automatic gameplay navigation. [Engineering details](V08F_PUBLIC_DYNAMIC_REPLAN_20261112.md).
