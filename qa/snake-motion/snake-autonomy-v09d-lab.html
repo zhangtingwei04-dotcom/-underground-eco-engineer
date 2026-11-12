@@ -17,6 +17,7 @@ input[type=range]{flex:1;min-width:120px;accent-color:#b7dbc7}
 .info{display:flex;flex-wrap:wrap;gap:9px;font-size:12px}
 .info span{background:#1e3530;border:1px solid #466658;border-radius:6px;padding:5px 8px}
 a{color:#cbf4dc}#status{font-variant-numeric:tabular-nums}footer{padding:12px 0;font-size:11px;color:#9ab9ad}
+@media (max-height:520px) and (orientation:landscape){main{padding:5px 10px}h1{font-size:15px}header small,main>p,footer{display:none}.stage canvas{height:calc(100vh - 115px);width:auto;max-width:100%;margin:auto} .controls{padding:5px 0}.info{gap:5px;font-size:10px}.info span{padding:2px 5px}}
 </style>
 </head>
 <body data-qa-v09d="loading">
@@ -118,7 +119,7 @@ function strokePath(a,b,w,col){
  ctx.strokeStyle=col;ctx.lineWidth=w;ctx.lineCap='round';ctx.stroke();
 }
 function drawSnake(pose,diag){
- const points=pose.points.map(projectSnakeFrontGlassPointV07g);
+ const points=pose.points.map(p=>projectSnakeFrontGlassPointV07g(p));
  for(let i=0;i<points.length-1;i++){
   const radiusScale=snakeSlimFactorV07y((i+.5)/23);
   const w=25*radiusScale;
