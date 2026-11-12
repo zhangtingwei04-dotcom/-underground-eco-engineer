@@ -124,6 +124,8 @@ for(let tick=0;tick<1300&&ctrl.phase==='active_return';tick++){
  assert.equal(next.source.pose.points.length,24);
  assert.ok(next.bestDistanceToHomePx<=
   next.initialDistanceToHomePx+1e-8);
+ assert.ok(next.bestTailDistanceToHomePx<=
+  initial.body.tailToHomePx+1e-8);
  if(next.phase==='active_return'){
   assert.equal(next.source.verifiedFrames,
    before.source.verifiedFrames+1,
@@ -151,6 +153,8 @@ for(let tick=0;tick<1300&&ctrl.phase==='active_return';tick++){
   trace.push({frame:before.source.verifiedFrames,
    replan:chosen.selectedId,approved:chosen.approved,
    home:chosen.headDistancePx,tail:chosen.tailDistancePx,
+   headGain:chosen.homeImprovementSinceLastReplanPx,
+   tailGain:chosen.tailImprovementSinceLastReplanPx,
    stall:chosen.stalledWindows});
  }
  ctrl=next;
@@ -193,6 +197,7 @@ console.log('PASS V0.9J bounded autonomous source return: real 24-joint continuo
  replanCount:ctrl.replansPerformed,
  terminal:ctrl.phase,reason:ctrl.reason,
  bestDistanceToHomePx:ctrl.bestDistanceToHomePx,
+ bestTailDistanceToHomePx:ctrl.bestTailDistanceToHomePx,
  endDistanceToHomePx:ctrl.body.headToHomePx,
  tailDistanceToHomePx:ctrl.body.tailToHomePx,
  headOnlyArrivalVerified:ctrl.headOnlyArrivalVerified,
