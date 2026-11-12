@@ -8,7 +8,7 @@ import {snakeFloorToTerrariumV07c}
  from '../src/ohm-core/snake-terrarium-corridor-v07c.mjs';
 import {
  startSnakeRouteFollowerV09c,advanceSnakeRouteFollowerV09c,
- probeSnakeRouteChangedSceneV09c
+ probeSnakeRouteChangedSceneV09c,resumeSnakeRouteAfterSceneChangeV09c
 } from '../src/ohm-core/snake-route-follower-v09c.mjs';
 const scene=createTerrariumSceneGeometryV03d({
  sceneId:'neutral_long_route',
@@ -129,6 +129,33 @@ assert.equal(paused.paused.gameplayNavigationAuthorized,false);
 console.log('V0.9C changed far scene source probe '+JSON.stringify({
  ok:paused.ok,reason:paused.reason,sourcePoseVerified:paused.sourcePoseVerified
 }));
+assert.equal(paused.ok,true,
+ 'a far-away scene edit should allow V0.8F stationary verification');
+const restart=resumeSnakeRouteAfterSceneChangeV09c({
+ state:initial,paused,updatedScene:farChanged,terrain
+});
+console.log('V0.9C changed source safe restart '+JSON.stringify({
+ phase:restart.phase,reason:restart.reason??null,
+ frameCount:restart.verifiedFrames??null,
+ sceneRevision:restart.sceneRevision??null
+}));
+assert.equal(restart.phase,'moving_outbound');
+assert.equal(restart.pose.points.length,24);
+assert.equal(restart.sceneRevision,farChanged.revision);
+assert.equal(restart.verifiedFrames,initial.verifiedFrames+1);
+assert.equal(restart.fullBodyReturnVerified,false);
+assert.equal(restart.playerObservationRecorded,false);
+const afterChanged=advanceSnakeRouteFollowerV09c({
+ state:restart,scene:farChanged,terrain
+});
+assert.equal(afterChanged.phase,'moving_outbound',
+ 'new revision route may continue only after current source safety');
+assert.equal(afterChanged.verifiedFrames,restart.verifiedFrames+1);
+const obsolete=resumeSnakeRouteAfterSceneChangeV09c({
+ state:initial,paused,updatedScene:scene,terrain
+});
+assert.equal(obsolete.phase,'stopped');
+assert.equal(obsolete.reason,'not_matching_approved_source_pause');
 
 const sameProbe=probeSnakeRouteChangedSceneV09c({
  state:initial,updatedScene:scene,terrain
