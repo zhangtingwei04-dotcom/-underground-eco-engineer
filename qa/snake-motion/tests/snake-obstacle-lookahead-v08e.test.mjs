@@ -132,6 +132,38 @@ for(const [x,y,expected] of [[620,45,'cautious'],[610,45,'narrow']]){
  assert.equal(JSON.stringify({env,safeSource,terrain}),environmentJSON);
 }
 
+// A route decision is never transferable after a V0.3d source revision.
+// Even if a new rock is elsewhere and an old preview was green, the exact
+// previously rested source state has stale geometry provenance and must STOP.
+{
+ const originalScene=createTerrariumSceneGeometryV03d({
+  sceneId:'v08e_scene_revision_guard',
+  objects:[{id:'new_rock',kind:'rock_overhang',
+   x:620,y:45,width:6,depth:6,height:120,transmissionPermille:0}]
+ });
+ const resting=restingWallFor(originalScene);
+ const approved=previewSnakeObstacleDeparturesV08e({
+  wallState:resting,scene:originalScene,terrain,candidates:options
+ });
+ assert.equal(approved.ok,true);
+ const changed=applyTerrariumSceneGeometryV03dEvent(originalScene,{
+  channel:'object',type:'upsert',object:{
+   id:'new_rock',kind:'rock_overhang',
+   x:618,y:45,width:6,depth:6,height:120,transmissionPermille:0
+  }
+ });
+ const stale=previewSnakeObstacleDeparturesV08e({
+  wallState:resting,scene:changed,terrain,candidates:options
+ });
+ assert.equal(stale.ok,false);
+ assert.equal(stale.selected,null);
+ assert.equal(stale.acceptedCandidates,0);
+ assert.ok(stale.trials.every(t=>
+  t.reason==='handoff_source_scene_or_terrain_changed'));
+ assert.equal(stale.gameplayNavigationAuthorized,false);
+ console.log('PASS V0.8E changed-rock revision invalidates every previously prepared departure');
+}
+
 // Dynamic real collision source: one solid rock in the path. The preview
 // must either choose a FULLY checked safe candidate or report STOP;
 // never substitute a 2D projection or skip a later frame.
