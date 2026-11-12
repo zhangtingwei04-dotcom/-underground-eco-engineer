@@ -2,11 +2,17 @@ name: Public OHM Snake and Terrarium QA
 on:
   push:
     paths:
-      - 'qa/snake-motion/**'
+      - 'qa/snake-motion/src/**'
+      - 'qa/snake-motion/tests/**'
+      - 'qa/snake-motion/tools/**'
+      - 'qa/snake-motion/*.html'
       - '.github/workflows/public-snake-qa.yml'
   pull_request:
     paths:
-      - 'qa/snake-motion/**'
+      - 'qa/snake-motion/src/**'
+      - 'qa/snake-motion/tests/**'
+      - 'qa/snake-motion/tools/**'
+      - 'qa/snake-motion/*.html'
       - '.github/workflows/public-snake-qa.yml'
   workflow_dispatch:
 
