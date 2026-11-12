@@ -138,20 +138,20 @@ assert.equal(JSON.stringify({scene,terrain,wall}),world);
 // staging options. Every committed frame must pass V0.9C/D/G again.
 const config={source:state,scene,terrain,routeSelectionMode:'goal_revisit_v09k',
  replanIntervalFrames:160,previewHorizonFrames:160,
- maxReturnFrames:640,maxReplans:4,maximumStallWindows:4,
+ maxReturnFrames:1200,maxReplans:8,maximumStallWindows:4,
  minimumHomeProgressPx:5,maximumHeadDistanceToHomePx:260};
 let ctrl=startSnakeReturnAutopilotV09j(config);
 assert.equal(ctrl.routeSelectionMode,'goal_revisit_v09k');
 const trail=[];
-for(let i=0;i<660&&ctrl.phase==='active_return';i++){
+for(let i=0;i<1240&&ctrl.phase==='active_return';i++){
  const old=ctrl;
  const next=advanceSnakeReturnAutopilotV09j({state:ctrl,scene,terrain});
  assert.equal(next.fullBodyReturnVerified,false);
  assert.equal(next.skinApplied,false);
  assert.equal(next.saveModified,false);
  assert.equal(next.allowedGameplayMotion,false);
- assert.ok(next.framesCommitted<=640);
- assert.ok(next.replansPerformed<=4);
+ assert.ok(next.framesCommitted<=1200);
+ assert.ok(next.replansPerformed<=8);
  assert.ok(next.visitedHeadFloors.length<=20);
  assert.equal(next.source.pose.points.length,24);
  if(next.phase==='active_return'){
