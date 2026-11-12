@@ -84,6 +84,54 @@ assert.equal(clear.collisionAuthorityPreserved,true);
 assert.equal(clear.gameplayNavigationAuthorized,false);
 assert.equal(JSON.stringify({scene,terrain,wall}),sourceJSON);
 
+// True, source-owned alternative: x=620, y=45 is an actual 6x6
+// pixel solid rock between two otherwise clear candidate paths.
+// The corrected option collides, but the cautious option can pass all 90
+// frames WITHOUT bending or changing the authoritative obstacle rules.
+function restingWallFor(env){
+ let session=createSnakeWallProbeV07p({
+  scene:env,terrain,basePose:pose,
+  pivotIndex:6,maxPitch:.36,wall:'rear',speciesId:'generic_snake'
+ });
+ for(let i=0;i<95;i++){
+  const update=advanceSnakeWallProbeV07p(session,{
+   scene:env,terrain,seconds:1/30,maxJointSpeed:.75
+  });
+  assert.equal(update.renderable,true,'V0.8E safe initial wall pose '+i);
+  session=update.nextState;
+ }
+ return session;
+}
+for(const [x,y,expected] of [[620,45,'cautious'],[610,45,'narrow']]){
+ const env=createTerrariumSceneGeometryV03d({
+  sceneId:'v08e_alternate_real_rock_'+x+'_'+y,
+  objects:[{id:'detour_rock',kind:'rock_overhang',
+   x,y,width:6,depth:6,height:120,transmissionPermille:0}]
+ });
+ const safeSource=restingWallFor(env);
+ const environmentJSON=JSON.stringify({env,safeSource,terrain});
+ const trial=previewSnakeObstacleDeparturesV08e({
+  wallState:safeSource,scene:env,terrain,candidates:options
+ });
+ console.log('OHM V0.8E selected detour '+JSON.stringify(trial));
+ assert.equal(trial.ok,true);
+ assert.equal(trial.selected.id,expected,
+  'actual rock position must change the safe choice');
+ assert.ok(trial.trials.some(x=>x.candidateId==='corrected'&&
+  x.accepted===false&&/footprint_blocked/.test(x.reason)),
+  'V0.8C corrected route MUST physically hit the selected rock');
+ const selected=trial.trials[trial.chosenIndex];
+ assert.equal(selected.accepted,true);
+ assert.equal(selected.checkedFrames,90);
+ assert.ok(selected.maximumBendRadians<=.65);
+ assert.equal(trial.collisionAuthorityPreserved,true);
+ assert.equal(trial.gameplayNavigationAuthorized,false);
+ assert.deepEqual(trial,previewSnakeObstacleDeparturesV08e({
+  wallState:safeSource,scene:env,terrain,candidates:options
+ }), 'rock-aware selection must be deterministic');
+ assert.equal(JSON.stringify({env,safeSource,terrain}),environmentJSON);
+}
+
 // Dynamic real collision source: one solid rock in the path. The preview
 // must either choose a FULLY checked safe candidate or report STOP;
 // never substitute a 2D projection or skip a later frame.
