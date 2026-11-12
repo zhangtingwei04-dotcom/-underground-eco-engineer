@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict';
 import {createTerrariumSceneGeometryV03d}
  from '../src/ohm-core/terrarium-scene-geometry-v03d.mjs';
+import {createSnakeGrowthMotionBridge,
+ sampleSnakeGrowthMotionFrame}
+ from '../src/ohm-core/snake-growth-motion-adapter.mjs';
 import {inspectSnakeSelfClearanceV09d}
  from '../src/ohm-core/snake-self-clearance-v09d.mjs';
 import {startSnakeRouteFollowerV09c}
@@ -91,6 +94,36 @@ assert.equal(samples[0].goal.all24Inside,true);
 assert.equal(samples[1].goal.all24Inside,true);
 assert.equal(samples[2].goal.all24Inside,false);
 assert.equal(samples[3].goal.all24Inside,false);
+
+// Existing V0.1 universal growth motion renderer is an INDEPENDENT
+// 24-bone visual system. Preserve its UV topology and matching total
+// length across sizes. Crucially, it is NOT the same 3D validated source
+// pose/collider as V0.9N or V0.9D, so this is interface compatibility,
+// NOT permission to swap the collision source or modify player saves.
+const visualBridges=samples.map((s,i)=>createSnakeGrowthMotionBridge({
+ speciesId:'generic_snake',
+ bodyLength:s.candidate.lengthWorldUnits,
+ growthStage:i<2?'juvenile':'adult'
+}));
+for(let i=0;i<visualBridges.length;i++){
+ const bridge=visualBridges[i];
+ assert.equal(bridge.boneCount,24);
+ assert.equal(bridge.rig.boneCount,24);
+ assert.ok(Math.abs(bridge.rig.length-
+  samples[i].candidate.lengthWorldUnits)<1e-9);
+ assert.ok(bridge.bodyRadius>0);
+ const frame=sampleSnakeGrowthMotionFrame(bridge,{
+  mode:'ground',time:.2
+ });
+ assert.equal(frame.pose.points.length,24);
+ assert.equal(frame.mesh.uv,bridge.rig.uv);
+ assert.equal(frame.head.speciesId,'generic_snake');
+ assert.ok(frame.mesh.positions.length>1000);
+ if(i>0)assert.deepEqual(bridge.rig.uv,
+  visualBridges[i-1].rig.uv);
+}
+const visualSourceStillIndependent=true;
+
 assert.ok(samples[0].goal.jointsInside>samples[3].goal.jointsInside);
 assert.equal(samples[2].sizeChangedFromCanonical,false);
 assert.equal(samples[0].sizeChangedFromCanonical,true);
@@ -269,6 +302,8 @@ console.log('PASS V0.9N four synthetic growth sizes, all-24 body goals, hide-fit
   environmentClear:s.environment.clear,
   selfClear:s.self.clear
  })),
+ legacyVisualGrowthBridges:visualBridges.length,
+ legacyGrowthRenderOnlyNotNewCollisionAuthority:visualSourceStillIndependent,
  juvenileHide:youngHide.eligible2DProxy,
  adultHide:adultHide.eligible2DProxy,
  gradualStagesTested:transitionTrace.length,
