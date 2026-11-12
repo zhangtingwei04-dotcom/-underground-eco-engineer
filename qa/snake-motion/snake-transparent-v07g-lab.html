@@ -1,0 +1,1461 @@
+<!doctype html>
+<html lang="zh-Hant"><head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<meta name="robots" content="noindex,nofollow"/>
+<meta name="theme-color" content="#15221d"/>
+<title>OHM SNAKE V0.7G｜正面玻璃生態箱透明骨架內部驗證</title>
+<style>
+:root{color-scheme:dark;--ink:#eae9d9;--sub:#adbeae;--gold:#e8ca92;--line:#536b59}
+*{box-sizing:border-box}
+body{margin:0;background:#101b18;color:var(--ink);font:14px/1.5 system-ui,-apple-system,"Noto Sans TC","PingFang TC",sans-serif}
+main{max-width:1510px;margin:auto;padding:10px 12px 22px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:2px 0 9px}
+h1{font-size:clamp(18px,2vw,23px);margin:0;font-weight:700;letter-spacing:.04em}
+header p,.note{color:var(--sub);font-size:12px;margin:4px 0}
+.tags{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.tags span{border:1px solid #667961;color:#d0ddc9;border-radius:30px;padding:3px 9px;font-size:11px}
+.stage{border:2px solid #7a7459;border-radius:8px;overflow:hidden;box-shadow:0 14px 35px #0009;background:#182823}
+canvas{display:block;width:100%;height:auto;aspect-ratio:16/9;image-rendering:auto}
+nav{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}
+button{font:inherit;min-height:42px;background:#263e34;color:#f3efdd;border:1px solid #75846c;border-radius:8px;padding:7px 14px;cursor:pointer}
+button:focus-visible{outline:3px solid var(--gold)}
+button[aria-pressed="true"]{color:#1a2b24;background:#dbc48b}
+output{font-variant-numeric:tabular-nums}
+.stats{margin-left:auto;display:flex;gap:12px;flex-wrap:wrap;color:var(--gold);font-size:12px}
+#qaStatus[data-qa="pass"]{color:#b3e1be}
+#qaStatus[data-qa="fail"]{color:#ffb0a4}
+.note{max-width:1350px}
+@media(max-width:700px){header{display:block}main{padding:7px}nav{gap:6px}button{min-height:40px;padding:7px 10px;font-size:12px}.stats{margin-left:0}header p{font-size:11px}}
+/* Low-height landscape is a real PHONE viewport, not a shrunken desktop:
+   fit the entire front glass first; lab controls remain below on scroll. */
+@media(orientation:landscape) and (max-height:520px){
+ main{max-width:none;padding:4px}
+ header{display:none}
+ .stage{width:min(100%,calc(177.778dvh - 18px));margin:0 auto}
+ nav{margin-top:7px;justify-content:center}
+ .stats{margin-left:0}
+ .note{display:none}
+}
+</style></head><body>
+<main>
+<header>
+ <div>
+  <h1>地下生態箱 · 透明骨架動態試驗</h1>
+  <p>V0.7O 內部驗收｜固定玻璃正面視角｜連續半透明工程輪廓，不使用物種外皮</p>
+ </div>
+ <div class="tags"><span>橫式 16:9</span><span>30 FPS 工程預演</span><span>不寫入玩家存檔</span></div>
+</header>
+<div class="stage"><canvas id="stage" width="1440" height="810" aria-label="加寬橫式正面玻璃生態箱，透明蛇骨架貼地行動的內部試驗畫面"></canvas></div>
+<nav aria-label="工程預覽控制">
+ <button id="pause" type="button" aria-pressed="false">暫停／播放</button>
+ <button id="restart" type="button">從頭檢查</button>
+ <button id="overlay" type="button" aria-pressed="false">顯示骨節</button>
+ <button id="terrainDebug" type="button" aria-pressed="false">地形工程線框</button>
+ <button id="wallProbe" type="button" aria-pressed="false">沿壁抬身實驗</button>
+ <button id="wallHandoff" type="button" aria-pressed="false">抬身後貼地交接</button>
+ <button id="headLed" type="button" aria-pressed="false">頭部帶動貼地</button>
+ <button id="curvatureRelay" type="button" aria-pressed="false">彎曲傳遞實驗</button>
+ <button id="ghostContinuity" type="button" aria-pressed="false">透明頭頸／U 彎精修</button>
+ <button id="headSculpt" type="button" aria-pressed="false">3D 頭部／頸部實驗雕塑</button>
+ <button id="neckFollow" type="button" aria-pressed="false">兩節骨頭引導頸部轉向</button>
+ <button id="slenderVolume" type="button" aria-pressed="false">V0.7Y 透明瘦身與收尾</button>
+ <button id="volumeClearance" type="button" aria-pressed="false">V0.7Z 3D 交疊／彎角診斷</button>
+ <button id="opacityUnion" type="button" aria-pressed="false">V0.8A 單次透明疊色比較</button>
+ <div class="stats">
+  <span>影格 <output id="frameCount">0</output></span>
+  <span>場景 <output id="sceneRevision">0</output></span>
+  <span>蛇身 <output id="snakeMode">透明骨架</output></span>
+  <span id="qaStatus" data-qa="pending">等待檢查</span>
+ </div>
+</nav>
+<p class="note">研究工具：植物、土壤紋理、遠景裝飾僅供構圖；碰撞仍由 V0.3d 真場景物件與 V0.7C/B 判定。本畫面非最終遊戲美術、真 3D 物理或物種生態研究成果。</p>
+</main>
+<script type="module">
+import {
+ createTerrariumSceneGeometryV03d
+} from './src/ohm-core/terrarium-scene-geometry-v03d.mjs';
+import {
+ createSnakeTravelRouteV07,createSnakeTravelStateV07,
+ advanceSnakeTravelStateV07
+} from './src/ohm-core/snake-path-history-v07.mjs';
+import {
+ sampleSnakeGroundNeckV07d
+} from './src/ohm-core/snake-terrain-neck-v07d.mjs';
+import {
+ advanceSnakeNeckTemporalV07f
+} from './src/ohm-core/snake-neck-temporal-v07f.mjs';
+import {
+ FRONT_GLASS_CAMERA_V07G,
+ projectTransparentSnakeV07g,
+ createFrontGlassQADiagnosticsV07g
+} from './src/ohm-core/snake-front-glass-projection-v07g.mjs';
+import {
+ buildSnakeFrontGlassEcologyV07h,
+ classifyFrontGlassEcologyDepthV07h
+} from './src/ohm-core/snake-front-glass-ecology-v07h.mjs';
+import {
+ buildSnakeRootedBotanyV07i
+} from './src/ohm-core/snake-rooted-botany-v07i.mjs';
+import {composeSnakeBotanyV07j}
+ from './src/ohm-core/snake-botany-composition-v07j.mjs';
+import {buildMossSoilTransitionsV07k}
+ from './src/ohm-core/snake-moss-soil-transition-v07k.mjs';
+import {createSnakeTerrainMeshV07m}
+ from './src/ohm-core/snake-terrain-triangle-mesh-v07m.mjs';
+import {createSnakeTerrainDebugV07n}
+ from './src/ohm-core/snake-terrain-front-glass-debug-v07n.mjs';
+import {buildContinuousTransparentRigV07o}
+ from './src/ohm-core/snake-continuous-transparent-rig-v07o.mjs';
+import {createSnakeWallProbeV07p,advanceSnakeWallProbeV07p}
+ from './src/ohm-core/snake-wall-probe-v07p.mjs';
+import {prepareSnakeGroundHandoffV07s,advanceSnakeGroundHandoffV07s}
+ from './src/ohm-core/snake-wall-to-ground-handoff-v07s.mjs';
+import {createSnakeGroundTemporalV07t,advanceSnakeGroundTemporalV07t}
+ from './src/ohm-core/snake-ground-temporal-v07t.mjs';
+import {createSnakeCurvatureRelayV07u,advanceSnakeCurvatureRelayV07u}
+ from './src/ohm-core/snake-curvature-relay-v07u.mjs';
+import {buildTransparentBodyVolumeV07q}
+ from './src/ohm-core/snake-transparent-volume-v07q.mjs';
+import {buildTransparentHeadNeckBridgeV07r}
+ from './src/ohm-core/snake-transparent-head-neck-v07r.mjs';
+import {buildSnakeGhostContinuityV07v}
+ from './src/ohm-core/snake-ghost-continuity-v07v.mjs';
+import {buildSnakeHeadNeckSculptV07w}
+ from './src/ohm-core/snake-head-neck-sculpt-v07w.mjs';
+import {buildSnakeNeckFollowV07x}
+ from './src/ohm-core/snake-neck-follow-v07x.mjs';
+import {buildSnakeSlenderVolumeV07y}
+ from './src/ohm-core/snake-slender-volume-v07y.mjs';
+import {inspectSnakeVolumeClearanceV07z}
+ from './src/ohm-core/snake-volume-clearance-v07z.mjs';
+import {buildSnakeOpacityUnionV08a}
+ from './src/ohm-core/snake-opacity-union-v08a.mjs';
+const C=FRONT_GLASS_CAMERA_V07G;
+const canvas=document.getElementById('stage');
+const ctx=canvas.getContext('2d',{alpha:false});
+if(!ctx)throw Error('v07g_canvas_not_supported');
+const by=id=>document.getElementById(id);
+const scene=createTerrariumSceneGeometryV03d({
+ sceneId:'transparent_snake_lab_v07g',
+ baseOptions:{
+  biotaOptions:{zoneConfigs:[
+   {plantKind:'moss',plantCoverUnits:340,litterUnits:100},
+   {plantKind:'fern',plantCoverUnits:530,litterUnits:100},
+   {plantKind:'none',plantCoverUnits:0,litterUnits:100},
+   {plantKind:'moss',plantCoverUnits:470,litterUnits:100},
+   {plantKind:'fern',plantCoverUnits:610,litterUnits:100}
+  ]},
+  fixtures:[{
+   id:'lamp_1',type:'artificial_led',
+   zoneIndex:2,strengthUnits:950,spreadZones:4,
+   heightUnits:0,startMinute:0,durationMinutes:1440
+  }]
+ },
+ objects:[
+  {id:'left_stone_01',kind:'rock_overhang',x:42,y:32,width:134,depth:76,
+    height:230,transmissionPermille:0},
+  {id:'rear_stone_02',kind:'rock_overhang',x:390,y:10,width:108,depth:70,
+    height:190,transmissionPermille:0},
+  {id:'right_stone_03',kind:'rock_overhang',x:836,y:30,width:105,depth:80,
+    height:245,transmissionPermille:0}
+ ]
+});
+// Explicit LAB artistic hypothesis: NOT inferred from V0.3d rock heights,
+ // NOT a player terrain, and NOT connected to V0.7D snake contact.
+const terrainMesh=createSnakeTerrainMeshV07m(scene,{
+ ground:{
+  authority:'explicit_lab_heightfield_unmeasured',
+  xStops:[-4,-2,0,2,4],yStops:[-1.6,-.8,0,.8,1.6],
+  zRows:[
+   [0,0,0,0,0],
+   [0,.015,.035,.018,0],
+   [0,.025,.07,.03,0],
+   [0,.012,.03,.018,0],
+   [0,0,0,0,0]
+  ]
+ },
+ caves:[{
+  id:'rear_stone_shell_lab',objectId:'rear_stone_02',
+  floorCorners:[0,0,0,0],roofCorners:[.36,.36,.40,.40],
+  authority:'explicit_lab_shell_unmeasured'
+ }]
+});
+const terrainDebug=createSnakeTerrainDebugV07n({
+ scene,mesh:terrainMesh
+});
+const ecology=buildSnakeFrontGlassEcologyV07h(scene,{
+ // Material types are explicit LAB author labels, not guessed chemistry.
+ materialByObjectId:{
+  left_stone_01:'slate',rear_stone_02:'basalt',
+  right_stone_03:'limestone'
+ }
+});
+const sourceBotany=buildSnakeRootedBotanyV07i(ecology);
+const botany=composeSnakeBotanyV07j(sourceBotany);
+const botanyById=new Map(botany.patches.map(p=>[p.id,p]));
+const mossSoil=buildMossSoilTransitionsV07k(botany);
+const mossContactById=new Map(mossSoil.transitions.map(p=>[p.id,p]));
+const route=createSnakeTravelRouteV07([
+ {x:-1.15,y:.23},{x:-.35,y:.22},{x:.45,y:.07},
+ {x:1.15,y:-.13},{x:1.85,y:-.16},{x:2.35,y:.10},
+ {x:2.60,y:.32}
+]);
+const body={length:2.5,boneCount:24,bodyRadius:.15};
+const terrain={groundZ:0,rock:null,perch:null};
+// Optional wall-probe LAB fixture, explicitly authored (not an encounter,
+// automatic animal urge, or a claim about the source video's dimensions).
+// Front 7 joints face the REAR transparent glass. The remaining points
+// form a grounded U/J support bend. All joints are a constant .19 apart.
+const wallProbeSource=(()=>{
+ const points=[],ds=.19,z=.135;
+ for(let i=0;i<=6;i++)
+  points.push({x:.65,y:-1.32+i*ds,z});
+ for(const degrees of [90,120,150,180,210,240]){
+  const theta=degrees*Math.PI/180,p=points.at(-1);
+  points.push({x:p.x+Math.cos(theta)*ds,
+   y:p.y+Math.sin(theta)*ds,z});
+ }
+ return Object.freeze({
+  version:'0.7P_source_pose',bodyRadius:.13,
+  segmentLength:ds,points:Object.freeze(
+   points.map(p=>Object.freeze(p))
+  )
+ });
+})();
+const W=1440,H=810;
+const SCALE=(C.right-C.left)/1000;
+const floorX=worldX=>C.left+worldX*SCALE;
+const groundY=worldY=>C.rearFloorY+(C.frontFloorY-C.rearFloorY)*worldY/400;
+const rect=(x,y,w,h,color)=>{ctx.fillStyle=color;ctx.fillRect(x,y,w,h);};
+const line=(a,b,stroke,width=1)=>{
+ ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);
+ ctx.lineWidth=width;ctx.strokeStyle=stroke;ctx.stroke();
+};
+const circ=(x,y,r,color)=>{ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fillStyle=color;ctx.fill()};
+const rounded=(x,y,w,h,r,color)=>{
+ ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fillStyle=color;ctx.fill();
+};
+function fillPolygon(points,color){
+ ctx.beginPath();
+ for(let i=0;i<points.length;i++){
+  const p=points[i];
+  if(i===0)ctx.moveTo(p.x,p.y);
+  else ctx.lineTo(p.x,p.y);
+ }
+ ctx.closePath();ctx.fillStyle=color;ctx.fill();
+}
+function drawMossSoilContact(seam,phase){
+ // Source-attached, NONLIVING shallow soil paint. Not rhizoids or terrain.
+ ctx.save();
+ if(phase==='back'){
+  const gradient=ctx.createLinearGradient(
+   0,seam.root.y-5,0,seam.root.y+5);
+  gradient.addColorStop(0,'rgba(72,80,52,.54)');
+  gradient.addColorStop(.55,'rgba(72,67,48,.80)');
+  gradient.addColorStop(1,'rgba(84,73,51,.85)');
+  fillPolygon(seam.backBlend,gradient);
+ }else{
+  const gradient=ctx.createLinearGradient(
+   0,seam.root.y-4,0,seam.root.y+6);
+  gradient.addColorStop(0,'rgba(74,79,53,.62)');
+  gradient.addColorStop(.42,'rgba(83,78,53,.76)');
+  gradient.addColorStop(1,'rgba(90,76,56,.86)');
+  fillPolygon(seam.frontBlend,gradient);
+  for(const grain of seam.sediment){
+   circ(grain.center.x,grain.center.y,grain.radius,
+    'rgba(159,141,103,.52)');
+  }
+ }
+ ctx.restore();
+}
+function drawRootedBotany(item){
+ const mesh=botanyById.get(item.id);
+ if(!mesh)throw Error('v07j_missing_source_botany_'+item.id);
+ const leafColors=['#769773','#5f8d68','#91a77b','#456f5d','#829b6d'];
+ const paletteIndex=((item.variant+item.tintStep)%leafColors.length+
+  leafColors.length)%leafColors.length;
+ const green=leafColors[paletteIndex];
+ ctx.save();
+ // Exact camera-projected root attachment; the collar is visibly embedded
+ // in a thin soil mark, never placed on an arbitrary screen y.
+ const soil=mesh.soilBase;
+ if(mesh.type==='fern'){
+  // Fern soil collar stays V0.7I; V0.7K alters only existing moss.
+  ctx.fillStyle='#4a4230';
+  ctx.beginPath();ctx.ellipse(soil.center.x,soil.center.y,
+   Math.max(3,soil.width),Math.max(1,soil.height),
+   0,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='rgba(154,139,101,.48)';
+  ctx.lineWidth=1.6;
+  ctx.beginPath();ctx.moveTo(soil.center.x-soil.width,soil.center.y+.8);
+  ctx.quadraticCurveTo(soil.center.x,soil.center.y-soil.height*.6,
+   soil.center.x+soil.width,soil.center.y+.8);ctx.stroke();
+ }else{
+  const contact=mossContactById.get(mesh.id);
+  if(!contact)throw Error('v07k_missing_original_moss_contact_'+mesh.id);
+  drawMossSoilContact(contact,'back');
+ }
+ if(mesh.type==='fern'){
+  for(const frond of mesh.fronds){
+   ctx.lineCap='round';
+   // The stalk remains visible below the paired pinnae.
+   for(const e of [frond.stipe,frond.rachis]){
+    ctx.beginPath();ctx.moveTo(e[0].x,e[0].y);
+    for(let i=1;i<e.length;i++)ctx.lineTo(e[i].x,e[i].y);
+    ctx.strokeStyle='#67846a';ctx.lineWidth=1.25;ctx.stroke();
+   }
+   for(const pinna of frond.pinnae){
+    fillPolygon(pinna.blade,
+      (pinna.index+frond.index)%4===0?'#a4b889':green);
+   }
+  }
+ }else{
+  for(const polygon of mesh.carpet)fillPolygon(polygon,'#3a674b');
+  for(const mound of mesh.cushions){
+   ctx.beginPath();ctx.ellipse(mound.center.x,mound.center.y,
+    mound.width,mound.height,0,Math.PI,Math.PI*2);
+   ctx.closePath();ctx.fillStyle='#477858';ctx.fill();
+  }
+  ctx.lineCap='round';
+  for(const shoot of mesh.shoots){
+   ctx.beginPath();ctx.moveTo(shoot.stem.from.x,shoot.stem.from.y);
+   ctx.lineTo(shoot.stem.to.x,shoot.stem.to.y);
+   ctx.strokeStyle='#578469';ctx.lineWidth=1.3;ctx.stroke();
+   for(const pair of shoot.leaves){
+    for(const branch of [pair.left,pair.right]){
+     ctx.beginPath();ctx.moveTo(branch.from.x,branch.from.y);
+     ctx.lineTo(branch.to.x,branch.to.y);
+     ctx.lineWidth=2.1;ctx.strokeStyle=green;ctx.stroke();
+    }
+   }
+  }
+  drawMossSoilContact(mossContactById.get(mesh.id),'front');
+ }
+ ctx.restore();
+}
+function boulder(o,index){
+ const cx=o.anchor.x,cy=o.anchor.y;
+ const w=o.widthPx,h=28+o.artHeightPx;
+ const palettes={
+  slate:['#a3a5a2','#677879','#374d4d'],
+  basalt:['#656e66','#454d47','#27372f'],
+  limestone:['#bdab88','#91846c','#5e5c4c'],
+  quartz:['#e5d3b2','#bcae98','#747b79'],
+  unspecified_rock:['#aaa99a','#727a70','#405347']
+ };
+ const color=palettes[o.material]||palettes.unspecified_rock;
+ ctx.save();
+ ctx.beginPath();
+ ctx.moveTo(cx-w*.52,cy+8);
+ ctx.lineTo(cx-w*.46,cy-h*.52);
+ ctx.lineTo(cx-w*.18,cy-h*.96);
+ ctx.lineTo(cx+w*.20,cy-h*.9);
+ ctx.lineTo(cx+w*.52,cy-h*.45);
+ ctx.lineTo(cx+w*.58,cy+9);
+ ctx.closePath();
+ const grad=ctx.createLinearGradient(cx,cy-h,cx,cy+12);
+ grad.addColorStop(0,color[0]);
+ grad.addColorStop(.4,color[1]);
+ grad.addColorStop(1,color[2]);
+ ctx.fillStyle=grad;ctx.fill();
+ ctx.strokeStyle='#2e4239';ctx.lineWidth=3;ctx.stroke();
+ // Material-specific READ-ONLY surface pattern from V0.3q.
+ const p=o.pattern;
+ if(o.patternName==='fine_speckles'){
+  for(let j=0;j<30+p.grainDensity*7;j++){
+   const xx=cx+w*(.37*Math.sin(j*12.3+p.variant));
+   const yy=cy-h*(.26+.52*((j*37)%29)/29);
+   circ(xx,yy,1+(j%3)*.4,j%3?color[0]:color[2]);
+  }
+ }else if(o.patternName==='thin_layers'||o.patternName==='soft_layers'){
+  const count=o.patternName==='thin_layers'?5:3;
+  for(let j=0;j<count;j++){
+   const yy=cy-h*(.24+j*.14);
+   line({x:cx-w*.30,y:yy+3*Math.sin(j+p.variant)},
+     {x:cx+w*.33,y:yy+p.fractureOffset*12},
+     o.patternName==='thin_layers'?'#c5c9bc':'#d8c6a3',1.2);
+  }
+ }else{
+  for(let j=0;j<5;j++){
+   const xx=cx-w*.35+j*w*.18;
+   line({x:xx,y:cy-h*.72+j*3},
+     {x:xx+w*.12,y:cy-h*.35+j*2},color[0],1.3);
+  }
+ }
+ ctx.restore();
+}
+function environment(){
+ // The enclosure is viewed THROUGH ITS FRONT GLASS, not from above.
+ const wall=ctx.createLinearGradient(0,0,0,810);
+ wall.addColorStop(0,'#2d2420');wall.addColorStop(.55,'#493725');
+ wall.addColorStop(1,'#1b211c');
+ rect(0,0,W,H,wall);
+ rounded(34,94,1372,651,20,'#5c4633');
+ rounded(46,114,1348,622,10,'#c09d62');
+ rounded(58,127,1324,582,4,'#152c28');
+ const back=ctx.createLinearGradient(0,126,0,712);
+ back.addColorStop(0,'#182f2a');
+ back.addColorStop(.55,'#2b4638');
+ back.addColorStop(1,'#665940');
+ rect(60,128,1320,574,back);
+ // Cavern backdrop is art only. All living plants are added separately
+ // from V0.3d/V0.3e/V0.3q authoritative cover + appearance data.
+ ctx.save();ctx.beginPath();ctx.rect(60,128,1320,574);ctx.clip();
+ for(let i=0;i<6;i++){
+  const x=83+i*250;
+  ctx.beginPath();
+  ctx.moveTo(x,496);
+  ctx.bezierCurveTo(x+30,385-(i%3)*20,x+125,386,x+213,496);
+  ctx.closePath();ctx.fillStyle='rgba(20,47,40,.34)';ctx.fill();
+ }
+ const light=ctx.createRadialGradient(510,174,12,510,230,380);
+ light.addColorStop(0,'rgba(255,208,135,.32)');
+ light.addColorStop(.45,'rgba(235,177,103,.09)');
+ light.addColorStop(1,'rgba(0,0,0,0)');
+ rect(58,127,1324,577,light);
+ // Lamp in the canopy, not a simulated source of UV or heat.
+ rounded(450,130,115,19,6,'#3a3930');
+ rounded(478,148,58,16,8,'#d8b788');
+ // No ornamental fake fern/moss clones are inserted here.
+ // Floor front edge with substrate depth but no top-down terrarium map.
+ const soil=ctx.createLinearGradient(0,477,0,703);
+ soil.addColorStop(0,'#514c36');
+ soil.addColorStop(.28,'#665940');
+ soil.addColorStop(.74,'#5c4938');
+ soil.addColorStop(1,'#322b29');
+ ctx.beginPath();ctx.moveTo(62,493);ctx.lineTo(1378,493);
+ ctx.lineTo(1378,706);ctx.lineTo(62,706);ctx.closePath();
+ ctx.fillStyle=soil;ctx.fill();
+ for(let i=0;i<330;i++){
+  const x=67+(i*73)%1306;
+  const y=505+(i*39)%197;
+  const s=1.1+(i%4)*.48;
+  rect(x,y,s+1,1+(i%3),i%5?'#93806a':'#3b3b33');
+ }
+ // The flora and stone layers are drawn by draw() after the floor.
+ ctx.restore();
+}
+function drawTerrainDebugOverlay(){
+ // V0.7N is *only* the author's opt-in wireframe, never a walkable cave.
+ ctx.save();ctx.beginPath();ctx.rect(64,128,1310,569);ctx.clip();
+ const trace=(face,color,dashed=false)=>{
+  ctx.beginPath();
+  face.points.forEach((p,i)=>{
+   if(i===0)ctx.moveTo(p.x,p.y);else ctx.lineTo(p.x,p.y);
+  });
+  ctx.closePath();ctx.lineWidth=1.35;ctx.strokeStyle=color;
+  ctx.setLineDash(dashed?[6,4]:[]);ctx.stroke();
+ };
+ for(const face of terrainDebug.groundTriangles)
+  trace(face,'rgba(115,218,185,.56)');
+ for(const cave of terrainDebug.caves){
+  for(const face of cave.floorTriangles)
+   trace(face,'rgba(243,190,111,.72)',true);
+  for(const face of cave.roofTriangles)
+   trace(face,'rgba(225,147,181,.86)',true);
+  ctx.setLineDash([4,6]);
+  for(let i=0;i<4;i++)line(cave.floorCorners[i],cave.roofCorners[i],
+   'rgba(245,173,135,.48)',1.1);
+ }
+ ctx.setLineDash([]);
+ ctx.restore();
+}
+function drawGlass(){
+ // Transparent pane sits above the snake and foreground patches.
+ rect(58,125,6,579,'rgba(210,237,231,.13)');
+ rect(1373,125,6,579,'rgba(210,237,231,.13)');
+ line({x:72,y:159},{x:350,y:159},'rgba(219,246,235,.15)',4);
+ line({x:1290,y:173},{x:1364,y:173},'rgba(234,249,235,.19)',4);
+ rect(58,699,1324,12,'#755637');
+ rect(58,713,1324,17,'#2f3028');
+ rounded(28,728,1383,32,5,'#654832');
+ rounded(62,744,1321,16,4,'#a38659');
+}
+function drawEcologyItem(item,index){
+ if(item.plantKind){
+  // V0.7I rooted fern/moss mesh is derived from this exact V0.7H patch.
+  drawRootedBotany(item);
+ }else{
+  boulder(item,index);
+ }
+}
+function drawEcologyItems(items){
+ ctx.save();ctx.beginPath();ctx.rect(64,176,1310,523);ctx.clip();
+ items.forEach(drawEcologyItem);
+ ctx.restore();
+}
+let contourFrame=null,volumeFrame=null,headNeckFrame=null,ghostFrame=null,sculptFrame=null,neckFollowFrame=null,previousNeckFollow=null,previousNeckFrameNum=-1,slenderFrame=null,previousSlender=null,previousSlenderFrameNum=-1,clearanceFrame=null,opacityFrame=null;
+function drawContinuousTransparentRig(frame,showNodes){
+ // Reuses exact V0.7G joints / display radii. V0.7C/D/F source physics
+ // and V0.7N terrain geometry remain read-only and separate.
+ const tube=buildContinuousTransparentRigV07o(frame);
+ const shell=buildTransparentBodyVolumeV07q({pose:currentPose});
+ const neck=buildTransparentHeadNeckBridgeV07r({
+  pose:currentPose,head:currentHead,volume:shell
+ });
+ // V0.7V is opt-in and FAILS on a head/body ratio incompatible with the
+ // authoritative head collider. It never downscales only the render head.
+ const ghost=ghostMode?buildSnakeGhostContinuityV07v({
+  pose:currentPose,head:currentHead,volume:shell,bridge:neck
+ }):null;
+ const sculpt=sculptMode?buildSnakeHeadNeckSculptV07w({
+  pose:currentPose,head:currentHead,volume:shell,ghost,
+  scene,terrain
+ }):null;
+ if(sculptMode&&!sculpt?.ok)throw new RangeError(
+  'V0.7W no safe candidate head: '+sculpt?.reason);
+ // Optional X: same 3D head candidate, first + second source bone tangents
+ // guide a bounded, rotated neck collar. No default animal skin or IK claim.
+ // Only a REAL adjacent visible frame can be tested halfway in time.
+ const priorNeck=neckFollowMode&&
+  previousNeckFrameNum===frameNum-1&&
+  previousNeckFollow?.sourceJointCount===currentPose.points.length?
+  previousNeckFollow:null;
+ const followed=neckFollowMode?buildSnakeNeckFollowV07x({
+  pose:currentPose,head:currentHead,volume:shell,sculpt,
+  scene,terrain,previous:priorNeck,seconds:1/30
+ }):null;
+ if(neckFollowMode&&!followed?.ok){
+  // Candidate is NEVER a skin/body substitute when it fails terrain,
+  // source frame continuity, angular limits or original mesh safety.
+  // Clear the previous visible snake and stop rather than painting a
+  // stale/silent fallback or retrying indefinitely on animation ticks.
+  qaFailed++;stop=true;shown=null;currentPose=null;currentHead=null;
+  neckFollowFrame=null;previousNeckFollow=null;
+  by('qaStatus').dataset.qa='fail';
+  by('qaStatus').textContent='V0.7X 候選安全拒絕：'+followed?.reason;
+  document.body.dataset.qaV07g='fail';
+  document.body.dataset.qaV07xNeckFollow='false';
+  return;
+ }
+ if(neckFollowMode){
+  previousNeckFollow=followed;previousNeckFrameNum=frameNum;
+ }
+ // V0.7Y opt-in slims the SAME already-validated 3D shell source.
+ // It must connect to X's first-bone socket and share its actual rendered
+ // XYZ with the body/collar collision candidate, never just shrink pixels.
+ const previousSlim=slenderMode&&
+  previousSlenderFrameNum===frameNum-1&&
+  previousSlender?.sourceJointCount===currentPose.points.length?
+  previousSlender:null;
+ const slender=slenderMode?buildSnakeSlenderVolumeV07y({
+  pose:currentPose,volume:shell,neckFollow:followed,
+  scene,terrain,previous:previousSlim,seconds:1/30
+ }):null;
+ if(slenderMode&&!slender?.ok){
+  qaFailed++;stop=true;shown=null;currentPose=null;currentHead=null;
+  slenderFrame=null;previousSlender=null;
+  by('qaStatus').dataset.qa='fail';
+  by('qaStatus').textContent='V0.7Y 瘦身候選安全拒絕：'+slender?.reason;
+  document.body.dataset.qaV07g='fail';
+  document.body.dataset.qaV07ySlender='false';
+  return;
+ }
+ if(slenderMode){
+  previousSlender=slender;previousSlenderFrameNum=frameNum;
+ }
+ // Z is an opt-in ART ONLY geometry diagnostic. A translucent 2D
+ // overdraw is not proof of a 3D collision; the opposite also holds.
+ const clearance=clearanceMode?inspectSnakeVolumeClearanceV07z({
+  pose:currentPose,slender
+ }):null;
+ if(clearanceMode&&(!clearance?.ok||!clearance.qualityAccepted)){
+  qaFailed++;stop=true;shown=null;currentPose=null;currentHead=null;
+  clearanceFrame=clearance;
+  by('qaStatus').dataset.qa='fail';
+  by('qaStatus').textContent='V0.7Z 頸身彎曲候選需複查：'+
+   (clearance?.reason??'非相鄰段／截面／彎角警示');
+  document.body.dataset.qaV07g='fail';
+  document.body.dataset.qaV07zQuality='false';
+  return;
+ }
+ contourFrame=tube;
+ volumeFrame=shell;
+ headNeckFrame=neck;
+ ghostFrame=ghost;
+ sculptFrame=sculpt;
+ neckFollowFrame=followed;
+ slenderFrame=slender;
+ clearanceFrame=clearance;
+ ctx.save();
+ ctx.lineJoin='round';ctx.lineCap='round';
+ // One continuous translucent volume: no individual glowing cylinder
+ // segment or circular rim drawn around EVERY joint.
+ const drawClosed=outline=>{
+  ctx.beginPath();
+  outline.forEach((p,i)=>{
+   if(i===0)ctx.moveTo(p.x,p.y);else ctx.lineTo(p.x,p.y);
+  });
+  ctx.closePath();ctx.fill();
+ };
+ // Trim the overlapping first source-body ring ONLY in 2D painting.
+ // The actual 3D source skeleton/volume and head collider remain intact.
+ const join=neck.bodyJoinRingIndex;
+ const visibleBody=slender?slender.bodyProjection:
+  ghost?ghost.bodyProjection:shell;
+ const visibleCollar=slender?slender.collarProjection:
+  followed?followed.collarProjection:
+  sculpt?sculpt.collarProjection:
+  ghost?ghost.collarProjection:neck.collarProjection;
+ const visibleHead=sculpt?sculpt.headProjection:
+  ghost?ghost.headProjection:neck.headProjection;
+ const bodyA=visibleBody.outerA.slice(join);
+ const bodyB=visibleBody.outerB.slice(join);
+ const bodyOutline=[...bodyA,...bodyB.slice().reverse()];
+ // Projected 3D elliptical volume, still an UNCOATED ghost technical rig.
+ // The surface shade is gentle to avoid segmented beads / an invented skin.
+ const fill=ctx.createLinearGradient(0,490,0,690);
+ fill.addColorStop(0,'rgba(106,196,176,.25)');
+ fill.addColorStop(.5,'rgba(81,164,152,.25)');
+ fill.addColorStop(1,'rgba(44,113,105,.34)');
+ if(unifiedAlphaMode){
+  // V0.8A: same 3D source and rings, a single positive-winding union.
+  // Draw one translucent fill instead of 3 overlapping alpha layers.
+  opacityFrame=buildSnakeOpacityUnionV08a({
+   slender,headProjection:visibleHead,
+   bodyJoinRingIndex:join,clearance
+  });
+  ctx.beginPath();
+  for(const region of opacityFrame.paths){
+   for(let i=0;i<region.points.length;i++){
+    const p=region.points[i];
+    if(i===0)ctx.moveTo(p.x,p.y);else ctx.lineTo(p.x,p.y);
+   }
+   ctx.closePath();
+  }
+  ctx.fillStyle=fill;
+  ctx.fill('nonzero');
+ }else{
+  opacityFrame=null;
+  ctx.fillStyle=fill;
+  drawClosed(bodyOutline);
+  // Preserve the old three alpha fills for a real A/B comparison.
+  ctx.fillStyle='rgba(90,177,157,.29)';
+  drawClosed(visibleCollar.outline);
+  ctx.fillStyle='rgba(108,191,166,.33)';
+  drawClosed(visibleHead.outline);
+ }
+ const edge=(points,color,width)=>{
+  ctx.beginPath();
+  for(let i=0;i<points.length;i++){
+   const p=points[i];
+   if(i===0)ctx.moveTo(p.x,p.y);else ctx.lineTo(p.x,p.y);
+  }
+  ctx.lineWidth=width;ctx.strokeStyle=color;ctx.stroke();
+ };
+ edge(bodyA,'rgba(144,220,201,.43)',.95);
+ edge(bodyB,'rgba(74,163,151,.38)',.95);
+ edge(visibleCollar.outerA,'rgba(144,217,199,.38)',.82);
+ edge(visibleCollar.outerB,'rgba(82,164,155,.31)',.82);
+ edge(visibleHead.outerA,'rgba(173,228,203,.47)',.93);
+ edge(visibleHead.outerB,'rgba(110,182,165,.42)',.93);
+ // Sparse continuous ridge from 3D ring orientation, NOT a chain of
+ // circles. No drawn ring cross sections in the normal user preview.
+ const ridge=visibleBody.projectedRings.map(
+  ring=>ring[shell.radialSegments/4]);
+ edge(ridge,'rgba(210,245,227,.15)',.65);
+ edge(tube.axis,'rgba(173,233,222,.11)',.65);
+ if(showNodes){
+  for(let i=0;i<frame.spine.length;i++){
+   const p=frame.spine[i];
+   circ(p.x,p.y,i===0?2.9:1.65,
+    i===0?'rgba(249,211,158,.95)':'rgba(174,231,222,.72)');
+  }
+ }
+ // Original full 3D head collision mesh is still used by the solver.
+ // Display is a separate explicitly labeled proxy, not the collision mesh.
+ // Draw sparse original cage ONLY when engineering markers are requested.
+ if(showNodes)for(let i=0;i<frame.headRibs.length;i+=6){
+  const rib=frame.headRibs[i];
+  line(rib.from,rib.to,'rgba(218,222,185,.18)',.65);
+ }
+ ctx.restore();
+}
+let state,neckState,lastGroundYaw,shown,currentPose,currentHead,frameNum,qaPassed,qaFailed,playing=true,nodes=false,terrainVisible=false,wallMode=false,wallSession=null,handoffMode=false,handoffSession=null,handoffFrames=0,headLedMode=false,headLedSession=null,relayMode=false,relaySession=null,lastRelayFrame=null,ghostMode=false,sculptMode=false,neckFollowMode=false,slenderMode=false,clearanceMode=false,unifiedAlphaMode=false,stop=false,acc=0;
+function reset(){
+ if(!slenderMode||!clearanceMode)unifiedAlphaMode=false;
+ by('opacityUnion').setAttribute('aria-pressed',String(unifiedAlphaMode));
+ state=createSnakeTravelStateV07(route,{speed:.24,distance:0});
+ neckState=null;lastGroundYaw=null;shown=null;currentPose=null;currentHead=null;frameNum=0;
+ qaPassed=0;qaFailed=0;stop=false;acc=0;playing=true;
+ handoffSession=null;handoffFrames=0;headLedSession=null;relaySession=null;lastRelayFrame=null;
+ previousNeckFollow=null;previousNeckFrameNum=-1;neckFollowFrame=null;
+ previousSlender=null;previousSlenderFrameNum=-1;slenderFrame=null;
+ clearanceFrame=null;opacityFrame=null;
+ wallSession=wallMode?createSnakeWallProbeV07p({
+  basePose:wallProbeSource,scene,terrain,
+  wall:'rear',pivotIndex:6,maxPitch:.36,
+  speciesId:'generic_snake'
+ }):null;
+ by('pause').setAttribute('aria-pressed','false');
+ runStep(false);draw();
+}
+function runStep(advance=true){
+ if(stop)return;
+ if(wallMode){
+  // Only after COMPLETED V0.7P rest can the same-length 13→24
+  // representation change occur. Never route to the unrelated V0.7A
+  // 2.5-unit snake; that would teleport/grow the animal.
+  if(handoffMode&&!handoffSession&&wallSession?.phase==='rest'&&
+     wallSession.seconds>=3.1-1e-8){
+   const ready=prepareSnakeGroundHandoffV07s({
+    wallState:wallSession,scene,terrain,
+    targetJointCount:24,departure:{x:.1,y:.025},
+    speciesId:'generic_snake'
+   });
+   if(!ready.ok){
+    qaFailed++;shown=null;currentPose=null;currentHead=null;
+    stop=true;by('qaStatus').dataset.qa='fail';return;
+   }
+   handoffSession=ready.nextState;
+   if(headLedMode){
+    headLedSession=createSnakeGroundTemporalV07t({
+     handoff:ready,rampSeconds:.75,accelerationLimit:.85
+    });
+    if(relayMode)relaySession=createSnakeCurvatureRelayV07u({
+     temporalState:headLedSession,turnRadians:.24
+    });
+   }
+  }
+  if(handoffSession){
+   const step=relayMode?advanceSnakeCurvatureRelayV07u(
+    relaySession,{scene,terrain,seconds:advance?1/30:0}
+   ):headLedMode?advanceSnakeGroundTemporalV07t(
+    headLedSession,{scene,terrain,seconds:advance?1/30:0}
+   ):advanceSnakeGroundHandoffV07s(handoffSession,{
+    scene,terrain,seconds:advance?1/30:0,maxJointSpeed:.35
+   });
+   if(!step.ok){
+    qaFailed++;shown=null;currentPose=null;currentHead=null;
+    stop=true;by('qaStatus').dataset.qa='fail';return;
+   }
+   const projected=projectTransparentSnakeV07g({
+    pose:step.pose,head:step.head,scene
+   });
+   const qa=createFrontGlassQADiagnosticsV07g({
+    frame:projected,previous:null,maximumScreenJump:28
+   });
+   if(!qa.ok){
+    qaFailed++;shown=null;currentPose=null;currentHead=null;
+    stop=true;by('qaStatus').dataset.qa='fail';return;
+   }
+   handoffSession=relayMode?step.nextState.temporalState.v07sState:
+    headLedMode?step.nextState.v07sState:step.nextState;
+   if(headLedMode)headLedSession=relayMode?
+    step.nextState.temporalState:step.nextState;
+   if(relayMode){relaySession=step.nextState;lastRelayFrame=step;}
+   handoffFrames++;
+   shown=projected;currentPose=step.pose;currentHead=step.head;
+   qaPassed++;frameNum++;return;
+  }
+  // Every frame is a NEW validated candidate, not a skinned fallback.
+  // On collision, old pose is erased and the display stops.
+  const p=advanceSnakeWallProbeV07p(wallSession,{
+   scene,terrain,seconds:advance?1/30:0,maxJointSpeed:.75
+  });
+  if(!p.renderable){
+   qaFailed++;shown=null;currentPose=null;
+   stop=true;by('qaStatus').dataset.qa='fail';return;
+  }
+  const candidate=projectTransparentSnakeV07g({
+   pose:p.pose,head:p.head,scene
+  });
+  const qa=createFrontGlassQADiagnosticsV07g({
+   frame:candidate,previous:shown,maximumScreenJump:28
+  });
+  if(!qa.ok){
+   qaFailed++;shown=null;currentPose=null;
+   stop=true;by('qaStatus').dataset.qa='fail';return;
+  }
+  wallSession=p.nextState;
+  shown=candidate;currentPose=p.pose;currentHead=p.head;
+  qaPassed++;frameNum++;
+  return;
+ }
+ const paused=frameNum>=113&&frameNum<134;
+ const seconds=1/30;
+ if(advance&&state.distance<route.length-.002){
+  state=advanceSnakeTravelStateV07(state,{
+   seconds,moving:!paused
+  });
+ }
+ const ground=sampleSnakeGroundNeckV07d({
+  state,scene,body,terrain,speciesId:'hognose_snake',
+  previousYaw:lastGroundYaw,seconds
+ });
+ if(!ground.ok){qaFailed++;shown=null;stop=true;by('qaStatus').dataset.qa='fail';return}
+ lastGroundYaw=ground.neck.yaw;
+ const temporal=advanceSnakeNeckTemporalV07f({
+  groundFrame:ground,scene,terrain,previousState:neckState,
+  seconds,speciesId:'hognose_snake'
+ });
+ if(!temporal.renderable){
+  qaFailed++;shown=null;stop=true;
+  by('qaStatus').dataset.qa='fail';return;
+ }
+ const projected=projectTransparentSnakeV07g({
+  pose:temporal.pose,head:temporal.head,scene
+ });
+ const qa=createFrontGlassQADiagnosticsV07g({
+  frame:projected,previous:shown,
+  maximumScreenJump:28
+ });
+ if(!qa.ok){qaFailed++;shown=null;stop=true;
+  by('qaStatus').dataset.qa='fail';return;
+ }
+ qaPassed++;shown=projected;currentPose=temporal.pose;currentHead=temporal.head;
+ neckState=temporal.nextState;frameNum++;
+}
+function draw(){
+ environment();
+ if(shown&&currentPose){
+  const layers=classifyFrontGlassEcologyDepthV07h(ecology,currentPose);
+  drawEcologyItems([...layers.behind,...layers.unresolved]);
+  drawContinuousTransparentRig(shown,nodes);
+  drawEcologyItems(layers.front);
+ }else{
+  drawEcologyItems([...ecology.stones,...ecology.flora]);
+ }
+ if(terrainVisible)drawTerrainDebugOverlay();
+ drawGlass();
+ // Tiny technical HUD is OUTSIDE the scene art, not a user-facing game UI.
+ ctx.font='600 14px system-ui';
+ ctx.fillStyle='rgba(235,236,210,.89)';
+ ctx.fillText(unifiedAlphaMode?
+  'PROJECT OHM • V0.8A • ONE-PASS TRANSPARENT UNION / NO SKIN':
+  clearanceMode?
+  'PROJECT OHM • V0.7Z • REAL 3D VS FRONT GLASS PROXIES / NO SKIN':
+  slenderMode?'PROJECT OHM • V0.7Y • SLIM 3D TRUNK + NECK + TAIL / NO SKIN':
+  neckFollowMode?'PROJECT OHM • V0.7X • SOURCE 2-BONE NECK CURVATURE / NO SKIN':
+  sculptMode?'PROJECT OHM • V0.7W • SHARED 3D HEAD MESH / CANDIDATE SAFETY':
+  ghostMode?'PROJECT OHM • V0.7V • COLLIDER HEAD / BOUNDED GHOST BENDS':
+  'PROJECT OHM • V0.7U • SHALLOW BEND RELAY / NO SKIN',78,69);
+ ctx.font='12px system-ui';
+ ctx.fillStyle='#afc1b2';
+ ctx.fillText('FRONT GLASS / WIDE ENCLOSURE / NO SKIN',78,87);
+ if(clearanceMode&&clearanceFrame?.ok){
+  ctx.fillStyle='#d1e3cd';ctx.font='12px system-ui';
+  ctx.fillText(
+   '3D 候選最小間隙 '+clearanceFrame.minimum3DClearance.toFixed(3)+
+   '｜影像重疊≠立體交疊 '+clearanceFrame.projectionOnlyPairs.length+
+   '｜急彎 '+clearanceFrame.tightBends.length+
+   '｜截面翻轉 '+clearanceFrame.ringDirectionReversals.length,
+   78,105
+  );
+ }
+ by('frameCount').textContent=String(frameNum);
+ by('sceneRevision').textContent=String(scene.revision);
+ by('snakeMode').textContent=shown?'透明骨架':'不安全／未輸出';
+ by('qaStatus').textContent=qaFailed?
+  '驗證失敗：已停止畫面':('通過 '+qaPassed+' 幀'+(stop?'（已停止）':''));
+ by('qaStatus').dataset.qa=qaFailed?'fail':'pass';
+ // Machine-readable real-browser QA; no hidden animation truth claim.
+ document.body.dataset.qaV07g=qaFailed?'fail':'pass';
+ document.body.dataset.qaV07gFrames=String(qaPassed);
+ document.body.dataset.qaV07gTransparent=shown?'true':'false';
+ document.body.dataset.qaV07gCamera='front_glass';
+ document.body.dataset.qaV08aMode=String(unifiedAlphaMode);
+ document.body.dataset.qaV08aOnePass=String(
+  unifiedAlphaMode&&opacityFrame?.version==='0.8A'&&
+  opacityFrame?.ok===true&&opacityFrame?.paths.length===3&&
+  opacityFrame?.translucentFillPasses===1&&
+  opacityFrame?.usesExistingV07yProjection===true&&
+  opacityFrame?.originalHeadColliderStillAuthoritative===true&&
+  opacityFrame?.sourceBonesChanged===false&&
+  opacityFrame?.bodyMeshChanged===false&&
+  opacityFrame?.headChanged===false&&
+  opacityFrame?.skinApplied===false);
+ document.body.dataset.qaV08aPaintPasses=String(
+  opacityFrame?.translucentFillPasses??0);
+ document.body.dataset.qaV07zMode=String(clearanceMode);
+ document.body.dataset.qaV07zQuality=String(
+  clearanceMode&&clearanceFrame?.version==='0.7Z'&&
+  clearanceFrame?.ok===true&&
+  clearanceFrame?.qualityAccepted===true&&
+  clearanceFrame?.sourceBonesChanged===false&&
+  clearanceFrame?.bodyMeshChanged===false&&
+  clearanceFrame?.headChanged===false&&
+  clearanceFrame?.skinApplied===false&&
+  clearanceFrame?.fullTriangleSelfCollisionVerified===false&&
+  clearanceFrame?.collisionCertifiedForPlayers===false
+ );
+ document.body.dataset.qaV07zOverlapCount=String(
+  clearanceFrame?.selfOverlapCandidates.length??0);
+ document.body.dataset.qaV07zProjectionOnlyCount=String(
+  clearanceFrame?.projectionOnlyPairs.length??0);
+ document.body.dataset.qaV07zMinimum3DClearance=String(
+  clearanceFrame?.minimum3DClearance??0);
+ document.body.dataset.qaV07zMaximumBend=String(
+  clearanceFrame?.maximumSourceBendRadians??0);
+ document.body.dataset.qaV07zFlipCount=String(
+  clearanceFrame?.ringDirectionReversals.length??0);
+ document.body.dataset.qaV07zPairs=String(
+  clearanceFrame?.checkedNonlocalBonePairs??0);
+ document.body.dataset.qaV07yMode=String(slenderMode);
+ document.body.dataset.qaV07ySlender=String(
+  slenderMode&&slenderFrame?.version==='0.7Y'&&
+  slenderFrame?.sameVerticesRenderedAndSampled===true&&
+  slenderFrame?.originalHeadColliderStillAuthoritative===true&&
+  slenderFrame?.sourceHeadModified===false&&
+  slenderFrame?.sourceBonesModified===false&&
+  slenderFrame?.sourceRockAuthorityUnchanged===true&&
+  slenderFrame?.headNeckCandidate?.vertices.length===320&&
+  slenderFrame?.bodyCandidate?.vertices.length===
+   ((currentPose?.points.length-1)*4+1)*12&&
+  slenderFrame?.headSamplesChecked===2864&&
+  slenderFrame?.midBodyScale<.8&&
+  slenderFrame?.neckSocketScale<.83&&
+  slenderFrame?.tipScale===.88&&
+  slenderFrame?.headBodySocketGap<.0001&&
+  slenderFrame?.skinApplied===false&&
+  slenderFrame?.certifiedForGameplay===false
+ );
+ document.body.dataset.qaV07yMidScale=String(
+  slenderFrame?.midBodyScale??1);
+ document.body.dataset.qaV07yNeckScale=String(
+  slenderFrame?.neckSocketScale??1);
+ document.body.dataset.qaV07yTailScale=String(
+  slenderFrame?.tipScale??1);
+ document.body.dataset.qaV07ySocketGap=String(
+  slenderFrame?.headBodySocketGap??-1);
+ document.body.dataset.qaV07yBodyChecks=String(
+  slenderFrame?.bodySamplesChecked??0);
+ document.body.dataset.qaV07yHeadChecks=String(
+  slenderFrame?.headSamplesChecked??0);
+ document.body.dataset.qaV07yBendRelief=String(
+  slenderFrame?.maxBendRelief??0);
+ document.body.dataset.qaV07xMode=String(neckFollowMode);
+ document.body.dataset.qaV07xNeckFollow=String(
+  neckFollowMode&&neckFollowFrame?.version==='0.7X'&&
+  neckFollowFrame?.displayCandidateMeshIdentical===true&&
+  neckFollowFrame?.originalColliderStillAuthoritative===true&&
+  neckFollowFrame?.sourceHeadModified===false&&
+  neckFollowFrame?.sourceBoneModified===false&&
+  neckFollowFrame?.originalSocketPreserved===true&&
+  neckFollowFrame?.headTangentMatchesFirstBone===true&&
+  neckFollowFrame?.neckTangentGuidedBySecondBone===true&&
+  neckFollowFrame?.candidateSamplesChecked===2864&&
+  neckFollowFrame?.candidate?.vertices.length===320&&
+  neckFollowFrame?.maximumRingShift<=.055+1e-8&&
+  neckFollowFrame?.skinApplied===false&&
+  neckFollowFrame?.modelCertifiedForPlayers===false
+ );
+ document.body.dataset.qaV07xSamples=String(
+  neckFollowFrame?.candidateSamplesChecked??0);
+ document.body.dataset.qaV07xHeadRings=String(
+  neckFollowFrame?.headRings??0);
+ document.body.dataset.qaV07xNeckRings=String(
+  neckFollowFrame?.collarRings??0);
+ document.body.dataset.qaV07xRingShift=String(
+  neckFollowFrame?.maximumRingShift??0);
+ document.body.dataset.qaV07xSourceAngle=String(
+  neckFollowFrame?.sourceNeckAngle??0);
+ document.body.dataset.qaV07xHalfFrameChecks=String(
+  neckFollowFrame?.halfFrameSamplesChecked??0);
+ document.body.dataset.qaV07wMode=String(sculptMode);
+ document.body.dataset.qaV07wSourceHead=String(
+  sculptMode&&sculptFrame?.version==='0.7W'&&
+  sculptFrame?.visibleCollisionMeshIdentical===true&&
+  sculptFrame?.sourceHeadModified===false&&
+  sculptFrame?.sourceBoneModified===false&&
+  sculptFrame?.sourceRockAuthorityUnchanged===true&&
+  sculptFrame?.originalHeadColliderStillRunsUpstream===true&&
+  sculptFrame?.candidate?.vertices.length===320&&
+  sculptFrame?.candidateCollisionChecks===956&&
+  sculptFrame?.modelCertifiedForPlayers===false&&
+  sculptFrame?.skinApplied===false
+ );
+ document.body.dataset.qaV07wHeadRings=String(
+  sculptFrame?.candidate?.headRingCount??0);
+ document.body.dataset.qaV07wNeckRings=String(
+  sculptFrame?.candidate?.neckRingCount??0);
+ document.body.dataset.qaV07wCollisionChecks=String(
+  sculptFrame?.candidateCollisionChecks??0);
+ document.body.dataset.qaV07wNoSkin=String(
+  sculptFrame?.skinApplied===false);
+ document.body.dataset.qaV07vMode=String(ghostMode);
+ document.body.dataset.qaV07vHeadColliderIdentity=String(
+  ghostMode&&ghostFrame?.version==='0.7V'&&
+  ghostFrame?.headColliderMeshIdentical===true&&
+  ghostFrame?.headDisplayScale===1&&
+  ghostFrame?.originalHeadColliderUnchanged===true&&
+  ghostFrame?.sourceBoneEndpointsPreserved===true&&
+  ghostFrame?.sourceRockCollisionAuthorityUnchanged===true&&
+  ghostFrame?.skinApplied===false&&
+  ghostFrame?.maxWorldShellShift<=.018+1e-8
+ );
+ document.body.dataset.qaV07vShellShift=String(
+  ghostFrame?.maxWorldShellShift??0);
+ document.body.dataset.qaV07vHeadRatio=String(
+  ghostFrame?.headToBodySocketRadiusRatio??0);
+ document.body.dataset.qaV07vHeadScale=String(
+  ghostFrame?.headDisplayScale??0);
+ document.body.dataset.qaV07vCollarRings=String(
+  ghostFrame?.collarRingCount??0);
+ document.body.dataset.qaV07uMode=String(relayMode);
+ document.body.dataset.qaV07uRelay=String(
+  relayMode&&relaySession?.version==='0.7U'&&
+  relaySession?.frames>=70&&
+  relaySession?.sourceTotalLength>2.28-1e-9&&
+  relaySession?.sourceTotalLength<2.28+1e-9&&
+  relaySession?.temporalState?.v07sState?.pose?.points.length===24&&
+  lastRelayFrame?.sourceBoneLengthMaintained===true&&
+  lastRelayFrame?.sceneAuthorityPreserved===true&&
+  lastRelayFrame?.physicsVerified===false&&
+  lastRelayFrame?.skinApplied===false&&
+  lastRelayFrame?.allGroundedCount===24
+ );
+ document.body.dataset.qaV07uTurn=String(lastRelayFrame?.steerRadians??0);
+ document.body.dataset.qaV07uFrontBend=String(
+  lastRelayFrame?.frontCurvatureChange??0);
+ document.body.dataset.qaV07uFirstHeadBend=String(
+  lastRelayFrame?.firstFrontBendFrame??-1);
+ document.body.dataset.qaV07uFirstRearBend=String(
+  lastRelayFrame?.firstRearBendFrame??-1);
+ document.body.dataset.qaV07uQuietGround=String(
+  lastRelayFrame?.visualQuietGroundCount??0);
+ document.body.dataset.qaV07uQuietFrames=String(
+  lastRelayFrame?.quietFramesObserved??0);
+ document.body.dataset.qaV07uMovingFrames=String(
+  lastRelayFrame?.movingFramesObserved??0);
+ document.body.dataset.qaV07uCoexistFrames=String(
+  lastRelayFrame?.coexistFramesObserved??0);
+ document.body.dataset.qaV07uMovingGround=String(
+  lastRelayFrame?.visualMovingGroundCount??0);
+ document.body.dataset.qaV07uHeadTravel=String(
+  lastRelayFrame?.headTravel??0);
+ document.body.dataset.qaV07tMode=String(headLedMode);
+ document.body.dataset.qaV07tHeadLed=String(
+  headLedMode&&headLedSession?.version==='0.7T'&&
+  headLedSession?.v07sState?.version==='0.7S'&&
+  headLedSession?.frames>=70&&
+  headLedSession?.v07sState?.pose?.points.length===24&&
+  headLedSession?.lastGroundSupportCount>=20&&
+  headLedSession?.v07sState?.sourceJointCount===13&&
+  headLedSession?.v07sState?.targetJointCount===24
+ );
+ document.body.dataset.qaV07tElapsed=String(headLedSession?.elapsedSeconds??0);
+ document.body.dataset.qaV07tHeadTravel=String(
+  headLedSession?Math.hypot(
+   headLedSession.v07sState.pose.points[0].x-
+    headLedSession.v07sState.sourceHead.x,
+   headLedSession.v07sState.pose.points[0].y-
+    headLedSession.v07sState.sourceHead.y
+  ):0
+ );
+ document.body.dataset.qaV07tSupportCount=String(
+  headLedSession?.lastGroundSupportCount??0
+ );
+ document.body.dataset.qaV07sMode=String(handoffMode);
+ document.body.dataset.qaV07sHandoff=String(
+  handoffMode&&handoffSession?.version==='0.7S'&&
+  handoffSession.pose.points.length===24&&
+  currentPose?.points.length===24&&
+  Math.abs(handoffSession.sourceTotalLength-2.28)<1e-8&&
+  handoffSession.sourceJointCount===13&&
+  handoffSession.targetJointCount===24&&
+  handoffSession.centerlineError<=.025&&
+  handoffSession.tailError<=.015&&
+  handoffSession.contactIndices.length>=20
+ );
+ document.body.dataset.qaV07sFrames=String(handoffFrames);
+ document.body.dataset.qaV07sHeadTravel=String(
+  handoffSession?Math.hypot(
+   handoffSession.pose.points[0].x-handoffSession.sourceHead.x,
+   handoffSession.pose.points[0].y-handoffSession.sourceHead.y
+  ):0
+ );
+ document.body.dataset.qaV07sSourceTotalLength=String(
+  handoffSession?.sourceTotalLength??0
+ );
+ document.body.dataset.qaV07pMode=String(wallMode);
+ document.body.dataset.qaV07pRenderable=String(
+  wallMode&&shown!==null&&wallSession?.version==='0.7P'&&
+  wallSession.pose?.points?.length===wallProbeSource.points.length
+ );
+ document.body.dataset.qaV07pPhase=wallSession?.phase??'off';
+ document.body.dataset.qaV07pPitch=String(wallSession?.pitch??0);
+ document.body.dataset.qaV07pRestored=String(
+  wallMode&&wallSession?.seconds>=3.1-1e-9&&
+  wallSession.pose?.points.every((p,i)=>
+   Math.hypot(
+    p.x-wallProbeSource.points[i].x,
+    p.y-wallProbeSource.points[i].y,
+    p.z-wallProbeSource.points[i].z
+   )<1e-8)
+ );
+ document.body.dataset.qaV07pRearAnchored=String(
+  wallMode&&wallSession?.pose?.points.slice(6).every((p,j)=>
+   Math.hypot(
+    p.x-wallProbeSource.points[6+j].x,
+    p.y-wallProbeSource.points[6+j].y,
+    p.z-wallProbeSource.points[6+j].z
+   )<1e-10)
+ );
+ document.body.dataset.qaV07rHeadNeck=String(
+  headNeckFrame?.version==='0.7R'&&
+  headNeckFrame?.sourceJointCount===currentPose?.points.length&&
+  headNeckFrame?.sourceBodyEndpointPreserved===true&&
+  headNeckFrame?.headDisplayOnlyRescale===true&&
+  headNeckFrame?.skinApplied===false&&
+  headNeckFrame?.bonesChanged===false&&
+  headNeckFrame?.headMeshChanged===false&&
+  headNeckFrame?.collisionMeshVerified===false&&
+  headNeckFrame?.playableCaveAuthorized===false&&
+  headNeckFrame?.bodyJoinRingIndex===volumeFrame?.sectionsPerBone&&
+  headNeckFrame?.collarRingCount===9&&
+  headNeckFrame?.headDisplayScale>.2&&
+  headNeckFrame?.headDisplayScale<=1
+ );
+ document.body.dataset.qaV07rCollarRings=String(
+  headNeckFrame?.collarRingCount??0);
+ document.body.dataset.qaV07rHeadScale=String(
+  headNeckFrame?.headDisplayScale??0);
+ document.body.dataset.qaV07rHeadIsSourceCollider='false';
+ document.body.dataset.qaV07qVolume=String(
+  volumeFrame?.version==='0.7Q'&&
+  volumeFrame.sourceJointCount===currentPose?.points.length&&
+  volumeFrame.ringCount===(currentPose?.points.length-1)*4+1&&
+  volumeFrame.radialSegments===12&&
+  volumeFrame.skinApplied===false&&
+  volumeFrame.bonesChanged===false&&
+  volumeFrame.physicalBodyCollisionVerified===false&&
+  volumeFrame.substrateOcclusionVerified===false&&
+  volumeFrame.glassContactPhysicsVerified===false&&
+  volumeFrame.playableCaveAuthorized===false
+ );
+ document.body.dataset.qaV07qRings=String(volumeFrame?.ringCount??0);
+ document.body.dataset.qaV07qMinimumThickness=String(
+  volumeFrame?.minimumProjectedThickness??0
+ );
+ document.body.dataset.qaV07oContinuous=String(
+  contourFrame?.version==='0.7O'&&
+  contourFrame.sourceVersion==='0.7G'&&
+  contourFrame.sourceJointCount===shown?.spine.length&&
+  contourFrame.axis.length===contourFrame.sourceJointCount*6-5&&
+  contourFrame.skinApplied===false&&
+  contourFrame.animalGeometryChanged===false&&
+  contourFrame.affectsCollision===false&&
+  contourFrame.affectsEcology===false
+ );
+ document.body.dataset.qaV07oContourPoints=String(
+  contourFrame?.contourPointCount??0);
+ document.body.dataset.qaV07oNodesHidden=String(!nodes);
+ document.body.dataset.qaV07oTransparent=String(
+  contourFrame?.skinApplied===false);
+ document.body.dataset.qaV07hEcology=String(ecology.flora.length);
+ document.body.dataset.qaV07iRooted=String(
+  botany.patches.length===ecology.flora.length&&
+  botany.patches.every(p=>p.root.x===p.sourceAnchor.x&&
+   p.root.y===p.sourceAnchor.y)
+ );
+ document.body.dataset.qaV07jComposed=String(
+  botany.version==='0.7J'&&botany.sourceVersion==='0.7I'&&
+  botany.skinApplied===false&&
+  botany.patches.length===sourceBotany.patches.length&&
+  botany.patches.every((p,i)=>p.id===sourceBotany.patches[i].id&&
+   p.root.x===sourceBotany.patches[i].root.x&&
+   p.root.y===sourceBotany.patches[i].root.y)
+ );
+ document.body.dataset.qaV07jVisibleFronds=String(
+  botany.patches.reduce((n,p)=>n+p.fronds.length,0)
+ );
+ document.body.dataset.qaV07kMossContact=String(
+  mossSoil.version==='0.7K'&&mossSoil.skinApplied===false&&
+  mossSoil.effectsOnEcology.length===0&&
+  mossSoil.transitions.length===botany.patches.filter(p=>p.type==='moss').length&&
+  mossSoil.transitions.every(t=>{
+   const p=botanyById.get(t.id);
+   return p?.type==='moss'&&p.root.x===t.root.x&&
+    p.root.y===t.root.y&&p.sourceAnchor.x===t.sourceRoot.x&&
+    p.sourceAnchor.y===t.sourceRoot.y;
+  })
+ );
+ document.body.dataset.qaV07kMossCount=String(mossSoil.transitions.length);
+ document.body.dataset.qaV07iFern=String(
+  botany.patches.filter(p=>p.type==='fern').length
+ );
+ document.body.dataset.qaV07iMoss=String(
+  botany.patches.filter(p=>p.type==='moss').length
+ );
+ const glassRect=document.querySelector('.stage').getBoundingClientRect();
+ document.body.dataset.qaV07nStageVisible=String(
+  glassRect.top>=-1&&glassRect.bottom<=window.innerHeight+1&&
+  glassRect.left>=-1&&glassRect.right<=window.innerWidth+1
+ );
+ document.body.dataset.qaV07nOverlayReady=String(
+  terrainDebug.version==='0.7N'&&terrainDebug.sourceVersion==='0.7M'&&
+  terrainDebug.sceneId===scene.sceneId&&
+  terrainDebug.sceneRevision===scene.revision&&
+  terrainDebug.debugOnly&&terrainDebug.skinApplied===false&&
+  terrainDebug.playablePassageAuthorized===false&&
+  terrainDebug.affectsCollision===false&&
+  terrainDebug.affectsEcology===false&&
+  terrainDebug.caves.length===1
+ );
+ document.body.dataset.qaV07nTriangles=String(terrainDebug.groundTriangles.length);
+ document.body.dataset.qaV07nCaveAuthorization=String(terrainDebug.playablePassageAuthorized);
+ document.body.dataset.qaV07nVisible=String(terrainVisible);
+ document.body.dataset.qaV07hStones=String(ecology.stones.length);
+ document.body.dataset.qaV07hEmptyZone=String(
+  !ecology.zonePatches.find(z=>z.id==='zone_2')?.present
+ );
+}
+let previousTime=null;
+function tick(time){
+ if(previousTime===null)previousTime=time;
+ if(playing&&!stop){
+  acc+=Math.min(.20,Math.max(0,(time-previousTime)/1000));
+  // Never loop indefinitely after a hidden/backgrounded page resumes.
+  let n=0;
+  while(acc>=1/30&&n<5){
+   runStep(true);acc-=1/30;n++;
+  }
+ }
+ previousTime=time;
+ draw();
+ requestAnimationFrame(tick);
+}
+by('pause').addEventListener('click',()=>{
+ playing=!playing;
+ by('pause').setAttribute('aria-pressed',String(!playing));
+});
+by('restart').addEventListener('click',reset);
+by('overlay').addEventListener('click',()=>{
+ nodes=!nodes;by('overlay').setAttribute('aria-pressed',String(nodes));
+});
+by('terrainDebug').addEventListener('click',()=>{
+ terrainVisible=!terrainVisible;
+ by('terrainDebug').setAttribute('aria-pressed',String(terrainVisible));
+ draw();
+});
+by('wallProbe').addEventListener('click',()=>{
+ wallMode=!wallMode;handoffMode=false;headLedMode=false;relayMode=false;ghostMode=false;sculptMode=false;neckFollowMode=false;slenderMode=false;clearanceMode=false;
+ by('volumeClearance').setAttribute('aria-pressed','false');
+ by('slenderVolume').setAttribute('aria-pressed','false');
+ by('wallProbe').setAttribute('aria-pressed',String(wallMode));
+ by('wallHandoff').setAttribute('aria-pressed','false');
+ by('headLed').setAttribute('aria-pressed','false');
+ by('curvatureRelay').setAttribute('aria-pressed','false');
+ reset();
+});
+by('wallHandoff').addEventListener('click',()=>{
+ handoffMode=!handoffMode;headLedMode=false;relayMode=false;ghostMode=false;sculptMode=false;neckFollowMode=false;slenderMode=false;clearanceMode=false;
+ by('volumeClearance').setAttribute('aria-pressed','false');
+ by('slenderVolume').setAttribute('aria-pressed','false');
+ wallMode=handoffMode;
+ by('wallProbe').setAttribute('aria-pressed',String(wallMode));
+ by('wallHandoff').setAttribute('aria-pressed',String(handoffMode));
+ by('headLed').setAttribute('aria-pressed','false');
+ by('curvatureRelay').setAttribute('aria-pressed','false');
+ reset();
+});
+by('headLed').addEventListener('click',()=>{
+ headLedMode=!headLedMode;relayMode=false;ghostMode=false;sculptMode=false;neckFollowMode=false;slenderMode=false;clearanceMode=false;
+ by('volumeClearance').setAttribute('aria-pressed','false');
+ by('slenderVolume').setAttribute('aria-pressed','false');
+ handoffMode=headLedMode;wallMode=headLedMode;
+ by('wallProbe').setAttribute('aria-pressed',String(wallMode));
+ by('wallHandoff').setAttribute('aria-pressed',String(handoffMode));
+ by('headLed').setAttribute('aria-pressed',String(headLedMode));
+ by('curvatureRelay').setAttribute('aria-pressed','false');
+ reset();
+});
+by('curvatureRelay').addEventListener('click',()=>{
+ relayMode=!relayMode;ghostMode=false;sculptMode=false;neckFollowMode=false;slenderMode=false;clearanceMode=false;
+ by('volumeClearance').setAttribute('aria-pressed','false');
+ by('slenderVolume').setAttribute('aria-pressed','false');
+ headLedMode=relayMode;handoffMode=relayMode;wallMode=relayMode;
+ by('wallProbe').setAttribute('aria-pressed',String(wallMode));
+ by('wallHandoff').setAttribute('aria-pressed',String(handoffMode));
+ by('headLed').setAttribute('aria-pressed',String(headLedMode));
+ by('curvatureRelay').setAttribute('aria-pressed',String(relayMode));
+ by('ghostContinuity').setAttribute('aria-pressed','false');
+ reset();
+});
+by('ghostContinuity').addEventListener('click',()=>{
+ ghostMode=!ghostMode;sculptMode=false;neckFollowMode=false;slenderMode=false;clearanceMode=false;
+ by('volumeClearance').setAttribute('aria-pressed','false');
+ by('slenderVolume').setAttribute('aria-pressed','false');
+ by('headSculpt').setAttribute('aria-pressed','false');
+ // Only enabled for the same-animal generic 13/24-joint lab path,
+ // never silently used by the out-of-ratio old hognose walking demo.
+ if(ghostMode&&!wallMode){
+  wallMode=true;handoffMode=false;headLedMode=false;relayMode=false;
+ }
+ by('wallProbe').setAttribute('aria-pressed',String(wallMode));
+ by('wallHandoff').setAttribute('aria-pressed',String(handoffMode));
+ by('headLed').setAttribute('aria-pressed',String(headLedMode));
+ by('curvatureRelay').setAttribute('aria-pressed',String(relayMode));
+ by('ghostContinuity').setAttribute('aria-pressed',String(ghostMode));
+ reset();
+});
+by('headSculpt').addEventListener('click',()=>{
+ sculptMode=!sculptMode;neckFollowMode=false;slenderMode=false;clearanceMode=false;
+ by('volumeClearance').setAttribute('aria-pressed','false');
+ by('slenderVolume').setAttribute('aria-pressed','false');
+ ghostMode=sculptMode;
+ if(sculptMode&&!wallMode){
+  wallMode=true;handoffMode=false;headLedMode=false;relayMode=false;
+ }
+ by('wallProbe').setAttribute('aria-pressed',String(wallMode));
+ by('wallHandoff').setAttribute('aria-pressed',String(handoffMode));
+ by('headLed').setAttribute('aria-pressed',String(headLedMode));
+ by('curvatureRelay').setAttribute('aria-pressed',String(relayMode));
+ by('ghostContinuity').setAttribute('aria-pressed',String(ghostMode));
+ by('headSculpt').setAttribute('aria-pressed',String(sculptMode));
+ by('neckFollow').setAttribute('aria-pressed','false');
+ reset();
+});
+by('neckFollow').addEventListener('click',()=>{
+ neckFollowMode=!neckFollowMode;slenderMode=false;clearanceMode=false;
+ by('volumeClearance').setAttribute('aria-pressed','false');
+ by('slenderVolume').setAttribute('aria-pressed','false');
+ sculptMode=neckFollowMode;ghostMode=neckFollowMode;
+ if(neckFollowMode&&!wallMode){
+  wallMode=true;handoffMode=false;headLedMode=false;relayMode=false;
+ }
+ by('wallProbe').setAttribute('aria-pressed',String(wallMode));
+ by('wallHandoff').setAttribute('aria-pressed',String(handoffMode));
+ by('headLed').setAttribute('aria-pressed',String(headLedMode));
+ by('curvatureRelay').setAttribute('aria-pressed',String(relayMode));
+ by('ghostContinuity').setAttribute('aria-pressed',String(ghostMode));
+ by('headSculpt').setAttribute('aria-pressed',String(sculptMode));
+ by('neckFollow').setAttribute('aria-pressed',String(neckFollowMode));
+ by('slenderVolume').setAttribute('aria-pressed','false');
+ reset();
+});
+by('slenderVolume').addEventListener('click',()=>{
+ clearanceMode=false;
+ by('volumeClearance').setAttribute('aria-pressed','false');
+ slenderMode=!slenderMode;
+ neckFollowMode=slenderMode;sculptMode=slenderMode;ghostMode=slenderMode;
+ if(slenderMode&&!wallMode){
+  wallMode=true;handoffMode=false;headLedMode=false;relayMode=false;
+ }
+ for(const [id,active] of [
+  ['wallProbe',wallMode],['wallHandoff',handoffMode],
+  ['headLed',headLedMode],['curvatureRelay',relayMode],
+  ['ghostContinuity',ghostMode],['headSculpt',sculptMode],
+  ['neckFollow',neckFollowMode],['slenderVolume',slenderMode]
+ ])by(id).setAttribute('aria-pressed',String(active));
+ reset();
+});
+by('opacityUnion').addEventListener('click',()=>{
+ unifiedAlphaMode=!unifiedAlphaMode;
+ if(unifiedAlphaMode){
+  slenderMode=true;clearanceMode=true;
+  neckFollowMode=true;sculptMode=true;ghostMode=true;
+  if(!wallMode){
+   wallMode=true;handoffMode=false;headLedMode=false;relayMode=false;
+  }
+ }
+ for(const [id,active] of [
+  ['wallProbe',wallMode],['wallHandoff',handoffMode],
+  ['headLed',headLedMode],['curvatureRelay',relayMode],
+  ['ghostContinuity',ghostMode],['headSculpt',sculptMode],
+  ['neckFollow',neckFollowMode],['slenderVolume',slenderMode],
+  ['volumeClearance',clearanceMode],['opacityUnion',unifiedAlphaMode]
+ ])by(id).setAttribute('aria-pressed',String(active));
+ reset();
+});
+by('volumeClearance').addEventListener('click',()=>{
+ clearanceMode=!clearanceMode;
+ slenderMode=clearanceMode;neckFollowMode=clearanceMode;
+ sculptMode=clearanceMode;ghostMode=clearanceMode;
+ if(clearanceMode&&!wallMode){
+  wallMode=true;handoffMode=false;headLedMode=false;relayMode=false;
+ }
+ for(const [id,on] of [
+  ['wallProbe',wallMode],['wallHandoff',handoffMode],
+  ['headLed',headLedMode],['curvatureRelay',relayMode],
+  ['ghostContinuity',ghostMode],['headSculpt',sculptMode],
+  ['neckFollow',neckFollowMode],['slenderVolume',slenderMode],
+  ['volumeClearance',clearanceMode]
+ ])by(id).setAttribute('aria-pressed',String(on));
+ reset();
+});
+const testParams=new URLSearchParams(location.search);
+relayMode=testParams.has('qa_v07g')&&testParams.has('qa_v07u');
+unifiedAlphaMode=testParams.has('qa_v07g')&&
+ testParams.has('qa_v08a')&&(testParams.has('qa_v07p')||relayMode);
+clearanceMode=testParams.has('qa_v07g')&&
+ (testParams.has('qa_v07z')||unifiedAlphaMode)&&
+ (testParams.has('qa_v07p')||relayMode);
+slenderMode=testParams.has('qa_v07g')&&
+ (testParams.has('qa_v07y')||clearanceMode)&&
+ (testParams.has('qa_v07p')||relayMode);
+neckFollowMode=testParams.has('qa_v07g')&&
+ (testParams.has('qa_v07x')||slenderMode)&&
+ (testParams.has('qa_v07p')||relayMode);
+sculptMode=testParams.has('qa_v07g')&&
+ (testParams.has('qa_v07w')||neckFollowMode)&&
+ (testParams.has('qa_v07p')||relayMode);
+ghostMode=testParams.has('qa_v07g')&&
+ (testParams.has('qa_v07v')||sculptMode)&&
+ (testParams.has('qa_v07p')||relayMode);
+headLedMode=testParams.has('qa_v07g')&&
+ (testParams.has('qa_v07t')||relayMode);
+handoffMode=testParams.has('qa_v07g')&&
+ (testParams.has('qa_v07s')||headLedMode);
+wallMode=testParams.has('qa_v07g')&&
+ (testParams.has('qa_v07p')||handoffMode);
+by('wallProbe').setAttribute('aria-pressed',String(wallMode));
+by('wallHandoff').setAttribute('aria-pressed',String(handoffMode));
+by('headLed').setAttribute('aria-pressed',String(headLedMode));
+by('curvatureRelay').setAttribute('aria-pressed',String(relayMode));
+by('ghostContinuity').setAttribute('aria-pressed',String(ghostMode));
+by('headSculpt').setAttribute('aria-pressed',String(sculptMode));
+by('neckFollow').setAttribute('aria-pressed',String(neckFollowMode));
+by('slenderVolume').setAttribute('aria-pressed',String(slenderMode));
+by('volumeClearance').setAttribute('aria-pressed',String(clearanceMode));
+by('opacityUnion').setAttribute('aria-pressed',String(unifiedAlphaMode));
+reset();
+// Deterministic browser screenshot probe. This uses the EXACT SAME
+// animation/controller pipeline as the visible preview, just fast-forwards
+// known fixed steps without relying on a browser's frame scheduling.
+if(new URLSearchParams(location.search).has('qa_v07g')){
+ // The SAME stopped 180-frame snake pose must be rasterized twice for
+ // an actual CANVAS pixel-difference gate; changing the button's CSS is
+ // NOT evidence of a visible terrain overlay.
+ const wantsTerrain=testParams.has('qa_v07n');
+ const qaSteps=handoffMode?175:(
+  wallMode&&testParams.has('qa_v07p_hold')?40:180
+ );
+ for(let i=0;i<qaSteps&&!stop;i++)runStep(true);
+ playing=false;
+ terrainVisible=false;
+ by('terrainDebug').setAttribute('aria-pressed','false');
+ draw();
+ if(wantsTerrain&&qaFailed===0){
+  const area={x:80,y:180,width:1280,height:500};
+  const normalPixels=ctx.getImageData(
+   area.x,area.y,area.width,area.height).data;
+  terrainVisible=true;
+  by('terrainDebug').setAttribute('aria-pressed','true');
+  draw();
+  const terrainPixels=ctx.getImageData(
+   area.x,area.y,area.width,area.height).data;
+  let changed=0;
+  for(let i=0;i<normalPixels.length;i+=4){
+   if(normalPixels[i]!==terrainPixels[i]||
+      normalPixels[i+1]!==terrainPixels[i+1]||
+      normalPixels[i+2]!==terrainPixels[i+2])changed++;
+  }
+  document.body.dataset.qaV07nChangedCanvasPixels=String(changed);
+  document.body.dataset.qaV07nRasterVerified=String(changed>=250);
+ }else{
+  document.body.dataset.qaV07nChangedCanvasPixels='0';
+  document.body.dataset.qaV07nRasterVerified='false';
+ }
+}
+requestAnimationFrame(tick);
+window.__ohmV07g={
+ getState:()=>Object.freeze({
+  frame:frameNum,qaPassed,qaFailed,
+  stopped:stop,skinApplied:false,camera:'front_glass'
+ }),
+ step:()=>{runStep(true);draw();}
+};
+</script></body></html>
