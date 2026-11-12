@@ -129,12 +129,15 @@ function shadowPreview(source,candidate,scene,terrain,horizonFrames,seconds){
  if(!candidate.stagingGeometryClear)
   return F({...candidate,accepted:false,reason:'staging_geometry_blocked',
    checkedSourceFrames:0,sourceLastFrame:source.verifiedFrames,
-   lastHeadFloor:null,fullRouteProven:false});
+   lastHeadFloor:null,lastTailFloor:null,previewHeadSamples:F([]),
+   fullRouteProven:false});
  let state=F({...source,route:candidate.proposedRoute,
   // Different staging routes must actually affect desired steering;
   // do not force the inherited V0.9C interior-turn sign.
   returnTurnCommitted:false});
- let frames=0,reason=null,finalHead=null,minimumGap=Infinity;
+ let frames=0,reason=null,finalHead=null,finalTail=null,
+  minimumGap=Infinity;
+ const headSamples=[];
  let result='preview_horizon_passed';
  for(;frames<horizonFrames;){
   const next=advanceSnakeRouteWithTurnSpaceGuardV09g({
@@ -148,6 +151,8 @@ function shadowPreview(source,candidate,scene,terrain,horizonFrames,seconds){
    result='head_only_arrived_during_preview';
    state=next;
    finalHead=snakeFloorToTerrariumV07c(state.pose.points[0]);
+   finalTail=snakeFloorToTerrariumV07c(state.pose.points.at(-1));
+   headSamples.push(F({x:finalHead.x,y:finalHead.y}));
    break;
   }
   if(next.verifiedFrames!==state.verifiedFrames+1){
@@ -162,6 +167,9 @@ function shadowPreview(source,candidate,scene,terrain,horizonFrames,seconds){
   minimumGap=Math.min(minimumGap,diagnostic.minimumCapsuleGap);
   state=next;frames++;
   finalHead=snakeFloorToTerrariumV07c(state.pose.points[0]);
+  finalTail=snakeFloorToTerrariumV07c(state.pose.points.at(-1));
+  if(frames%40===0||frames===horizonFrames)
+   headSamples.push(F({x:finalHead.x,y:finalHead.y}));
  }
  return F({...candidate,
   accepted:result==='preview_horizon_passed'&&
@@ -169,7 +177,8 @@ function shadowPreview(source,candidate,scene,terrain,horizonFrames,seconds){
    result==='head_only_arrived_during_preview',
   result,reason,checkedSourceFrames:frames,
   sourceLastFrame:state.verifiedFrames,
-  lastHeadFloor:finalHead,
+  lastHeadFloor:finalHead,lastTailFloor:finalTail,
+  previewHeadSamples:F(headSamples),
   headDistanceToHome:finalHead?d(finalHead,source.startFloor):Infinity,
   minCapsuleGap:minimumGap,
   fullRouteProven:false,meshSweepCertified:false,
