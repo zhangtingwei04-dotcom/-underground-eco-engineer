@@ -120,7 +120,7 @@ export function inspectSnakeSizeMotionFrameV09o({
  */
 export function inspectSnakeSizeMotionTransitionV09o({
  previousSource,nextSource,scene,terrain,stageProgress=2,
- additionalPaddingPixels=2
+ additionalPaddingPixels=2,seconds=1/30
 }={}){
  if(previousSource?.version!=='0.9C'||
   nextSource?.version!=='0.9C'||
@@ -131,8 +131,24 @@ export function inspectSnakeSizeMotionTransitionV09o({
   previousSource.sceneRevision!==scene?.revision||
   nextSource.sceneRevision!==scene?.revision||
   previousSource.sceneId!==scene?.sceneId||
-  nextSource.sceneId!==scene?.sceneId)
+  nextSource.sceneId!==scene?.sceneId||
+  !finite(seconds)||seconds<=0||seconds>.05)
   throw new RangeError('v09o_requires_adjacent_same_scene_real_source_frames');
+ // A caller can forge verifiedFrames. Never accept it as source evidence.
+ // Recompute the original V0.9C/D/G move and verify both pose + relay.
+ const authenticated=advanceSnakeRouteWithTurnSpaceGuardV09g({
+  state:previousSource,scene,terrain,seconds
+ });
+ if(authenticated.phase!=='moving_return'||
+  authenticated.verifiedFrames!==nextSource.verifiedFrames||
+  JSON.stringify(authenticated.pose?.points)!==
+   JSON.stringify(nextSource.pose?.points)||
+  JSON.stringify(authenticated.relayState)!==
+   JSON.stringify(nextSource.relayState))
+  return F({...invalid('next_frame_does_not_match_true_source'),
+   sourceStartFrame:previousSource.verifiedFrames,
+   sourceEndFrame:nextSource.verifiedFrames,
+   sourceReplayMatched:false,interframeChecked:false});
  const from=inspectSnakeSizeMotionFrameV09o({
   sourcePose:previousSource.pose,scene,terrain,stageProgress,
   additionalPaddingPixels
@@ -214,7 +230,7 @@ export function inspectSnakeSizeMotionTransitionV09o({
   sweptGroundMinimumGapWorld:minGap,
   sweptSamples:samples,worstRisk:worst,
   sourceBlockerId:blockerId,
-  interframeChecked:true,
+  interframeChecked:true,sourceReplayMatched:true,
   originalSourceJointsChanged:false,
   sourceSizeWasAppliedToMotion:false,
   sizeMotionAuthorityGranted:false,
@@ -264,7 +280,7 @@ export function previewSnakeSizeAwareRouteV09o({
   }
   const frame=inspectSnakeSizeMotionTransitionV09o({
    previousSource:cursor,nextSource:next,
-   scene,terrain,stageProgress,additionalPaddingPixels
+   scene,terrain,stageProgress,additionalPaddingPixels,seconds
   });
   last=frame;
   if(!frame.ok){reason=frame.reason;break;}
