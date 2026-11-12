@@ -161,6 +161,7 @@ if(preview.ok){
  // is a valid safety outcome; future motion was NEVER authorized by
  // the original 160-frame lookahead.
  let extra=0,ending=actual,reason=null,endingPhase=actual.phase;
+ let captured600=null;
  while(extra<700&&ending.phase==='moving_return'){
   const next=advanceSnakeRouteWithTurnSpaceGuardV09g({
    state:ending,scene,terrain,seconds:1/30
@@ -175,14 +176,53 @@ if(preview.ok){
   assert.equal(next.phase,'moving_return');
   assert.equal(next.verifiedFrames,ending.verifiedFrames+1);
   ending=next;extra++;
+  if(ending.verifiedFrames===600)captured600=ending;
  }
  assert.equal(ending.fullBodyReturnVerified,false);
  assert.equal(ending.skinApplied,false);
+ // Experimental mid-route replanning proof: derive five FRESH routes from
+ // the identical source body at frame 600, without resetting the snake.
+ let adaptive600=null;
+ if(captured600){
+  const fresh=planSnakeBodyDetourV09i({
+   state:captured600,scene,terrain,horizonFrames:160
+  });
+  adaptive600={
+   ok:fresh.ok,selected:fresh.selectedCandidateId,
+   candidates:fresh.candidates.map(x=>({
+    id:x.id,geometry:x.stagingGeometryClear,
+    frames:x.checkedSourceFrames,accepted:x.accepted,
+    reason:x.reason,finalHead:x.lastHeadFloor
+   }))
+  };
+  if(fresh.ok){
+   const switched=advanceSnakeBodyDetourV09i({
+    state:captured600,scene,terrain,horizonFrames:160
+   });
+   assert.equal(switched.phase,'moving_return');
+   assert.equal(switched.verifiedFrames,601);
+   assert.equal(switched.skinApplied,false);
+   let sample=switched;
+   for(let n=1;n<160;n++){
+    const following=advanceSnakeRouteWithTurnSpaceGuardV09g({
+     state:sample,scene,terrain
+    });
+    assert.equal(following.phase,'moving_return');
+    assert.equal(following.verifiedFrames,sample.verifiedFrames+1);
+    sample=following;
+   }
+   assert.equal(sample.verifiedFrames,760);
+   adaptive600.replayedThroughFrame=sample.verifiedFrames;
+   adaptive600.headAt760=snakeFloorToTerrariumV07c(
+    sample.pose.points[0]);
+  }
+ }
  replaySummary=F({
   replayFrames:checkedRealSteps,extraAcceptedFrames:extra,
   lastRealSourceFrame:ending.verifiedFrames,
   endingPhase,stopReason:reason,
   replayHeadFloor:finalHead,
+  adaptive600,
   lastHeadFloor:snakeFloorToTerrariumV07c(ending.pose.points[0]),
   headDistanceToHomePixels:Math.hypot(
    snakeFloorToTerrariumV07c(ending.pose.points[0]).x-state.startFloor.x,
