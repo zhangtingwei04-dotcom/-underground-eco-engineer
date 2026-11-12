@@ -20,6 +20,8 @@ import {advanceSnakeRouteWithTurnSpaceGuardV09g}
  from './snake-turn-space-v09g.mjs';
 import {planSnakeBodyDetourV09i}
  from './snake-body-detour-v09i.mjs';
+import {chooseSnakeGoalReturnV09k}
+ from './snake-goal-return-selection-v09k.mjs';
 
 export const SNAKE_RETURN_AUTOPILOT_V09J_VERSION='0.9J';
 const F=Object.freeze;
@@ -53,7 +55,7 @@ function validateConfig({
  source,scene,terrain,replanIntervalFrames,
  previewHorizonFrames,maxReturnFrames,maxReplans,
  maximumStallWindows,minimumHomeProgressPx,
- maximumHeadDistanceToHomePx,seconds
+ maximumHeadDistanceToHomePx,seconds,routeSelectionMode
 }){
  if(source?.version!=='0.9C'||source.phase!=='moving_return'||
   source.pose?.points?.length!==24||
@@ -75,7 +77,8 @@ function validateConfig({
   !finite(maximumHeadDistanceToHomePx)||
   maximumHeadDistanceToHomePx<100||
   maximumHeadDistanceToHomePx>600||
-  !finite(seconds)||seconds<=0||seconds>.05)
+  !finite(seconds)||seconds<=0||seconds>.05||
+  !['legacy_nearest_head','goal_revisit_v09k'].includes(routeSelectionMode))
   throw new RangeError('v09j_invalid_controller_source_or_config');
 }
 export function startSnakeReturnAutopilotV09j({
@@ -83,12 +86,12 @@ export function startSnakeReturnAutopilotV09j({
  previewHorizonFrames=160,maxReturnFrames=1200,
  maxReplans=8,maximumStallWindows=4,
  minimumHomeProgressPx=5,maximumHeadDistanceToHomePx=260,
- seconds=1/30
+ routeSelectionMode='legacy_nearest_head',seconds=1/30
 }={}){
  validateConfig({source,scene,terrain,replanIntervalFrames,
   previewHorizonFrames,maxReturnFrames,maxReplans,
   maximumStallWindows,minimumHomeProgressPx,
-  maximumHeadDistanceToHomePx,seconds});
+  maximumHeadDistanceToHomePx,seconds,routeSelectionMode});
  if(source.sceneId!==scene.sceneId||
   source.sceneRevision!==scene.revision||
   source.sceneStamp!==stamp(scene,terrain))
@@ -105,6 +108,7 @@ export function startSnakeReturnAutopilotV09j({
   replanIntervalFrames,previewHorizonFrames,maxReturnFrames,
   maxReplans,maximumStallWindows,
   minimumHomeProgressPx,maximumHeadDistanceToHomePx,seconds,
+  routeSelectionMode,
   framesCommitted:0,replansPerformed:0,stepsSinceReplan:0,
   stalledWindows:0,
   initialDistanceToHomePx:body.headToHomePx,
@@ -113,6 +117,7 @@ export function startSnakeReturnAutopilotV09j({
   baselineReplanDistancePx:body.headToHomePx,
   baselineReplanTailDistancePx:body.tailToHomePx,
   body,
+  visitedHeadFloors:F([body.head]),
   chosenDetourId:null,detourHistory:F([]),
   noMotionWhenResting:true,sourceJointsRewritten:false,
   headOnlyArrivalVerified:false,
@@ -170,8 +175,19 @@ export function advanceSnakeReturnAutopilotV09j({
    horizonFrames:state.previewHorizonFrames,
    seconds:state.seconds
   });
+  // V0.9K is opt-in: score only source-verified V0.9I candidates
+  // against the original source-owned goal graph and REAL visited head
+  // locations. Legacy V0.9J remains unchanged for A/B regression.
+  const visited=F([...state.visitedHeadFloors,
+   state.body.head].slice(-20));
+  const ranked=state.routeSelectionMode==='goal_revisit_v09k'?
+   chooseSnakeGoalReturnV09k({source:state.source,scene,planned,
+    visitedHeadFloors:visited}):null;
+  const selectedId=ranked?ranked.selectedId:planned.selectedCandidateId;
+  const selectedRoute=ranked?ranked.selectedRoute:planned.selectedRoute;
+  const selectionOk=ranked?ranked.ok:planned.ok;
   const log=F({sourceFrame:state.source.verifiedFrames,
-   selectedId:planned.selectedCandidateId,
+   selectedId,
    attempted:planned.candidates.length,
    approved:planned.candidates.filter(c=>c.accepted).length,
    headDistancePx:currentDistance,
@@ -179,15 +195,18 @@ export function advanceSnakeReturnAutopilotV09j({
    homeImprovementSinceLastReplanPx:gained,
    tailImprovementSinceLastReplanPx:tailGained,
    stalledWindows:stalled,
-   routeSelected:planned.ok});
+   routeSelected:selectionOk,
+   goalRankStatus:ranked?.status??null,
+   goalRankedCandidates:ranked?.candidateScores??null});
   const history=F([...state.detourHistory,log]);
-  if(!planned.ok)
+  if(!selectionOk)
    return stop({...state,detourHistory:history},
-    'resting_no_safe_detour',planned.status);
+    'resting_no_safe_detour',ranked?.status??planned.status);
   current=F({...state,
-   source:F({...state.source,route:planned.selectedRoute,
+   source:F({...state.source,route:selectedRoute,
     returnTurnCommitted:false}),
-   detourHistory:history,chosenDetourId:planned.selectedCandidateId,
+   detourHistory:history,chosenDetourId:selectedId,
+   visitedHeadFloors:visited,
    replansPerformed:state.replansPerformed+1,
    stepsSinceReplan:0,baselineReplanDistancePx:currentDistance,
    baselineReplanTailDistancePx:state.body.tailToHomePx,
