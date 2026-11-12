@@ -61,10 +61,10 @@ const state0=startSnakeRouteFollowerV09c({
 
 assert.equal(state0.phase,'moving_outbound');
 const sourceBefore=JSON.stringify({scene,flatTerrain,wall});
-const samples=[],keyframes=new Set([60,61,120,160,240,410,500,530]);
+const samples=[],keyframes=new Set([60,61,120,160,240,410,500,530]),captured=new Set();
 let state=state0,previousMorph=null,frames=0;
 function captureIfKey(s){
- if(!keyframes.has(s.verifiedFrames))return;
+ if(!keyframes.has(s.verifiedFrames)||captured.has(s.verifiedFrames))return;
  const prior=JSON.stringify(s.pose);
  const mesh=buildNeutralSnakeTransparentMorphologyV09f({pose:s.pose});
  assert.equal(mesh.sourceJointCount,24);
@@ -93,6 +93,7 @@ function captureIfKey(s){
   assert.ok(maxDisplacement<15,
    'new transparent silhouette must not jump in the first real source step');
  }
+ captured.add(s.verifiedFrames);
  samples.push({frame:s.verifiedFrames,phase:s.phase,
   tailRatio:mesh.tailTipRadius/mesh.midBodyRadius,
   headNeckRatio:mesh.headWidestRadius/mesh.neckRadius,
@@ -108,7 +109,15 @@ while(state.verifiedFrames<530){
   throw Error('V0.9F source unexpectedly stopped at '+state.verifiedFrames+
    ': '+next.reason+' '+next.phase);
  assert.equal(next.pose.points.length,24);
- assert.equal(next.verifiedFrames,state.verifiedFrames+1);
+ if(next.verifiedFrames===state.verifiedFrames){
+  assert.equal(state.phase,'moving_outbound',
+   'only a source-authored arrival->return transition can be zero-step');
+  assert.equal(next.phase,'moving_return');
+  assert.equal(next.completedOutbound,true);
+ }else{
+  assert.equal(next.verifiedFrames,state.verifiedFrames+1,
+   'an actual source movement must produce exactly one new frame');
+ }
  state=next;frames++;
  captureIfKey(state);
 }
