@@ -74,12 +74,14 @@ function preview(controller,src,c,scene,terrain,steps,{
 }){
  let state=controllerWith(controller,src,c);
  let previous=src.pose,peakBend=0,peakStep=0,peakRotation=0;
- let examined=0,reason=null;
+ let examined=0,reason=null,firstRejectedFrame=null;
  for(let i=0;i<steps;i++){
   const result=advanceSnakeCurvatureRelayV07u(state,{
    scene,terrain,seconds:1/30
   });
-  if(!result.ok){reason='source_'+result.reason;break;}
+  if(!result.ok){
+   reason='source_'+result.reason;firstRejectedFrame=i+1;break;
+  }
   const motion=inspectSnakeTemporalContinuityV08d({
    previousPose:previous,pose:result.pose,
    seconds:1/30,visualBendLimit
@@ -96,13 +98,13 @@ function preview(controller,src,c,scene,terrain,steps,{
     motion.maxJointStep>maxJointStep+1e-9?
     'source_excessive_frame_displacement':
     'source_excessive_frame_rotation';
-   break;
+   firstRejectedFrame=i+1;break;
   }
   previous=result.pose;state=result.nextState;
  }
  return F({id:c.id,accepted:reason===null,reason,
   checkedFrames:examined,
-  firstRejectedFrame:reason===null?null:examined+1,
+  firstRejectedFrame,
   maximumBendRadians:peakBend,
   maxJointStep:peakStep,maxRotationRadians:peakRotation,
   predictedHeadX:state.temporalState.v07sState.pose.points[0].x,

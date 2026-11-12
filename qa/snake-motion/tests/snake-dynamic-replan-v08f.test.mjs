@@ -58,6 +58,8 @@ for(let i=0;i<95;i++){
 
 import {pauseAndReplanSnakeV08f,resumeReplannedSnakeV08f}
  from '../src/ohm-core/snake-dynamic-replan-v08f.mjs';
+import {inspectSnakeTemporalContinuityV08d}
+ from '../src/ohm-core/snake-temporal-continuity-v08d.mjs';
 const choices=[
  {id:'corrected',departure:{x:.1,y:-.025},turnRadians:.24},
  {id:'cautious',departure:{x:.1,y:-.05},turnRadians:.24},
@@ -80,14 +82,7 @@ for(let i=0;i<30;i++){
  relay=out.nextState;
 }
 const originalJSON=JSON.stringify(relay);
-const rock=createTerrariumSceneGeometryV03d({
- sceneId:scene.sceneId,
- objects:[...scene.objects,
-  {id:'new_obstacle',kind:'rock_overhang',
-   x:620,y:45,width:6,depth:6,height:120,transmissionPermille:0}]
-});
-// Preserve a real V0.3d scene version rather than fake current metadata;
-// replace creation with a V0.3d event on the SAME scene.
+// Insert a new solid source rock via real V0.3d revision event.
 const changed=applyTerrariumSceneGeometryV03dEvent(scene,{
  channel:'object',type:'upsert',object:{
   id:'new_obstacle',kind:'rock_overhang',
@@ -122,6 +117,33 @@ if(paused.ok){
  assert.ok(resumed.maxJointStep<.012);
  assert.ok(resumed.maximumBendRadians<.65);
  assert.equal(resumed.skinApplied,false);
+ // Verify that an actual run after the explicit resume follows the
+ // full preflight horizon without reusing stale scene geometry or
+ // violating max bend, speed, acceleration, floor or head safety.
+ let after=resumed.resumeState;
+ let previous=resumed.pose;
+ let laterPeakBend=resumed.maximumBendRadians;
+ for(let frame=2;frame<=60;frame++){
+  const step=advanceSnakeCurvatureRelayV07u(after,{
+   scene:changed,terrain,seconds:1/30
+  });
+  assert.equal(step.ok,true,'replanned physical step '+frame);
+  const check=inspectSnakeTemporalContinuityV08d({
+   previousPose:previous,pose:step.pose
+  });
+  assert.ok(check.visualBendAccepted,'replanned step '+frame+' bend');
+  assert.ok(check.maxJointStep<.012,'replanned step '+frame+' jump');
+  laterPeakBend=Math.max(laterPeakBend,check.maximumBendRadians);
+  previous=step.pose;after=step.nextState;
+ }
+ assert.equal(after.frames,90,
+  '30 prior steps + 60 new-scene steps must stay the same animal');
+ assert.equal(JSON.stringify(previous),JSON.stringify(
+  after.temporalState.v07sState.pose));
+ assert.ok(Math.abs(laterPeakBend-
+  paused.trials[paused.chosenIndex].maximumBendRadians)<1e-8,
+  'actual resumed run must agree with 60-frame candidate preview');
+ console.log('PASS V0.8F actual resumed 60-frame trace: full preflight path verified');
  const second=resumeReplannedSnakeV08f({
   paused,scene:changed,terrain
  });
@@ -144,6 +166,38 @@ if(paused.ok){
  assert.equal(stale.ok,false);
  assert.equal(stale.reason,'source_scene_changed_again_replan_required');
  assert.equal(stale.pose,null);
+}
+// Source rock placed directly on top of the current moving snake:
+// it is physically impossible to claim this is a collision-free stop.
+// Return no renderable pose and do not teleport the chain away.
+const overlapping=applyTerrariumSceneGeometryV03dEvent(scene,{
+ channel:'object',type:'upsert',object:{
+  id:'obstacle_on_body',kind:'rock_overhang',
+  x:575,y:30,width:20,depth:18,height:120,transmissionPermille:0
+ }
+});
+const emergency=pauseAndReplanSnakeV08f({
+ relayState:relay,scene:overlapping,terrain,candidates:choices
+});
+console.log('OHM V0.8F in-place collision '+JSON.stringify({
+ ok:emergency.ok,reason:emergency.reason,phase:emergency.phase
+}));
+assert.equal(emergency.ok,false);
+assert.ok(emergency.reason.startsWith('source_pose_now_blocked_'));
+assert.equal(emergency.pose,null,
+ 'a snake already overlapping the new rock must not fake a safe visual');
+assert.equal(emergency.resumeState,null);
+assert.equal(emergency.bodyMoved,false);
+// Reusing an approved route against an altered heightfield is equally
+// forbidden, even when the room's V0.3d rock revision is unchanged.
+if(paused.ok){
+ const staleTerrain=resumeReplannedSnakeV08f({
+  paused,scene:changed,
+  terrain:Object.freeze({groundZ:.03,rock:null,perch:null})
+ });
+ assert.equal(staleTerrain.ok,false);
+ assert.equal(staleTerrain.reason,'source_scene_changed_again_replan_required');
+ assert.equal(staleTerrain.pose,null);
 }
 const unchanged=pauseAndReplanSnakeV08f({
  relayState:relay,scene,terrain,candidates:choices
