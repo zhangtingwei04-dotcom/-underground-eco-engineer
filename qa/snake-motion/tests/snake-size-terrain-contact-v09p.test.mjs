@@ -54,10 +54,6 @@ import {inspectSnakeSizeMotionFrameV09o,
 import {planSnakeHeadingReturnV09l}
  from '../src/ohm-core/snake-heading-turn-v09l.mjs';
 
-import {inspectSnakeSizeMotionFrameV09o}
- from '../src/ohm-core/snake-size-motion-preflight-v09o.mjs';
-import {planSnakeHeadingReturnV09l}
- from '../src/ohm-core/snake-heading-turn-v09l.mjs';
 
 import {solveSnakeSizeTerrainContactV09p,
  inspectSnakeSizeTerrainTransitionV09p,
