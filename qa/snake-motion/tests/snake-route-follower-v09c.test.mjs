@@ -190,7 +190,17 @@ console.log('V0.9C physical return diagnostic '+JSON.stringify({
  head:roundtrip.lastHeadFloor??null
 }));
 assert.ok(sawReturn,'attempted actual reverse route, not only XY graph');
-assert.ok(['return_head_arrived','stopped','moving_return'].includes(roundtrip.phase));
+assert.equal(roundtrip.phase,'return_head_arrived',
+ 'the long running source proof must actually bring the head back near origin');
+assert.ok(roundtrip.verifiedFrames>=600,
+ 'return requires real 24-joint continuous simulation, no teleport');
+assert.ok(Math.hypot(
+  snakeFloorToTerrariumV07c(roundtrip.pose.points[0]).x-head.x,
+  snakeFloorToTerrariumV07c(roundtrip.pose.points[0]).y-head.y
+ )<=9,'head actual source geometry must be near initial floor position');
+assert.equal(roundtrip.pose.points.length,24);
+assert.equal(roundtrip.fullBodyReturnVerified,false,
+ 'a source-checked route does not imply verified self-contact/full mechanics');
 if(roundtrip.phase==='return_head_arrived'){
  assert.equal(roundtrip.completedReturn,true);
  assert.equal(roundtrip.verifiedArrivalHeadOnly,true);
