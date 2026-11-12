@@ -168,7 +168,12 @@ export function advanceSnakeRouteFollowerV09c({
    });
   return frozenState({...state,phase:'moving_return',
    completedOutbound:true,route:F(back.path),
-   status:'return_route_xy_recomputed_24_joint_source_follow_required'});
+   // A reversal near the top/bottom glass needs an *inward* U-turn.
+   // This chooses a direction only; the canonical source collider is
+   // still required to authorize every intermediate 24-joint step.
+   returnTurnSign:now.y<=200?1:-1,
+   returnTurnCommitted:true,
+   status:'return_route_xy_recomputed_inward_turn_source_check_required'});
  }
  const target=followPoint(state.route,now,30);
  if(!target||target.nearestPathDistancePixels>65)
@@ -184,8 +189,18 @@ export function advanceSnakeRouteFollowerV09c({
  if(speed<.01||speed>.5)
   return staticStop('invalid_source_velocity',{actorId:state.actorId});
  const current=Math.atan2(old.y,old.x);
- const next=current+clamp(angleDelta(desired,current),
-  -MAX_TURN_PER_FRAME,MAX_TURN_PER_FRAME);
+ // During the first half of a U-turn, the shortest mathematical
+ // angle may point OUT of the terrarium through the glass. Continue an
+ // interior-facing arc until the source heading faces roughly backward,
+ // then follow the route with ordinary bounded feedback. This is a
+ // cautious steering preference, not an exemption from source collision.
+ const forcingInward=state.phase==='moving_return'&&
+  state.returnTurnCommitted===true&&Math.cos(current)>-.15;
+ const delta=forcingInward?
+  state.returnTurnSign*MAX_TURN_PER_FRAME:
+  clamp(angleDelta(desired,current),
+   -MAX_TURN_PER_FRAME,MAX_TURN_PER_FRAME);
+ const next=current+delta;
  const controlled=F({...state.relayState,
   sourceDeparture:F({x:speed*Math.cos(next),y:speed*Math.sin(next)}),
   turnRadians:0
@@ -207,6 +222,7 @@ export function advanceSnakeRouteFollowerV09c({
   relayState:step.nextState,pose:step.pose,
   verifiedFrames:state.verifiedFrames+1,
   stepCountAfterStart:state.stepCountAfterStart+1,
+  returnTurnCommitted:forcingInward,
   lastHeadFloor:snakeFloorToTerrariumV07c(step.pose.points[0]),
   maximumBendLastFrame:quality.maximumBendRadians,
   maximumStepLastFrame:quality.maxJointStep,
