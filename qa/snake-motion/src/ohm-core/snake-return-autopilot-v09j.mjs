@@ -24,6 +24,9 @@ import {chooseSnakeGoalReturnV09k}
  from './snake-goal-return-selection-v09k.mjs';
 import {planSnakeHeadingReturnV09l}
  from './snake-heading-turn-v09l.mjs';
+import {inspectSnakeWholeBodyGoalV09m,
+ planSnakeWholeBodyReturnV09m}
+ from './snake-whole-body-goal-v09m.mjs';
 
 export const SNAKE_RETURN_AUTOPILOT_V09J_VERSION='0.9J';
 const F=Object.freeze;
@@ -81,7 +84,7 @@ function validateConfig({
   maximumHeadDistanceToHomePx>600||
   !finite(seconds)||seconds<=0||seconds>.05||
   !['legacy_nearest_head','goal_revisit_v09k',
-    'configuration_turn_v09l'].includes(routeSelectionMode))
+    'configuration_turn_v09l','whole_body_goal_v09m'].includes(routeSelectionMode))
   throw new RangeError('v09j_invalid_controller_source_or_config');
 }
 export function startSnakeReturnAutopilotV09j({
@@ -177,7 +180,14 @@ export function advanceSnakeReturnAutopilotV09j({
   // arcs are candidate STAGING only, never a second animal body.
   const visited=F([...state.visitedHeadFloors,
    state.body.head].slice(-20));
-  const configuration=state.routeSelectionMode==='configuration_turn_v09l'?
+  const wholeBodyPlan=state.routeSelectionMode==='whole_body_goal_v09m'?
+   planSnakeWholeBodyReturnV09m({
+    source:state.source,scene,terrain,visitedHeadFloors:visited,
+    horizonFrames:state.previewHorizonFrames,
+    seconds:state.seconds
+   }):null;
+  const configuration=wholeBodyPlan?wholeBodyPlan.basePlanV09l:
+   state.routeSelectionMode==='configuration_turn_v09l'?
    planSnakeHeadingReturnV09l({
     source:state.source,scene,terrain,visitedHeadFloors:visited,
     horizonFrames:state.previewHorizonFrames,seconds:state.seconds
@@ -193,11 +203,14 @@ export function advanceSnakeReturnAutopilotV09j({
     chooseSnakeGoalReturnV09k({
      source:state.source,scene,planned,visitedHeadFloors:visited
     }):null;
-  const selectedId=configuration?configuration.selectedId:
+  const selectedId=wholeBodyPlan?wholeBodyPlan.selectedId:
+   configuration?configuration.selectedId:
    ranked?ranked.selectedId:planned.selectedCandidateId;
-  const selectedRoute=configuration?configuration.selectedRoute:
+  const selectedRoute=wholeBodyPlan?wholeBodyPlan.selectedRoute:
+   configuration?configuration.selectedRoute:
    ranked?ranked.selectedRoute:planned.selectedRoute;
-  const selectionOk=configuration?configuration.ok:
+  const selectionOk=wholeBodyPlan?wholeBodyPlan.ok:
+   configuration?configuration.ok:
    ranked?ranked.ok:planned.ok;
   const log=F({sourceFrame:state.source.verifiedFrames,
    selectedId,
@@ -213,11 +226,14 @@ export function advanceSnakeReturnAutopilotV09j({
    goalRankedCandidates:ranked?.candidateScores??null,
    headingPlanStatus:configuration?.status??null,
    sourceArcCandidates:configuration?.candidates.length??null,
-   sourceTurnNeckMismatch:configuration?.neckMismatchRadians??null});
+   sourceTurnNeckMismatch:configuration?.neckMismatchRadians??null,
+   wholeBodyRankStatus:wholeBodyPlan?.status??null,
+   wholeBodyCandidateRanks:wholeBodyPlan?.candidateScores??null
+  });
   const history=F([...state.detourHistory,log]);
   if(!selectionOk)
    return stop({...state,detourHistory:history},
-    'resting_no_safe_detour',configuration?.status??ranked?.status??planned.status);
+    'resting_no_safe_detour',wholeBodyPlan?.status??configuration?.status??ranked?.status??planned.status);
   current=F({...state,
    source:F({...state.source,route:selectedRoute,
     returnTurnCommitted:false}),
@@ -241,6 +257,12 @@ export function advanceSnakeReturnAutopilotV09j({
    'v09c_v09d_v09g_step_rejected',
    {lastRejectedReason:step.reason??step.phase});
  const body=measurements(step);
+ // V0.9M's all-body destination audit is diagnostic only; no gameplay
+ // arrival or relaxation of source collision is authorized.
+ const bodyGoalAudit=current.routeSelectionMode==='whole_body_goal_v09m'?
+  inspectSnakeWholeBodyGoalV09m({
+   pose:step.pose,scene,goalFloor:step.startFloor
+  }):null;
  if(body.headToHomePx>state.maximumHeadDistanceToHomePx)
   return stop(current,'resting_far_from_home',
    'next_source_step_outside_return_bounds',
@@ -253,6 +275,7 @@ export function advanceSnakeReturnAutopilotV09j({
   bestTailDistanceToHomePx:Math.min(
    current.bestTailDistanceToHomePx,body.tailToHomePx),
   changedSourcePose:true,
+  wholeBodyGoalAudit:bodyGoalAudit,
   sourceJointsRewritten:false,
   allowedGameplayMotion:false,
   fullBodyReturnVerified:false,saveModified:false,skinApplied:false});
