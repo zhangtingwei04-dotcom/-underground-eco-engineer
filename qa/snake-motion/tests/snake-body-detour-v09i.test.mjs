@@ -161,7 +161,7 @@ if(preview.ok){
  // is a valid safety outcome; future motion was NEVER authorized by
  // the original 160-frame lookahead.
  let extra=0,ending=actual,reason=null,endingPhase=actual.phase;
- while(extra<280&&ending.phase==='moving_return'){
+ while(extra<700&&ending.phase==='moving_return'){
   const next=advanceSnakeRouteWithTurnSpaceGuardV09g({
    state:ending,scene,terrain,seconds:1/30
   });
@@ -182,7 +182,11 @@ if(preview.ok){
   replayFrames:checkedRealSteps,extraAcceptedFrames:extra,
   lastRealSourceFrame:ending.verifiedFrames,
   endingPhase,stopReason:reason,
-  replayHeadFloor:finalHead
+  replayHeadFloor:finalHead,
+  lastHeadFloor:snakeFloorToTerrariumV07c(ending.pose.points[0]),
+  headDistanceToHomePixels:Math.hypot(
+   snakeFloorToTerrariumV07c(ending.pose.points[0]).x-state.startFloor.x,
+   snakeFloorToTerrariumV07c(ending.pose.points[0]).y-state.startFloor.y)
  });
 }
 
