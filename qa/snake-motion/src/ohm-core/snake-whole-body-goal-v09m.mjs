@@ -29,7 +29,9 @@ const d=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 const isPoint=q=>q&&finite(q.x)&&finite(q.y)&&
  q.x>=0&&q.x<=1000&&q.y>=0&&q.y<=400;
 const validRadius=r=>finite(r)&&r>=35&&r<=240;
-const validMargin=m=>finite(m)&&m>=3&&m<=30;
+// Source bodyRadius=.13 world units, V0.7C floor scale=.008 =>
+// 16.25px maximum source-radius proxy. Never under-clear that envelope.
+const validMargin=m=>finite(m)&&m>=17&&m<=30;
 
 function segmentIntersectsRectangle(a,b,x0,y0,x1,y1){
  // Continuous XY slab intersection, including endpoints/boundaries.
@@ -71,7 +73,7 @@ function sceneFootprintClear(joints,scene,padding){
  */
 export function inspectSnakeWholeBodyGoalV09m({
  pose,scene,goalFloor,goalRadiusPixels=160,
- bodyPaddingPixels=12
+ bodyPaddingPixels=18
 }={}){
  if(!isPoint(goalFloor)||!validRadius(goalRadiusPixels)||
   !validMargin(bodyPaddingPixels)||
@@ -136,7 +138,7 @@ export function inspectSnakeWholeBodyGoalV09m({
  */
 export function chooseSnakeWholeBodyReturnV09m({
  source,scene,basePlanV09l,
- goalRadiusPixels=160,bodyPaddingPixels=12
+ goalRadiusPixels=160,bodyPaddingPixels=18
 }={}){
  if(source?.version!=='0.9C'||
   source.phase!=='moving_return'||
@@ -227,7 +229,7 @@ export function chooseSnakeWholeBodyReturnV09m({
 export function planSnakeWholeBodyReturnV09m({
  source,scene,terrain,visitedHeadFloors=[],
  horizonFrames=120,goalRadiusPixels=160,
- bodyPaddingPixels=12,seconds=1/30
+ bodyPaddingPixels=18,seconds=1/30
 }={}){
  const base=planSnakeHeadingReturnV09l({
   source,scene,terrain,visitedHeadFloors,
