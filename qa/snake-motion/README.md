@@ -39,3 +39,7 @@ The public-only [V1.1 pattern surface adapter](PATTERN_SURFACE_BIND_V11_20261112
 ## V0.9A — Neutral autonomous intent with source-checked short movement
 
 [Engineering report](V09A_PUBLIC_AUTONOMY_20261112.md) and `snake-autonomous-intent-v09a.mjs` connect ecology availability and need-driven shelter/explore/rest ranking to the **real source-backed V0.8E 24-joint short movement preview**. A second test executes the actual 60-frame movement from the same source, reports *segment completion only*, and rejects changed scenes or blocked moves. **No pathfinding, safe return, true destination arrival, observed journal, player save, painted skin, private character or game integration is claimed.**
+
+## V0.9B — scene-derived grid path, two-way XY check and real short-segment preview
+
+New [V0.9B engineering report](V09B_PUBLIC_SCENE_DERIVED_AUTONOMY_20261112.md) covers `snake-scene-route-v09b.mjs`: derived V0.3d AABB grid route and reverse route, unreachable/inside-rock approach, non-authored heading candidates, then V0.9A/V0.8E 24-joint short physical movement gate. [Five-job Actions run 43242734864](https://github.com/zhangtingwei04-dotcom/-underground-eco-engineer/actions/runs/43242734864) is green. **2D graph return ≠ demonstrated full-body 3D return; short movement ≠ site arrival.** No new dedicated visual-motion browser QA, game integration or skin.
