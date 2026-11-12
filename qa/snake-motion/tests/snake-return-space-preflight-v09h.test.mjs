@@ -78,14 +78,19 @@ assert.ok(transition,'must start from actual source-verified return transition')
 const stateSnapshot=JSON.stringify(transition);
 const sourceSnapshot=JSON.stringify({scene,terrain,wall});
 const preflight=preflightSnakeReturnSpaceV09h({
- state:transition,scene,terrain,horizonFrames:90
+ state:transition,scene,terrain,horizonFrames:160
 });
 assert.equal(preflight.version,'0.9H');
 assert.equal(preflight.candidates.length,2);
 assert.deepEqual(preflight.candidates.map(x=>x.sign),[1,-1]);
-assert.equal(preflight.previewHorizonFrames,90);
+assert.equal(preflight.previewHorizonFrames,160);
 assert.equal(preflight.sourceFrameAtStart,transition.verifiedFrames);
 assert.equal(preflight.actuallyMovedSource,false);
+assert.equal(typeof preflight.distinctSteeringProven,'boolean');
+if(preflight.comparedHeadSeparationPixels!==null){
+ assert.equal(preflight.distinctSteeringProven,
+  preflight.comparedHeadSeparationPixels>=4);
+}
 assert.equal(preflight.alternateRouteFound,false);
 assert.equal(preflight.fullBodyReturnCertified,false);
 assert.equal(preflight.meshSurfaceSweepCertified,false);
@@ -93,7 +98,7 @@ assert.equal(preflight.skinApplied,false);
 assert.equal(preflight.saveModified,false);
 for(const v of preflight.candidates){
  assert.ok(v.previewFrameCount>=0&&v.previewFrameCount<=90);
- assert.ok(v.sourceFrameAtEnd<=transition.verifiedFrames+90);
+ assert.ok(v.sourceFrameAtEnd<=transition.verifiedFrames+160);
  assert.equal(v.sourceHeadAndBonesUnchangedByPreflight,true);
  assert.equal(v.fullBodyReturnCertified,false);
  if(v.safeForOneCandidateStep)
@@ -108,13 +113,13 @@ if(preflight.selectedSign!==null)
  assert.ok(preflight.candidates.some(x=>x.sign===preflight.selectedSign&&
   x.safeForOneCandidateStep));
 assert.deepEqual(preflight,preflightSnakeReturnSpaceV09h({
- state:transition,scene,terrain,horizonFrames:90
+ state:transition,scene,terrain,horizonFrames:160
 }),'preflight must be deterministic and replayable');
 assert.equal(JSON.stringify(transition),stateSnapshot);
 assert.equal(JSON.stringify({scene,terrain,wall}),sourceSnapshot);
 
 const committed=advanceSnakeReturnWithPreflightV09h({
- state:transition,scene,terrain,horizonFrames:90
+ state:transition,scene,terrain,horizonFrames:160
 });
 if(preflight.ok){
  assert.equal(committed.phase,'moving_return');
@@ -152,8 +157,11 @@ assert.equal(JSON.stringify(transition),stateSnapshot);
 console.log('PASS V0.9H: real 24-joint return, two shadow steering directions, immutable source, no false route '+JSON.stringify({
  returnSourceFrame:transition.verifiedFrames,
  selectedSign:preflight.selectedSign,
+ distinctSteeringProven:preflight.distinctSteeringProven,
+ comparedHeadSeparationPixels:preflight.comparedHeadSeparationPixels,
  candidates:preflight.candidates.map(x=>({
   sign:x.sign,frames:x.previewFrameCount,
+  endHead:x.previewEndHeadFloor,
   endSourceFrame:x.sourceFrameAtEnd,outcome:x.outcome,
   reason:x.reason,minGap:x.minimumSourceCapsuleGap
  })),
