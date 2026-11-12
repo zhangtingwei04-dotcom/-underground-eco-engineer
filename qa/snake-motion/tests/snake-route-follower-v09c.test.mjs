@@ -162,4 +162,43 @@ const noSites=startSnakeRouteFollowerV09c({
 assert.equal(noSites.phase,'stopped');
 assert.equal(noSites.reason,'no_authorized_initial_segment');
 assert.equal(noSites.renderablePose,null);
+
+// The return attempt is REAL continuous source frames, never a 2D graph
+// masquerading as proof that a 24-joint snake can U-turn or self-clear.
+let roundtrip=startSnakeRouteFollowerV09c({...opts,autoReturn:true});
+let sawReturn=false,returnSteps=0;
+for(;returnSteps<650;returnSteps++){
+ if(roundtrip.phase==='return_head_arrived'||roundtrip.phase==='stopped')break;
+ const next=advanceSnakeRouteFollowerV09c({
+  state:roundtrip,scene,terrain
+ });
+ if(next.phase==='moving_return')sawReturn=true;
+ if(next.phase==='stopped'){
+  roundtrip=next;
+  break;
+ }
+ assert.equal(next.pose.points.length,24);
+ assert.equal(next.fullBodyReturnVerified,false);
+ assert.equal(next.playerObservationRecorded,false);
+ assert.equal(next.skinApplied,false);
+ roundtrip=next;
+}
+console.log('V0.9C physical return diagnostic '+JSON.stringify({
+ phase:roundtrip.phase,returnSteps,sawReturn,
+ verifiedFrames:roundtrip.verifiedFrames??null,
+ reason:roundtrip.reason??null,
+ head:roundtrip.lastHeadFloor??null
+}));
+assert.ok(sawReturn,'attempted actual reverse route, not only XY graph');
+assert.ok(['return_head_arrived','stopped','moving_return'].includes(roundtrip.phase));
+if(roundtrip.phase==='return_head_arrived'){
+ assert.equal(roundtrip.completedReturn,true);
+ assert.equal(roundtrip.verifiedArrivalHeadOnly,true);
+ assert.equal(roundtrip.fullBodyReturnVerified,false,
+  'no self-contact ground-truth physics, even if head gets back');
+}else{
+ assert.notEqual(roundtrip.completedReturn,true,
+  'unsafe or incomplete real return cannot be marked completed');
+}
+
 console.log('PASS V0.9C 24-joint continuation with safe frame checks, fail-closed source change V0.8F probe, no fake site observation or physical return claim');
