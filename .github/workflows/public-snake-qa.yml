@@ -19,7 +19,7 @@ concurrency:
 
 jobs:
   snake-motion-unit:
-    name: Snake source-backed regression suite
+    name: Snake and terrarium source-backed regression suite
     runs-on: ubuntu-latest
     timeout-minutes: 10
     defaults:
@@ -33,13 +33,13 @@ jobs:
       - name: Parse mirrored geometry sources and tests
         run: |
           set -euo pipefail
-          for source in src/ohm-core/*.mjs tests/snake-*.test.mjs; do
+          for source in src/ohm-core/*.mjs tests/snake-*.test.mjs tests/terrarium-*.test.mjs; do
             node --check "$source"
           done
       - name: Execute exact copied V0.7-V0.8A snake unit tests
         run: |
           set -euo pipefail
-          for spec in tests/snake-*.test.mjs; do
+          for spec in tests/snake-*.test.mjs tests/terrarium-*.test.mjs; do
             echo "::group::$spec"
             node "$spec"
             echo "::endgroup::"
