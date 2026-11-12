@@ -215,6 +215,45 @@ if(preview.ok){
    adaptive600.replayedThroughFrame=sample.verifiedFrames;
    adaptive600.headAt760=snakeFloorToTerrariumV07c(
     sample.pose.points[0]);
+   // Second adaptive stage: investigate whether renewed scene/body-aware
+   // staging can continue beyond source frame 760. Never invent success.
+   const fresh760=planSnakeBodyDetourV09i({
+    state:sample,scene,terrain,horizonFrames:160
+   });
+   adaptive600.at760= {
+    ok:fresh760.ok,selected:fresh760.selectedCandidateId,
+    candidates:fresh760.candidates.map(x=>({
+     id:x.id,accepted:x.accepted,frames:x.checkedSourceFrames,
+     reason:x.reason,geometry:x.stagingGeometryClear
+    }))
+   };
+   const picked760=fresh760.candidates.find(
+    x=>x.id===fresh760.selectedCandidateId);
+   if(fresh760.ok&&picked760?.result==='preview_horizon_passed'){
+    const first=advanceSnakeBodyDetourV09i({
+     state:sample,scene,terrain,horizonFrames:160
+    });
+    assert.equal(first.phase,'moving_return');
+    let second=first;
+    for(let k=1;k<160;k++){
+     const next=advanceSnakeRouteWithTurnSpaceGuardV09g({
+      state:second,scene,terrain
+     });
+     assert.equal(next.phase,'moving_return');
+     assert.equal(next.verifiedFrames,second.verifiedFrames+1);
+     second=next;
+    }
+    assert.equal(second.verifiedFrames,920);
+    assert.equal(second.fullBodyReturnVerified,false);
+    assert.equal(second.skinApplied,false);
+    const actualHead=snakeFloorToTerrariumV07c(
+     second.pose.points[0]);
+    assert.ok(Math.hypot(
+     actualHead.x-picked760.lastHeadFloor.x,
+     actualHead.y-picked760.lastHeadFloor.y)<1e-7);
+    adaptive600.at760.replayedThroughFrame=920;
+    adaptive600.at760.headAt920=actualHead;
+   }
   }
  }
  replaySummary=F({
