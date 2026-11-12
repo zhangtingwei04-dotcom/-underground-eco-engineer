@@ -119,6 +119,26 @@ assert.equal(deceptive.tailInside,false);
 assert.equal(deceptive.jointInsideCount<24,true);
 assert.equal(deceptive.eligible2DCenterline,false);
 assert.equal(deceptive.fullBodyReturnVerified,false);
+// All 24 joints can lie in the goal disk but still run THROUGH
+// source-owned solid stone. Centerline occupancy alone is insufficient.
+const rockCrossingPose=F({...straightPose,
+ points:F(straightPose.points.map(q=>F({...q,y:-1.24})))
+});
+const rockCrossing=inspectSnakeWholeBodyGoalV09m({
+ pose:rockCrossingPose,scene,goalFloor:{x:500,y:45},
+ goalRadiusPixels:170,bodyPaddingPixels:18
+});
+assert.equal(rockCrossing.jointInsideCount,24);
+assert.equal(rockCrossing.headInside,true);
+assert.equal(rockCrossing.tailInside,true);
+assert.equal(rockCrossing.bodyCenterlineInDisk,true);
+assert.equal(rockCrossing.staticSourceSceneXYClear,false);
+assert.equal(rockCrossing.eligible2DCenterline,false);
+assert.equal(rockCrossing.fullBodyReturnVerified,false);
+assert.throws(()=>inspectSnakeWholeBodyGoalV09m({
+ pose:straightPose,scene,goalFloor:{x:500,y:200},
+ bodyPaddingPixels:8
+}),RangeError,'cannot shrink below full source body radius');
 assert.throws(()=>inspectSnakeWholeBodyGoalV09m({
  pose:straightPose,scene,goalFloor:{x:500,y:200},
  goalRadiusPixels:20
@@ -276,6 +296,7 @@ const summary=x=>({
 console.log('PASS V0.9M all-24-joint goal arrival audit and genuine bounded source return comparison '+
  JSON.stringify({
  headOnlyCounterexample:deceptive.jointInsideCount,
+ all24ButThroughRockRejected:!rockCrossing.eligible2DCenterline,
  stationaryAll24Goal2DCandidate:whole.eligible2DCenterline,
  stationaryActualCompletion:whole.fullBodyReturnVerified,
  firstHeadingChoice:baselineHeadingPlan.selectedId,
