@@ -28,7 +28,7 @@
 ## 專屬真實 Chrome 的證據
 
 - 首輪 Chrome 實際 run：[43250150485](https://github.com/zhangtingwei04-dotcom/-underground-eco-engineer/actions/runs/43250150485)，**6/6 工作通過**。專屬 V0.9D job 的兩個視窗，每個在 60、160、410、692 幀成功擷取 PNG，真實 Canvas hash 四種不同；第 692 幀可見 **22 組**候選重疊，且兩個 viewport 的原始 Canvas 資料一致。
-- 完成安全預覽後的最新 Actions 應另依 main 最新 workflow run 確認；驗收時不得把首輪的綠燈當新安全模式驗收。新工作在安全模式另核對 `safe.frame < firstUnsafeFrame`、`safe.overlap===0`，證明預設影片不播放未批准影格。
+- **正式新安全模式驗收**：[GitHub Actions #43251191613](https://github.com/zhangtingwei04-dotcom/-underground-eco-engineer/actions/runs/43251191613)，**6/6 jobs success**（含 Noto CJK 字型與實際 Chrome 截圖）。兩個橫式視窗均驗證：要求播放第 692 幀時，預設畫面只播放至第 **530** 幀，第一個不安全候選在第 **531** 幀，`safe.overlap===0`。工程網址額外加 `?unsafe=1` 才顯示第 692 幀的 22 組候選接觸；測試保存 8 張問題診斷及 2 張安全預覽圖片。這是**自撞預防的工程護欄**，不是已完成真正自然折返。
 - Chrome PNG 目前是**工程除錯證據**，不是正式遊戲美術；實際畫面曾出現明顯繞身與不自然的回頭，不能因瀏覽器測試成功就稱為最終畫面合格。
 
 ## 需要解決的真正根因與接下來的研究
