@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>OHM V0.9D — 自主透明蛇往返／自我接觸工程觀察</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui,-apple-system,Arial,sans-serif;background:#101d1c;color:#e2ede8}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(155deg,#102421,#172826 60%,#1e302a);min-height:100vh}
+main{max-width:1550px;margin:auto;padding:15px 18px}header{display:flex;align-items:baseline;justify-content:space-between;gap:15px;flex-wrap:wrap}
+h1{font-size:19px;font-weight:600;letter-spacing:.01em;margin:3px 0}small,p{color:#a9c4ba}p{margin:4px 0 12px;font-size:12px}
+.stage{background:#243630;border:1px solid #54776e;border-radius:13px;overflow:hidden;box-shadow:0 15px 42px #05110c70}
+canvas{display:block;width:100%;aspect-ratio:16/9;touch-action:none}
+.controls{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:12px 0}
+button{color:#e9f5ef;border:1px solid #7c9e8d;border-radius:9px;padding:8px 15px;background:#29443c;cursor:pointer}
+input[type=range]{flex:1;min-width:120px;accent-color:#b7dbc7}
+.info{display:flex;flex-wrap:wrap;gap:9px;font-size:12px}
+.info span{background:#1e3530;border:1px solid #466658;border-radius:6px;padding:5px 8px}
+a{color:#cbf4dc}#status{font-variant-numeric:tabular-nums}footer{padding:12px 0;font-size:11px;color:#9ab9ad}
+</style>
+</head>
+<body data-qa-v09d="loading">
+<main>
+<header><h1>歐姆工程觀察｜透明蛇自主移動 V0.9D</h1><small>中立合成生物 · 非正式美術 · 非真實動物數據</small></header>
+<p>來源骨架逐幀移動，播放去程、轉彎、折返。紅色標記表示候選自我接觸風險，不代表已實測的實體穿透。</p>
+<div class="stage"><canvas id="stage" width="1440" height="810" aria-label="透明蛇路線與源頭骨架動態"></canvas></div>
+<div class="controls">
+<button id="toggle" type="button">播放</button>
+<input id="timeline" type="range" min="0" max="0" value="0" aria-label="選擇驗證影格"/>
+<output id="frame">—</output>
+</div>
+<div class="info"><span id="status">建立來源動畫…</span><span id="geometry">24 節 source 骨架</span><span id="clearance">自我接觸檢查中</span><span id="scope">未完成網格表面與肌肉物理驗證</span></div>
+<footer>畫面是來源資料的 2.5D 工程投影，非最終像素風；不含皮膚、NPC、存檔或《雨世界》資產。</footer>
+</main>
+<script type="module">
+import {createTerrariumSceneGeometryV03d}
+ from './src/ohm-core/terrarium-scene-geometry-v03d.mjs';
+import {createSnakeWallProbeV07p,advanceSnakeWallProbeV07p}
+ from './src/ohm-core/snake-wall-probe-v07p.mjs';
+import {snakeFloorToTerrariumV07c}
+ from './src/ohm-core/snake-terrarium-corridor-v07c.mjs';
+import {startSnakeRouteFollowerV09c,advanceSnakeRouteFollowerV09c}
+ from './src/ohm-core/snake-route-follower-v09c.mjs';
+import {inspectSnakeSelfClearanceV09d}
+ from './src/ohm-core/snake-self-clearance-v09d.mjs';
+import {snakeSlimFactorV07y}
+ from './src/ohm-core/snake-slender-volume-v07y.mjs';
+import {projectSnakeFrontGlassPointV07g}
+ from './src/ohm-core/snake-front-glass-projection-v07g.mjs';
+
+const $=x=>document.getElementById(x),F=Object.freeze;
+const canvas=$('stage'),ctx=canvas.getContext('2d',{willReadFrequently:true});
+const scene=createTerrariumSceneGeometryV03d({
+ sceneId:'v09d_chrome_neutral_lab',
+ objects:[
+  {id:'left_stone',kind:'rock_overhang',x:42,y:32,
+   width:134,depth:76,height:230,transmissionPermille:0},
+  {id:'rear_stone',kind:'rock_overhang',x:390,y:10,
+   width:108,depth:70,height:190,transmissionPermille:0},
+  {id:'right_stone',kind:'rock_overhang',x:836,y:30,
+   width:105,depth:80,height:245,transmissionPermille:0}
+ ]
+});
+const terrain=F({groundZ:0,rock:null,perch:null});
+const samples=[];
+let timer=null,frameIndex=0;
+function rgba(c,a){return 'rgba('+c+','+a+')'}
+function rect(x,y,w,h,fill){
+ ctx.fillStyle=fill;ctx.fillRect(x,y,w,h);
+}
+function xyFloor(p){return {x:68+p.x*1.304,y:500+p.y*.43}}
+function drawScene(){
+ const sky=ctx.createLinearGradient(0,0,0,810);
+ sky.addColorStop(0,'#0c201e');sky.addColorStop(.48,'#23433a');
+ sky.addColorStop(1,'#385347');rect(0,0,1440,810,sky);
+ for(let i=0;i<14;i++){
+  const x=(i*157+60)%1440,y=65+(i*59)%250;
+  ctx.fillStyle='rgba(160,206,179,.035)';
+  ctx.beginPath();ctx.ellipse(x,y,65+(i%3)*25,180,0,0,Math.PI*2);ctx.fill();
+ }
+ const surface=ctx.createLinearGradient(0,500,0,810);
+ surface.addColorStop(0,'#46584a');surface.addColorStop(1,'#192e2a');
+ rect(38,500,1364,292,surface);
+ for(let i=0;i<50;i++){
+  const x=60+(i*97)%1310,y=510+(i*31)%262;
+  ctx.strokeStyle=i%4===0?'#536c52':'#354e3c';
+  ctx.lineWidth=2+(i%4);
+  ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+8,y-2-(i%4)*2);ctx.stroke();
+ }
+ ctx.strokeStyle='#748d7f';ctx.lineWidth=12;
+ ctx.strokeRect(42,32,1356,742);
+ for(const o of scene.objects){
+  const base=xyFloor({x:o.x,y:o.y});
+  const w=o.width*1.304,d=o.depth*.43;
+  const h=Math.min(160,o.height*.52);
+  const g=ctx.createLinearGradient(base.x,base.y-h,base.x+w,base.y+d);
+  g.addColorStop(0,'#475c51');g.addColorStop(1,'#263d35');
+  ctx.fillStyle=g;
+  ctx.beginPath();ctx.moveTo(base.x,base.y+12);
+  ctx.lineTo(base.x+5,base.y-h);ctx.lineTo(base.x+w*.86,base.y-h+10);
+  ctx.lineTo(base.x+w,base.y+d);ctx.closePath();ctx.fill();
+  ctx.strokeStyle='#6b8175';ctx.lineWidth=2;ctx.stroke();
+ }
+ ctx.strokeStyle='rgba(129,189,169,.25)';ctx.lineWidth=2;
+ for(let i=0;i<19;i++){
+  const x=70+i*70,y=498+Math.sin(i*2.1)*7;
+  ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-7,y-11);
+  ctx.lineTo(x+2,y-18);ctx.stroke();
+ }
+ ctx.strokeStyle='rgba(210,243,226,.17)';ctx.lineWidth=1;
+ for(let i=0;i<10;i++){
+  ctx.beginPath();ctx.moveTo(48,32+i*2);
+  ctx.lineTo(1388,32+i*2);ctx.stroke();
+ }
+}
+function strokePath(a,b,w,col){
+ ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);
+ ctx.strokeStyle=col;ctx.lineWidth=w;ctx.lineCap='round';ctx.stroke();
+}
+function drawSnake(pose,diag){
+ const points=pose.points.map(projectSnakeFrontGlassPointV07g);
+ for(let i=0;i<points.length-1;i++){
+  const radiusScale=snakeSlimFactorV07y((i+.5)/23);
+  const w=25*radiusScale;
+  strokePath(points[i],points[i+1],w+2,'rgba(9,28,28,.8)');
+  strokePath(points[i],points[i+1],w,'rgba(135,215,206,.38)');
+  strokePath(points[i],points[i+1],Math.max(2,w*.12),'rgba(209,246,227,.66)');
+ }
+ const h=points[0];
+ ctx.save();ctx.translate(h.x,h.y);ctx.fillStyle='rgba(174,240,223,.42)';
+ ctx.strokeStyle='rgba(228,252,239,.7)';ctx.lineWidth=2;
+ ctx.beginPath();ctx.ellipse(0,0,19,11,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+ ctx.restore();
+ if(diag.candidateOverlaps.length){
+  ctx.strokeStyle='#f2ab76';ctx.lineWidth=3;
+  for(const o of diag.candidateOverlaps.slice(0,8)){
+   const a=points[o.boneA],b=points[o.boneB];
+   strokePath(a,b,2,'rgba(241,121,82,.6)');
+   ctx.beginPath();ctx.arc((a.x+b.x)/2,(a.y+b.y)/2,5,0,Math.PI*2);ctx.stroke();
+  }
+ }
+ ctx.fillStyle='rgba(217,248,235,.95)';ctx.font='17px system-ui';
+ ctx.fillText('骨架 24 節 · 2.5D 真實來源投影',76,86);
+ const fraction=(frameIndex/(samples.length-1));
+ ctx.fillStyle='#a7d0bd';ctx.fillText('去程  →  箱內轉彎  →  折返',76,118);
+ ctx.fillStyle='#d1e9d9';ctx.font='14px system-ui';
+ ctx.fillText('進度 '+Math.round(fraction*100)+'%',1210,92);
+}
+function hashCanvas(){
+ const a=ctx.getImageData(0,0,1440,810).data;
+ let h=2166136261>>>0,diff=0;
+ for(let i=0;i<a.length;i+=233){
+  h=Math.imul(h^a[i],16777619)>>>0;
+  if(a[i]>105&&a[i+1]>120&&a[i+2]>110)diff++;
+ }
+ return {hash:h,pixels:diff};
+}
+function show(index){
+ frameIndex=Math.max(0,Math.min(samples.length-1,index));
+ const sample=samples[frameIndex];
+ drawScene();drawSnake(sample.pose,sample.diagnostic);
+ const audit=hashCanvas(),q=sample.diagnostic;
+ $('frame').textContent=sample.frame+'／'+samples.at(-1).frame+' 幀';
+ $('timeline').value=String(frameIndex);
+ $('status').textContent='來源 '+sample.phase+' · '+sample.frame+' 幀';
+ $('clearance').textContent='候選最小間隙 '+q.minimumCapsuleGap.toFixed(4)+
+  ' · 風險對 '+q.candidateOverlapCount;
+ document.body.dataset.qaV09d='pass';
+ document.body.dataset.qaFrame=String(sample.frame);
+ document.body.dataset.qaBones=String(sample.pose.points.length);
+ document.body.dataset.qaOverlap=String(q.candidateOverlapCount);
+ document.body.dataset.qaVerifiedFrames=String(samples.at(-1).frame);
+ document.body.dataset.qaPixels=String(audit.pixels);
+ document.body.dataset.qaHash=String(audit.hash);
+ document.body.dataset.qaPhase=sample.phase;
+}
+function stop(){if(timer!==null){clearInterval(timer);timer=null}
+ $('toggle').textContent='播放'}
+function play(){
+ stop();$('toggle').textContent='暫停';
+ timer=setInterval(()=>{
+  if(frameIndex>=samples.length-1){stop();return}
+  show(frameIndex+1)
+ },33);
+}
+$('toggle').onclick=()=>timer===null?play():stop();
+$('timeline').oninput=e=>{stop();show(Number(e.target.value))};
+try{
+ const pts=[];
+ for(let i=0;i<=6;i++)pts.push(F({x:.65,y:-1.32+i*.19,z:.135}));
+ for(const degree of [90,120,150,180,210,240]){
+  const a=degree*Math.PI/180,p=pts.at(-1);
+  pts.push(F({x:p.x+Math.cos(a)*.19,y:p.y+Math.sin(a)*.19,z:.135}));
+ }
+ const base=F({version:'0.7P_source_pose',points:F(pts),
+  segmentLength:.19,bodyRadius:.13});
+ let wall=createSnakeWallProbeV07p({
+  scene,terrain,basePose:base,pivotIndex:6,
+  maxPitch:.36,wall:'rear',speciesId:'generic_snake'
+ });
+ for(let i=0;i<95;i++){
+  const v=advanceSnakeWallProbeV07p(wall,{
+   scene,terrain,seconds:1/30,maxJointSpeed:.75
+  });
+  if(!v.renderable)throw Error('source wall rejection at '+i);
+  wall=v.nextState;
+ }
+ const head=snakeFloorToTerrariumV07c(wall.pose.points[0]);
+ const ecologySnapshot={revision:scene.revision,sites:[
+  {id:'hide_a',kind:'hide',safe:true,reachable:true,
+   distanceCost:.1,conditions:{hasCover:true}}
+ ]};
+ const state=startSnakeRouteFollowerV09c({
+  actorId:'anonymous_v09d',scene,terrain,wallState:wall,
+  ecologySnapshot,needs:{security:1,activity:0},
+  siteFloors:{hide_a:{x:head.x+70,y:head.y}},autoReturn:true
+ });
+ if(state.phase!=='moving_outbound'||state.verifiedFrames!==60)
+  throw Error('source initial route not authorized');
+ let s=state;
+ samples.push({frame:60,phase:s.phase,pose:s.pose,
+  diagnostic:inspectSnakeSelfClearanceV09d({pose:s.pose})});
+ for(let i=0;i<650;i++){
+  if(s.phase==='return_head_arrived')break;
+  s=advanceSnakeRouteFollowerV09c({state:s,scene,terrain});
+  if(s.phase==='stopped')throw Error('unsafe_source_motion_'+s.reason);
+  samples.push({frame:s.verifiedFrames,phase:s.phase,pose:s.pose,
+   diagnostic:inspectSnakeSelfClearanceV09d({pose:s.pose})});
+ }
+ if(s.phase!=='return_head_arrived'||s.verifiedFrames<600)
+  throw Error('source_head_never_safely_returned');
+ $('timeline').max=String(samples.length-1);
+ const desired=Number(new URLSearchParams(location.search).get('frame'));
+ const idx=Number.isFinite(desired)?samples.findIndex(s=>s.frame>=desired):0;
+ show(idx>=0?idx:samples.length-1);
+ window.ohmQaV09d={frames:samples.length,sourceVerifiedFrames:s.verifiedFrames,
+  initialHead:head,finalHead:snakeFloorToTerrariumV07c(s.pose.points[0]),
+  candidateOverlapFrames:samples.filter(s=>
+   s.diagnostic.candidateOverlapCount>0).length,
+  fullSurfaceCollisionCertified:false,skinApplied:false};
+}catch(error){
+ document.body.dataset.qaV09d='fail';
+ $('status').textContent=String(error?.stack??error);
+ console.error(error);
+}
+</script>
+</body>
+</html>
