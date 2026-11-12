@@ -128,6 +128,9 @@ for(;loop<580;loop++){
 assert.equal(returnSeen,true,'the test must actually reach return steering');
 assert.ok(hold,'must hold instead of displaying the known unsafe final coil');
 assert.equal(hold.renderablePose,null);
+if(hold.phase==='turn_space_hold')assert.ok(
+ hold.diagnostic.tightWindows.some(w=>w.startLink<=2),
+ 'a legacy tail-only curl must not block a newly steered head');
 assert.equal(hold.fullBodyReturnVerified,false);
 assert.ok(state.verifiedFrames<=530,
  'guard should not admit the previously known 531-frame failure');
