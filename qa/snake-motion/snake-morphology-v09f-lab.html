@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="zh-Hant"><head><meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>歐姆透明蛇 V0.9F — 頭頸、軀幹、尾部靜態輪廓驗證</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui,-apple-system,'Noto Sans CJK TC',sans-serif;background:#111c19;color:#e8f1ec}
+body{margin:0}main{max-width:1500px;margin:auto;padding:13px 20px}
+h1{font-size:20px;margin:0 0 8px;font-weight:600}
+p{font-size:12px;margin:0 0 12px;color:#acc6ba}
+canvas{width:100%;height:auto;border-radius:12px;border:1px solid #56776c;display:block}
+footer{font-size:12px;color:#9db7a9;padding:10px 0}
+@media (max-height:520px) and (orientation:landscape){
+ main{padding:3px 6px}h1{font-size:13px;margin:0 0 3px}p,footer{display:none}
+ canvas{width:auto;max-width:100%;height:calc(100vh - 31px);margin:auto}
+}
+</style></head>
+<body data-qa-v09f="loading"><main>
+<h1>歐姆蛇類透明外形研究 V0.9F｜靜態輪廓先行</h1>
+<p>原創中立測試生物；保持 24 節原始骨架，調整頭型、纖細頸部、軀幹曲線、漸細尾巴。未加外皮，未通過正式碰撞或美術驗收。</p>
+<canvas id="stage" width="1440" height="810"></canvas>
+<footer>僅檢查透明 3D 候選輪廓；未啟用動態、肌肉／支撐物理、真實物種參數或遊戲玩家存檔。</footer>
+</main>
+<script type="module">
+import {buildNeutralSnakeTransparentMorphologyV09f}
+ from './src/ohm-core/snake-transparent-morphology-v09f.mjs';
+const F=Object.freeze,L=2.28/23;
+const styles=[
+ {id:'straight',label:'舒展：頭頸與尾部漸細',sub:'24 節骨架原位保留'},
+ {id:'s_curve',label:'緩 S 曲線：平滑身形',sub:'不拉長骨節或新增外皮'},
+ {id:'turn',label:'轉向：檢查輪廓厚度',sub:'轉向只是靜態姿態，不是動態合格'}
+];
+function poseFor(style){
+ let x=1.15,y=-.4;
+ const points=[F({x,y,z:.13})];
+ for(let i=1;i<24;i++){
+  const theta=style==='straight'?0:
+   style==='s_curve'?.28*Math.sin(i*.35):i*.055;
+  x-=L*Math.cos(theta);y+=L*Math.sin(theta);
+  points.push(F({x,y,z:.13}));
+ }
+ return F({segmentLength:L,bodyRadius:.13,points:F(points)});
+}
+const meshes=styles.map(st=>
+ buildNeutralSnakeTransparentMorphologyV09f({pose:poseFor(st.id)}));
+const canvas=document.getElementById('stage'),ctx=canvas.getContext('2d');
+const back=ctx.createLinearGradient(0,0,0,810);
+back.addColorStop(0,'#0d2523');back.addColorStop(1,'#294238');
+ctx.fillStyle=back;ctx.fillRect(0,0,1440,810);
+let maxAnchorDrift=0;
+function pathPolygon(points){if(!points.length)return;
+ ctx.moveTo(points[0].x,points[0].y);
+ for(let i=1;i<points.length;i++)ctx.lineTo(points[i].x,points[i].y);
+ ctx.closePath();
+}
+function bounds(mesh){
+ const a=[...mesh.bodyProjection.outline,...mesh.headProjection.outline];
+ return {minX:Math.min(...a.map(v=>v.x)),maxX:Math.max(...a.map(v=>v.x)),
+  minY:Math.min(...a.map(v=>v.y)),maxY:Math.max(...a.map(v=>v.y))};
+}
+function drawOne(i){
+ const mesh=meshes[i],st=styles[i],x=32+i*470,y=83,w=438,h=646;
+ ctx.fillStyle='rgba(14,42,38,.76)';
+ ctx.strokeStyle='rgba(119,181,154,.52)';ctx.lineWidth=1.5;
+ ctx.beginPath();ctx.roundRect(x,y,w,h,12);ctx.fill();ctx.stroke();
+ ctx.fillStyle='#cfeada';ctx.font='21px system-ui';
+ ctx.fillText(st.label,x+14,y+40);
+ ctx.fillStyle='#91baa8';ctx.font='14px system-ui';
+ ctx.fillText(st.sub,x+14,y+66);
+ const box=bounds(mesh),marg=24;
+ const scale=Math.min((w-2*marg)/(box.maxX-box.minX),
+  (h-170)/(box.maxY-box.minY));
+ // Every source pose retains its 3D front-glass projection: only the
+ // presentation card uses a deterministic translation/scale, never pose.
+ const offsetX=x+w*.5-(box.minX+box.maxX)*.5*scale;
+ const offsetY=y+360-(box.minY+box.maxY)*.5*scale;
+ ctx.save();ctx.translate(offsetX,offsetY);ctx.scale(scale,scale);
+ ctx.beginPath();
+ pathPolygon(mesh.bodyProjection.outline);
+ pathPolygon(mesh.headProjection.outline);
+ ctx.fillStyle='rgba(135,223,205,.39)';ctx.fill('nonzero');
+ // A translucent, continuous midline is a debug cue, not a painted skin.
+ const centers=mesh.bodyProjection.centers2d;
+ ctx.beginPath();ctx.moveTo(centers[0].x,centers[0].y);
+ for(let i=1;i<centers.length;i++)ctx.lineTo(centers[i].x,centers[i].y);
+ ctx.lineWidth=.6/scale;ctx.strokeStyle='rgba(231,251,236,.43)';ctx.stroke();
+ ctx.restore();
+ ctx.font='15px system-ui';ctx.fillStyle='#b4d8c7';
+ ctx.fillText('頭部輪廓  ·  頸部漸細  ·  軀幹自然  ·  尾端收細',x+14,y+h-50);
+ ctx.fillStyle='#80ad99';ctx.font='13px system-ui';
+ ctx.fillText('候選外形：尚非可碰撞的正式生物模型',x+14,y+h-25);
+ maxAnchorDrift=Math.max(maxAnchorDrift,mesh.maximumSourceAnchorDrift);
+}
+meshes.forEach((_,i)=>drawOne(i));
+const data=ctx.getImageData(0,0,1440,810).data;
+let h=2166136261>>>0,nonempty=0;
+for(let i=0;i<data.length;i+=127){h=Math.imul(h^data[i],16777619)>>>0;
+ if(data[i]>100&&data[i+1]>110&&data[i+2]>100)nonempty++;}
+window.ohmQaV09f=Object.freeze({
+ staticOnly:true,meshCount:meshes.length,headRings:meshes[0].headRingCount,
+ bodyRings:meshes[0].bodyRingCount,sourceJoints:24,
+ skinApplied:false,sourceAnchorsUnchanged:maxAnchorDrift<1e-7,
+ sourceNewMeshCollisionCertified:false,
+ sourceDynamicValidated:false,bodyTailRatio:
+  meshes[0].tailTipRadius/meshes[0].midBodyRadius,
+ canvasHash:h,nonempty
+});
+document.body.dataset.qaV09f='pass';
+document.body.dataset.qaHash=String(h);
+document.body.dataset.qaNoSkin='true';
+document.body.dataset.qaStatic='true';
+</script></body></html>
