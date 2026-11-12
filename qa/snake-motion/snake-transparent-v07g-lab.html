@@ -672,7 +672,7 @@ function drawContinuousTransparentRig(frame,showNodes){
  }
  ctx.restore();
 }
-let state,neckState,lastGroundYaw,shown,currentPose,currentHead,frameNum,qaPassed,qaFailed,playing=true,nodes=false,terrainVisible=false,wallMode=false,wallSession=null,handoffMode=false,handoffSession=null,handoffFrames=0,headLedMode=false,headLedSession=null,relayMode=false,relaySession=null,lastRelayFrame=null,ghostMode=false,sculptMode=false,neckFollowMode=false,slenderMode=false,clearanceMode=false,unifiedAlphaMode=false,stop=false,acc=0;
+let state,neckState,lastGroundYaw,shown,currentPose,currentHead,frameNum,qaPassed,qaFailed,playing=true,nodes=false,terrainVisible=false,wallMode=false,wallSession=null,handoffMode=false,handoffSession=null,handoffFrames=0,headLedMode=false,headLedSession=null,correctedDepartureMode=false,relayMode=false,relaySession=null,lastRelayFrame=null,ghostMode=false,sculptMode=false,neckFollowMode=false,slenderMode=false,clearanceMode=false,unifiedAlphaMode=false,stop=false,acc=0;
 function reset(){
  if(!slenderMode||!clearanceMode)unifiedAlphaMode=false;
  by('opacityUnion').setAttribute('aria-pressed',String(unifiedAlphaMode));
@@ -701,7 +701,8 @@ function runStep(advance=true){
      wallSession.seconds>=3.1-1e-8){
    const ready=prepareSnakeGroundHandoffV07s({
     wallState:wallSession,scene,terrain,
-    targetJointCount:24,departure:{x:.1,y:.025},
+    targetJointCount:24,
+    departure:correctedDepartureMode?{x:.1,y:-.025}:{x:.1,y:.025},
     speciesId:'generic_snake'
    });
    if(!ready.ok){
@@ -993,6 +994,8 @@ function draw(){
   ghostFrame?.headDisplayScale??0);
  document.body.dataset.qaV07vCollarRings=String(
   ghostFrame?.collarRingCount??0);
+ document.body.dataset.qaV08cMode=String(correctedDepartureMode);
+ document.body.dataset.qaV08cDepartureY=String(handoffSession?.departure.y??0);
  document.body.dataset.qaV07uMode=String(relayMode);
  document.body.dataset.qaV07uRelay=String(
   relayMode&&relaySession?.version==='0.7U'&&
@@ -1378,6 +1381,8 @@ by('volumeClearance').addEventListener('click',()=>{
 });
 const testParams=new URLSearchParams(location.search);
 relayMode=testParams.has('qa_v07g')&&testParams.has('qa_v07u');
+// Public-only V0.8C experimental head departure; historical V0.7U remains default.
+correctedDepartureMode=relayMode&&testParams.has('qa_v08c');
 unifiedAlphaMode=testParams.has('qa_v07g')&&
  testParams.has('qa_v08a')&&(testParams.has('qa_v07p')||relayMode);
 clearanceMode=testParams.has('qa_v07g')&&

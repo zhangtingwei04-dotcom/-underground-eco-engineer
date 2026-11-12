@@ -200,6 +200,8 @@ const expression='(()=>{'+
  'ghostMode:d.qaV07vMode,ghost:d.qaV07vHeadColliderIdentity,'+
  'ghostShift:Number(d.qaV07vShellShift),ghostRatio:Number(d.qaV07vHeadRatio),'+
  'ghostScale:Number(d.qaV07vHeadScale),ghostCollar:Number(d.qaV07vCollarRings),'+
+ 'correctedMode:d.qaV08cMode,'+
+ 'departureY:Number(d.qaV08cDepartureY),'+
  'relayMode:d.qaV07uMode,relay:d.qaV07uRelay,'+
  'relayTurn:Number(d.qaV07uTurn),relayBend:Number(d.qaV07uFrontBend),'+
  'relayFirstHead:Number(d.qaV07uFirstHeadBend),'+
@@ -316,6 +318,11 @@ async function visit(cdp,url,view,debug,probe='off',ghost=false,sculpt=false,nec
   view.name+' Chrome simulation unfinished ('+probe+'): '+JSON.stringify(state));
  assert.equal(state.probeMode,probe==='off'?'false':'true',
   'near-glass probe must be EXPLICITLY opt-in');
+ const expectedV08c=url.includes('qa_v08c=1');
+ assert.equal(state.correctedMode,expectedV08c?'true':'false',
+  view.name+' experimental V0.8C must be explicit');
+ if(expectedV08c)assert.equal(state.departureY,-.025,
+  view.name+' 3D head departure must point slightly towards front glass');
  assert.equal(state.opacityMode,opacity?'true':'false',
    view.name+' V0.8A explicit opt-in');
   if(opacity){assert.equal(state.opacityOnePass,'true');assert.equal(state.opacityPaintPasses,1);}
@@ -571,42 +578,42 @@ try{
     view,false,'handoff');
    const temporal=await visit(cdp,baseUrl+'&qa_v07t=1',
     view,false,'temporal');
-   const relay=await visit(cdp,baseUrl+'&qa_v07u=1',
+   const relay=await visit(cdp,baseUrl+'&qa_v07u=1&qa_v08c=1',
     view,false,'relay');
    const ghostHold=await visit(cdp,baseUrl+
     '&qa_v07p=1&qa_v07p_hold=1&qa_v07v=1',
     view,false,'hold',true);
-   const ghostRelay=await visit(cdp,baseUrl+'&qa_v07u=1&qa_v07v=1',
+   const ghostRelay=await visit(cdp,baseUrl+'&qa_v07u=1&qa_v08c=1&qa_v07v=1',
     view,false,'relay',true);
    const sculptHold=await visit(cdp,baseUrl+
     '&qa_v07p=1&qa_v07p_hold=1&qa_v07v=1&qa_v07w=1',
     view,false,'hold',true,true);
    const sculptRelay=await visit(cdp,baseUrl+
-    '&qa_v07u=1&qa_v07v=1&qa_v07w=1',
+    '&qa_v07u=1&qa_v08c=1&qa_v07v=1&qa_v07w=1',
     view,false,'relay',true,true);
    const followHold=await visit(cdp,baseUrl+
     '&qa_v07p=1&qa_v07p_hold=1&qa_v07v=1&qa_v07w=1&qa_v07x=1',
     view,false,'hold',true,true,true);
    const followRelay=await visit(cdp,baseUrl+
-    '&qa_v07u=1&qa_v07v=1&qa_v07w=1&qa_v07x=1',
+    '&qa_v07u=1&qa_v08c=1&qa_v07v=1&qa_v07w=1&qa_v07x=1',
     view,false,'relay',true,true,true);
    const slenderHold=await visit(cdp,baseUrl+
     '&qa_v07p=1&qa_v07p_hold=1&qa_v07y=1',
     view,false,'hold',true,true,true,true);
    const slenderRelay=await visit(cdp,baseUrl+
-    '&qa_v07u=1&qa_v07y=1',
+    '&qa_v07u=1&qa_v08c=1&qa_v07y=1',
     view,false,'relay',true,true,true,true);
    const clearanceHold=await visit(cdp,baseUrl+
     '&qa_v07p=1&qa_v07p_hold=1&qa_v07z=1',
     view,false,'hold',true,true,true,true,true);
    const clearanceRelay=await visit(cdp,baseUrl+
-    '&qa_v07u=1&qa_v07z=1',
+    '&qa_v07u=1&qa_v08c=1&qa_v07z=1',
     view,false,'relay',true,true,true,true,true);
    const unionHold=await visit(cdp,baseUrl+
      '&qa_v07p=1&qa_v07p_hold=1&qa_v08a=1',
      view,false,'hold',true,true,true,true,true,true);
     const unionRelay=await visit(cdp,baseUrl+
-     '&qa_v07u=1&qa_v08a=1',
+     '&qa_v07u=1&qa_v08c=1&qa_v08a=1',
      view,false,'relay',true,true,true,true,true,true);
     assert.notEqual(unionHold.glassDigest,clearanceHold.glassDigest,
      view.name+' V0.8A raised RGB must differ from old 3-pass');
