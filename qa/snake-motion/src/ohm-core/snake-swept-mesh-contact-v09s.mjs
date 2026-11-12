@@ -43,7 +43,8 @@ const min=(...n)=>Math.min(...n),max=(...n)=>Math.max(...n);
 const failure=(reason,detail=null)=>F({
  version:SNAKE_SWEPT_MESH_CONTACT_V09S_VERSION,
  ok:false,reason,detail,
- actualSourceFramesCommitted:0,sourcePoseChanged:false,
+ actualSourceFramesCommitted:0,sourceFramesCommitted:0,
+ sourcePoseChanged:false,
  exactContinuous3DSweepCertified:false,
  dynamicSizeAuthorityGranted:false,
  meshContactNotGameplayAuthorized:true,
