@@ -175,3 +175,37 @@ jobs:
           path: qa/snake-motion/.qa-artifacts/v08d/*.png
           retention-days: 3
           if-no-files-found: warn
+
+  snake-v09d-autonomy-chromium:
+    name: V0.9D real Chrome source-autonomy sequence, two landscape viewports
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    defaults:
+      run:
+        working-directory: qa/snake-motion
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Chrome
+        id: setup-chrome
+        uses: browser-actions/setup-chrome@v2
+        with:
+          chrome-version: stable
+      - name: Validate real 24-joint autonomy animation and raster frames in both landscapes
+        env:
+          OHM_REQUIRE_CHROME: '1'
+          OHM_CHROME_BIN: ${{ steps.setup-chrome.outputs.chrome-path }}
+          OHM_V09D_CAPTURE_DIR: '.qa-artifacts/v09d'
+        run: |
+          node --check tests/snake-autonomy-v09d-cdp-browser-qa.mjs
+          node tests/snake-autonomy-v09d-cdp-browser-qa.mjs
+      - name: Save V0.9D real Chrome source animations for engineering review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: public-snake-v09d-autonomous-sequence
+          path: qa/snake-motion/.qa-artifacts/v09d/*.png
+          retention-days: 7
+          if-no-files-found: warn
