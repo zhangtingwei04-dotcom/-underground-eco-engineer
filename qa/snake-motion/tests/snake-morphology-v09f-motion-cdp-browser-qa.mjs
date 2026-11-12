@@ -137,7 +137,7 @@ if(bin)try{
    let result=null;
    for(let attempts=0;attempts<200;attempts++){
     const raw=await cdp.send('Runtime.evaluate',{
-     expression:'(()=>{const d=document.body.dataset;return {'+
+     expression:'(()=>{if(!document.body)return{status:"loading"};const d=document.body.dataset;return {'+
       'status:d.qaV09d,frame:Number(d.qaFrame),'+
       'bones:Number(d.qaBones),pixels:Number(d.qaPixels),'+
       'hash:d.qaHash,overlap:Number(d.qaOverlap),'+
@@ -208,7 +208,7 @@ if(bin)try{
   let safe=null;
   for(let n=0;n<200;n++){
    const v=await cdp.send('Runtime.evaluate',{
-    expression:'(()=>{const d=document.body.dataset;return {'+
+    expression:'(()=>{if(!document.body)return{status:"loading"};const d=document.body.dataset;return {'+
      'status:d.qaV09d,frame:Number(d.qaFrame),'+
      'overlap:Number(d.qaOverlap),safeMode:d.qaSafeMode,'+
      'morph:d.qaMorph,'+
