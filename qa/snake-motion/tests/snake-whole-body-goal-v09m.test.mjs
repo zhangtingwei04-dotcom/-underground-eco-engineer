@@ -95,7 +95,7 @@ const straightPose=F({
 });
 const whole=inspectSnakeWholeBodyGoalV09m({
  pose:straightPose,scene,goalFloor:{x:500,y:200},
- goalRadiusPixels:160,bodyPaddingPixels:18
+ goalRadiusPixels:170,bodyPaddingPixels:18
 });
 assert.equal(whole.sourceJointCount,24);
 assert.equal(whole.sourceLinkCount,23);
@@ -112,7 +112,7 @@ assert.equal(whole.groundSupportCertified,false);
 assert.equal(whole.saveModified,false);
 const deceptive=inspectSnakeWholeBodyGoalV09m({
  pose:straightPose,scene,goalFloor:{x:620,y:200},
- goalRadiusPixels:160,bodyPaddingPixels:18
+ goalRadiusPixels:170,bodyPaddingPixels:18
 });
 assert.equal(deceptive.headInside,true);
 assert.equal(deceptive.tailInside,false);
