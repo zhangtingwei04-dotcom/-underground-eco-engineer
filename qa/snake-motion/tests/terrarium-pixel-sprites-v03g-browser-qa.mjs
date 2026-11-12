@@ -110,7 +110,9 @@ if(!browser){
   <\/script>`;
   const probeFile=path.join(temp,'v03h-landscape-qa.html');
   writeFileSync(probeFile,html.replace('</body>',probeJS+'</body>'),'utf8');
-  const probed=chrome(['--window-size=932,480','--dump-dom'],pathToFileURL(probeFile).href);
+  // Chrome 157 headless Linux reserves ~200 px of --window-size height.
+  // Request 680 so the actual document viewport is 932x480, not 932x280.
+  const probed=chrome(['--window-size=932,680','--dump-dom'],pathToFileURL(probeFile).href);
   assert.match(probed,/<body[^>]*data-qa-v03h="pass"/,'short landscape interactive observe/edit and visible dock');
   console.log('PASS V0.3h real Chromium short landscape: readable zone dock, read-only ecology, mode switches and CSS visibility.');
  }finally{rmSync(temp,{recursive:true,force:true});}
