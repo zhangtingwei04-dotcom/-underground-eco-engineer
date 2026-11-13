@@ -1,13 +1,13 @@
 import assert from 'node:assert/strict';
-import {buildWarmveinStaticHeadV11c,GAPE_POSES_V11D}
+import {buildWarmveinStaticHeadV11d,GAPE_POSES_V11D}
  from '../static-head/warmvein-static-anatomy-v11d.mjs';
-import {buildWarmveinStaticCoilV11c}
+import {buildWarmveinStaticCoilV11d}
  from '../static-head/warmvein-static-coil-v11d.mjs';
 assert.deepEqual(GAPE_POSES_V11D.map(p=>p.id),
  ['closed','slight','medium','wide']);
 let lastGap=-Infinity;
 for(const pose of GAPE_POSES_V11D){
- const h=buildWarmveinStaticHeadV11c({pose:pose.id});
+ const h=buildWarmveinStaticHeadV11d({pose:pose.id});
  assert.equal(h.version,'1.1D');
  assert.equal(h.pose,pose.id);
  assert.equal(h.gapeDegrees,pose.degrees);
@@ -44,7 +44,7 @@ for(const pose of GAPE_POSES_V11D){
  assert.equal(h.exactBiomechanicalJawModel,false);
  assert.ok(h.mouthGapAtMuzzleWorld>lastGap+.001);
  lastGap=h.mouthGapAtMuzzleWorld;
- const body=buildWarmveinStaticCoilV11c({mouth:pose.id});
+ const body=buildWarmveinStaticCoilV11d({mouth:pose.id});
  assert.equal(body.version,'1.1D-static-rest');
  assert.equal(body.headTriangleCount,h.triangleCount);
  assert.equal(body.bodyRingCount,121);
@@ -67,6 +67,6 @@ for(const pose of GAPE_POSES_V11D){
  assert.equal(body.jawVideoReferenceUsed,true);
  assert.equal(body.snoutReducedRelativeToV11C,true);
 }
-assert.throws(()=>buildWarmveinStaticHeadV11c({pose:'moving'}),RangeError);
-assert.throws(()=>buildWarmveinStaticCoilV11c({mouth:'none'}),RangeError);
+assert.throws(()=>buildWarmveinStaticHeadV11d({pose:'moving'}),RangeError);
+assert.throws(()=>buildWarmveinStaticCoilV11d({mouth:'none'}),RangeError);
 console.log('PASS static V1.1D: true curved 3D head and independent jaw surface, four gape poses, 121-ring coiled body, no planar centerline overlap, tapered tail, original motion/saves untouched');
