@@ -40,6 +40,10 @@ for(const pose of GAPE_POSES_V11E){
  assert.equal(h.continuousAnteriorChinBridge,true);
  assert.equal(h.insetOralBasin,true);
  assert.equal(h.noFlatMandibleBoards,true);
+ assert.equal(h.curvedVentralChinSkin,true);
+ assert.equal(h.noExposedBoneProngs,true);
+ assert.ok(h.materialTriangleCounts.curved_ventral_chin_skin>1200);
+
  assert.ok(h.materialTriangleCounts.left_mandible>2000);
  assert.ok(h.materialTriangleCounts.right_mandible>2000);
  assert.ok(h.materialTriangleCounts.anterior_chin_bridge>100);
