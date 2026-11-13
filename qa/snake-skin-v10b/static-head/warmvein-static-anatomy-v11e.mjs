@@ -159,6 +159,19 @@ export function buildWarmveinStaticHeadV11d({pose='closed'}={}){
   return rotateLower([x,u*w*.76,z-down*(.37+.14*(1-u*u))],
    radians,Math.sign(u));
  },6,16,P.jaw,'anterior_chin_bridge');
+ // Rounded VENTRAL MANDIBULAR SKIN: a soft half-ellipse wraps both
+ // independent jaw tubes from below. This fixes the bone-prong look
+ // seen in the first real V1.1E 32-view Chrome capture. Unlike the
+ // earlier giant red triangular sail, its material matches the jaw
+ // and the narrow oral basin remains recessed ABOVE this skin.
+ g.sheet((i,j)=>{
+  const x=jawXAt(i),[w,,down,z]=shapeAt(x);
+  const phi=Math.PI*j/16;
+  const y=w*.70*Math.cos(phi);
+  const underside=z-down*(.49+.19*Math.sin(phi));
+  return rotateLower([x,y,underside],radians,Math.sign(y));
+ },N,16,P.jaw,'curved_ventral_chin_skin');
+
  // Recessed upper palate and moving interior lower mouth floor.
  g.sheet((i,j)=>{
   const x=jawXAt(i),[w,,,z]=shapeAt(x),u=j/14*2-1;
@@ -207,7 +220,7 @@ export function buildWarmveinStaticHeadV11d({pose='closed'}={}){
  const smoothed=new Map();
  const smoothGroups=new Set(['cranial_vault','neck_volume','throat_chin',
   'left_mandible','right_mandible','anterior_chin_bridge',
-  'recessed_oral_basin']);
+  'curved_ventral_chin_skin','recessed_oral_basin']);
  for(let k=0;k<g.faceTags.length;k++){
   const group=g.faceTags[k];if(!smoothGroups.has(group))continue;
   const i=k*3,key=group+':'+g.vertices.slice(i,i+3)
@@ -269,6 +282,8 @@ export function buildWarmveinStaticHeadV11d({pose='closed'}={}){
   nonRigidMandibleDisplayBend:true,
   volumetricMandibleTube:true,
   continuousAnteriorChinBridge:true,
+  curvedVentralChinSkin:true,
+  noExposedBoneProngs:true,
   insetOralBasin:true,
   noFlatMandibleBoards:true,
   exactBiomechanicalJawModel:false,
