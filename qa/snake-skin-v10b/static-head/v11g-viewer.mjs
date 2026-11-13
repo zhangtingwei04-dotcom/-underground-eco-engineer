@@ -83,7 +83,7 @@ const loc={
 const buffers=F({
  pos:gl.createBuffer(),normal:gl.createBuffer(),color:gl.createBuffer()
 });
-let mesh=null,lastAudit=null,playing=false,raf=null,started=0;
+let mesh=null,lastAudit=null,playing=false,raf=null,started=0,lastFrameTime=-Infinity;
 const ANIMATION_DURATION_MS=3500;
 gl.enable(gl.DEPTH_TEST);
 gl.depthFunc(gl.LEQUAL);
@@ -139,7 +139,9 @@ function render(){
   vertexCount:mesh.vertexCount,triangleCount:mesh.triangleCount,
   mouthGapAtMuzzleWorld:mesh.mouthGapAtMuzzleWorld,
   surfaceGroups:mesh.materialTriangleCounts,
-  staticOnly:true,realWebGL2Drawn:true,
+  staticOnly:mesh.phase===null,
+  animationStudyOnly:mesh.phase!==null,
+  realWebGL2Drawn:true,
   coiledRestStaticMode:model==='coil',
   headBodyRootUnmoved:mesh.retainedBodyRoot,
   noProductionControllerTouched:mesh.disconnectedSourceSkeletonUnchanged,
@@ -156,7 +158,7 @@ function render(){
   '顎部相對開口 '+mesh.gapeDegrees.toFixed(1)+'°／整顆頭仰起 '+mesh.headPitchDegrees.toFixed(1)+'°／'+angles[angle].label+
   '／'+(model==='coil'?'全身盤繞':'頭部近景')+
   '｜真 WebGL2 '+mesh.triangleCount.toLocaleString()+
-  ' 三角面。這是獨立原創靜態模型，不是正式骨架、進食模擬或生態箱成品。';
+  ' 三角面。這是原創顯示用動作研究，並非正式骨架或經驗收的自然動作。';
  window.__warmveinStaticGapeQA=()=>lastAudit;
  window.__warmveinStaticV11gQA=()=>lastAudit;
 }
@@ -173,6 +175,8 @@ timelineEl.addEventListener('input',()=>{
 function animate(now){
  if(!playing)return;
  if(!started)started=now;
+ if(now-lastFrameTime<68){raf=requestAnimationFrame(animate);return;}
+ lastFrameTime=now;
  timelineModeEl.checked=true;
  const elapsed=(now-started)%ANIMATION_DURATION_MS;
  timelineEl.value=String(Math.round(elapsed/ANIMATION_DURATION_MS*100));
@@ -180,7 +184,7 @@ function animate(now){
  raf=requestAnimationFrame(animate);
 }
 playEl.addEventListener('click',()=>{
- playing=true;started=0;
+ playing=true;started=0;lastFrameTime=-Infinity;
  if(raf!==null)cancelAnimationFrame(raf);
  raf=requestAnimationFrame(animate);
 });
