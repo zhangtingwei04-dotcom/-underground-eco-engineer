@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>暖脈枝蛇｜V1.0T 深褐頭部與頸部金根脈 UV（公開實驗版）</title>
+<style>
+:root{color-scheme:dark;--paper:#e7d2a3;--outline:#603d28}
+*{box-sizing:border-box}body{margin:0;background:#191d18;color:#f1e3c9;font:16px/1.55 system-ui,-apple-system,"Noto Sans TC",sans-serif}
+main{max-width:1180px;margin:auto;padding:18px}
+h1{margin:0 0 4px;font-size:clamp(22px,3vw,32px);letter-spacing:.025em}
+.eyebrow{color:#cdb686;font-size:13px}
+.frame{border:9px solid #503d29;box-shadow:0 15px 55px #0008;border-radius:14px;overflow:hidden;background:#3f4932}
+.split-labels{position:absolute;z-index:2;top:9px;left:0;right:0;display:grid;grid-template-columns:1fr 1fr;pointer-events:none;gap:4px}
+.split-labels[hidden]{display:none!important}
+.split-labels span{margin:0 8px;padding:5px 8px;border-radius:5px;background:#1b221bce;border:1px solid #af9870b8;text-align:center;font-size:clamp(10px,1.7vw,15px);font-weight:700}
+.scene{position:relative;overflow:hidden;background:
+radial-gradient(ellipse at 80% 14%,#87784a7a,transparent 58%),
+linear-gradient(180deg,#46513a 0%,#465138 36%,#3c3428 36%,#282920 100%)}
+.scene:before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.25;
+background:repeating-linear-gradient(98deg,transparent 0 41px,#18170f 42px 44px,transparent 45px 83px)}
+canvas#view{position:relative;width:100%;height:auto;display:block;aspect-ratio:1100/600}
+.controls{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:14px;background:#242b22;border:1px solid #5b6248;border-radius:10px;margin:14px 0}
+button,select{font:inherit;border:1px solid #8c6d43;border-radius:8px;background:#523c27;color:#fff0d7;padding:9px 12px}
+input[type=checkbox]{accent-color:#d8a862;width:19px;height:19px;cursor:pointer}
+.controls label{font-size:14px}
+button{cursor:pointer}button:focus-visible,select:focus-visible{outline:3px solid #dcb765}
+label{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.status{background:#263326;border-left:3px solid #bea06b;padding:12px 16px;border-radius:5px;font-size:14px}
+small{color:#d1c6a5}a{color:#d6c189}
+.caveat{font-size:13px;color:#cdc1a9;line-height:1.7;margin:17px 0}
+.contact-audit,.uv-audit{margin:14px 0;border:1px solid #63573b;border-radius:10px;padding:10px 14px;background:#252d23}
+.contact-audit summary,.uv-audit summary{cursor:pointer;font-weight:650;color:#ebd49d}
+#contactPreview{width:100%;height:auto;display:block;margin:10px 0;image-rendering:pixelated;border:1px solid #8d7c55}
+#neckUVPreview{width:100%;height:auto;display:block;image-rendering:pixelated;border:1px solid #80734c;margin:10px 0}
+#atlasPreview{image-rendering:pixelated;display:block;width:min(100%,768px);height:auto;aspect-ratio:2/1;border:1px solid #8d7c55;margin:10px 0}
+.uv-audit small{font-size:13px}
+@media(max-width:700px){main{padding:10px}.controls{gap:8px}button,select{font-size:14px}}
+</style>
+</head>
+<body>
+<main>
+<div class="eyebrow">PUBLIC QA ・ PROJECT OHM ・ V1.0T HEAD/NECK TEXTURE QA</div>
+<h1>暖脈枝蛇｜V1.0T 頭頸貼皮修正＋V1.0R 大眼</h1>
+<p><small>真 V0.9T 24 節、V0.9U 頭身尾共 1,617 頂點、3,216 三角面，使用共用 UV。<strong>這是未定稿的開發驗證頁。</strong></small></p>
+<div class="frame"><div class="scene">
+<canvas id="view" width="1100" height="600" role="img" aria-label="暖脈枝蛇真實 24 節骨架 WebGL2 立體測試，可切換 V1.0Q 和 V1.0T 同幀並排比較"></canvas>
+<div class="split-labels" id="compareLabels" aria-hidden="true"><span>左｜原始透明身體</span><span>右｜V1.0H 修正版</span></div>
+</div></div>
+<p><small><strong>V1.0V 真 GPU 畫面留存：</strong>選擇 V1.0U Q／T 左右比較或單獨皮膚、選定體型並按「放大查看頭部／查看完整蛇身」，再按「儲存目前真 WebGL2 畫面 PNG」。瀏覽器會嘗試把當下已通過來源安全檢查的影格存到本機；程式從真正 WebGL2 畫布讀取像素、拒絕空白或左右其中一側缺失的影像。若 Safari 未完成下載，可使用手機原生截圖。本頁已公開的貼圖只在瀏覽器本機進行截圖處理，不會另行上傳；PNG 仍須人工檢視頭頸、背腹、眼睛與轉向，不代表手機性能或成品驗收。</small></p>
+<p><small><strong>V1.0T 外觀修復：</strong>舊 V1.0Q 前 20 欄仍為鮮橘色頭皮，與深褐身體突兀；新 V1.0T 只調整原 256×128 atlas 的前 56 欄，將頭部改為深褐／銅色細鱗、局部金根脈延伸，保留奶油腹鱗與獨立常開大眼。原 24 節骨架、已共用的頸環 UV、三角面與碰撞不改。可切換舊 V1.0Q 比較，或使用 V1.0U 同幀雙視窗，保持同一組頭型、大眼、骨架、相機與光照，只改左右的 Q／T 真實 WebGL 材質。這是材質與接線驗證，尚非經核實的真機 WebGL 截圖或正式美術成品。</small></p>
+<section class="controls" aria-label="開發測試切換">
+<label>顯示<select id="material">
+<option value="pixel-t" selected>V1.0T：深褐細鱗頭部＋連續金根脈（最新）</option>
+<option value="skin-compare">V1.0U：舊 Q／新 T 真 3D 同幀左右比較</option>
+<option value="pixel-q">V1.0Q：舊版鮮橘頭部（技術比較）</option>
+<option value="head-compare">V1.0R：左右比較原透明頭／修正頭</option>
+<option value="pixel-p">V1.0P：舊版粗像素材質（技術對照）</option>
+<option value="transparent-compare">V1.0I：左右同幀比較（透明蛇身）</option>
+<option value="transparent-h">V1.0H：修正透明蛇身（外觀候選）</option>
+<option value="pixel-g">V1.0G：原版橘紅皮（對照）</option>
+<option value="pixel-d">舊版 V1.0E：獨立深色圓眼（固定張眼）</option>
+<option value="pixel-c">舊版 V1.0C（貼圖眼對照）</option>
+<option value="pixel">舊版 V1.0B（貼圖眼對照）</option>
+<option value="transparent">原始透明蛇身（比較）</option>
+<option value="flat">素色形狀</option></select></label>
+<label>尺寸<select id="stage">
+<option value="0">幼體</option>
+<option value="1">成長中</option>
+<option value="2" selected>成體</option>
+<option value="3">大型成體</option></select></label>
+<label>轉向方向<select id="turn">
+<option value="-0.002">慢速左轉（測試）</option>
+<option value="0">直行</option>
+<option value="0.002" selected>慢速右轉（測試）</option>
+<option value="-0.006">V1.0L 向左漸轉（盤繞探索）</option>
+<option value="0.006">V1.0L 向右漸轉（盤繞探索）</option>
+<option value="-0.004">V1.0M 右轉後反向鬆開（向左）</option>
+<option value="0.004">V1.0M 左轉後反向鬆開（向右）</option>
+</select></label>
+<button id="step" type="button">安全前進一幀</button>
+<button id="play" type="button">連續預覽</button>
+<button id="restHold" type="button">保持目前姿勢休息</button>
+<button id="releaseTurn" type="button">反向舒展一步</button>
+<button id="releaseStraight" type="button">直行恢復一步</button>
+<button id="reverseReal" type="button">真正後退一步（V0.9Y）</button>
+<button id="reverseFlex" type="button">細微彎曲後退一步（V1.0O）</button>
+<button id="reverseFlexPlay" type="button">連續細微彎曲後退</button>
+<button id="reset" type="button">重置骨架</button>
+<button id="headFocus" type="button">放大查看頭部</button>
+<button id="capture" type="button">儲存目前真 WebGL2 畫面 PNG</button>
+</section>
+<details class="contact-audit" open>
+<summary>檢視蛇身接近平地、疑似重疊與上下關係（觀察資料）</summary>
+<canvas id="contactPreview" width="1100" height="90" role="img" aria-label="101個身體截面頭至尾的地面間隙分類圖，紅色代表穿透候選，綠色代表接近平面地表，橘色代表離地，細紅標記代表畫面投影接近"></canvas>
+<p id="contactSummary"><small>正在分析原始網格的 101 個截面…</small></p>
+<p><small>綠色：接近平地；橘色：離地候選；紅色：低於已知平地；頂部淡紅線：畫面上疑似接近其他身體段。這不是肌肉力、接觸力或真正盤繞成功的證明；只在測試用平坦地表檢查，其他地形仍須 V0.9S。</small></p>
+</details>
+<details class="uv-audit" open>
+<summary>V1.0S 頭頸 UV 連續性：原始頭環／共用頸環／身體首環</summary>
+<p><small>每一欄對應原 V0.9R/U 同一環向編號的真 UV 取色，三列依序為頭部末環、共用頸環、身體首環。此處一般顯示 V1.0T 真貼圖取色，選舊 Q 時才顯示 Q；Q／T 同幀模式以 T 作診斷基準。橘框表示頭末環到頸環的 RGB 色差較高，不代表碰撞錯誤。背紋和腹鱗方向也以實際網格 z 高低檢查；顏色差異屬美術警示，不會偷偷移動 UV 或增添頸部遮掩花紋。</small></p>
+<canvas id="neckUVPreview" width="1100" height="136" role="img" aria-label="16 個原始頭頸環向截面，依真正 256×128 UV atlas 每一區域取色的頭部末環、共用頸環、身體首環對照。"></canvas>
+<p id="neckUVSummary"><small>等待真實來源頭頸網格 UV 分析…</small></p>
+<p><small>V1.0S 是只讀診斷：會拒絕任何偷偷替換共用頸口、來源三角面或 UV 的畫面候選。手機 Safari／真 GPU 畫面及花紋自然度仍待驗收。</small></p>
+</details>
+<details class="uv-audit">
+<summary>檢視目前像素皮 UV 展開圖（新版鱗片、腹鱗、頭頸漸層）</summary>
+<p><small>左側是頭部、右側是尾部；上方靠近 1/4 是預設背面、靠近 3/4 是預設腹面。實際腹面朝向仍須在真機轉身時驗證。</small></p>
+<canvas id="atlasPreview" width="256" height="128" role="img" aria-label="選取皮膚的實際 128x64 或 256x128 原始像素 UV 展開圖"></canvas>
+</details>
+<div class="status" id="status" role="status">正在讀取同一組原始網格與 V1.0H 顯示副本，準備左右對照…</div>
+<p class="caveat">
+這個畫面直接從已有的 V0.9T/U 來源取得頂點、半徑與 UV，並用 WebGL 顯示 V1.0B／C 及已移除貼圖眼的 V1.0D 公開試驗材質；<strong>每次前進先通過 V0.9U 原有的有限時間接觸安全檢查</strong>。
+V1.0I 將**同一幀** V0.9T/U 原始網格同時放在左邊、V1.0H 透明修正網格放在右邊，兩邊共用體型、轉向、速度、安全步進與原碰撞殼，方便比較頭頸、身體收窄與尾部變化。V1.0J 另增加 101 個環狀截面的幾何連續性稽核：量測頭頸接縫、軀幹側寬比例、尾部比例及相鄰影格寬度比例是否跳動；不取代原 V0.9U 碰撞權威。V1.0K 只讀檢查原始網格的平地間隙、非鄰近身體段的畫面投影靠近、上下層候選；只提供是否值得仔細觀看的線索，不宣稱完成盤繞、上下爬越、摩擦或連續時間接觸安全。V1.0L 新增向左／向右的**實際來源漸轉探索**：每幀提出最多 0.006 弧度的轉向，由原 V0.9T/U 24 節骨架與三角面接觸安全檢查決定是否前進；若拒絕則停止，保留上一個安全姿勢。已通過的角度只代表真來源走出弧線，**不代表已完成盤繞、蛇身疊層或獲得真實摩擦支撐力**。V1.0M 加入「保持目前姿勢休息」：立即停止預覽，骨架、骨長、半徑、來源幀數都不變；「反向舒展一步」會根據前次已驗證的轉向方向提出保守**反方向轉彎**，再經原 V0.9T/U 與 V1.0F/J/K/L 逐幀安全檢查。「直行恢復一步」則從原姿勢向前直行測試。**反向轉彎並不是已實現的真正蛇身解盤、重疊解除或肌肉放鬆；休息也不會推進遊戲時間、成長或飢餓。** V1.0N 增加真正向後平移骨架的獨立測試，必須先按「保持目前姿勢休息」，再按「真正後退一步」；這次使用公開中立 V0.9Y 的**反向控制器和專用完整網格碰撞重播檢查**，絕不假借 V0.9U 的正向驗證。只有整個頭身尾來源影格通過，才更新右側與左側真網格對照。這也仍**不等於自然解盤、蛇身堆疊或腹鱗摩擦已完成**。V1.0O 在原 V0.9Y 後退控制器上增加**極小幅、隨真來源影格平順變化的轉角要求**，再經真正 V0.9Y 原骨架 replay 和 V0.9S 完整頭身網格接觸審核。新增逐節位移、頭尾位移差和彎曲角度變化的只讀量測，也可以連續觀察。它不是另外在顯示層畫波浪；但同樣**不能宣稱符合蛇類的肌肉推進或腹鱗摩擦，也未經 iPhone 真機驗收**。這是靜態相同影格的並排視覺對照，不代表真正的盤繞動畫或真實 Safari GPU 已驗收。本階段優先修正透明蛇身比例，V1.0G 像素皮維持可切換參考，不繼續增加皮膚細節。V1.0H 只在顯示用網格把局部環狀截面沿側向稍微收窄，頭頸共用環保持平順，腹側垂直半徑／來源長度、碰撞判定與玩家資料均不更動。**這是外觀候選，不是已完成的物理體型修正；原碰撞可能比看到的蛇身稍寬，尚不得導入正式玩家版。** 原 V1.0F 左右慢轉、逐幀 UV／地面間隙檢查持續存在。
+V1.0E 雙眼為獨立的深棕圓眼（細琥珀色外圈、微小反光），由原 V0.9R 頭部兩個表面錨點計算，依真實頭部半徑與幼體／成體微調相對眼睛比例，四種體型能使用同一份來源。現保持張開；眨眼功能依最新需求暫緩，不執行眼皮動畫，也不加骨節、碰撞體或更動玩家存檔。
+舊版 V1.0B／C 仍保留原先畫在 UV 的眼睛供對照，該兩個舊模式不另外疊上新眼睛，避免雙眼重影。
+<strong>科學區分：</strong>現實蛇沒有可動眼皮，不能眨眼（眼睛由透明眼鏡鱗保護）；本測試版也不啟用眨眼。
+外框與背景只是獨立預覽環境，不是正式生態箱、實體洞穴、真正蛇類肌肉物理或玩家存檔。若不安全會停止而非穿模。
+本頁直接使用同一公開儲存庫的中立 QA 骨架。已同意公開實驗版本 Q/T 貼圖；不包含正式遊戲與玩家存檔。
+</p>
+</main>
+<script type="module" src="./warmvein-v10b-test.mjs"></script>
+<p style="font-size:12px;opacity:.82;padding:12px 16px">V1.0R 以真正的 V0.9R/U 透明頭部八圈網格為來源，僅將局部頭部輪廓向原碰撞殼內微修、保留頭頸共用接縫，並把獨立常開的眼睛放大。點選「左右比較原透明頭／修正頭」和「放大查看頭部」可以對照；眼睛不眨眼。V1.0R 只修外觀，尚未修改真碰撞頭模或驗證 iPhone Safari。V1.0Q 已依最新確認的雙角度細緻鱗片參考，新增原創 256×128 UV 候選：深褐細密鱗片、較連續的金色分叉根脈、奶油腹鱗。前一張粗方塊 V1.0P 僅保留技術對照，不再作為美術目標。V1.0Q 仍需驗收背腹朝向、頭頸細節、整條蛇手機 WebGL2 實畫、轉身與盤繞；不是完成品。玉米蛇對應物種不加入日常直接倒退，後退按鈕僅供通用骨架研究。</p>
+</body>
+</html>
