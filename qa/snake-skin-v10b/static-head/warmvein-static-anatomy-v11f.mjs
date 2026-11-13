@@ -227,8 +227,12 @@ export function buildWarmveinStaticHeadV11f({pose='closed'}={}){
   const down=bodyHeight*(1-k)+endDown*k;
   const center=bodyZ*(1-k)+endCenterZ*k;
   const phi=S*j/NECK_RADIAL;
-  return [x,width*Math.cos(phi),
-   center+(Math.sin(phi)>=0?top:down)*Math.sin(phi)];
+  // Subtle S-shaped resting neck, with exact unchanged end rings.
+  const envelope=Math.sin(Math.PI*u)**2;
+  const offsetY=.016*envelope*Math.sin(2*Math.PI*u);
+  const offsetZ=.0045*envelope;
+  return [x,offsetY+width*Math.cos(phi),
+   center+offsetZ+(Math.sin(phi)>=0?top:down)*Math.sin(phi)];
  };
  g.sheet(neckAt,NECK_SEGMENTS,NECK_RADIAL,P.neck,'neck_volume',true);
  const neckBodyRoot=Array.from({length:NECK_RADIAL},(_,j)=>Object.freeze(neckAt(0,j)));
@@ -317,6 +321,8 @@ export function buildWarmveinStaticHeadV11f({pose='closed'}={}){
   curvedCheekThroatTransition:true,
   matchedNeckBodyRing44:true,
   smoothSharedNeckCrownNormals:true,
+  slightRestingNeckSCurve:true,
+  anchoredNeckBothEnds:true,
   physicallyCorrectedDorsalNormalDirection:true,
   neckBodyRoot:Object.freeze(neckBodyRoot),
   neckToHead:Object.freeze(neckToHead),
