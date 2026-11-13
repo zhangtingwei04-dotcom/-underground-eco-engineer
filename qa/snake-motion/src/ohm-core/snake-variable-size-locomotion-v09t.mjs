@@ -181,7 +181,7 @@ function frameAudit({points,radii,boneLengths,scene,terrain,
   terrainSamples,nonlocalBodyLinkPairs:190,
   static3DCapsuleProxyOnly:true,realForcesCertified:false});
 }
-function advanceSizedFollower(state,terrain,angle,seconds){
+function advanceSizedFollower(state,terrain,angle,seconds,direction=1){
  const old=state.pose.points,r=state.pose.radiiWorldUnits,
   lengths=state.pose.boneLengths;
  // Source head speed is a *synthetic engineering knob*. Different
@@ -189,8 +189,8 @@ function advanceSizedFollower(state,terrain,angle,seconds){
  // speed claim. Same input speed isolates size effect for tests.
  const speed=state.speedWorldPerSecond;
  const start=old[0];
- const nx=start.x+speed*seconds*Math.cos(angle),
-  ny=start.y+speed*seconds*Math.sin(angle);
+ const nx=start.x+direction*speed*seconds*Math.cos(angle),
+  ny=start.y+direction*speed*seconds*Math.sin(angle);
  const head=vec(nx,ny,sampleSnakeTerrain(nx,ny,terrain).z+
   r[0]+state.groundMarginWorld);
  const points=[head];
@@ -524,5 +524,97 @@ export function inspectSnakeRestSizeChangeSafetyV09v({
   intermediateFractions:fractions.length,
   sourceV09tFramesCommitted:0,
   exactContinuousMeshCollisionCertified:false,
+  gameSaveModified:false});
+}
+
+
+
+/**
+ * V0.9Y independent TRUE backward translation: the head's world
+ * displacement is opposite its unchanged forward-facing heading.
+ * Every one of the OTHER 23 joints follows from the actual prior
+ * V0.9T pose with its actual per-stage 3D link length and radius.
+ *
+ * This is backward whole-body locomotion, not a body turn, head
+ * teleport, reverse-played old adult animation or a fully modeled
+ * serpentine muscular reversal. Collision remains sampled capsule/
+ * terrain + conservative swept source scene, with mesh QA in V0.9Y.
+ */
+export function inspectSnakeReverseStepV09y({
+ state,scene,terrain,turnRadians=0,seconds=1/30
+}={}){
+ if(!validateState(state,scene,terrain))
+  return fail('reverse_source_or_scene_stale');
+ if(state.phase!=='moving_sized')
+  return fail('reverse_not_allowed_in_rest_or_shedding');
+ if(!finite(seconds)||seconds<=0||seconds>.05||
+  !finite(turnRadians)||Math.abs(turnRadians)>.006)
+  return fail('reverse_turn_or_time_exceeds_bound');
+ const bodyTotal=state.pose.boneLengths.reduce((a,b)=>a+b,0);
+ const maxTurn=Math.min(.006,.012/bodyTotal);
+ if(Math.abs(turnRadians)>maxTurn+1e-12)
+  return fail('reverse_body_too_long_for_turn');
+ const angle=state.heading+turnRadians;
+ const candidate=advanceSizedFollower(state,terrain,angle,seconds,-1);
+ if(!candidate.ok)return fail(candidate.reason);
+ const points=candidate.points,old=state.pose.points,
+  radii=state.pose.radiiWorldUnits,
+  bones=state.pose.boneLengths;
+ const frame=frameAudit({points,radii,
+  boneLengths:bones,scene,terrain});
+ const sweep=checkSweptBody({before:old,after:points,
+  radii,scene,terrain});
+ const maximumStep=Math.max(...points.map((p,i)=>
+  length(p,old[i])));
+ const headDisplacement=minus(points[0],old[0]);
+ const backwardDot=dot(headDisplacement,vec(
+  Math.cos(angle),Math.sin(angle),0));
+ const isReverse=backwardDot<-.000001;
+ const ok=frame.ok&&sweep.ok&&isReverse&&
+  maximumStep<=stageTolerances.maximumPerFrameJointStepWorld;
+ return F({version:'0.9Y',ok,
+  reason:!frame.ok?'reverse_current_body_3d_contact_rejected':
+   !sweep.ok?'reverse_swept_body_contact_rejected':
+   !isReverse?'reverse_heading_not_opposed':
+   maximumStep>stageTolerances.maximumPerFrameJointStepWorld?
+    'reverse_joint_jump_rejected':null,
+  sourceStartFrame:state.verifiedFrames,
+  sourceEndFrameCandidate:state.verifiedFrames+1,
+  frameCandidate:ok?F({points,
+   boneLengths:bones,radiiWorldUnits:radii}):null,
+  frameAudit:frame,sweptAudit:sweep,
+  headingCandidate:angle,
+  headBackwardDisplacementDotWorld:backwardDot,
+  maximumJointStepWorld:maximumStep,
+  realBackwardHeadMotion:isReverse,
+  fullBody23LinksUpdated:true,
+  3DSourceCapsuleProxyOnly:true,
+  continuousMeshCollisionCertified:false,
+  gameSaveModified:false,skinApplied:false});
+}
+/** Commit to a SHADOW V0.9T source only on validated whole-body
+ * reverse step. Keeps the previous sized state on rejection with a
+ * safety hold; never edits the caller's source object. */
+export function advanceSnakeReverseStepV09y(args={}){
+ const state=args.state;
+ if(state?.version!=='0.9T')
+  throw new RangeError('reverse_requires_V09T_sized_source');
+ if(state.phase!=='moving_sized')return state;
+ const audit=inspectSnakeReverseStepV09y(args);
+ if(!audit.ok)return F({...state,
+  phase:'resting_safety_hold',status:audit.reason,
+  lastFrameAuthorized:false,previousStepDiagnostic:audit,
+  actualSourceStepsCommittedOnRejectedFrame:0,
+  sourceFramesCommittedSinceStart:state.verifiedFrames,
+  gameSaveModified:false});
+ return F({...state,pose:audit.frameCandidate,
+  heading:audit.headingCandidate,
+  verifiedFrames:state.verifiedFrames+1,
+  lastFrameAuthorized:true,
+  previousStepDiagnostic:audit,
+  sourceFramesCommittedSinceStart:state.verifiedFrames+1,
+  actualIndependentSizedSourceStep:true,
+  reverseTranslationFromCurrentStage:true,
+  actualGameplayMotion:false,
   gameSaveModified:false});
 }
