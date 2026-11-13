@@ -34,7 +34,7 @@ jobs:
   true-webgl-qt-chrome:
     name: Real Chrome Q/T WebGL2 frame evidence
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 27
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -120,6 +120,18 @@ jobs:
         with:
           name: public-warmvein-v11f-joined-head-neck-32-views
           path: qa/snake-skin-v10b/.qa-artifacts/v11f-static/*
+          retention-days: 7
+          if-no-files-found: warn
+      - name: Capture V1.1G reference-clip head lift versus jaw-only true Chrome frames
+        env:
+          OHM_CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+        run: node qa/snake-skin-v10b/tests/warmvein-video-gape-v11g-chrome.mjs
+      - name: Archive V1.1G head-lift comparative GPU screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: public-warmvein-v11g-video-head-lift-evidence
+          path: qa/snake-skin-v10b/.qa-artifacts/v11g-video-motion/*
           retention-days: 7
           if-no-files-found: warn
       - name: Keep actual GPU and browser screenshots
