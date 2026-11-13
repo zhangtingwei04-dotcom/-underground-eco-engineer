@@ -156,6 +156,8 @@ try{
   assert.equal(v.qa.noProductionControllerTouched,true);
   assert.equal(v.qa.splitHeadAndJawControls,true);
   assert.equal(v.qa.headLiftIsWholeSkullPitchNotCranialLid,true);
+  assert.equal(v.qa.smoothNeckBendVerified,true);
+  assert.ok(v.qa.measuredNeckKinkError<.015);
   assert.equal(v.qa.motionProfile,scenario.profile);
   assert.equal(v.qa.pose,scenario.pose);
   assert.equal(v.qa.angle,view);
