@@ -21,7 +21,7 @@ jobs:
       - name: Parse public skin sources
         run: |
           set -euo pipefail
-          for f in qa/snake-skin-v10b/*.mjs qa/snake-skin-v10b/visual/*.mjs qa/snake-skin-v10b/tests/*.mjs; do
+          for f in qa/snake-skin-v10b/*.mjs qa/snake-skin-v10b/visual/*.mjs qa/snake-skin-v10b/tests/*.mjs qa/snake-skin-v10b/static-head/*.mjs; do
             node --check "$f"
           done
       - name: Execute Q/T atlas and WebGL capture contracts
@@ -34,7 +34,7 @@ jobs:
   true-webgl-qt-chrome:
     name: Real Chrome Q/T WebGL2 frame evidence
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 18
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -60,6 +60,18 @@ jobs:
         with:
           name: public-warmvein-v11a-static-gape-16-views
           path: qa/snake-skin-v10b/.qa-artifacts/v11a-static/*
+          retention-days: 7
+          if-no-files-found: warn
+      - name: Capture 32 V1.1B static real WebGL2 views (head and whole resting snake)
+        env:
+          OHM_CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+        run: node qa/snake-skin-v10b/tests/warmvein-static-coil-v11b-chrome.mjs
+      - name: Preserve 32 V1.1B static QA images and evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: public-warmvein-v11b-static-head-and-coil-32-views
+          path: qa/snake-skin-v10b/.qa-artifacts/v11b-static/*
           retention-days: 7
           if-no-files-found: warn
       - name: Keep actual GPU and browser screenshots
