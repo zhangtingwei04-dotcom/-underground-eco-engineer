@@ -105,7 +105,7 @@ export function createSnakeSolidCaveV09z({
  if(!scene||!idOK(id)||
   ![mouthX,backX,centerY,halfWidth,floorZ,roofZ,
    wallThickness,roofThickness].every(finite)||
-  mouthX>1||mouthX<-.1||backX<-3.95||
+  mouthX>1||mouthX< -2||backX<-3.95||
   backX>mouthX-.4||halfWidth<.10||halfWidth>.60||
   Math.abs(centerY)>1.1||
   floorZ<-.1||floorZ>.1||
