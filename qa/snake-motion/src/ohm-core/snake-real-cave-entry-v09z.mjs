@@ -30,8 +30,6 @@ const F=Object.freeze;
 const finite=n=>typeof n==='number'&&Number.isFinite(n);
 const idOK=s=>typeof s==='string'&&
  /^[a-z][a-z0-9_-]{0,63}$/.test(s);
-const bound=(a,b)=>F({min:a,max:b});
-const close=(a,b,epsilon=1e-8)=>Math.abs(a-b)<=epsilon;
 function fail(reason,detail={}){
  return F({version:'0.9Z',ok:false,reason,...detail,
   actualGameSourceFramesCommitted:0,
@@ -344,10 +342,13 @@ export function inspectSnakeHeadFirstCaveStepV09z({
  * certified corridor, not yet pathfinding in arbitrary caves.
  */
 export function previewSnakeHeadFirstCaveEntryV09z({
- sizedState,scene,terrain,cave,
+ receipt,sizedState,scene,terrain,cave,
  maxFrames=400,seconds=.05
 }={}){
- if(!validCave(cave,scene)||
+ if(receipt?.accepted!==false||
+  receipt?.behavior!=='sniff_then_seek_cover'||
+  !idOK(receipt.offerId)||
+  !validCave(cave,scene)||
   sizedState?.version!=='0.9T'||
   sizedState.phase!=='moving_sized'||
   !Number.isInteger(maxFrames)||maxFrames<1||
