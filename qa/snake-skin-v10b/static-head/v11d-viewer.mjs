@@ -2,9 +2,9 @@
  * V1.1D: 32 new full-coil and head-only 3D views of newly modeled jaw/cranial geometry.
  * Does not import 24-joint gameplay state or external art meshes.
  */
-import {buildWarmveinStaticHeadV11c,GAPE_POSES_V11D}
+import {buildWarmveinStaticHeadV11d,GAPE_POSES_V11D}
  from './warmvein-static-anatomy-v11d.mjs';
-import {buildWarmveinStaticCoilV11c}
+import {buildWarmveinStaticCoilV11d}
  from './warmvein-static-coil-v11d.mjs';
 const F=Object.freeze;
 const canvas=document.querySelector('#render'),
@@ -90,8 +90,8 @@ function render(){
   model=modelEl.value;
  if(!angles[angle])throw new Error('v11d_unknown_camera');
  if(!['coil','head'].includes(model))throw new Error('v11d_unknown_static_model');
- mesh=model==='coil'?buildWarmveinStaticCoilV11c({mouth:pose}):
-  buildWarmveinStaticHeadV11c({pose});
+ mesh=model==='coil'?buildWarmveinStaticCoilV11d({mouth:pose}):
+  buildWarmveinStaticHeadV11d({pose});
  const camera=normalize(angles[angle].v);
  const right=normalize(cross([0,0,1],camera));
  const up=normalize(cross(camera,right));
