@@ -408,3 +408,121 @@ export function advanceSnakeVariableSizeMotionV09t(args={}){
   actualGameplayMotion:false,
   gameSaveModified:false});
 }
+
+
+/**
+ * V0.9V rest-only size-change SAFETY. It cannot update V0.9T.
+ * Both old and candidate poses, 3D nonlocal capsules and 5 sampled
+ * intermediate size/position combinations are independently audited.
+ * Interpolation includes actual changing radii — unlike fixed-radius
+ * locomotor sweeps. Conservative swept XY AABB blocks glass/rocks.
+ */
+export function inspectSnakeRestSizeChangeSafetyV09v({
+ state,candidatePose,scene,terrain
+}={}){
+ if(!validateState(state,scene,terrain))
+  return F({ok:false,reason:'rest_growth_source_scene_stale'});
+ if(state.phase!=='resting_growth'||
+  candidatePose?.points?.length!==24||
+  candidatePose?.radiiWorldUnits?.length!==24||
+  candidatePose?.boneLengths?.length!==23||
+  candidatePose.points.some(p=>!p||
+   ![p.x,p.y,p.z].every(finite))||
+  candidatePose.radiiWorldUnits.some(n=>!finite(n)||n<=0||n>.3)||
+  candidatePose.boneLengths.some(n=>!finite(n)||n<=0||n>.5))
+  return F({ok:false,reason:'rest_growth_not_authorized_or_invalid_pose'});
+ const old=state.pose,now=candidatePose;
+ const original=frameAudit({points:old.points,
+  radii:old.radiiWorldUnits,
+  boneLengths:old.boneLengths,scene,terrain});
+ const next=frameAudit({points:now.points,
+  radii:now.radiiWorldUnits,
+  boneLengths:now.boneLengths,scene,terrain});
+ let maxJointDisplacement=0,maxLinkChange=0;
+ for(let i=0;i<24;i++)
+  maxJointDisplacement=Math.max(maxJointDisplacement,
+   length(old.points[i],now.points[i]));
+ for(let i=0;i<23;i++)
+  maxLinkChange=Math.max(maxLinkChange,
+   Math.abs(now.boneLengths[i]-old.boneLengths[i]));
+ let glass=true,rocks=true,ground=true,self=true;
+ let firstRock=null,minGap=Infinity,minSelf=Infinity,samples=0;
+ const fractions=[0,.25,.5,.75,1];
+ for(let i=0;i<23;i++){
+  const a=old.points[i],b=old.points[i+1],
+   c=now.points[i],d=now.points[i+1];
+  const px=[a,b,c,d].map(p=>500+p.x*125);
+  const py=[a,b,c,d].map(p=>200+p.y*125);
+  const maxRadius=Math.max(old.radiiWorldUnits[i],
+   old.radiiWorldUnits[i+1],now.radiiWorldUnits[i],
+   now.radiiWorldUnits[i+1]);
+  const padding=125*(maxRadius+
+   stageTolerances.minimumAbsoluteScenePaddingWorld);
+  const bounds={x0:Math.min(...px)-padding,
+   x1:Math.max(...px)+padding,
+   y0:Math.min(...py)-padding,
+   y1:Math.max(...py)+padding};
+  if(bounds.x0<0||bounds.x1>1000||
+   bounds.y0<0||bounds.y1>400)glass=false;
+  for(const o of scene.objects)
+   if(bounds.x0<=o.x+o.width&&bounds.x1>=o.x&&
+    bounds.y0<=o.y+o.depth&&bounds.y1>=o.y){
+    rocks=false;firstRock??=o.id;
+   }
+  for(const f of fractions){
+   const start=interp(a,c,f),end=interp(b,d,f);
+   const ra=old.radiiWorldUnits[i]*(1-f)+
+    now.radiiWorldUnits[i]*f;
+   const rb=old.radiiWorldUnits[i+1]*(1-f)+
+    now.radiiWorldUnits[i+1]*f;
+   for(let k=0;k<=8;k++){
+    const t=k/8,p=interp(start,end,t);
+    const gap=p.z-(ra*(1-t)+rb*t)-
+     sampleSnakeTerrain(p.x,p.y,terrain).z;
+    minGap=Math.min(minGap,gap);samples++;
+    if(gap<stageTolerances.minimumGroundGapWorld)
+     ground=false;
+   }
+  }
+ }
+ for(const f of fractions){
+  const points=old.points.map((p,i)=>
+   interp(p,now.points[i],f));
+  const radii=old.radiiWorldUnits.map((r,i)=>
+   r*(1-f)+now.radiiWorldUnits[i]*f);
+  for(let i=0;i<23;i++)for(let j=i+4;j<23;j++){
+   const gap=pointSegmentDistance(points[i],points[i+1],
+    points[j],points[j+1])-
+    Math.max(radii[i],radii[i+1])-
+    Math.max(radii[j],radii[j+1]);
+   minSelf=Math.min(minSelf,gap);
+   if(gap<stageTolerances.nonlocalCapsuleToleranceWorld)
+    self=false;
+  }
+ }
+ const incrementsSmall=maxJointDisplacement<=.018&&
+  maxLinkChange<=.006;
+ const ok=original.ok&&next.ok&&glass&&rocks&&ground&&
+  self&&incrementsSmall;
+ return F({version:'0.9V',ok,
+  reason:!original.ok?'previous_pose_invalid':
+   !next.ok?'new_rest_pose_invalid':
+   !glass?'rest_growth_crosses_glass':
+   !rocks?'rest_growth_crosses_source_rock':
+   !ground?'rest_growth_intermediate_terrain_penetration':
+   !self?'rest_growth_intermediate_nonlocal_self_collision':
+   !incrementsSmall?'rest_growth_size_step_exceeds_bound':null,
+  originalFrameSafety:original,nextFrameSafety:next,
+  intermediateGlassClear:glass,intermediateRockClear:rocks,
+  intermediateGroundClear:ground,intermediateSelfClear:self,
+  firstSceneRockBlockerId:firstRock,
+  maxJointDisplacementWorld:maxJointDisplacement,
+  maxLinkLengthIncrementWorld:maxLinkChange,
+  minimumIntermediateGroundGapWorld:minGap,
+  minimumIntermediate3DSelfGapWorld:minSelf,
+  intermediateGroundSamples:samples,
+  intermediateFractions:fractions.length,
+  sourceV09tFramesCommitted:0,
+  exactContinuousMeshCollisionCertified:false,
+  gameSaveModified:false});
+}
