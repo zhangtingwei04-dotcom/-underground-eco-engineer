@@ -42,3 +42,13 @@
 <https://zhangtingwei04-dotcom.github.io/-underground-eco-engineer/qa/snake-skin-v10b/static-head/v11g.html>
 
 原始影片只用於研究，沒有發布到 GitHub。
+
+## 本輪真正 Chrome GPU 自審結果與後續修正
+
+真實驗證：<https://github.com/zhangtingwei04-dotcom/-underground-eco-engineer/actions/runs/43523604718>，source-and-texture-tests 及 Real Chrome Q/T WebGL2 frame evidence **均成功**。其中 V1.1G 另外產生 **18 張**專門對照用 GPU PNG（15 張方案／角度與 3 張時間軸影格），artifact 名稱 `public-warmvein-v11g-video-head-lift-evidence`。
+
+1. **第一版真實畫面**：頭仰的方向比舊版只動下顎更接近真蛇參考，但整段頸部折成過度尖銳的 V 字形彎角。**美術不通過。**
+2. **第二版**：以三次 Hermite 插值改成根部不動、根端斜率 0，頭端斜率與頭部仰角一致的連續頸部曲線，並調整網格法線。加入「頸部／頭部接點切線差異」數值測試，超過 0.015 時拒絕產出。**幾何和 Chrome 檢查通過。**
+3. **最新實際影格目視**：頸部不再出現明顯的尖銳折角，仰頭與相對下顎開口的動作差異清楚。但**大張嘴仍像兩根偏細的下顎條狀物，嘴巴寬度不足、口腔軟組織不夠厚、吻端仍偏楔形**。因此**動作方向改善，尚未通過真蛇美術／影片相似度驗收**。
+
+下一輪需先在完全靜態形體上重建**大張口下顎寬度、嘴角的柔性連接、口腔真正的深度與封閉性**，再以使用者影片的三個時間點核對鼻端抬升、下顎下降與閉嘴復原。**本輪未動正式動態 24 節骨架、碰撞與玩家存檔**，無須反覆請求已確認的設計方向。
