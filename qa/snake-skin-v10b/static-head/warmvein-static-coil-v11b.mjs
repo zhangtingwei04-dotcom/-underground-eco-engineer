@@ -96,6 +96,8 @@ export function buildWarmveinStaticCoilV11b({mouth='closed'}={}){
   normals:new Float32Array(normals),
   materialTriangleCounts:Object.freeze(counts),
   headTriangleCount:head.triangleCount,
+  gapeDegrees:head.gapeDegrees,
+  mouthGapAtMuzzleWorld:head.mouthGapAtMuzzleWorld,
   bodyRingCount:samples+1,bodyRadialSegments:radial,
   tailLastRadius:radius(1),bodyMidRadius:radius(.5),
   planarClearanceAudit:Object.freeze(clearance),
