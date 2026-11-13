@@ -3,7 +3,7 @@
  * Nothing here advances V0.9U motion or edits source collision/saves.
  * Original cranial model lives in static-anatomy-v11d.mjs.
  */
-import {buildWarmveinStaticHeadV11c}
+import {buildWarmveinStaticHeadV11d}
  from './warmvein-static-anatomy-v11d.mjs';
 export const WARMVEIN_STATIC_COIL_V11D='1.1D-static-rest';
 const controls=[
@@ -66,8 +66,8 @@ function auditClearance(){
   sampleSeparationThreshold:8,
   notActualSurfaceCollisionCertification:true};
 }
-export function buildWarmveinStaticCoilV11c({mouth='closed'}={}){
- const head=buildWarmveinStaticHeadV11c({pose:mouth}),
+export function buildWarmveinStaticCoilV11d({mouth='closed'}={}){
+ const head=buildWarmveinStaticHeadV11d({pose:mouth}),
   vertices=[...head.vertices],colors=[...head.colors],
   normals=[...head.normals],counts={...head.materialTriangleCounts};
  for(let i=0;i<samples;i++)for(let j=0;j<radial;j++){
