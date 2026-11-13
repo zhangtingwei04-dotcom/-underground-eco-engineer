@@ -130,6 +130,8 @@ function render(){
   lowerJawRelativeGapeDegrees:mesh.lowerJawRelativeGapeDegrees,
   maximumFixedRootMovement:mesh.maximumFixedRootMovement,
   headLiftIsWholeSkullPitchNotCranialLid:mesh.headLiftIsWholeSkullPitchNotCranialLid,
+  smoothNeckBendVerified:mesh.c1ContinuousNeckHermiteTransition,
+  measuredNeckKinkError:mesh.measuredSkullNeckTangentError,
   splitHeadAndJawControls:mesh.splitHeadAndJawControls,
   upperTipRiseEstimateWorld:mesh.upperTipRiseEstimateWorld,
   movingPreviewPhase:mesh.phase,
