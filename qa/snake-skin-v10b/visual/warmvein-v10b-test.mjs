@@ -130,7 +130,8 @@ let cachedMesh=null,cachedGPU=null,lastAppearanceAudit=null,
  restHoldSession=null,latestRestHold=null,latestReleaseIntent=null,
  latestReverseAudit=null,latestReverseFlexAudit=null,flexRunning=false,
  latestHeadRefinement=null,latestNeckUVAudit=null,
- latestVisualTaper=null,latestNaturalHead=null,headFocus=false;
+ latestVisualTaper=null,latestNaturalHead=null,
+ latestCameraProjection=null,headFocus=false;
 const compareMode=()=>mode==='transparent-compare';
 const headCompareMode=()=>mode==='head-compare';
 const splitCompare=()=>compareMode()||headCompareMode();
@@ -624,6 +625,11 @@ function render(){
  // taller than wide in scale, artificially inflating the skull.
  const cameraPanelWidth=sameFrameSplit()?Math.floor(canvas.width/2):canvas.width;
  const verticalHalf=halfWidth*canvas.height/cameraPanelWidth;
+ latestCameraProjection=F({
+  panelWidth:cameraPanelWidth,panelHeight:canvas.height,
+  pixelsPerWorldX:cameraPanelWidth/(2*halfWidth),
+  pixelsPerWorldY:canvas.height/(2*verticalHalf)
+ });
  gl.viewport(0,0,canvas.width,canvas.height);
  gl.disable(gl.SCISSOR_TEST);
  gl.clearColor(0,0,0,0);
@@ -1210,7 +1216,10 @@ window.__warmveinV10bQA=()=>F({
  v10yNoPhysicalColliderOrSaveChanges:latestNaturalHead?.original24JointsAndColliderUnchanged??true,
  v10yVisualHeadVerticesChanged:latestNaturalHead?.modifiedHeadVertices??0,
  v10yEyeDiameterMeasuredPx:eyeDebug?.eyes.map(e=>e.pointSizePx)??[],
- v10yWorldUnitsIsotropicXyCamera:true,
+ v10yWorldUnitsIsotropicXyCamera:latestCameraProjection?
+  Math.abs(latestCameraProjection.pixelsPerWorldX-
+   latestCameraProjection.pixelsPerWorldY)<1e-9:false,
+ v10yCameraPixelScale:latestCameraProjection,
  v10yAspectRatioDisplayOnly:true,
  v10wDisplayOnlyTailTaperActive:Boolean(latestVisualTaper),
  v10wRendererOnlySourceUntouched:latestVisualTaper?.noSourcePhysicsModified??true,
