@@ -89,8 +89,8 @@ function render(){
  const camera=normalize(angles[angle].v);
  const right=normalize(cross([0,0,1],camera));
  const up=normalize(cross(camera,right));
- const center=[-.36,0,-.035];
- const halfWidth=angle==='side'?1.28:1.10;
+ const center=[-.12,0,-.08];
+ const halfWidth=angle==='side'?.55:.55;
  const halfHeight=halfWidth*canvas.height/canvas.width;
  gl.viewport(0,0,canvas.width,canvas.height);
  gl.clearColor(.085,.10,.105,1);
