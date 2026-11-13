@@ -129,9 +129,9 @@ export function buildWarmveinStaticHeadV11d({pose='closed'}={}){
   const a=noseArc(i,j),b=noseArc(i+1,j),
    c=noseArc(i+1,j+1),d=noseArc(i,j+1);
   if(i===4){
-   // final tiny arc narrows toward the front, retaining 3D depth
-   // and avoiding collinear last-ring triangles.
-   g.quad(a,b,c,d,P.skull,'rounded_upper_nose_cap');
+   // The final two front vertices coincide by design. Close the
+   // half-dome with ONE non-degenerate triangle, never a zero quad.
+   g.triangle(a,b,d,P.skull,'rounded_upper_nose_cap');
   }else g.quad(a,b,c,d,P.skull,'rounded_upper_nose_cap');
  }
  for(const side of [-1,1])for(let i=0;i<N;i++){
