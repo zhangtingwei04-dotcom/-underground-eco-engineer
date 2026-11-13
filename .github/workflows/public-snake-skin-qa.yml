@@ -1,0 +1,32 @@
+name: Public OHM Warmvein Q/T Pixel Skin QA
+on:
+  push:
+    paths:
+      - 'qa/snake-skin-v10b/**'
+      - '.github/workflows/public-snake-skin-qa.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source-and-texture-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Parse public skin sources
+        run: |
+          set -euo pipefail
+          for f in qa/snake-skin-v10b/*.mjs qa/snake-skin-v10b/visual/*.mjs qa/snake-skin-v10b/tests/*.mjs; do
+            node --check "$f"
+          done
+      - name: Execute Q/T atlas and WebGL capture contracts
+        run: |
+          set -euo pipefail
+          for f in qa/snake-skin-v10b/tests/*.test.mjs; do
+            node "$f"
+          done
