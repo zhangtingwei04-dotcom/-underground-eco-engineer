@@ -45,6 +45,8 @@ import {fitWarmveinStaticEyesV10e}
  from '../warmvein-static-eye-fit-v10e.mjs';
 import {refineWarmveinHeadRenderV10r,fitWarmveinHeadEyesV10r}
  from '../warmvein-head-refine-v10r.mjs';
+import {sculptWarmveinHeadV10y,fitWarmveinNaturalEyesV10y}
+ from '../warmvein-head-shape-v10y.mjs';
 import {inspectWarmveinHeadNeckUVV10s}
  from '../warmvein-head-neck-uv-v10s.mjs';
 import {inspectWarmveinAppearanceV10f}
@@ -128,13 +130,14 @@ let cachedMesh=null,cachedGPU=null,lastAppearanceAudit=null,
  restHoldSession=null,latestRestHold=null,latestReleaseIntent=null,
  latestReverseAudit=null,latestReverseFlexAudit=null,flexRunning=false,
  latestHeadRefinement=null,latestNeckUVAudit=null,
- latestVisualTaper=null,headFocus=false;
+ latestVisualTaper=null,latestNaturalHead=null,headFocus=false;
 const compareMode=()=>mode==='transparent-compare';
 const headCompareMode=()=>mode==='head-compare';
 const splitCompare=()=>compareMode()||headCompareMode();
 const skinCompareMode=()=>mode==='skin-compare';
-const sameFrameSplit=()=>splitCompare()||skinCompareMode();
-const refinedHeadMode=()=>['pixel-q','pixel-t','skin-compare','transparent','transparent-h',
+const naturalHeadCompareMode=()=>mode==='head-y-compare';
+const sameFrameSplit=()=>splitCompare()||skinCompareMode()||naturalHeadCompareMode();
+const refinedHeadMode=()=>['pixel-q','pixel-t','skin-compare','head-y-compare','transparent','transparent-h',
  'head-compare','flat'].includes(mode);
 const eyeIsIndependent=()=>mode!=='pixel'&&mode!=='pixel-c';
 function shader(type,src){
@@ -428,8 +431,9 @@ function drawIndependentEyes(mesh,midX,halfWidth,viewportWidth=canvas.width,{
  if(!eyeProgram||!eyeIsIndependent())return;
  // Both versions use REAL V0.9R head ring-4 vertices on the
  // currently displayed render mesh, not painted UV nor a fake face.
- eyeDebug=(enhanced?fitWarmveinHeadEyesV10r:
-  fitWarmveinStaticEyesV10e)({
+ const naturalHead=enhanced&&mesh.v10yDisplayOnlyHead===true;
+ eyeDebug=(naturalHead?fitWarmveinNaturalEyesV10y:
+  enhanced?fitWarmveinHeadEyesV10r:fitWarmveinStaticEyesV10e)({
   mesh,stageProgress:stage,canvasWidth:viewportWidth,
   worldHalfWidth:halfWidth
  });
@@ -561,7 +565,7 @@ function render(){
  if(!gl||!state||!meshCandidate?.ok)return;
  const binding=bindSnakePixelSurfaceV10a({
   renderCandidate:meshCandidate,
-  mode:(mode==='pixel'||mode==='pixel-c'||mode==='pixel-d'||mode==='pixel-g'||mode==='pixel-p'||mode==='pixel-q'||mode==='pixel-t'||mode==='skin-compare')?'pixel_debug':
+  mode:(mode==='pixel'||mode==='pixel-c'||mode==='pixel-d'||mode==='pixel-g'||mode==='pixel-p'||mode==='pixel-q'||mode==='pixel-t'||mode==='skin-compare'||mode==='head-y-compare')?'pixel_debug':
    mode==='flat'?'flat_debug':'transparent',
   atlas
  });
@@ -585,7 +589,13 @@ function render(){
   refineWarmveinHeadRenderV10r({
    mesh:originalOrBodyMesh,stageProgress:stage,intensity:1
   }):null;
- const visibleMesh=latestHeadRefinement?.renderMesh??originalOrBodyMesh;
+ latestNaturalHead=latestHeadRefinement&&
+  (['pixel-q','pixel-t','skin-compare','head-y-compare'].includes(mode))?
+  sculptWarmveinHeadV10y({
+   sourceMesh:latestHeadRefinement.renderMesh,stageProgress:stage
+  }):null;
+ const visibleMesh=latestNaturalHead?.renderMesh??
+  latestHeadRefinement?.renderMesh??originalOrBodyMesh;
  try{
   latestNeckUVAudit=inspectWarmveinHeadNeckUVV10s({
    sourceMesh:originalOrBodyMesh,renderMesh:visibleMesh,
@@ -631,6 +641,19 @@ function render(){
     textureAtlas:atlases['pixel-t'],forcePixel:true,
     enhancedEyes:true,verticalHalf,centerY
    });
+  }else if(naturalHeadCompareMode()){
+   // Same source frame, same approved V1.0T atlas and same camera;
+   // left previous V1.0R and right sculpted V1.0Y with smaller eyes.
+   drawSourceViewport(latestHeadRefinement.renderMesh,midX,halfWidth,{
+    viewportX:0,viewportWidth:leftWidth,
+    textureAtlas:atlases['pixel-t'],forcePixel:true,
+    enhancedEyes:true,verticalHalf,centerY
+   });
+   drawSourceViewport(visibleMesh,midX,halfWidth,{
+    viewportX:leftWidth,viewportWidth:rightWidth,
+    textureAtlas:atlases['pixel-t'],forcePixel:true,
+    enhancedEyes:true,verticalHalf,centerY
+   });
   }else{
    // Head: V0.9R vs inward-only V1.0R.
    // Body: original vs V1.0H. Both use the SAME original source frame.
@@ -654,6 +677,9 @@ function render(){
   if(skinCompareMode()){
    compareLabelsEl.children[0].textContent='左｜V1.0Q 舊橘色頭部';
    compareLabelsEl.children[1].textContent='右｜V1.0T 新深褐頭頸';
+  }else if(naturalHeadCompareMode()){
+   compareLabelsEl.children[0].textContent='左｜V1.0R 舊粗頭＋大眼';
+   compareLabelsEl.children[1].textContent='右｜V1.0Y 修長蛇頭＋小眼';
   }else if(headCompareMode()){
    compareLabelsEl.children[0].textContent='左｜V0.9R 原透明頭・舊眼睛';
    compareLabelsEl.children[1].textContent='右｜V1.0R 修正頭型・較大眼睛';
@@ -668,7 +694,8 @@ function render(){
   (eyeIsIndependent()?'獨立雙眼固定張眼（眨眼暫緩）｜':'舊貼圖眼｜')+
   ['幼體','成長中','成體','大型成體'][stage]+
   '｜真實來源 '+authorized+' 幀｜'+
-  (skinCompareMode()?'真正 WebGL 同幀 Q/T 頭頸貼皮比較（同網格、同大眼、不同 RGBA）｜':
+  (naturalHeadCompareMode()?'V1.0Y 頭型前後對照（同 T 材質；兩個外觀候選；碰撞原版）｜':
+   skinCompareMode()?'真正 WebGL 同幀 Q/T 頭頸貼皮比較（同網格、同 Y 頭型、不同 RGBA）｜':
    headCompareMode()?'頭部左右同幀：原始頭 / V1.0R 大眼頭（碰撞同原版）｜':
    compareMode()?'左右同幀：原版 / V1.0H（碰撞同原版）｜':
    latestHeadRefinement?.ok?'V1.0R 微修頭型＋放大張眼（僅顯示）｜':
@@ -1171,6 +1198,14 @@ window.__warmveinV10bQA=()=>F({
  v10tAtlasRevision:atlases['pixel-t'].privateSkinRevision,
  v10tNoHeadUVScroll:true,
  v10tNoPhysicalColliderModified:true,
+ v10yNaturalHeadActive:Boolean(latestNaturalHead),
+ v10yHeadComparisonActive:naturalHeadCompareMode(),
+ v10yHeadArtNotYetApproved:latestNaturalHead?.skullAnatomyAndVisualApprovalPending??true,
+ v10yWeldedNeckAndBodyUntouched:latestNaturalHead?.originalHeadSocketAndBodyBitIdentical??true,
+ v10yNoUVChange:latestNaturalHead?.originalUVUnchanged??true,
+ v10yNoPhysicalColliderOrSaveChanges:latestNaturalHead?.original24JointsAndColliderUnchanged??true,
+ v10yVisualHeadVerticesChanged:latestNaturalHead?.modifiedHeadVertices??0,
+ v10yEyeDiameterMeasuredPx:eyeDebug?.eyes.map(e=>e.pointSizePx)??[],
  v10wDisplayOnlyTailTaperActive:Boolean(latestVisualTaper),
  v10wRendererOnlySourceUntouched:latestVisualTaper?.noSourcePhysicsModified??true,
  v10wMidTrunkRelativeRadius:latestVisualTaper?.middleBodyRelativeRadius??null,
