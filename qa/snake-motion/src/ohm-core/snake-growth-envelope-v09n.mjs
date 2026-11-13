@@ -342,3 +342,19 @@ export function inspectSnakeSyntheticHideFitV09n({
   actualHideInSceneVerified:false,
   skinApplied:false,saveModified:false});
 }
+
+
+/**
+ * V0.9V read-only synthetic engineering morph targets. Do not treat
+ * progress as time, age, shed count or biological growth rates.
+ * Existing V0.9N projection keeps its original fixed-source contract.
+ */
+export function sampleSnakeSizeMorphProfileV09v(stageProgress){
+ const profile=profileAt(stageProgress);
+ return F({stageProgress,stage:profile.stage,
+  bodyLengthScale:profile.lengthScale,
+  localRadiusScale:F(Array.from({length:24},(_,i)=>
+   radiusAt(profile,i))),
+  relativeBoneWeights:boneWeights(profile),
+  notSpeciesGrowthRates:true,noSourceMutation:true});
+}
