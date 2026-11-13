@@ -127,13 +127,63 @@ export function fitWarmveinNaturalEyesV10y({
  const earlier=fitWarmveinHeadEyesV10r({
   mesh,stageProgress,canvasWidth,worldHalfWidth
  });
- const eyes=earlier.eyes.map(e=>F({
-  ...e,
-  pointSizePx:clamp(e.pointSizePx*.68,4,22),
-  oldLargeEyeSizePx:e.pointSizePx,
-  sourceSurfaceAnchorUnmoved:true,
-  visualEyeOnly:true
- }));
+ // Ring 4 contains sixteen true skin vertices. Select one on the
+ // UPPER flank of each lateral side rather than keeping the old fixed
+ // indices 2/6; those were visibly below the upper cheek in Chrome.
+ const k=4*16;
+ const center={x:0,y:0,z:0};
+ for(let j=0;j<16;j++){
+  const p=mesh.positions[k+j];
+  center.x+=p.x/16;center.y+=p.y/16;center.z+=p.z/16;
+ }
+ const lateral=diff(mesh.positions[k],center);
+ const lateralNorm=norm(lateral);
+ if(lateralNorm<1e-8)
+  throw new RangeError('v10y_eye_local_lateral_axis_invalid');
+ const axis=scale(lateral,1/lateralNorm);
+ const eyes=earlier.eyes.map(e=>{
+  const sign=e.side==='left'?1:-1;
+  const choices=[];
+  for(let j=0;j<16;j++){
+   const p=mesh.positions[k+j],d=diff(p,center);
+   const r=norm(d);
+   if(r<1e-8)continue;
+   const side=sign*dot(d,axis)/r;
+   if(side<.26)continue;
+   const projectedRise=(d.y+.56*d.z)/r;
+   const cameraFacing=(d.z-.56*d.y)/
+    (r*Math.hypot(1,.56));
+   const score=projectedRise*.80+side*.20+
+    cameraFacing*.035;
+   choices.push({j,p,d,r,side,projectedRise,cameraFacing,score});
+  }
+  choices.sort((a,b)=>b.score-a.score);
+  const best=choices[0];
+  if(!best||best.projectedRise<-.00001)
+   throw new RangeError('v10y_no_upper_flank_eye_anchor');
+  // Still attaches to the actual moving head surface (not a planar
+  // face decal). Only the renderer's eye sprite is repositioned.
+  const eyePosition=F({
+   x:best.p.x+best.d.x*.012,
+   y:best.p.y+best.d.y*.012,
+   z:best.p.z+best.d.z*.012
+  });
+  return F({
+   ...e,
+   position:eyePosition,
+   surfaceVertexIndex:k+best.j,
+   approximateCameraFacing:best.cameraFacing,
+   faceBrightness:clamp(.74+.26*best.cameraFacing,.52,1),
+   pointSizePx:clamp(e.pointSizePx*.60,4,18),
+   oldLargeEyeSizePx:e.pointSizePx,
+   upperFlankProjectionRiseWorld:best.projectedRise*best.r,
+   rendererOnlyEyeAnchorRelocatedOnRealHeadSurface:true,
+   originalHeadMeshUnchangedByEyeFitter:true,
+   visualEyeOnly:true
+  });
+ });
+ if(eyes[0].surfaceVertexIndex===eyes[1].surfaceVertexIndex)
+  throw new Error('v10y_eyes_coincident_surface_vertex');
  return F({
   ...earlier,version:'1.0Y',eyes:F(eyes),
   eyeMaterialIndependentlyDrawn:true,
