@@ -140,7 +140,7 @@ export function inspectSnakeMeshSurfaceV09s({
  minimumRingSeparation=16,
  groundMarginWorld=0
 }={}){
- if(candidate?.version!=='0.9R'||!candidate.ok||
+ if(!['0.9R','0.9U'].includes(candidate?.version)||!candidate.ok||
   !candidate.headBodySeamCertified||
   !scene||!terrain||
   !Number.isInteger(minimumRingSeparation)||
@@ -221,7 +221,8 @@ export function inspectSnakeMeshTemporalV09s({
  temporalSlices=3,minimumRingSeparation=16,
  maxPerVertexStepWorld=.06
 }={}){
- if(from?.version!=='0.9R'||to?.version!=='0.9R'||
+ if(!['0.9R','0.9U'].includes(from?.version)||
+  to?.version!==from.version||
   !from.ok||!to.ok||!scene||!terrain||
   !Number.isInteger(temporalSlices)||temporalSlices<3||
   temporalSlices>5||!Number.isInteger(minimumRingSeparation)||
