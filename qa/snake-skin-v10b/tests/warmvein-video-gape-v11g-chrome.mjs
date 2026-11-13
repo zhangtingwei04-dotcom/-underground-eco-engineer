@@ -180,6 +180,8 @@ try{
   console.log('PASS V1.1G real Chrome '+filename);
  }
  // Verify scrubber genuinely changes the GPU image, not only labels.
+ // A deliberately held full-open pose can match the previous wide photo.
+ const timelineHashes=new Set();
  for(const phase of [22,50,89]){
   const code=[
    "(()=>{",
@@ -195,7 +197,8 @@ try{
   assert.ok(v.qa.maximumFixedRootMovement<1e-7);
   const png=Buffer.from(v.png.slice(prefix.length),'base64');
   const hash=createHash('sha256').update(png).digest('hex');
-  assert.equal(unique.has(hash),false);
+  assert.equal(timelineHashes.has(hash),false,'different timeline moments should differ');
+  timelineHashes.add(hash);
   unique.add(hash);
   const name='v11g_timeline_t'+phase+'.png';
   writeFileSync(path.join(out,name),png);
