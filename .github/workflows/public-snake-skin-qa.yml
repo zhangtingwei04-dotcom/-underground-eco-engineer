@@ -34,7 +34,7 @@ jobs:
   true-webgl-qt-chrome:
     name: Real Chrome Q/T WebGL2 frame evidence
     runs-on: ubuntu-latest
-    timeout-minutes: 22
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -108,6 +108,18 @@ jobs:
         with:
           name: public-warmvein-v11e-jaw-restoration-32-views
           path: qa/snake-skin-v10b/.qa-artifacts/v11e-static/*
+          retention-days: 7
+          if-no-files-found: warn
+      - name: Verify V1.1F aligned head-neck and body on 32 actual Chrome frames
+        env:
+          OHM_CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+        run: node qa/snake-skin-v10b/tests/warmvein-static-coil-v11f-chrome.mjs
+      - name: Archive V1.1F head-neck 32-angle GPU screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: public-warmvein-v11f-joined-head-neck-32-views
+          path: qa/snake-skin-v10b/.qa-artifacts/v11f-static/*
           retention-days: 7
           if-no-files-found: warn
       - name: Keep actual GPU and browser screenshots
