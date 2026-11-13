@@ -117,6 +117,7 @@ function render(){
  lastAudit=F({
   version:mesh.version,pose,angle,gapeDegrees:mesh.gapeDegrees,
   vertexCount:mesh.vertexCount,triangleCount:mesh.triangleCount,
+  mouthGapAtMuzzleWorld:mesh.mouthGapAtMuzzleWorld,
   surfaceGroups:mesh.materialTriangleCounts,
   staticOnly:true,realWebGL2Drawn:true,
   sameWorldPixelScaleXY:Math.abs(
