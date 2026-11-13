@@ -159,6 +159,9 @@ if(bin)try{
   assert.equal(v.error,0,view.id+' WebGL error '+v.error);
   assert.equal(v.qa.v10uSameFrameQTTextureCompareMode,true);
   assert.equal(v.qa.v10uBothPanelsSameV10rMesh,true);
+  assert.equal(v.qa.v10yWorldUnitsIsotropicXyCamera,true);
+  assert.ok(Math.abs(v.qa.v10yCameraPixelScale.pixelsPerWorldX-
+   v.qa.v10yCameraPixelScale.pixelsPerWorldY)<1e-9);
   assert.equal(v.qa.v10xEyeOcclusionActive,true);
   assert.equal(v.qa.v10xVisibleEyeCount,1,
    view.id+' side-on head must show only near-side eye');
@@ -216,6 +219,9 @@ if(bin)try{
   assert.equal(h.error,0,view.id+' V1.0Y WebGL GL error');
   assert.equal(h.qa.v10yNaturalHeadActive,true);
   assert.equal(h.qa.v10yHeadComparisonActive,true);
+  assert.equal(h.qa.v10yWorldUnitsIsotropicXyCamera,true);
+  assert.ok(Math.abs(h.qa.v10yCameraPixelScale.pixelsPerWorldX-
+   h.qa.v10yCameraPixelScale.pixelsPerWorldY)<1e-9);
   assert.equal(h.qa.v10yWeldedNeckAndBodyUntouched,true);
   assert.equal(h.qa.v10yNoUVChange,true);
   assert.equal(h.qa.v10yNoPhysicalColliderOrSaveChanges,true);
