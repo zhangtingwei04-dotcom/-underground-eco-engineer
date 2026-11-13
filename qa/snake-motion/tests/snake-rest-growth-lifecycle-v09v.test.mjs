@@ -279,13 +279,13 @@ assert.deepEqual(summaries.map(s=>s.restSteps),[2,2,2,0]);
 // tail or entire mesh crosses the rock. Pending growth is retained.
 const tight=createTerrariumSceneGeometryV03d({
  sceneId:'v09v_tail_growth_requires_more_rest_space',
- objects:[stone('tail_space_rock',520,185,10,30,190)]
+ objects:[stone('tail_space_rock',510,185,12,30,190)]
 });
 const short=startSnakeVariableSizeMotionV09t({
  canonicalSourcePose:canonicalPose,scene:tight,
  terrain,stageProgress:0
 });
-assert.equal(short.phase,'moving_sized');
+assert.equal(short.phase,'moving_sized',JSON.stringify(short));
 let small=createSnakeRestGrowthSessionV09v({
  motionState:short,scene:tight,terrain
 });
