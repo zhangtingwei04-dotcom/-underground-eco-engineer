@@ -169,24 +169,30 @@ export function offerSnakeFoodV09w({
  state,offerId,context={}
 }={}){
  if(!readable(state)||!validID(offerId))return error('invalid_offer_state_or_id');
- const old=state.offers.find(o=>o.offerId===offerId);
- if(old)return F({version:'0.9W',ok:true,duplicate:true,
-  state,decision:old,accepted:old.accepted,
-  preyInventoryConsumed:false, // client must use original receipt
-  newFoodConsumed:false,actualBodySizeChanged:false,
-  playerSaveModified:false});
+ if(!context||typeof context!=='object'||Array.isArray(context))
+  return error('invalid_food_offer_context');
  const supplied={...defaultOffer,...context};
  if(!offerInputs(supplied)||
-  Object.keys(context).some(k=>!Object.hasOwn(defaultOffer,k))||
-  state.offers.length>=64)
+  Object.keys(context).some(k=>!Object.hasOwn(defaultOffer,k)))
   return error('invalid_food_offer_context');
+ const offerFingerprint=JSON.stringify(supplied);
+ const old=state.offers.find(o=>o.offerId===offerId);
+ if(old)return old.offerFingerprint!==offerFingerprint?
+  error('conflicting_offer_id'):
+  F({version:'0.9W',ok:true,duplicate:true,
+   state,decision:old,accepted:old.accepted,
+   preyInventoryConsumed:false,
+   preyInventoryConsumptionRequested:false,
+   newFoodConsumed:false,actualBodySizeChanged:false,
+   playerSaveModified:false});
+ if(state.offers.length>=64)return error('feed_offer_ledger_full');
  const decision=evaluateRefusal(state,supplied,offerId);
  const accepted=!decision.refused;
  const refusals=accepted?0:state.consecutiveRefusals+1;
  const level=observationLevel({...state,
   consecutiveRefusals:refusals},supplied,!accepted);
  const receipt=F({
-  offerId,worldHour:state.worldHour,
+  offerId,offerFingerprint,worldHour:state.worldHour,
   accepted,refused:!accepted,
   publicBehavior:accepted?'swallowed_prey':'did_not_eat',
   possibleDriver:decision.code,
@@ -215,7 +221,8 @@ export function offerSnakeFoodV09w({
   actualFoodEnergyAccepted:accepted?supplied.mealEnergy:0,
   actualNutrientsAbsorbedNow:0,
   growthAddedNow:0,
-  preyInventoryConsumed:accepted,
+  preyInventoryConsumed:false,
+  preyInventoryConsumptionRequested:accepted,
   shouldDeductPlayerPreyOnlyAfterVerifiedAcceptance:accepted,
   relationPenaltyFromRefusal:0,
   actualBodySizeChanged:false,
