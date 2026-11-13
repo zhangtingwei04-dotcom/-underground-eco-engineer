@@ -175,6 +175,49 @@ assert.equal(juvenile.progress.length,juvenile.acceptedPhysicalCaveSteps);
 assert.equal(juvenile.progress[0].all1617Inside,false);
 assert.equal(juvenile.progress.at(-1).all1617Inside,true);
 
+// The same physically modeled, fully swept straight cave is now
+// run END-TO-END for all other independent V0.9T stage-sized snakes.
+// No use of adult-animation rescaling or teleporting to checkpoints.
+const fullBodyArrivals=[{
+ stage:0,frames:juvenile.acceptedPhysicalCaveSteps,
+ firstHead:juvenile.firstHeadFullEntryFrame,
+ lastTail:juvenile.firstTailFullEntryFrame
+}];
+for(const stage of [1,2,3]){
+ const p=previewSnakeHeadFirstCaveEntryV09z({
+  receipt,sizedState:starts[stage],
+  scene,terrain,cave,maxFrames:450,seconds:.05
+ });
+ assert.equal(p.ok,true,
+  'FULL CAVE STAGE '+stage+' '+p.status+' '+
+  JSON.stringify(p.firstFailure)+' '+
+  JSON.stringify(p.finalCaveOccupancy));
+ assert.equal(p.trueHeadFirstEntrance,true);
+ assert.ok(p.firstHeadFullEntryFrame<p.firstTailFullEntryFrame);
+ assert.equal(p.firstWholeMeshEntryFrame,p.firstTailFullEntryFrame);
+ assert.equal(p.finalCaveOccupancy.interiorVertices,1617);
+ assert.equal(p.finalCaveOccupancy.headFullyInside,true);
+ assert.equal(p.finalCaveOccupancy.tailFullyInside,true);
+ assert.equal(p.finalCaveOccupancy.entireTransparentMeshInside,true);
+ assert.equal(p.noMovementBoneGrowth,true);
+ assert.equal(p.originalSourceUnmodified,true);
+ assert.equal(p.physical5SolidCaveColliderUsed,true);
+ assert.equal(p.exactContinuous3DPhysicsCertified,false);
+ assert.equal(p.formalWorldSaveModified,false);
+ assert.equal(p.skinApplied,false);
+ fullBodyArrivals.push({stage,
+  frames:p.acceptedPhysicalCaveSteps,
+  firstHead:p.firstHeadFullEntryFrame,
+  lastTail:p.firstTailFullEntryFrame,
+  lastHeadX:p.finalHead.x,
+  lastTailX:p.finalTail.x
+ });
+}
+assert.equal(fullBodyArrivals.length,4);
+assert.ok(fullBodyArrivals[3].frames>fullBodyArrivals[2].frames);
+assert.ok(fullBodyArrivals[2].frames>fullBodyArrivals[1].frames);
+assert.ok(fullBodyArrivals[1].frames>fullBodyArrivals[0].frames);
+
 // Large adult should not be told to squeeze through a cave with an
 // insufficient overhead clearance. This explicitly models a ROOF.
 const lowCave=createSnakeSolidCaveV09z({
@@ -275,6 +318,7 @@ assert.equal(starts[0].verifiedFrames,0);
 assert.equal(starts[0].pose.points[0].x,-.35);
 console.log('PASS V0.9Z real solid 3D cave (60 physical surface triangles), head-first V0.9T/U/S 24-joint mesh entry, juvenile whole 1617 vertices and 4-stage live contact smoke, without gameplay integration');
 console.log(JSON.stringify({
+ fourStageFullHeadFirstCaveArrivals:fullBodyArrivals,
  juvenileHeadFirstEntry:{
   verifiedFrames:juvenile.acceptedPhysicalCaveSteps,
   firstHeadInsideFrame:juvenile.firstHeadFullEntryFrame,
@@ -284,6 +328,7 @@ console.log(JSON.stringify({
   allMeshVerticesInside:juvenile.finalCaveOccupancy.interiorVertices
  },
  fourStagesCompletedFirstRealCaveStep:true,
+ fourStagesEntireVisibleMeshEnters:true,
  physicalCaveSolids:5,
  totalVisibleCaveColliderMeshTriangles:60,
  transparentSnakeVerticesCheckedEachStep:1617,
