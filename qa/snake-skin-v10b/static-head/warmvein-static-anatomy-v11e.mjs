@@ -4,7 +4,7 @@
  * No Tripo/Meshy geometry; never replaces the actual 24-joint
  * V0.9U collision/UV/save source.
  */
-export const WARMVEIN_STATIC_HEAD_V11E='1.1D';
+export const WARMVEIN_STATIC_HEAD_V11E='1.1E';
 export const GAPE_POSES_V11E=Object.freeze([
  {id:'closed',degrees:0},{id:'slight',degrees:9},
  {id:'medium',degrees:25},{id:'wide',degrees:46}
