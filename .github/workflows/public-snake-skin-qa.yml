@@ -30,3 +30,29 @@ jobs:
           for f in qa/snake-skin-v10b/tests/*.test.mjs; do
             node "$f"
           done
+
+  true-webgl-qt-chrome:
+    name: Real Chrome Q/T WebGL2 frame evidence
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+        with:
+          chrome-version: stable
+      - name: Capture same actual 24-joint WebGL2 frame in wide and phone landscape
+        env:
+          OHM_CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+        run: node qa/snake-skin-v10b/tests/warmvein-public-v10v-chrome-qa.mjs
+      - name: Keep actual GPU and browser screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: public-warmvein-v10v-gpu-qt
+          path: qa/snake-skin-v10b/.qa-artifacts/v10v-chrome/*.png
+          retention-days: 7
+          if-no-files-found: warn
