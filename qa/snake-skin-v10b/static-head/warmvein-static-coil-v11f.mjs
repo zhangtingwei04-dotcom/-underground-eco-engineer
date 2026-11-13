@@ -69,8 +69,8 @@ function auditClearance(){
   sampleSeparationThreshold:8,
   notActualSurfaceCollisionCertification:true};
 }
-export function buildWarmveinStaticCoilV11f({mouth='closed'}={}){
- const head=buildWarmveinStaticHeadV11f({pose:mouth}),
+export function buildWarmveinStaticCoilV11f({mouth='closed',degreesOverride=null}={}){
+ const head=buildWarmveinStaticHeadV11f({pose:mouth,degreesOverride}),
   vertices=[...head.vertices],colors=[...head.colors],
   normals=[...head.normals],counts={...head.materialTriangleCounts};
  const rootBody=Array.from({length:radial},(_,j)=>tubePoint(0,j));
