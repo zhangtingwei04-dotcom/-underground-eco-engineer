@@ -5,6 +5,7 @@ on:
       - 'qa/snake-motion/src/**'
       - 'qa/snake-motion/tests/**'
       - 'qa/snake-motion/tools/**'
+      - 'qa/snake-motion/visual/**'
       - 'qa/snake-motion/*.html'
       - '.github/workflows/public-snake-qa.yml'
   pull_request:
@@ -12,6 +13,7 @@ on:
       - 'qa/snake-motion/src/**'
       - 'qa/snake-motion/tests/**'
       - 'qa/snake-motion/tools/**'
+      - 'qa/snake-motion/visual/**'
       - 'qa/snake-motion/*.html'
       - '.github/workflows/public-snake-qa.yml'
   workflow_dispatch:
@@ -110,6 +112,14 @@ jobs:
         env:
           OHM_CHROME_BIN: ${{ steps.setup-chrome.outputs.chrome-path }}
         run: node tests/terrarium-pixel-sprites-v03g-browser-qa.mjs
+      - name: New ECO V0.3j real 3-viewport micro-life Canvas and interactive QA
+        env:
+          OHM_CHROME_BIN: ${{ steps.setup-chrome.outputs.chrome-path }}
+          OHM_REQUIRE_CHROME: '1'
+        run: |
+          node --check visual/terrarium-micro-activity-v03j.mjs
+          node --check tests/terrarium-micro-activity-v03j-browser-qa.mjs
+          node tests/terrarium-micro-activity-v03j-browser-qa.mjs
 
   snake-alpha-hold:
     name: V0.8A real single-pass alpha A/B in landscape
