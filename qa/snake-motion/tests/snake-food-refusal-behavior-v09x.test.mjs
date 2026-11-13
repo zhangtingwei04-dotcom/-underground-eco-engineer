@@ -195,7 +195,7 @@ assert.equal(stillDigesting.preyInventoryConsumed,false);
 const behaviorRuns=[],presentBehaviorTypes=new Set();
 for(const stage of [0,1,2,3]){
  const sizedState=startSnakeVariableSizeMotionV09t({
-  canonicalSourcePose,scene,terrain,stageProgress:stage
+  canonicalSourcePose:canonicalPose,scene,terrain,stageProgress:stage
  });
  assert.equal(sizedState.phase,'moving_sized');
  const frozen=JSON.stringify(sizedState);
@@ -253,7 +253,7 @@ assert.equal(presentBehaviorTypes.size,3,
 const rejectedAccepted=previewSnakeRefusalMotionV09x({
  receipt:accepted.receipt,
  sizedState:startSnakeVariableSizeMotionV09t({
-  canonicalSourcePose,scene,terrain,stageProgress:0
+  canonicalSourcePose:canonicalPose,scene,terrain,stageProgress:0
  }),scene,terrain
 });
 assert.equal(rejectedAccepted.ok,false);
