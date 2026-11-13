@@ -109,10 +109,13 @@ function ellipsoid(g,center,r,color,tag,segments=12,rings=8){
  }
  g.sheet(spherePt,rings,segments,color,tag,true);
 }
-export function buildWarmveinStaticHeadV11f({pose='closed'}={}){
+export function buildWarmveinStaticHeadV11f({pose='closed',degreesOverride=null}={}){
  const p=GAPE_POSES_V11F.find(x=>x.id===pose);
  if(!p)throw new RangeError('v11f_unknown_gape');
- const radians=p.degrees*Math.PI/180,g=makeGeometry();
+ if(degreesOverride!==null&&(!Number.isFinite(degreesOverride)||degreesOverride<0||degreesOverride>46))
+  throw new RangeError('v11f_invalid_continuous_gape');
+ const degrees=degreesOverride===null?p.degrees:degreesOverride;
+ const radians=degrees*Math.PI/180,g=makeGeometry();
  // The upper head is a TRUE curved half-vault, not a duplicated
  // flattened full-circle vertex strip.
  g.sheet(upperPoint,N,C,P.skull,'cranial_vault',true);
@@ -289,7 +292,8 @@ export function buildWarmveinStaticHeadV11f({pose='closed'}={}){
  }
  const distal=rotateLower([MOUTH_AUDIT_X,0,shapeAt(MOUTH_AUDIT_X)[3]-.003],radians,0);
  return Object.freeze({
-  version:WARMVEIN_STATIC_HEAD_V11F,pose,gapeDegrees:p.degrees,
+  version:WARMVEIN_STATIC_HEAD_V11F,pose,gapeDegrees:degrees,
+  acceptsContinuousGapeOverride:true,
   vertexCount,triangleCount:vertexCount/3,
   vertices:new Float32Array(g.vertices),colors:new Float32Array(g.colors),
   normals:new Float32Array(g.normals),
