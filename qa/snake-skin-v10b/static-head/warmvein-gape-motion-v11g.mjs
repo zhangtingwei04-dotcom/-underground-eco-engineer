@@ -87,7 +87,7 @@ export function buildWarmveinGapeMotionV11g({
  const normals=new Float32Array(original.normals);
  const headVertexCount=scene==='head'?
   original.vertexCount:original.headTriangleCount*3;
- const beforeFirstRoot=original.neckBodyRoot??null;
+ const beforeFirstRoot=true; // Both head and coil include a fixed -1.08 neck ring.
  // In a COIL scene only the sculpted head/neck receives a pose
  // deformation; its 44-point body joint stays fixed at x=-1.08.
  for(let i=0;i<headVertexCount;i++){
@@ -140,6 +140,7 @@ export function buildWarmveinGapeMotionV11g({
   originalPlayerSaveUnchanged:true,
   renderOnlyPrototype:true,actualSnakeBiomechanicsUnverified:true,
   artistApproved:false,
+  mouthGapAtMuzzleWorld:original.mouthGapAtMuzzleWorld,
   vertexCount:original.vertexCount,
   triangleCount:original.triangleCount,
   vertices, normals,colors:original.colors,
