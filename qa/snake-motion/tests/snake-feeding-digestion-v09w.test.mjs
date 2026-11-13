@@ -120,7 +120,9 @@ assert.equal(accepted.state.pendingNutritionGrowth,0);
 assert.equal(accepted.state.energyReserve,10);
 assert.equal(accepted.actualNutrientsAbsorbedNow,0);
 assert.equal(accepted.growthAddedNow,0);
-assert.equal(accepted.preyInventoryConsumed,true);
+assert.equal(accepted.preyInventoryConsumed,false);
+assert.equal(accepted.preyInventoryConsumptionRequested,true);
+assert.equal(accepted.playerSaveModified,false);
 const duplicate=offerSnakeFoodV09w({
  state:accepted.state,offerId:accepted.decision.offerId,
  context:{mealEnergy:16}
@@ -130,6 +132,13 @@ assert.equal(duplicate.duplicate,true);
 assert.strictEqual(duplicate.state,accepted.state);
 assert.equal(duplicate.newFoodConsumed,false);
 assert.equal(duplicate.preyInventoryConsumed,false);
+assert.equal(accepted.state.offers.length,1);
+const conflictingOffer=offerSnakeFoodV09w({
+ state:accepted.state,offerId:accepted.decision.offerId,
+ context:{mealEnergy:15}
+});
+assert.equal(conflictingOffer.ok,false);
+assert.equal(conflictingOffer.reason,'conflicting_offer_id');
 assert.equal(accepted.state.offers.length,1);
 const digesting=offerSnakeFoodV09w({
  state:accepted.state,offerId:'too_soon'
