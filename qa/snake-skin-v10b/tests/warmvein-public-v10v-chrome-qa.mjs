@@ -184,7 +184,67 @@ if(bin)try{
   assert.equal(full.readUInt32BE(16),view.w);
   assert.equal(full.readUInt32BE(20),view.h);
   writeFileSync(path.join(capture,view.id+'_browser_screen.png'),full);
-  screenshots+=2;
+  // V1.0Y: compare the REAL source-backed R/Y heads in one GPU frame.
+  const headCapture=await protocol.send('Runtime.evaluate',{
+   expression:[
+    "(()=>{",
+    "const select=document.querySelector('#material');",
+    "select.value='head-y-compare';",
+    "select.dispatchEvent(new Event('change',{bubbles:true}));",
+    "document.querySelector('#headFocus').click();",
+    "const canvas=document.querySelector('#view');",
+    "const gl=canvas.getContext('webgl2');",
+    "gl.finish();",
+    "const px=new Uint8Array(canvas.width*canvas.height*4);",
+    "gl.readPixels(0,0,canvas.width,canvas.height,gl.RGBA,gl.UNSIGNED_BYTE,px);",
+    "const w=canvas.width,h=canvas.height,half=Math.floor(w/2);",
+    "let left=0,right=0,paired=0,different=0;",
+    "for(let y=0;y<h;y++)for(let x=0;x<half;x++){",
+    "const a=4*(y*w+x),b=4*(y*w+x+half);",
+    "const la=px[a+3]>30,ra=px[b+3]>30;",
+    "if(la)left++;if(ra)right++;if(!la||!ra)continue;paired++;",
+    "if(Math.max(Math.abs(px[a]-px[b]),Math.abs(px[a+1]-px[b+1]),Math.abs(px[a+2]-px[b+2]))>12)different++;",
+    "}",
+    "return {qa:window.__warmveinV10bQA(),left,right,paired,different,error:gl.getError(),png:canvas.toDataURL('image/png')};",
+    "})()"
+   ].join(''),
+   returnByValue:true
+  },60000);
+  if(headCapture.exceptionDetails)
+   throw Error(view.id+' V1.0Y Chrome JS exception '+JSON.stringify(headCapture.exceptionDetails));
+  const h=headCapture.result?.value;
+  assert.equal(h.error,0,view.id+' V1.0Y WebGL GL error');
+  assert.equal(h.qa.v10yNaturalHeadActive,true);
+  assert.equal(h.qa.v10yHeadComparisonActive,true);
+  assert.equal(h.qa.v10yWeldedNeckAndBodyUntouched,true);
+  assert.equal(h.qa.v10yNoUVChange,true);
+  assert.equal(h.qa.v10yNoPhysicalColliderOrSaveChanges,true);
+  assert.ok(h.qa.v10yVisualHeadVerticesChanged>=80);
+  assert.equal(h.qa.v10xVisibleEyeCount,1);
+  assert.equal(h.qa.v10xHiddenEyeCount,1);
+  assert.equal(h.qa.v10rHeadCloseupSelected,true);
+  assert.ok(h.left>64&&h.right>64,'V1.0Y two real head panels must appear');
+  assert.ok(h.paired>64,'old/new head panels should share source pose');
+  assert.ok(h.different>0,'new head and eyes must have real color/shape differences');
+  assert.ok(h.png?.startsWith(prefix));
+  const headPng=Buffer.from(h.png.slice(prefix.length),'base64');
+  assert.equal(headPng.subarray(0,8).toString('hex'),'89504e470d0a1a0a');
+  assert.equal(headPng.readUInt32BE(16),1100);
+  assert.equal(headPng.readUInt32BE(20),600);
+  writeFileSync(path.join(capture,view.id+'_real_gpu_head_r_vs_y_closeup.png'),headPng);
+  const headSnap=await protocol.send('Page.captureScreenshot',{
+   format:'png',fromSurface:true,captureBeyondViewport:false
+  },60000);
+  const headFull=Buffer.from(headSnap.data,'base64');
+  assert.equal(headFull.readUInt32BE(16),view.w);
+  assert.equal(headFull.readUInt32BE(20),view.h);
+  writeFileSync(path.join(capture,view.id+'_head_r_vs_y_browser.png'),headFull);
+  console.log('PASS V1.0Y source-backed real Chrome head R/Y comparison '+JSON.stringify({
+   view:view.id,oldPixels:h.left,newPixels:h.right,overlap:h.paired,
+   actualChangedPixels:h.different,nearEyes:h.qa.v10xVisibleEyeCount,
+   headVerticesChanged:h.qa.v10yVisualHeadVerticesChanged
+  }));
+  screenshots+=4;
   console.log('PASS public real WebGL2 Q/T source-same-frame '+JSON.stringify({
    view:view.id,left:v.left,right:v.right,paired:v.paired,
    colorDiffPixels:v.changed,visibleEyes:v.qa.v10xVisibleEyeCount,
@@ -192,8 +252,8 @@ if(bin)try{
    realGPUBytes:gpu.length,browserBytes:full.length
   }));
  }
- assert.equal(screenshots,4);
- console.log('PASS 4 real Chrome WebGL2 Q/T QA images; not artist or iPhone approval');
+ assert.equal(screenshots,8);
+ console.log('PASS 8 real Chrome Q/T and V1.0Y side-view screenshots; not artist or iPhone approval');
 }finally{
  if(protocol)protocol.ws.close();
  if(chrome&&chrome.exitCode===null){
