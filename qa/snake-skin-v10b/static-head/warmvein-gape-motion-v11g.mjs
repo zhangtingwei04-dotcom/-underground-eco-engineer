@@ -46,20 +46,41 @@ function getPhase(phase){
  }
  return {gape:0,pitchFactor:0,interval:'閉嘴'};
 }
+// The REAL neck is a curved transition, not a hinged polygonal elbow.
+// Cubic Hermite enforces POSITION and TANGENT continuity between
+// fixed body root (slope 0) and the inclined entire skull (slope tan A).
+const NECK_ROOT_X=-1.08,SKULL_ROOT_X=-.67,REST_Z=.113;
+const NECK_LENGTH=SKULL_ROOT_X-NECK_ROOT_X;
+function neckGuide(x,pitchRad){
+ if(Math.abs(pitchRad)<1e-12||x<=NECK_ROOT_X)
+  return {rise:0,angle:0};
+ if(x>=SKULL_ROOT_X){
+  return {rise:NECK_LENGTH*Math.tan(pitchRad)*.36,
+   angle:pitchRad};
+ }
+ const u=clamp((x-NECK_ROOT_X)/NECK_LENGTH,0,1),
+  finalRise=NECK_LENGTH*Math.tan(pitchRad)*.36,
+  finalDerivative=NECK_LENGTH*Math.tan(pitchRad);
+ const smooth=3*u*u-2*u*u*u;
+ const rise=smooth*finalRise+(u*u*u-u*u)*finalDerivative;
+ const der=(6*u-6*u*u)*finalRise+
+  (3*u*u-2*u)*finalDerivative;
+ return {rise,angle:Math.atan(der/NECK_LENGTH)};
+}
 function transform(point,pitchRad){
  const [x,y,z]=point;
- const ROOT=-1.08,SKULL=-.67,ZROOT=.113;
- if(x<=ROOT||Math.abs(pitchRad)<1e-12)return point.slice();
- const u=clamp((x-ROOT)/(SKULL-ROOT),0,1);
- const blend=ease(u),phi=pitchRad*blend;
- const lift=.010*blend*(pitchRad/(14*Math.PI/180));
- const c=Math.cos(phi),s=Math.sin(phi);
- if(x<SKULL){
-  // Bend front neck progressively; root remains exactly fixed.
-  return [x-(z-ZROOT)*s,y,ZROOT+(z-ZROOT)*c+lift];
+ if(x<=NECK_ROOT_X||Math.abs(pitchRad)<1e-12)
+  return point.slice();
+ const {rise,angle}=neckGuide(x,pitchRad);
+ const c=Math.cos(angle),sn=Math.sin(angle),dz=z-REST_Z;
+ if(x<SKULL_ROOT_X){
+  // Front-neck rings gradually rotate WITH the tangent of the
+  // actual centerline. Both the neck ROOT and skull-root tangent
+  // meet their neighboring geometry without a sharp kink.
+  return [x-dz*sn,y,REST_Z+rise+dz*c];
  }
- const dx=x-SKULL,dz=z-ZROOT;
- return [SKULL+dx*c-dz*s,y,ZROOT+dx*s+dz*c+lift];
+ const dx=x-SKULL_ROOT_X;
+ return [SKULL_ROOT_X+dx*c-dz*sn,y,REST_Z+rise+dx*sn+dz*c];
 }
 export function buildWarmveinGapeMotionV11g({
  scene='head',profile='video-head-lift',
@@ -96,7 +117,7 @@ export function buildWarmveinGapeMotionV11g({
   vertices[o]=p[0];vertices[o+1]=p[1];vertices[o+2]=p[2];
   // Rigid part rotates normals with the head. The bent neck's
   // exact geometric normals are an approximation in this test.
-  const a=tiltRad*ease((x+1.08)/(.41));
+  const a=neckGuide(x,tiltRad).angle;
   const c=Math.cos(a),sn=Math.sin(a);
   const nx=normals[o],nz=normals[o+2];
   normals[o]=nx*c-nz*sn;
@@ -121,7 +142,7 @@ export function buildWarmveinGapeMotionV11g({
  }
  const tipX=original.geometryAudit?.frontTipX??.08;
  const upperTipRelativeLift=
-  (tipX+.67)*Math.sin(tiltRad)+.010*(tiltDeg/14);
+  (tipX-SKULL_ROOT_X)*Math.sin(tiltRad)+neckGuide(SKULL_ROOT_X,tiltRad).rise;
  return Object.freeze({
   version:WARMVEIN_VIDEO_GAPE_V11G,
   scene,profile,pose,phase,
@@ -132,6 +153,10 @@ export function buildWarmveinGapeMotionV11g({
   lowerJawRelativeGapeDegrees:gape,
   splitHeadAndJawControls:true,
   headLiftIsWholeSkullPitchNotCranialLid:true,
+  c1ContinuousNeckHermiteTransition:true,
+  fixedNeckRootSlopeWorld:0,
+  skullRootSlopeWorld:Math.tan(tiltRad),
+  skullRootRiseWorld:neckGuide(SKULL_ROOT_X,tiltRad).rise,
   realVideoTimingIsQualitativeNotMotionCapture:true,
   referenceUserVideoTime:'2026-11-08 21:16:20 video 22.3–26.6s',
   retainedBodyRoot:true,
