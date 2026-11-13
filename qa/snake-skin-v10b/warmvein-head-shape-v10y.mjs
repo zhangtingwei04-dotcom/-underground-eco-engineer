@@ -159,8 +159,11 @@ export function fitWarmveinNaturalEyesV10y({
   }
   choices.sort((a,b)=>b.score-a.score);
   const best=choices[0];
-  if(!best||best.projectedRise<-.00001)
-   throw new RangeError('v10y_no_upper_flank_eye_anchor');
+  // Screen elevation cannot be guaranteed positive on BOTH lateral
+  // sides of a tilted real head; the far side is hidden by V1.0X.
+  // Always choose the highest available actual surface vertex.
+  if(!best)
+   throw new RangeError('v10y_no_lateral_eye_anchor');
   // Still attaches to the actual moving head surface (not a planar
   // face decal). Only the renderer's eye sprite is repositioned.
   const eyePosition=F({
