@@ -5,12 +5,12 @@ import {buildWarmveinGapeMotionV11g,GAPE_TIMELINE_V11G,GAPE_PROFILES_V11G}
 const poses=['closed','slight','medium','wide'];
 const skullAverageZ=m=>{
  const n=m.materialTriangleCounts.cranial_vault*3;
+ // Inspect the same FRONT-MOST 30% of ORIGINAL skull triangle
+ // indices across every frame. Selecting by transformed x would
+ // silently alter the tracked vertex set when the head pitches.
  let sum=0,count=0;
- for(let i=0;i<n;i++){
-  const j=i*3;
-  if(m.vertices[j]>0){
-   sum+=m.vertices[j+2];count++;
-  }
+ for(let i=Math.floor(n*.7);i<n;i++){
+  sum+=m.vertices[i*3+2];count++;
  }
  assert.ok(count>90);
  return sum/count;
