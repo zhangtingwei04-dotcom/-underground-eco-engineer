@@ -18,6 +18,8 @@ import {createWarmveinPixelAtlasV10t}
  from '../warmvein-head-neck-skin-v10t.mjs';
 import {inspectWarmveinGPUCaptureV10v}
  from '../warmvein-gpu-capture-v10v.mjs';
+import {selectWarmveinVisibleEyesV10x}
+ from '../warmvein-eye-occlusion-v10x.mjs';
 import {makeWarmveinDisplayTaperV10w}
  from '../warmvein-visual-taper-v10w.mjs';
 import {deriveWarmveinRenderNormalsV10g}
@@ -119,7 +121,7 @@ let program=null,positionBuffer=null,uvBuffer=null,
  uSampler=null,positionAttrib=null,uvAttrib=null,normalAttrib=null;
 let eyeProgram=null,eyeBuffer=null,eyePositionAttrib=null,
  eyeCenterUniform=null,eyeScaleUniform=null,eyeStyleUniform=null,eyeSizeAttrib=null,
- eyeShadeAttrib=null,eyeDebug=null;
+ eyeShadeAttrib=null,eyeDebug=null,eyeVisibility=null;
 let cachedMesh=null,cachedGPU=null,lastAppearanceAudit=null,
  latestRenderOnlyBodyFit=null,latestBodyContinuity=null,
  latestContactAudit=null,latestArcAudit=null,
@@ -151,7 +153,7 @@ function initializeGL(){
   'out vec2 vUV;\nout vec3 vNormal;\n'+
   'void main(){\n'+
   'vec2 p=vec2(aPosition.x,aPosition.y+.56*aPosition.z-.07);\n'+
-  'gl_Position=vec4((p-uCenter)/uScale,-aPosition.z*.45,1.0);\n'+
+  'gl_Position=vec4((p-uCenter)/uScale,-(aPosition.z-.56*aPosition.y)*.45,1.0);\n'+
   'vUV=aUV;\nvNormal=aNormal;\n}');
  const fragment=shader(gl.FRAGMENT_SHADER,
   '#version 300 es\nprecision mediump float;\n'+
@@ -214,7 +216,7 @@ uniform vec2 uEyeScale;
 out float vEyeShade;
 void main(){
  vec2 p=vec2(aEyePosition.x,aEyePosition.y+.56*aEyePosition.z-.07);
- gl_Position=vec4((p-uEyeCenter)/uEyeScale,-aEyePosition.z*.45-.002,1.);
+ gl_Position=vec4((p-uEyeCenter)/uEyeScale,-(aEyePosition.z-.56*aEyePosition.y)*.45-.002,1.);
  gl_PointSize=aEyeSize;
  vEyeShade=aEyeShade;
 }`);
@@ -431,8 +433,12 @@ function drawIndependentEyes(mesh,midX,halfWidth,viewportWidth=canvas.width,{
   mesh,stageProgress:stage,canvasWidth:viewportWidth,
   worldHalfWidth:halfWidth
  });
+ // Keep BOTH eyes attached to their original head vertices, but on
+ // a side-on camera only draw the near eye. Far-eye GL point sprites
+ // cannot be allowed to protrude around the head silhouette.
+ eyeVisibility=selectWarmveinVisibleEyesV10x({mesh,eyes:eyeDebug.eyes});
  const packed=new Float32Array(
-  eyeDebug.eyes.flatMap(e=>[
+  eyeVisibility.visibleEyes.flatMap(e=>[
    e.position.x,e.position.y,e.position.z,
    e.pointSizePx,e.faceBrightness
   ])
@@ -450,7 +456,7 @@ function drawIndependentEyes(mesh,midX,halfWidth,viewportWidth=canvas.width,{
  gl.enableVertexAttribArray(eyeShadeAttrib);
  gl.vertexAttribPointer(eyeShadeAttrib,1,gl.FLOAT,false,20,16);
  gl.depthMask(false);
- gl.drawArrays(gl.POINTS,0,2);
+ gl.drawArrays(gl.POINTS,0,eyeVisibility.visibleEyeCount);
  gl.depthMask(true);
 }
 /**
@@ -1179,6 +1185,13 @@ window.__warmveinV10bQA=()=>F({
  blinkFeatureEnabled:false,
  eyelidAnimationScheduled:false,
  bothEyesFromActualHeadVertices:eyeDebug?.eyes?.length===2,
+ v10xEyeOcclusionActive:Boolean(eyeVisibility),
+ v10xVisibleEyeCount:eyeVisibility?.visibleEyeCount??null,
+ v10xHiddenEyeCount:eyeVisibility?.hiddenEyeCount??null,
+ v10xVisibleEyeAnchorIds:eyeVisibility?.visibleAnchorIds??[],
+ v10xHiddenEyeAnchorIds:eyeVisibility?.hiddenAnchorIds??[],
+ v10xCameraDepthProjectionConsistent:true,
+ v10xBothEyeAnchorsRemainTwo:eyeVisibility?.eyeAnchorsRemainTwo??true,
  sourceHeadVertexIDs:eyeDebug?.eyes.map(a=>a.surfaceVertexIndex)??[],
  eyeStageProportions:eyeDebug?.eyes.map(e=>e.eyeStageRatio)??[],
  eyePixelDiameters:eyeDebug?.eyes.map(e=>e.pointSizePx)??[],
