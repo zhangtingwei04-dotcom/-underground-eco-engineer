@@ -130,7 +130,7 @@ export function previewTerrariumMicroActivityV03j({
    alternativeFragmentationUnits:c.alternativeFragmentationUnits,
    alternativeMicrobialProcessingUnits:c.alternativeMicrobialProcessingUnits,
    sourceTotalOrganicUnits:c.bothModelsProxyTotal,
-   shadowRateNotBiological:false,
+   shadowRatesAreSyntheticOnly:true,
    bacteriaIndexSyntheticOnly:bacteria,
    observationIsNotOrganismCount:true
   });
