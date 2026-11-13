@@ -27,6 +27,8 @@ for(const profile of GAPE_PROFILES_V11G.map(x=>x.id)){
    assert.equal(a.renderOnlyPrototype,true);
    assert.equal(a.splitHeadAndJawControls,true);
    assert.equal(a.headLiftIsWholeSkullPitchNotCranialLid,true);
+   assert.equal(a.c1ContinuousNeckHermiteTransition,true);
+   assert.ok(a.measuredSkullNeckTangentError<.015);
    assert.equal(a.retainedBodyRoot,true);
    assert.equal(a.disconnectedSourceSkeletonUnchanged,true);
    assert.equal(a.originalPlayerSaveUnchanged,true);
