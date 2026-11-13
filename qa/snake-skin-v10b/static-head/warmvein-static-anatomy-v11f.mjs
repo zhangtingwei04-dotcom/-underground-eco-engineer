@@ -234,7 +234,16 @@ export function buildWarmveinStaticHeadV11f({pose='closed'}={}){
   return [x,offsetY+width*Math.cos(phi),
    center+offsetZ+(Math.sin(phi)>=0?top:down)*Math.sin(phi)];
  };
- g.sheet(neckAt,NECK_SEGMENTS,NECK_RADIAL,P.neck,'neck_volume',true);
+ // Dorsal and ventral neck use a continuous cross-sectional color
+ // boundary; the ventral surface follows the cream throat rather
+ // than ending in a rectangular stripe behind the jaw.
+ for(let i=0;i<NECK_SEGMENTS;i++)for(let j=0;j<NECK_RADIAL;j++){
+  const a=neckAt(i,j),b=neckAt(i+1,j);
+  const c=neckAt(i+1,j+1),d=neckAt(i,j+1);
+  const ventral=Math.sin(S*(j+.5)/NECK_RADIAL)<0;
+  g.quad(a,d,c,b,ventral?P.ventral:P.neck,
+   ventral?'neck_belly':'neck_volume');
+ }
  const neckBodyRoot=Array.from({length:NECK_RADIAL},(_,j)=>Object.freeze(neckAt(0,j)));
  const neckToHead=Array.from({length:NECK_RADIAL},(_,j)=>Object.freeze(neckAt(NECK_SEGMENTS,j)));
  // Narrow, inset, low profile eyes: actual 3D camera depth occludes far eye.
@@ -252,7 +261,7 @@ export function buildWarmveinStaticHeadV11f({pose='closed'}={}){
  }
  // Smooth normals within curved surfaces, but retain distinct lip edges.
  const smoothed=new Map();
- const skinJoin=new Set(['cranial_vault','neck_volume','throat_chin']);
+ const skinJoin=new Set(['cranial_vault','neck_volume','neck_belly','throat_chin']);
  const smoothGroups=new Set([...skinJoin,'left_mandible','right_mandible',
   'anterior_chin_bridge','curved_ventral_chin_skin',
   'cheek_throat_flex_transition','recessed_oral_basin']);
@@ -322,6 +331,7 @@ export function buildWarmveinStaticHeadV11f({pose='closed'}={}){
   matchedNeckBodyRing44:true,
   smoothSharedNeckCrownNormals:true,
   slightRestingNeckSCurve:true,
+  continuousVentralNeckColor:true,
   anchoredNeckBothEnds:true,
   physicallyCorrectedDorsalNormalDirection:true,
   neckBodyRoot:Object.freeze(neckBodyRoot),
