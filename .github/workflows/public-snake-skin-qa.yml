@@ -50,6 +50,18 @@ jobs:
         env:
           OHM_CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
         run: node qa/snake-skin-v10b/tests/warmvein-public-v10v-chrome-qa.mjs
+      - name: Generate all 16 V1.1A real static gape camera screenshots
+        env:
+          OHM_CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+        run: node qa/snake-skin-v10b/tests/warmvein-static-gape-v11a-chrome.mjs
+      - name: Archive sixteen V1.1A actual GPU static images and evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: public-warmvein-v11a-static-gape-16-views
+          path: qa/snake-skin-v10b/.qa-artifacts/v11a-static/*
+          retention-days: 7
+          if-no-files-found: warn
       - name: Keep actual GPU and browser screenshots
         if: always()
         uses: actions/upload-artifact@v4
