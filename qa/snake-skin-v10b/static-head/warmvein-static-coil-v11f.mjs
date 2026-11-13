@@ -86,11 +86,11 @@ export function buildWarmveinStaticCoilV11f({mouth='closed'}={}){
   const a=tubePoint(i,j),b=tubePoint(i+1,j),
    c=tubePoint(i+1,j+1),d=tubePoint(i,j+1);
   const theta=2*Math.PI*(j+.5)/radial;
-  const belly=Math.sin(theta)<-.52;
+  const belly=Math.sin(theta)<0;
   const base=belly?[.73,.68,.57]:[.56,.49,.40];
   const u=clamp((i/samples)/.16,0,1);
   const fade=u*u*(3-2*u);
-  const matchingNeck=[.61,.53,.43];
+  const matchingNeck=belly?[.75,.68,.57]:[.61,.53,.43];
   const grain=(i%17===0&&j%5<2)?-.018*fade:0;
   const color=base.map((x,k)=>matchingNeck[k]*(1-fade)+x*fade+grain);
   for(const [p,q,r] of [[a,b,c],[a,c,d]]){
@@ -142,6 +142,7 @@ export function buildWarmveinStaticCoilV11f({mouth='closed'}={}){
   matchedNeckBodyRoot:true,
   maximumNeckBodySeamDistanceWorld:seamMaxDistance,
   improvedJoinedNormalsAtRoot:true,
+  continuousVentralBodyColor:true,
   smoothShoulderRestLift:true,
   connectedBodyRootRing:Object.freeze(rootBody.map(x=>Object.freeze(x))),
   tailLastRadius:radius(1),bodyMidRadius:radius(.5),
