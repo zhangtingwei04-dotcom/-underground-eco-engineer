@@ -113,7 +113,7 @@ try{
  let ready=null;
  for(let i=0;i<180;i++){
   ready=await evaluate(cdp,
-   "({ready:document.readyState,qa:window.__warmveinStaticV11bQA?.()??null})");
+   "({ready:document.readyState,qa:window.__warmveinStaticV11cQA?.()??null})");
   if(ready.ready==='complete'&&ready.qa?.realWebGL2Drawn)break;
   await sleep(100);
  }
@@ -149,7 +149,7 @@ try{
     "if(r+g+b>200)colored++;",
     "sum=(sum*31+r*5+g*3+b)>>>0;",
     "}",
-    "return {qa:window.__warmveinStaticV11bQA(),",
+    "return {qa:window.__warmveinStaticV11cQA(),",
     "error:gl.getError(),colored,sum,",
     "png:c.toDataURL('image/png')};",
     "})()"
