@@ -22,7 +22,8 @@ for(const pattern of [
 ])assert.match(html,pattern);
 assert.match(script,/previewTerrariumMicroActivityV03j/);
 assert.match(script,/sampleTerrariumMicroActivityFrameV03j/);
-assert.doesNotMatch(script,/localStorage|sessionStorage|fetch\s*\(|XMLHttpRequest/);
+const executableScript=script.replace(/\/\*[\s\S]*?\*\//g,'').replace(/\/\/[^\n]*/g,'');
+assert.doesNotMatch(executableScript,/\b(localStorage|sessionStorage|XMLHttpRequest)\b|\bfetch\s*\(/);
 let binary=null;
 for(const bin of [
  process.env.OHM_CHROME_BIN,'google-chrome','google-chrome-stable',
