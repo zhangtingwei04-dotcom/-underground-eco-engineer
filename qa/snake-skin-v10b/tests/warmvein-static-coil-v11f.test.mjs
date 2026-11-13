@@ -47,6 +47,8 @@ for(const pose of GAPE_POSES_V11F){
  assert.equal(h.smoothSharedNeckCrownNormals,true);
  assert.equal(h.slightRestingNeckSCurve,true);
  assert.equal(h.anchoredNeckBothEnds,true);
+ assert.equal(h.continuousVentralNeckColor,true);
+ assert.ok(h.materialTriangleCounts.neck_belly>200);
  assert.equal(h.physicallyCorrectedDorsalNormalDirection,true);
  assert.equal(h.neckBodyRoot.length,44);
  assert.equal(h.neckToHead.length,44);
@@ -86,6 +88,7 @@ for(const pose of GAPE_POSES_V11F){
  assert.equal(body.matchedNeckBodyRoot,true);
  assert.ok(body.maximumNeckBodySeamDistanceWorld<1e-8);
  assert.equal(body.improvedJoinedNormalsAtRoot,true);
+ assert.equal(body.continuousVentralBodyColor,true);
  assert.equal(body.smoothShoulderRestLift,true);
  assert.equal(body.connectedBodyRootRing.length,44);
  for(let j=0;j<44;j++)for(let k=0;k<3;k++)
