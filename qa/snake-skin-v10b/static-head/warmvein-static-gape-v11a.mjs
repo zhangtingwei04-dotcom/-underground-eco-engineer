@@ -72,7 +72,7 @@ function ringUpper(x,j,n=16){
 }
 function ringLower(x,j,angle,n=16){
  const [w,h]=sizeAt(x),t=Math.PI*j/n;
- const u=[x,w*Math.cos(t),-.017-h*.66*Math.sin(t)];
+ const u=[x,w*Math.cos(t),.010-h*.66*Math.sin(t)];
  return transformLower(u,angle);
 }
 function builder(){
@@ -167,7 +167,7 @@ export function buildWarmveinStaticGapeV11a({pose='closed'}={}){
  g.uvSurface((i,j)=>{
   const x=headX[i],[w]=sizeAt(x);
   const y=(j/12*2-1)*w*.93;
-  const z=-.022-.007*(1-(y/w)**2);
+  const z=.004-.009*(1-(y/w)**2);
   return transformLower([x,y,z],angle);
  },headX.length-1,12,palette.lining,'inner_floor');
  // Elastic side lining between roof / moving left-and-right lips.
@@ -176,8 +176,8 @@ export function buildWarmveinStaticGapeV11a({pose='closed'}={}){
    const x=headX[i],next=headX[i+1];
    const w=sizeAt(x)[0],ww=sizeAt(next)[0];
    const p=[x,side*w,.006],q=[next,side*ww,.006];
-   const a=transformLower([x,side*w,-.017],angle);
-   const b=transformLower([next,side*ww,-.017],angle);
+   const a=transformLower([x,side*w,.010],angle);
+   const b=transformLower([next,side*ww,.010],angle);
    // Even when closed the lining is a slender concealed labial strip.
    g.quad(p,q,b,a,palette.lining,'stretching_labial_membrane');
   }
@@ -199,6 +199,7 @@ export function buildWarmveinStaticGapeV11a({pose='closed'}={}){
  // not as a claim about a snake's yawn or swallowing behavior.
  // It will be added later if the surrounding oral geometry passes.
  neckTube(g);
+ const gapeAtMuzzleWorld=.012-transformLower([.35,0,.010],angle)[2];
  const points=g.vertices.length/3;
  if(points<3000||points%3!==0)throw Error('v11a_empty_or_bad_static_geometry');
  const bounds={
@@ -214,6 +215,7 @@ export function buildWarmveinStaticGapeV11a({pose='closed'}={}){
  return F({
   version:WARMVEIN_STATIC_GAPE_V11A,pose,gapeDegrees:def.degrees,
   vertexCount:points,triangleCount:points/3,
+  mouthGapAtMuzzleWorld:gapeAtMuzzleWorld,
   vertices:new Float32Array(g.vertices),
   colors:new Float32Array(g.colors),
   normals:new Float32Array(g.normals),
