@@ -218,3 +218,51 @@ export function inspectSnakeGrowthRendererCompatibilityV09q({
   sourceHeadSeamNotCertified:true
  });
 }
+
+
+/**
+ * V0.9U BRIDGE ONLY. Unlike V0.9Q's canonical V0.9P builder, this
+ * takes the CURRENT independently advanced V0.9T pose as input.
+ * It never calls V0.9P to recreate a scaled adult pose. The owning
+ * V0.9U transition must independently replay V0.9T before release.
+ */
+export function buildSnakeSharedBodyFromActualSizedPoseV09u({
+ pose,scene,terrain,stageProgress,sourceFrame,
+ radialSegments=16,subdivisions=4
+}={}){
+ if(!scene||!terrain||!Number.isInteger(sourceFrame)||sourceFrame<0||
+  !Number.isFinite(stageProgress)||stageProgress<0||stageProgress>3||
+  radialSegments!==16||subdivisions!==4||
+  pose?.points?.length!==24||pose?.boneLengths?.length!==23||
+  pose?.radiiWorldUnits?.length!==24||
+  !pose.points.every(p=>p&&finite(p.x)&&finite(p.y)&&finite(p.z))||
+  !pose.radiiWorldUnits.every(r=>finite(r)&&r>.001&&r<.3)||
+  !pose.boneLengths.every(n=>finite(n)&&n>.001&&n<.5))
+  throw new RangeError('v09u_invalid_sized_source_pose');
+ const maximumLinkError=Math.max(...pose.boneLengths.map((n,i)=>
+  Math.abs(dist(pose.points[i],pose.points[i+1])-n)));
+ if(maximumLinkError>1e-7)
+  return F({...reject('sized_source_bone_length_mismatch',stageProgress),
+   version:'0.9U',sourceFrame});
+ const geometry=ringsFromSolved(pose,radialSegments,subdivisions,terrain);
+ const checked=geometry.checks;
+ const good=checked.maximumVertexRadialErrorWorld<1e-9&&
+  checked.maximumRingCenterErrorWorld<1e-9&&
+  checked.minimumMeshVertexHeightfieldGapWorld>=-.00001;
+ if(!good)return F({...reject('sized_mesh_radius_or_ground_rejected',
+  stageProgress),version:'0.9U',sourceFrame});
+ return F({version:'0.9U',ok:true,stageProgress,sourceFrame,
+  lifeStage:'synthetic_v09t_stage',sourceBodyLengthWorld:
+   pose.boneLengths.reduce((x,y)=>x+y,0),
+  posePoints:pose.points,radiiWorldUnits:pose.radiiWorldUnits,
+  boneLengths:pose.boneLengths,mesh:geometry.mesh,
+  collisionShell:geometry.collisionShell,
+  checks:geometry.checks,maxSourceBoneLengthErrorWorld:maximumLinkError,
+  topology:F({boneCount:24,linkCount:23,ringCount:93,
+   radialSegments:16,candidateShellMatchesMesh:true}),
+  fromActualVariableSizedMotionV09t:true,
+  originalV09cControllerUnmodified:true,
+  geometryOnlyNotAuthentication:true,
+  gameIntegrationAuthorized:false,skinApplied:false,saveModified:false
+ });
+}
