@@ -18,6 +18,8 @@ import {createWarmveinPixelAtlasV10t}
  from '../warmvein-head-neck-skin-v10t.mjs';
 import {inspectWarmveinGPUCaptureV10v}
  from '../warmvein-gpu-capture-v10v.mjs';
+import {makeWarmveinDisplayTaperV10w}
+ from '../warmvein-visual-taper-v10w.mjs';
 import {deriveWarmveinRenderNormalsV10g}
  from '../warmvein-body-light-v10g.mjs';
 import {makeWarmveinTransparentBodyFitV10h}
@@ -123,7 +125,8 @@ let cachedMesh=null,cachedGPU=null,lastAppearanceAudit=null,
  latestContactAudit=null,latestArcAudit=null,
  restHoldSession=null,latestRestHold=null,latestReleaseIntent=null,
  latestReverseAudit=null,latestReverseFlexAudit=null,flexRunning=false,
- latestHeadRefinement=null,latestNeckUVAudit=null,headFocus=false;
+ latestHeadRefinement=null,latestNeckUVAudit=null,
+ latestVisualTaper=null,headFocus=false;
 const compareMode=()=>mode==='transparent-compare';
 const headCompareMode=()=>mode==='head-compare';
 const splitCompare=()=>compareMode()||headCompareMode();
@@ -564,7 +567,14 @@ function render(){
   makeWarmveinTransparentBodyFitV10h({
    sourceMesh:binding.mesh,stageProgress:stage,intensity:1
   }):null;
- const originalOrBodyMesh=latestRenderOnlyBodyFit?.renderMesh??binding.mesh;
+ // V1.0W is a LOCAL DISPLAY-ONLY shape candidate for Q/T skin.
+ // Source motion, V0.9U physics shell, UV/index and save never change.
+ const untaperedMesh=latestRenderOnlyBodyFit?.renderMesh??binding.mesh;
+ latestVisualTaper=['pixel-q','pixel-t','skin-compare'].includes(mode)?
+  makeWarmveinDisplayTaperV10w({
+   sourceMesh:untaperedMesh,stageProgress:stage
+  }):null;
+ const originalOrBodyMesh=latestVisualTaper?.renderMesh??untaperedMesh;
  latestHeadRefinement=refinedHeadMode()?
   refineWarmveinHeadRenderV10r({
    mesh:originalOrBodyMesh,stageProgress:stage,intensity:1
@@ -1155,6 +1165,10 @@ window.__warmveinV10bQA=()=>F({
  v10tAtlasRevision:atlases['pixel-t'].privateSkinRevision,
  v10tNoHeadUVScroll:true,
  v10tNoPhysicalColliderModified:true,
+ v10wDisplayOnlyTailTaperActive:Boolean(latestVisualTaper),
+ v10wRendererOnlySourceUntouched:latestVisualTaper?.noSourcePhysicsModified??true,
+ v10wMidTrunkRelativeRadius:latestVisualTaper?.middleBodyRelativeRadius??null,
+ v10wLastTailRingRelativeRadius:latestVisualTaper?.lastRingRelativeRadius??null,
  v10qTextureDimensions:[atlases['pixel-q'].width,atlases['pixel-q'].height],
  v10qNotYetApprovedByGPUOrPhone:true,
  atlasSeamOK:atlas.nearSeamRowEqual,
