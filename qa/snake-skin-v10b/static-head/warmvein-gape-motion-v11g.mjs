@@ -143,6 +143,16 @@ export function buildWarmveinGapeMotionV11g({
  const tipX=original.geometryAudit?.frontTipX??.08;
  const upperTipRelativeLift=
   (tipX-SKULL_ROOT_X)*Math.sin(tiltRad)+neckGuide(SKULL_ROOT_X,tiltRad).rise;
+ const lineSlope=(x1,x2)=>{
+  const l=transform([x1,0,REST_Z],tiltRad);
+  const r=transform([x2,0,REST_Z],tiltRad);
+  return (r[2]-l[2])/(r[0]-l[0]);
+ };
+ const skullRootTangentError=Math.abs(
+  lineSlope(SKULL_ROOT_X-.0002,SKULL_ROOT_X)-
+  lineSlope(SKULL_ROOT_X,SKULL_ROOT_X+.0002));
+ if(skullRootTangentError>.015)
+  throw Error('v11g_sharp_neck_kink_detected');
  return Object.freeze({
   version:WARMVEIN_VIDEO_GAPE_V11G,
   scene,profile,pose,phase,
@@ -157,6 +167,7 @@ export function buildWarmveinGapeMotionV11g({
   fixedNeckRootSlopeWorld:0,
   skullRootSlopeWorld:Math.tan(tiltRad),
   skullRootRiseWorld:neckGuide(SKULL_ROOT_X,tiltRad).rise,
+  measuredSkullNeckTangentError:skullRootTangentError,
   realVideoTimingIsQualitativeNotMotionCapture:true,
   referenceUserVideoTime:'2026-11-08 21:16:20 video 22.3–26.6s',
   retainedBodyRoot:true,
