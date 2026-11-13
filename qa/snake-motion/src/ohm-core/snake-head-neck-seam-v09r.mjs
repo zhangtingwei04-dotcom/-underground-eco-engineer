@@ -511,3 +511,50 @@ export function inspectSnakeHeadNeckTransitionV09r({
   skinApplied:false,saveModified:false
  });
 }
+
+
+/** V0.9U adapter: weld the EXISTING V0.9R eight-ring neutral head
+ * onto an authenticated candidate V0.9T body WITHOUT re-projecting
+ * the old V0.9C adult pose. Caller must replay the real V0.9T frame.
+ */
+export function buildSnakeHeadNeckFromSizedSharedV09u({
+ shared,scene,terrain,headYawRad=0,headPitchRad=0
+}={}){
+ if(shared?.version!=='0.9U'||!shared.ok||
+  !shared.fromActualVariableSizedMotionV09t||
+  shared.mesh?.ringCount!==93||shared.mesh.radialSegments!==16||
+  !scene||!terrain||
+  !finite(headYawRad)||Math.abs(headYawRad)>.18||
+  !finite(headPitchRad)||Math.abs(headPitchRad)>.08)
+  throw new RangeError('v09u_invalid_sized_shared_head_input');
+ const head=generateHead({...shared,sourceTerrain:terrain},
+  headYawRad,headPitchRad);
+ const audit=headSceneSelfAudit(head,shared,scene,.0035);
+ if(!audit.ok)return F({...reject(
+  audit.sourceSceneBlocker??
+  (!audit.nonlocal3DHeadCapsulesClear?
+   'sized_head_nonlocal_collision':'sized_head_terrain_collision'),
+  shared.stageProgress),
+  version:'0.9U',sourceFrame:shared.sourceFrame,headCheck:audit});
+ const joined=unifiedIndexedHeadBody(head,shared);
+ if(!joined.seam.indexedSocketContinuous)
+  return F({...reject('sized_head_neck_socket_discontinuity',
+   shared.stageProgress),version:'0.9U'});
+ return F({version:'0.9U',ok:true,sourceFrame:shared.sourceFrame,
+  stageProgress:shared.stageProgress,lifeStage:shared.lifeStage,
+  headYawRad,headPitchRad,sharedBodyV09u:shared,
+  mesh:joined.mesh,collisionShell:joined.shell,
+  seam:joined.seam,headCheck:audit,
+  sourceHeadPoint:shared.posePoints[0],
+  sourceHeadRadius:head.radiusAtSocket,
+  headBodySeamCertified:true,
+  fromActualVariableSizedMotionV09t:true,
+  geometryOnlyNotAuthenticated:true,
+  bodyAndHeadSameActualSizedPose:true,
+  sourceSizeMotionAuthorized:false,
+  gameIntegrationAuthorized:false,
+  exactContinuous3DMeshSweepCertified:false,
+  biologicalHeadShapeCertified:false,
+  skinApplied:false,saveModified:false
+ });
+}
