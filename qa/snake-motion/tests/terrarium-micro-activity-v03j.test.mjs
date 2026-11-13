@@ -98,7 +98,7 @@ for(let i=0;i<5;i++){
  assert.ok(row.cues.every(x=>x.activityIsProxy));
  assert.equal(row.mossIsDecomposer,false);
  assert.equal(row.observationIsNotOrganismCount,true);
- assert.equal(row.shadowRateNotBiological,false);
+ assert.equal(row.shadowRatesAreSyntheticOnly,true);
  assert.equal(row.bacteriaIndexSyntheticOnly,bacteria[i]);
  assert.equal(row.photosyntheticPlantKind,
   source.base.biota.zones[i].plant.kind);
