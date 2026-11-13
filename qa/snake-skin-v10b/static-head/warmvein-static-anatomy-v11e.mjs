@@ -81,7 +81,7 @@ function lowerPoint(i,j,theta,side){
  const x=jawXAt(i),[w,,down,z]=shapeAt(x);
  const phi=2*Math.PI*j/C;
  const y=side*w*(.785+.13*Math.cos(phi));
- const jawZ=z-down*.37+down*.20*Math.sin(phi);
+ const jawZ=z-down*.40+down*.28*Math.sin(phi);
  return rotateLower([x,y,jawZ],theta,side);
 }
 function rotateLower(p,angle,side){
@@ -168,9 +168,22 @@ export function buildWarmveinStaticHeadV11d({pose='closed'}={}){
   const x=jawXAt(i),[w,,down,z]=shapeAt(x);
   const phi=Math.PI*j/16;
   const y=w*.70*Math.cos(phi);
-  const underside=z-down*(.49+.19*Math.sin(phi));
+  const underside=z-down*(.55+.21*Math.sin(phi));
   return rotateLower([x,y,underside],radians,Math.sign(y));
  },N,16,P.jaw,'curved_ventral_chin_skin');
+ // A tapered cheek-to-throat transition starts BEFORE the mouth hinge
+ // and gradually joins the moving ventral chin. The earlier hard step
+ // between the fixed neck and lower jaw looked like a glued-on hinge.
+ g.sheet((i,j)=>{
+  const t=i/16;
+  const x=JAW_START-.12+.17*t;
+  const [w,,down,z]=shapeAt(x),phi=Math.PI*j/18;
+  const y=w*.72*Math.cos(phi);
+  const lower=z-down*(.53+.19*Math.sin(phi));
+  const blend=t*t*(3-2*t);
+  return rotateLower([x,y,lower],radians*blend,Math.sign(y));
+ },16,18,P.ventral,'cheek_throat_flex_transition');
+
 
  // Recessed upper palate and moving interior lower mouth floor.
  g.sheet((i,j)=>{
@@ -220,7 +233,7 @@ export function buildWarmveinStaticHeadV11d({pose='closed'}={}){
  const smoothed=new Map();
  const smoothGroups=new Set(['cranial_vault','neck_volume','throat_chin',
   'left_mandible','right_mandible','anterior_chin_bridge',
-  'curved_ventral_chin_skin','recessed_oral_basin']);
+  'curved_ventral_chin_skin','cheek_throat_flex_transition','recessed_oral_basin']);
  for(let k=0;k<g.faceTags.length;k++){
   const group=g.faceTags[k];if(!smoothGroups.has(group))continue;
   const i=k*3,key=group+':'+g.vertices.slice(i,i+3)
@@ -283,6 +296,7 @@ export function buildWarmveinStaticHeadV11d({pose='closed'}={}){
   volumetricMandibleTube:true,
   continuousAnteriorChinBridge:true,
   curvedVentralChinSkin:true,
+  curvedCheekThroatTransition:true,
   noExposedBoneProngs:true,
   insetOralBasin:true,
   noFlatMandibleBoards:true,
