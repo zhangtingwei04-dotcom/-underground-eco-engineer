@@ -45,6 +45,8 @@ for(const pose of GAPE_POSES_V11F){
  assert.equal(h.curvedCheekThroatTransition,true);
  assert.equal(h.matchedNeckBodyRing44,true);
  assert.equal(h.smoothSharedNeckCrownNormals,true);
+ assert.equal(h.slightRestingNeckSCurve,true);
+ assert.equal(h.anchoredNeckBothEnds,true);
  assert.equal(h.physicallyCorrectedDorsalNormalDirection,true);
  assert.equal(h.neckBodyRoot.length,44);
  assert.equal(h.neckToHead.length,44);
