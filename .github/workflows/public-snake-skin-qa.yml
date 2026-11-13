@@ -86,6 +86,18 @@ jobs:
           path: qa/snake-skin-v10b/.qa-artifacts/v11c-static/*
           retention-days: 7
           if-no-files-found: warn
+      - name: Verify shortened V1.1D snout in 32 real Chrome WebGL2 angles
+        env:
+          OHM_CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+        run: node qa/snake-skin-v10b/tests/warmvein-static-coil-v11d-chrome.mjs
+      - name: Archive V1.1D short snout real GPU images and evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: public-warmvein-v11d-short-snout-32-views
+          path: qa/snake-skin-v10b/.qa-artifacts/v11d-static/*
+          retention-days: 7
+          if-no-files-found: warn
       - name: Keep actual GPU and browser screenshots
         if: always()
         uses: actions/upload-artifact@v4
