@@ -309,7 +309,9 @@ for(let i=0;i<22;i++){
  applied++;
 }
 assert.ok(applied>=1,
- 'roomy start should allow a small safe rest increment');
+ 'roomy start should allow a small safe rest increment; phase='+
+ small.phase+' reason='+blocked?.reason+
+ ' detail='+JSON.stringify(blocked?.detail));
 assert.ok(blocked,
  'the original source rock must block excessive extra growth');
 assert.ok(['rest_growth_source_contact_rejected',
