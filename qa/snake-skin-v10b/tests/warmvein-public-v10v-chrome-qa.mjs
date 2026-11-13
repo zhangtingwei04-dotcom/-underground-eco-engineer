@@ -159,6 +159,13 @@ if(bin)try{
   assert.equal(v.error,0,view.id+' WebGL error '+v.error);
   assert.equal(v.qa.v10uSameFrameQTTextureCompareMode,true);
   assert.equal(v.qa.v10uBothPanelsSameV10rMesh,true);
+  assert.equal(v.qa.v10xEyeOcclusionActive,true);
+  assert.equal(v.qa.v10xVisibleEyeCount,1,
+   view.id+' side-on head must show only near-side eye');
+  assert.equal(v.qa.v10xHiddenEyeCount,1,
+   view.id+' far-side GL eye sprite must be suppressed');
+  assert.equal(v.qa.v10xBothEyeAnchorsRemainTwo,true);
+  assert.equal(v.qa.v10xCameraDepthProjectionConsistent,true);
   assert.ok(v.left>64&&v.right>64,view.id+' two real GPU snake panels required');
   assert.ok(v.paired>64,view.id+' source mesh silhouette mismatch');
   assert.ok(v.changed>0,view.id+' same-frame Q/T GPU color difference not visible');
@@ -180,7 +187,9 @@ if(bin)try{
   screenshots+=2;
   console.log('PASS public real WebGL2 Q/T source-same-frame '+JSON.stringify({
    view:view.id,left:v.left,right:v.right,paired:v.paired,
-   colorDiffPixels:v.changed,realGPUBytes:gpu.length,browserBytes:full.length
+   colorDiffPixels:v.changed,visibleEyes:v.qa.v10xVisibleEyeCount,
+   hiddenEyes:v.qa.v10xHiddenEyeCount,
+   realGPUBytes:gpu.length,browserBytes:full.length
   }));
  }
  assert.equal(screenshots,4);
