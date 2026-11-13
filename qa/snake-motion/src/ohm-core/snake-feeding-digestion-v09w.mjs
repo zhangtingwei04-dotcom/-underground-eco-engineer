@@ -71,6 +71,7 @@ function offerInputs(input){
   ['normal','decreasing','unknown'].includes(input.bodyConditionTrend)&&
   ['normal','low'].includes(input.hydrationStatus)&&
   ['appropriate','incompatible','too_large'].includes(input.preyStatus)&&
+  ['preferred','neutral','disliked'].includes(input.preferenceStatus)&&
   typeof input.preShed==='boolean'&&
   typeof input.shedding==='boolean'&&
   typeof input.seasonalQuiet==='boolean'&&
@@ -82,7 +83,8 @@ function offerInputs(input){
 const defaultOffer=F({
  thermalStatus:'optimal',disturbance:'normal',
  bodyConditionTrend:'normal',hydrationStatus:'normal',
- preyStatus:'appropriate',preShed:false,shedding:false,
+ preyStatus:'appropriate',preferenceStatus:'neutral',
+ preShed:false,shedding:false,
  seasonalQuiet:false,breedingContext:false,
  additionalConcerningSigns:false,mealEnergy:14
 });
@@ -97,6 +99,11 @@ function evaluateRefusal(state,context,offerId){
   refused:true,code:'environment_not_suitable',probability:1,roll:null});
  const risks=[];
  let chance=.10;
+ // Neutral engineering fixture, not measured palatability data.
+ if(context.preferenceStatus==='preferred')chance-=.06;
+ if(context.preferenceStatus==='disliked'){
+  chance+=.28;risks.push('individual_food_preference');
+ }
  if(state.energyReserve>22){chance+=.35;risks.push('low_immediate_appetite');}
  if(context.preShed||context.shedding){
   chance+=.73;risks.push('pre_shed_or_shedding');
