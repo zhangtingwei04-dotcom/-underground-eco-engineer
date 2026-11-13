@@ -14,16 +14,16 @@
 export const WARMVEIN_STATIC_GAPE_V11A='1.1A';
 export const MOUTH_POSES_V11A=Object.freeze([
  Object.freeze({id:'closed',label:'閉嘴',degrees:0}),
- Object.freeze({id:'slight',label:'微張',degrees:12}),
- Object.freeze({id:'medium',label:'中張',degrees:31}),
- Object.freeze({id:'wide',label:'大張',degrees:52})
+ Object.freeze({id:'slight',label:'微張',degrees:9}),
+ Object.freeze({id:'medium',label:'中張',degrees:25}),
+ Object.freeze({id:'wide',label:'大張',degrees:46})
 ]);
 const F=Object.freeze;
 const T=Math.PI*2;
 const palette=F({
- cranium:F([.51,.44,.35]),neck:F([.45,.40,.33]),
- lowerJaw:F([.53,.46,.38]),lip:F([.32,.25,.22]),
- lining:F([.39,.13,.19]),palate:F([.30,.105,.14]),
+ cranium:F([.60,.53,.44]),neck:F([.54,.47,.39]),
+ lowerJaw:F([.59,.52,.43]),lip:F([.36,.27,.24]),
+ lining:F([.28,.095,.12]),palate:F([.22,.073,.105]),
  tongue:F([.66,.23,.33]),eye:F([.045,.033,.029]),
  eyeRim:F([.27,.155,.09]),eyeglint:F([.90,.84,.68]),
  nostril:F([.065,.047,.037]),belly:F([.64,.58,.49])
@@ -37,10 +37,10 @@ const length=v=>Math.hypot(...v);
 const unit=v=>mul(v,1/Math.max(1e-10,length(v)));
 const clamp=(x,a,b)=>Math.min(b,Math.max(a,x));
 const sizeStops=F([
- [-.46,.080,.081],[-.33,.084,.083],[-.23,.099,.087],
- [-.10,.107,.089],[.02,.110,.090],[.13,.102,.080],
- [.24,.087,.067],[.35,.067,.052],[.45,.041,.038],
- [.52,.014,.018]
+ [-.26,.074,.069],[-.22,.080,.074],[-.17,.092,.082],
+ [-.10,.101,.088],[-.04,.108,.086],[.04,.106,.082],
+ [.10,.096,.076],[.16,.077,.065],[.23,.050,.045],
+ [.28,.013,.021]
 ].map(x=>F(x)));
 function sizeAt(x){
  for(let i=1;i<sizeStops.length;i++){
@@ -54,15 +54,15 @@ function sizeAt(x){
  }
  return sizeStops.at(-1).slice(1);
 }
-const headX=F(Array.from({length:37},(_,i)=>-.46+i*(.98/36)));
+const headX=F(Array.from({length:37},(_,i)=>-.26+i*(.54/36)));
 function transformLower([x,y,z],angle){
- const pivotX=-.34,pivotZ=-.012;
+ const pivotX=-.21,pivotZ=-.008;
  const dx=x-pivotX,dz=z-pivotZ;
  const c=Math.cos(angle),s=Math.sin(angle);
  const spread=Math.sin(angle)*.014;
  return [
   pivotX+dx*c+dz*s,
-  y+(Math.sign(y)||0)*spread*Math.pow(clamp(dx/.85,0,1),1.15),
+  y+(Math.sign(y)||0)*spread*Math.pow(clamp(dx/.52,0,1),1.15),
   pivotZ-dx*s+dz*c
  ];
 }
@@ -116,9 +116,9 @@ function neckTube(g){
  // A real hollow-looking neck is continuous with the same head socket,
  // but this STATIC artist mock is deliberately not the V0.9U source mesh.
  const path=[
-  [-1.42,-.08,-.025,.090],[-1.20,-.055,-.015,.091],
-  [-.98,-.020,-.010,.088],[-.76,0,0,.084],
-  [-.55,0,0,.081],[-.46,0,0,.080]
+  [-1.36,-.08,-.025,.091],[-1.09,-.055,-.015,.088],
+  [-.81,-.020,-.010,.086],[-.58,0,0,.082],
+  [-.36,0,0,.077],[-.26,0,.004,.074]
  ];
  const point=(i,j)=>{
   const p=path[i],t=T*j/16;
@@ -175,9 +175,9 @@ export function buildWarmveinStaticGapeV11a({pose='closed'}={}){
   for(let i=0;i<headX.length-1;i++){
    const x=headX[i],next=headX[i+1];
    const w=sizeAt(x)[0],ww=sizeAt(next)[0];
-   const p=[x,side*w,.006],q=[next,side*ww,.006];
-   const a=transformLower([x,side*w,.010],angle);
-   const b=transformLower([next,side*ww,.010],angle);
+   const p=[x,side*w*.69,.006],q=[next,side*ww*.69,.006];
+   const a=transformLower([x,side*w*.69,.010],angle);
+   const b=transformLower([next,side*ww*.69,.010],angle);
    // Even when closed the lining is a slender concealed labial strip.
    g.quad(p,q,b,a,palette.lining,'stretching_labial_membrane');
   }
@@ -185,21 +185,21 @@ export function buildWarmveinStaticGapeV11a({pose='closed'}={}){
  // Two anchored eyes. Surface occlusion is handled by the renderer's
  // actual depth buffer, not by painting missing far-side eye pixels.
  for(const side of [-1,1]){
-  const x=.010,w=sizeAt(x)[0];
-  const c=[x,side*(w*.88),.079];
+  const x=-.035,w=sizeAt(x)[0];
+  const c=[x,side*(w*.88),.084];
   sphere(g,c,.020,palette.eyeRim,'eye_socket');
   sphere(g,[c[0]+.004,c[1]+side*.011,c[2]+.001],
    .012,palette.eye,'eye_iris');
   sphere(g,[c[0]+.008,c[1]+side*.019,c[2]+.007],
    .003,palette.eyeglint,'eye_glint',5,8);
-  const n=[.426,side*.029,.045];
+  const n=[.228,side*.025,.043];
   sphere(g,n,.0043,palette.nostril,'nostril',6,9);
  }
  // Simple forked tongue is present only in wide/static jaw inspection,
  // not as a claim about a snake's yawn or swallowing behavior.
  // It will be added later if the surrounding oral geometry passes.
  neckTube(g);
- const gapeAtMuzzleWorld=.012-transformLower([.35,0,.010],angle)[2];
+ const gapeAtMuzzleWorld=.012-transformLower([.20,0,.010],angle)[2];
  const points=g.vertices.length/3;
  if(points<3000||points%3!==0)throw Error('v11a_empty_or_bad_static_geometry');
  const bounds={
