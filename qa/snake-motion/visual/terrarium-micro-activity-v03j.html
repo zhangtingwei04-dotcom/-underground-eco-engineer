@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ECO V0.3j｜生態箱微型生物觀察・中立測試</title>
+<style>
+:root{color-scheme:dark;--bg:#101a18;--panel:#1d2a25;--card:#27372e;--border:#4c5945;--ink:#ecdfbc;--muted:#bdc5ae;--gold:#dbad67;--leaf:#b6d48e;--soil:#bb8f67}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 60% -30%,#374d39,transparent 58%),var(--bg);color:var(--ink);font:15px/1.55 system-ui,-apple-system,"Noto Sans TC",sans-serif}
+main{width:min(1230px,100%);margin:auto;padding:18px}
+header{display:flex;align-items:end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:14px}
+h1{font-size:clamp(19px,3vw,29px);line-height:1.25;margin:0;letter-spacing:.03em}
+h2{font-size:17px;margin:0 0 11px}
+small,.note{color:var(--muted)}.tag{font-size:11px;border:1px solid var(--border);color:var(--leaf);border-radius:99px;padding:5px 10px;white-space:nowrap}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+button{border:1px solid var(--gold);border-radius:8px;background:#493b2c;color:#fff1d7;padding:10px 14px;font:inherit;font-size:14px;cursor:pointer}
+button.secondary{border-color:var(--border);background:#25382f}button:focus-visible{outline:3px solid var(--leaf);outline-offset:2px}
+.shell{background:var(--panel);border:1px solid var(--border);border-radius:15px;overflow:hidden;box-shadow:0 15px 34px #0005}
+.canvas-wrap{position:relative;overflow-x:auto;scrollbar-color:var(--border) transparent}
+canvas{width:100%;min-width:620px;height:auto;display:block;image-rendering:pixelated;background:#1b2822}
+.canvas-hint{padding:10px 14px;border-top:1px solid var(--border);font-size:12px;color:var(--muted)}
+.legend{display:flex;gap:12px;flex-wrap:wrap;margin:10px 0 16px;font-size:12px;color:var(--muted)}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px}.a{background:#c48f5e}.b{background:#e2dfc5}.c{background:#bad7ae}
+.summary{display:flex;gap:16px;flex-wrap:wrap;background:#26392d;border:1px solid var(--border);padding:13px 15px;border-radius:11px;margin:12px 0 18px}.summary strong{color:var(--leaf)}
+.zones{display:grid;grid-template-columns:repeat(5,minmax(160px,1fr));gap:10px}
+.zone{background:var(--card);border:1px solid var(--border);border-radius:11px;padding:12px;min-width:0}
+.zone h3{margin:0 0 6px;font-size:15px;color:#e6c58a}
+.zone .states{font-size:12px;min-height:72px}
+.zone .row{display:flex;justify-content:space-between;gap:8px;border-bottom:1px solid #ffffff17;padding:4px 0;font-size:12px}
+.zone .old{color:#c6d3bb}.zone .new{color:#eed19c;font-weight:650}
+.zone .range{font-size:11px;color:var(--muted);margin-top:7px}
+.explain{margin:20px 0 24px;padding:15px 18px;background:#18241f;border-left:3px solid var(--gold);border-radius:4px}
+.explain p{margin:8px 0}.explain code{background:#2b3d32;border-radius:4px;padding:1px 4px}
+footer{font-size:12px;color:var(--muted);padding:10px 0}
+@media(max-width:920px){.zones{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:490px){main{padding:12px}.zones{grid-template-columns:1fr}.summary{gap:8px}}
+</style>
+</head>
+<body>
+<main>
+<header><div><h1>地下生態箱｜微型生物觀察</h1><small>ECO V0.3j · 公開中立開發預覽 · 非正式遊戲</small></div><span class="tag">5 區・共用 V0.3d 生態來源</span></header>
+<nav class="actions" aria-label="開發模式測試控制">
+<button id="step" type="button">模擬 +1 小時</button>
+<button id="disturb" class="secondary" type="button" aria-pressed="false">干擾測試：關</button>
+<button id="pause" class="secondary" type="button" aria-pressed="false">暫停動態</button>
+<button id="reset" class="secondary" type="button">重置測試</button>
+</nav>
+<section class="shell" aria-label="五區生態箱中立活動預覽">
+<div class="canvas-wrap"><canvas id="world" width="1120" height="330" role="img" aria-label="五區有機底材、鼠婦落葉取食、跳蟲活動與菌絲線索的像素風示意。各生物標記只作開發示意，並非真正個體位置或數量。"></canvas></div>
+<div class="canvas-hint">橫式預覽；畫面裡的鼠婦、跳蟲及菌絲是生態活動提示，不是真正獨立 AI 個體。動畫不推進遊戲時間。</div>
+</section>
+<div class="legend" aria-label="活動標記圖例"><span><i class="dot a"></i>鼠婦・碎屑取食</span><span><i class="dot b"></i>跳蟲・微型消費</span><span><i class="dot c"></i>菌絲・微生物分解</span></div>
+<div class="summary" id="summary" aria-live="polite">正在讀取本機中立生態測試資料…</div>
+<h2>五區有機物對照（V0.3a 原模型／V0.3h 候選模型）</h2>
+<section class="zones" id="zones" aria-label="五區生態資料"></section>
+<section class="explain">
+<h2>這個頁面正在驗證什麼？</h2>
+<p>「落葉 → 碎屑 → 處理後有機物」是 <strong>工程代理池</strong>。鼠婦視覺提示落葉取食；菌絲提示微生物分解；跳蟲提示攝食微生物或腐植。真正的細菌不必畫成逐隻精靈。</p>
+<p>上方「+1 小時」只推進這個頁面內的<strong>測試副本</strong>。原 V0.3d/V0.3a 的光照、水量、時間及有機物帳仍是唯一權威；V0.3h 候選模型只作對照，<strong>不會被加總或寫入正式玩家存檔</strong>。</p>
+<p>目前的動作是來源狀態驅動的<strong>八幀循環像素提示</strong>，不是可用於真實飼養的數據、病菌診斷、精確個體動態或生態系完全自淨保證。玩家不需要每日進行清潔任務。</p>
+</section>
+<footer>OpenAI × Project OHM technical QA · no external scripts, no accounts, no save, no analytics; local debug fixture only.</footer>
+</main>
+<script type="module" src="./terrarium-micro-activity-v03j.mjs"></script>
+</body>
+</html>
