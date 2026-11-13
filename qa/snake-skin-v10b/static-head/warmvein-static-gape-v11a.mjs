@@ -72,7 +72,9 @@ function ringUpper(x,j,n=16){
 }
 function ringLower(x,j,angle,n=16){
  const [w,h]=sizeAt(x),t=Math.PI*j/n;
- const u=[x,w*Math.cos(t),.010-h*.66*Math.sin(t)];
+ const rear=clamp((.04-x)/.30,0,1);
+ const jawDepth=.66+.34*rear;
+ const u=[x,w*Math.cos(t),.010-h*jawDepth*Math.sin(t)];
  return transformLower(u,angle);
 }
 function builder(){
@@ -111,6 +113,18 @@ function sphere(g,center,r,color,tag,latN=8,lonN=12){
   return point(ii,j);
  };
  g.uvSurface(safe,latN,lonN,color,tag);
+}
+function ellipsoid(g,center,radii,color,tag,latN=9,lonN=12){
+ const point=(i,j)=>{
+  const phi=-Math.PI/2+Math.PI*Math.max(.003,Math.min(latN-.003,i))/latN;
+  const theta=T*j/lonN;
+  return [
+   center[0]+radii[0]*Math.cos(phi)*Math.cos(theta),
+   center[1]+radii[1]*Math.cos(phi)*Math.sin(theta),
+   center[2]+radii[2]*Math.sin(phi)
+  ];
+ };
+ g.uvSurface(point,latN,lonN,color,tag);
 }
 function neckTube(g){
  // A real hollow-looking neck is continuous with the same head socket,
@@ -170,14 +184,18 @@ export function buildWarmveinStaticGapeV11a({pose='closed'}={}){
   const z=.004-.009*(1-(y/w)**2);
   return transformLower([x,y,z],angle);
  },headX.length-1,12,palette.lining,'inner_floor');
- // Elastic side lining between roof / moving left-and-right lips.
+ // The folds join only at the posterior mouth corner. Filling the
+ // ENTIRE gape with a solid triangular burgundy sheet made an obvious
+ // non-anatomical sail in genuine Chrome screenshots, so front gape
+ // remains an actual open cavity with recessed palate and mouth floor.
  for(const side of [-1,1]){
   for(let i=0;i<headX.length-1;i++){
    const x=headX[i],next=headX[i+1];
+   if(x>-.065)continue;
    const w=sizeAt(x)[0],ww=sizeAt(next)[0];
-   const p=[x,side*w*.69,.006],q=[next,side*ww*.69,.006];
-   const a=transformLower([x,side*w*.69,.010],angle);
-   const b=transformLower([next,side*ww*.69,.010],angle);
+   const p=[x,side*w*.78,.006],q=[next,side*ww*.78,.006];
+   const a=transformLower([x,side*w*.78,.010],angle);
+   const b=transformLower([next,side*ww*.78,.010],angle);
    // Even when closed the lining is a slender concealed labial strip.
    g.quad(p,q,b,a,palette.lining,'stretching_labial_membrane');
   }
@@ -186,12 +204,14 @@ export function buildWarmveinStaticGapeV11a({pose='closed'}={}){
  // actual depth buffer, not by painting missing far-side eye pixels.
  for(const side of [-1,1]){
   const x=-.035,w=sizeAt(x)[0];
-  const c=[x,side*(w*.88),.084];
-  sphere(g,c,.020,palette.eyeRim,'eye_socket');
-  sphere(g,[c[0]+.004,c[1]+side*.011,c[2]+.001],
-   .012,palette.eye,'eye_iris');
-  sphere(g,[c[0]+.008,c[1]+side*.019,c[2]+.007],
-   .003,palette.eyeglint,'eye_glint',5,8);
+  const c=[x,side*(w*.90),.078];
+  // Low-profile lenses embedded in the real head volume rather than
+  // protruding spherical knobs that were plainly wrong front-on.
+  ellipsoid(g,c,[.016,.0045,.013],palette.eyeRim,'eye_socket');
+  ellipsoid(g,[c[0]+.003,c[1]+side*.003,c[2]+.0005],
+   [.011,.003,.010],palette.eye,'eye_iris');
+  ellipsoid(g,[c[0]+.006,c[1]+side*.005,c[2]+.004],
+   [.0025,.001,.0025],palette.eyeglint,'eye_glint',6,9);
   const n=[.228,side*.025,.043];
   sphere(g,n,.0043,palette.nostril,'nostril',6,9);
  }
