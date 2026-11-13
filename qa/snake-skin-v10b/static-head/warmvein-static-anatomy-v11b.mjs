@@ -12,7 +12,7 @@ export const GAPE_POSES_V11B=Object.freeze([
 const P={
  skull:[.61,.53,.43],neck:[.54,.48,.39],jaw:[.60,.53,.44],
  ventral:[.75,.68,.57],lip:[.39,.32,.27],palate:[.21,.10,.13],
- cavity:[.32,.11,.17],iris:[.077,.047,.030],eyeRim:[.35,.23,.14],
+ cavity:[.28,.17,.18],iris:[.077,.047,.030],eyeRim:[.35,.23,.14],
  highlight:[.83,.72,.55],nostril:[.065,.044,.037]
 };
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x)),S=Math.PI*2;
@@ -23,9 +23,9 @@ const nodes=[
  [-.05,.112,.080,.062,.121],[.03,.105,.076,.059,.122],
  [.11,.089,.066,.055,.121],[.19,.067,.052,.045,.121],
  [.26,.043,.037,.032,.120],[.315,.020,.022,.021,.119],
- [.334,.008,.011,.016,.118]
-];
-const START=-.67,JAW_START=-.265,END=.334,N=48,C=22;
+ [.334,.016,.017,.019,.118]
+].map(n=>[n[0]>-.25?-.25+(n[0]+.25)*.72:n[0],...n.slice(1)]);
+const START=-.67,JAW_START=-.265,END=.17048,N=48,C=22;
 const jawXAt=i=>JAW_START+(END-JAW_START)*i/N;
 function shapeAt(x){
  for(let i=1;i<nodes.length;i++){
@@ -118,7 +118,7 @@ export function buildWarmveinStaticHeadV11b({pose='closed'}={}){
  },N,14,P.palate,'upper_palate');
  g.sheet((i,j)=>{
   const x=jawXAt(i),[w,,down,z]=shapeAt(x),u=j/14*2-1;
-  return rotateLower([x,u*w*.90,z-.010-(1-u*u)*down*.18],
+  return rotateLower([x,u*w*.72,z-.010-(1-u*u)*down*.18],
    radians,Math.sign(u));
  },N,14,P.cavity,'oral_floor');
  // Suppress the giant triangular oral sail. The small flexible
@@ -140,14 +140,14 @@ export function buildWarmveinStaticHeadV11b({pose='closed'}={}){
  },R,C,P.neck,'neck_volume');
  // Narrow, inset, low profile eyes: actual 3D camera depth occludes far eye.
  for(const sign of [-1,1]){
-  const x=-.082,[w,top,,z]=shapeAt(x);
+  const x=-.12904,[w,top,,z]=shapeAt(x);
   const eyeCenter=[x,sign*w*.745,z+top*.65];
   ellipsoid(g,eyeCenter,[.020,.006,.013],P.eyeRim,'eye_rim');
   ellipsoid(g,[x+.002,eyeCenter[1]+sign*.005,eyeCenter[2]+.001],
    [.014,.004,.009],P.iris,'eye_iris');
   ellipsoid(g,[x+.007,eyeCenter[1]+sign*.008,eyeCenter[2]+.005],
    [.0028,.0015,.0023],P.highlight,'eye_glint',9,7);
-  const snoutX=.238,[nw,nh,,nz]=shapeAt(snoutX);
+  const snoutX=.10136,[nw,nh,,nz]=shapeAt(snoutX);
   ellipsoid(g,[snoutX,sign*nw*.84,nz+nh*.38],
    [.0055,.0028,.004],P.nostril,'nostril',10,7);
  }
@@ -177,7 +177,7 @@ export function buildWarmveinStaticHeadV11b({pose='closed'}={}){
   bounds.min[j]=Math.min(bounds.min[j],g.vertices[k+j]);
   bounds.max[j]=Math.max(bounds.max[j],g.vertices[k+j]);
  }
- const distal=rotateLower([.24,0,shapeAt(.24)[3]-.003],radians,0);
+ const distal=rotateLower([.1028,0,shapeAt(.1028)[3]-.003],radians,0);
  return Object.freeze({
   version:WARMVEIN_STATIC_HEAD_V11B,pose,gapeDegrees:p.degrees,
   vertexCount,triangleCount:vertexCount/3,
