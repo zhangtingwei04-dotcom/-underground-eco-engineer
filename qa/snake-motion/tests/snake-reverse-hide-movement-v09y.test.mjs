@@ -82,8 +82,13 @@ assert.equal(partial.headInside,true);
 assert.equal(partial.tailInside,false);
 assert.equal(partial.fullBodyShelteredCandidate,false);
 assert.equal(partial.headOnlyArrivalRejected,true);
+const adultForRoof=startSnakeVariableSizeMotionV09t({
+ canonicalSourcePose:canonicalPose,scene,terrain,
+ stageProgress:2,speedWorldPerSecond:.17
+});
+assert.equal(adultForRoof.phase,'moving_sized');
 const lowRoof=inspectSnakeWholeMeshHideV09y({
- sizedState:source0,scene,terrain,shelter:F({...shelter,
+ sizedState:adultForRoof,scene,terrain,shelter:F({...shelter,
   id:'false_too_low',roofZ:.15})
 });
 assert.equal(lowRoof.ok,true);
