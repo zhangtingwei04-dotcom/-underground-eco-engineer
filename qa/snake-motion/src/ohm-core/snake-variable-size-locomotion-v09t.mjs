@@ -588,7 +588,7 @@ export function inspectSnakeReverseStepV09y({
   maximumJointStepWorld:maximumStep,
   realBackwardHeadMotion:isReverse,
   fullBody23LinksUpdated:true,
-  3DSourceCapsuleProxyOnly:true,
+  source3DCapsuleProxyOnly:true,
   continuousMeshCollisionCertified:false,
   gameSaveModified:false,skinApplied:false});
 }
