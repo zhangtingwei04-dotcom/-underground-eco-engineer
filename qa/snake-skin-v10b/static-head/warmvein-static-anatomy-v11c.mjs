@@ -10,7 +10,7 @@ export const GAPE_POSES_V11C=Object.freeze([
  {id:'medium',degrees:25},{id:'wide',degrees:46}
 ].map(Object.freeze));
 const P={
- skull:[.61,.53,.43],neck:[.54,.48,.39],jaw:[.60,.53,.44],
+ skull:[.61,.53,.43],neck:[.61,.53,.43],jaw:[.60,.53,.44],
  ventral:[.75,.68,.57],lip:[.39,.32,.27],palate:[.21,.10,.13],
  cavity:[.28,.17,.18],iris:[.077,.047,.030],eyeRim:[.35,.23,.14],
  highlight:[.83,.72,.55],nostril:[.065,.044,.037]
@@ -22,8 +22,8 @@ const nodes=[
  [-.25,.095,.079,.065,.120],[-.15,.111,.084,.068,.121],
  [-.05,.112,.080,.062,.121],[.03,.105,.076,.059,.122],
  [.11,.089,.066,.055,.121],[.19,.067,.052,.045,.121],
- [.26,.043,.037,.032,.120],[.315,.020,.022,.021,.119],
- [.334,.016,.017,.019,.118]
+ [.26,.048,.041,.035,.120],[.315,.031,.032,.028,.119],
+ [.334,.025,.027,.024,.118]
 ].map(n=>[n[0]>-.25?-.25+(n[0]+.25)*.72:n[0],...n.slice(1)]);
 const START=-.67,JAW_START=-.265,END=.17048,N=48,C=22;
 const jawXAt=i=>JAW_START+(END-JAW_START)*i/N;
@@ -70,7 +70,7 @@ function lowerPoint(i,j,theta,side){
  // two stiff surfaces, not actual side-specific jaw branches.
  const x=jawXAt(i),[w,,down,z]=shapeAt(x);
  const phi=-Math.PI/2+Math.PI*j/(C/2);
- const y=side*w*(.56+.38*Math.cos(phi));
+ const y=side*w*(.60+.35*Math.cos(phi));
  const depth=.18+.70*(.5+.5*Math.sin(phi));
  return rotateLower([x,y,z-down*depth],theta,side);
 }
@@ -82,7 +82,9 @@ function rotateLower(p,angle,side){
  const bend=angle*(.28+.72*e);
  const c=Math.cos(bend),s=Math.sin(bend);
  const spread=(side||Math.sign(p[1]))*.0065*Math.sin(angle)*e;
- return [pivotX+dx*c+dz*s,p[1]+spread,pivotZ-dx*s+dz*c];
+ // A slight soft chin bow prevents the mouth from reading as a hinge plate.
+ const arc=-.014*Math.sin(Math.PI*t)*Math.sin(angle);
+ return [pivotX+dx*c+dz*s,p[1]+spread,pivotZ-dx*s+dz*c+arc];
 }
 function ellipsoid(g,center,r,color,tag,segments=12,rings=8){
  function spherePt(i,j){
@@ -127,8 +129,9 @@ export function buildWarmveinStaticHeadV11c({pose='closed'}={}){
  g.sheet((i,j)=>{
   const x=jawXAt(i),[w,,down,z]=shapeAt(x),u=j/14*2-1;
   const cheek=clamp(Math.abs(u),0,1);
-  const low=[x,u*w*(.56+.22*cheek),
-   z-down*(.13+.12*(1-u*u))];
+  const low=[x,u*w*(.49+.13*cheek),
+   z-down*(.13+.13*(1-u*u))-.007*(1-u*u)*
+    Math.sin(Math.PI*clamp((x-JAW_START)/(END-JAW_START),0,1))];
   return rotateLower(low,radians,Math.sign(u));
  },N,14,P.cavity,'oral_floor');
  // Suppress the giant triangular oral sail. The small flexible
