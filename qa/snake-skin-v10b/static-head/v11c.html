@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>歐姆｜V1.1C 真蛇影片參考・靜態蛇頭與顎部外形實驗室</title>
+<style>
+*{box-sizing:border-box}
+body{background:#151b1b;color:#ede3cf;margin:0;font:16px/1.55 system-ui,-apple-system,"Noto Sans TC",sans-serif}
+main{max-width:1160px;padding:14px;margin:auto}
+h1{font-size:clamp(22px,3.5vw,32px);line-height:1.3;margin:10px 0}
+h2{font-size:18px;margin:8px 0}
+p{margin:10px 0}
+.note{color:#c7baa2}
+.hero{position:relative;border-radius:12px;border:7px solid #574b37;overflow:hidden;background:#161a1b}
+canvas{display:block;width:100%;height:auto;aspect-ratio:1100/660}
+.state{position:absolute;top:14px;left:14px;right:14px;pointer-events:none;color:#ffe8b4;font-size:14px;text-shadow:0 1px 6px #000}
+fieldset{display:flex;gap:12px;flex-wrap:wrap;align-items:center;border:1px solid #465957;border-radius:10px;margin:12px 0;padding:12px}
+label{display:flex;align-items:center;gap:8px}
+button,select{font:inherit;background:#33433d;color:#fff2d5;border:1px solid #8c9b7d;border-radius:7px;padding:9px 10px}
+button{cursor:pointer}
+.status{border-left:3px solid #dfba7d;background:#222d2b;padding:10px 14px}
+small{color:#c7baa2}
+a{color:#e5c28b}
+</style>
+</head>
+<body>
+<main>
+<p class="note">公開實驗・PROJECT OHM・暖脈枝蛇 V1.1C・真蛇張口參考／靜態優先</p>
+<h1>從真蛇張嘴影格，修正靜態顎部外形</h1>
+<p class="note">依使用者 11 月 8 日原始真蛇影片張嘴前、中、後的畫面進行幾何改良：兩側顎部個別建模，口角相對穩定、吻端張幅增加。可驗收完整休息盤繞與頭部近景；不從 Meshy／Tripo 下載模型。本版仍未經美術驗收。</p>
+<div class="hero">
+<canvas id="render" width="1100" height="660" aria-label="V1.1C 真 3D 靜態完整蛇身與張嘴頭型"></canvas>
+<div class="state">獨立原創造型實驗｜不是正式遊戲骨架或已驗收作品</div>
+</div>
+<fieldset>
+<label for="model">檢視
+<select id="model">
+<option value="coil" selected>完整靜態盤繞蛇身</option>
+<option value="head">蛇頭和口腔近景</option>
+</select></label>
+<label for="pose">口型
+<select id="pose">
+<option value="closed">閉嘴（0°）</option>
+<option value="slight">微張（9°）</option>
+<option value="medium">中張（25°）</option>
+<option value="wide">大張（46°）</option>
+</select></label>
+<label for="angle">攝影機
+<select id="angle">
+<option value="side">側面</option>
+<option value="quarter">斜側面</option>
+<option value="front">正面</option>
+<option value="elevated">略俯視</option>
+</select></label>
+<button id="save" type="button">儲存真 WebGL2 靜態畫面 PNG</button>
+</fieldset>
+<p class="status" id="summary" role="status">準備 V1.1C 真實 3D 靜態幾何...</p>
+<h2>目前的工程範圍</h2>
+<p>沿用自製完整靜態盤繞蛇身（120 個截面），改善少量非對稱曲線，重做左右下顎弧面及口角附近的顯示彎曲。影片證明外形變化方向，不等於已量測真實生物力學。仍未接入正式的 24 節動作骨架與像素皮。</p>
+<p><strong>不通過就繼續修：</strong>頭不像蛇、眼睛突出、張嘴後變空洞、上下顎分離不自然、側面遠側眼穿幫、多角度看起來像塑膠玩具，都視為美術失敗；不能只因程式測試通過就宣稱完成。</p>
+<p><small>科學參考：<a href="https://www.nhm.ac.uk/discover/snakes-senses-stretchy-jaws-deadly-venom.html">英國自然史博物館：蛇類顎部</a>、<a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC13148632/">玉米蛇下顎接合與張口活動研究</a>。實際張嘴不是下巴「脫臼」。</small></p>
+<p><small>可以切回 <a href="./index.html">V1.1A 舊造型</a>作比較；新版本不會覆蓋舊版。</small></p>
+<p><small>對照資料：<a href="./V11C_REAL_SNAKE_GAPE_VIDEO_REFERENCES_20261114.md">V1.1C 真蛇張嘴參考記錄</a>（不公開他人的影片），<a href="./v11b.html">前一版 V1.1B</a>。</small></p>
+<script type="module" src="./v11c-viewer.mjs"></script>
+</main>
+</body>
+</html>
