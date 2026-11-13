@@ -290,9 +290,20 @@ let small=createSnakeRestGrowthSessionV09v({
  motionState:short,scene:tight,terrain
 });
 assert.equal(small.phase,'moving');
-small=accumulateSnakeGrowthPotentialV09v({
+const excessiveBatch=accumulateSnakeGrowthPotentialV09v({
  session:small,amount:.24
-}).session;
+});
+assert.equal(excessiveBatch.ok,false,
+ 'large instantaneous growth increment must be refused');
+assert.equal(excessiveBatch.session,small);
+for(const amount of [.08,.08,.08]){
+ const batch=accumulateSnakeGrowthPotentialV09v({
+  session:small,amount
+ });
+ assert.equal(batch.ok,true);
+ small=batch.session;
+}
+assert.ok(Math.abs(small.pendingGrowth-.24)<1e-9);
 small=enterSnakeGrowthRestV09v({
  session:small,scene:tight,terrain
 }).session;
