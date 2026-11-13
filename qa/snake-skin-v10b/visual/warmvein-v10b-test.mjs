@@ -619,7 +619,11 @@ function render(){
   originalHead.y+.56*originalHead.z-.07+
   nose.y+.56*nose.z-.07):0;
  const halfWidth=headFocus?headRadius*3.4:fullHalfWidth;
- const verticalHalf=headFocus?.54*halfWidth/fullHalfWidth:.54;
+ // V1.0Y CAMERA FIX: project the same WORLD unit to the same pixel
+ // length in x and y. Previous hardcoded .54 made split screens 3x
+ // taller than wide in scale, artificially inflating the skull.
+ const cameraPanelWidth=sameFrameSplit()?Math.floor(canvas.width/2):canvas.width;
+ const verticalHalf=halfWidth*canvas.height/cameraPanelWidth;
  gl.viewport(0,0,canvas.width,canvas.height);
  gl.disable(gl.SCISSOR_TEST);
  gl.clearColor(0,0,0,0);
@@ -1206,6 +1210,8 @@ window.__warmveinV10bQA=()=>F({
  v10yNoPhysicalColliderOrSaveChanges:latestNaturalHead?.original24JointsAndColliderUnchanged??true,
  v10yVisualHeadVerticesChanged:latestNaturalHead?.modifiedHeadVertices??0,
  v10yEyeDiameterMeasuredPx:eyeDebug?.eyes.map(e=>e.pointSizePx)??[],
+ v10yWorldUnitsIsotropicXyCamera:true,
+ v10yAspectRatioDisplayOnly:true,
  v10wDisplayOnlyTailTaperActive:Boolean(latestVisualTaper),
  v10wRendererOnlySourceUntouched:latestVisualTaper?.noSourcePhysicsModified??true,
  v10wMidTrunkRelativeRadius:latestVisualTaper?.middleBodyRelativeRadius??null,
